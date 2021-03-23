@@ -17,14 +17,60 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES
+import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES_AND_NO_SAVE
+
 class UrlMappings {
 
     static mappings = {
         // provide plugin url mappings here
 
-        group '/api/nhsdd', {
+        group "/api/nhsdd/$branchName", {
 
-            get "/statistics/${branchName}"(controller: 'NhsDataDictionary', action: 'statistics')
+            get '/statistics' (controller: 'NhsDataDictionary', action: 'statistics')
+            get '/integrityChecks' (controller: 'NhsDataDictionary', action: 'integrityChecks')
+
+            group '/publish', {
+
+                get '/dita' (controller: 'NhsDataDictionary', action: 'publishDita')
+
+                // More endpoints to control publication to OntoServer
+
+            }
+
+            group '/preview', {
+
+                get '/allItemsIndex' (controller: 'NhsDataDictionary', action: 'allItemsIndex')
+
+                '/dataElements' (resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+
+                '/attributes' (resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+
+                '/classes' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+
+                '/dataSets' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+                '/businessDefinitions' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+
+                '/supportingInformation' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+
+                '/xmlSchemaConstraint' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+
+                }
+
+            }
+
 
         }
     }
