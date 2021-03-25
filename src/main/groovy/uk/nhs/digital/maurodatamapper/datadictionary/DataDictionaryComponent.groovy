@@ -67,7 +67,7 @@ abstract class DataDictionaryComponent<C extends CatalogueItem> {
             "item_mro",
             "element_attributes"
     ]
-    Map<String, String> aliasFields = [
+    static Map<String, String> aliasFields = [
             "aliasAlsoKnownAs": "Also known as",
             "aliasFormerly": "Formerly",
             "aliasFullName": "Full name",

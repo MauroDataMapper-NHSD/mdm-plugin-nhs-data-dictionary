@@ -35,6 +35,16 @@ class NhsDataDictionaryService {
     FolderService folderService
     MetadataService metadataService
 
+    DataSetService dataSetService
+    ClassService classService
+    ElementService elementService
+    AttributeService attributeService
+
+    BusinessDefinitionService businessDefinitionService
+    SupportingInformationService supportingInformationService
+    XmlSchemaConstraintService xmlSchemaConstraintService
+
+
     def statistics(String branchName) {
         DataDictionary dataDictionary = buildDataDictionary(branchName)
 
@@ -88,7 +98,9 @@ class NhsDataDictionaryService {
                 label: ddComponent.name,
                 id: ddComponent.catalogueId.toString(),
                 domainType: ddComponent.catalogueItem.domainType,
-                parentId: ddComponent.parentCatalogueId.toString()
+                parentId: ddComponent.parentCatalogueId.toString(),
+                modelId: ddComponent.containerCatalogueId.toString()
+
         ]
     }
 
@@ -167,15 +179,7 @@ class NhsDataDictionaryService {
     }
 
 
-    List<DataModel> getAllDataSets(Folder dataSetsFolder) {
-        List<DataModel> returnModels = []
-        dataSetsFolder.childFolders.each { childFolder ->
-            returnModels.addAll(getAllDataSets(childFolder))
-        }
-        returnModels.addAll(dataModelService.findAllByFolderId(dataSetsFolder.id))
 
-        return returnModels
-    }
 
     DataDictionary buildDataDictionary(String branchName) {
         DataDictionary dataDictionary = new DataDictionary()
@@ -188,7 +192,6 @@ class NhsDataDictionaryService {
 
         Folder folder = folderService.findByPath(DataDictionary.DATA_DICTIONARY_FOLDER_NAME.toString())
         Folder dataSetsFolder = folder.childFolders.find { it.label == DataDictionary.DATA_DICTIONARY_DATA_SETS_FOLDER_NAME }
-
 
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
@@ -252,7 +255,7 @@ class NhsDataDictionaryService {
     }
 
     void addDataSetsToDictionary(Folder dataSetsFolder, DataDictionary dataDictionary) {
-        List<DataModel> dataSetModels = getAllDataSets(dataSetsFolder)
+        Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
 
         dataSetModels.each { dataModel ->
             DDDataSet ddDataSet = new DDDataSet()
@@ -264,7 +267,7 @@ class NhsDataDictionaryService {
     void addBusDefsToDictionary(Terminology busDefsTerminology, DataDictionary dataDictionary) {
         busDefsTerminology.terms.each { term ->
             DDBusinessDefinition ddBusinessDefinition = new DDBusinessDefinition()
-            ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, term.id, busDefsTerminology.id, metadataService)
+            ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, busDefsTerminology.id, busDefsTerminology.id, metadataService)
             dataDictionary.businessDefinitions[ddBusinessDefinition.uin] = ddBusinessDefinition
         }
     }
@@ -272,7 +275,7 @@ class NhsDataDictionaryService {
     void addSupDefsToDictionary(Terminology supDefsTerminology, DataDictionary dataDictionary) {
         supDefsTerminology.terms.each { term ->
             DDSupportingDefinition ddSupportingDefinition = new DDSupportingDefinition()
-            ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, term.id, supDefsTerminology.id, metadataService)
+            ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, supDefsTerminology.id, supDefsTerminology.id, metadataService)
             dataDictionary.supportingInformation[ddSupportingDefinition.uin] = ddSupportingDefinition
         }
     }
@@ -280,7 +283,7 @@ class NhsDataDictionaryService {
     void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, DataDictionary dataDictionary) {
         xmlSchemaConstraintsTerminology.terms.each { term ->
             DDXmlSchemaConstraint ddXmlSchemaConstraint = new DDXmlSchemaConstraint()
-            ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, term.id, xmlSchemaConstraintsTerminology.id, metadataService)
+            ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, xmlSchemaConstraintsTerminology.id, xmlSchemaConstraintsTerminology.id, metadataService)
             dataDictionary.xmlSchemaConstraints[ddXmlSchemaConstraint.uin] = ddXmlSchemaConstraint
         }
     }
@@ -329,6 +332,24 @@ class NhsDataDictionaryService {
         }
         return attributeElements
     }
+
+    List<Map> allItemsIndex() {
+        List<Map> allItems = []
+
+        allItems.addAll(dataSetService.index())
+        allItems.addAll(classService.index())
+        allItems.addAll(elementService.index())
+        allItems.addAll(attributeService.index())
+
+        allItems.addAll(businessDefinitionService.index())
+        allItems.addAll(supportingInformationService.index())
+        allItems.addAll(xmlSchemaConstraintService.index())
+
+
+        return allItems.sort{it.name }
+    }
+
+
 
 
 }

@@ -34,5 +34,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     }
 
+    def allItemsIndex() {
+        respond nhsDataDictionaryService.allItemsIndex()
+    }
+
 
 }
