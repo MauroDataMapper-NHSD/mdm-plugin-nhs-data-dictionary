@@ -42,33 +42,13 @@ class UrlMappings {
 
                 get '/allItemsIndex' (controller: 'NhsDataDictionary', action: 'allItemsIndex')
 
-                '/dataElements' (resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-
-                '/attributes' (resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-
-                '/classes' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-
-                '/dataSets' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-                '/businessDefinitions' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-
-                '/supportingInformation' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-
-                '/xmlSchemaConstraint' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-
-                }
-
+                '/elements' (resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/attributes' (resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/classes' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/dataSets' (resources: 'dataSet', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/businessDefinitions' (resources: 'businessDefinition', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/supportingInformation' (resources: 'supportingInformation', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/xmlSchemaConstraints' (resources: 'xmlSchemaConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
             }
 
 
