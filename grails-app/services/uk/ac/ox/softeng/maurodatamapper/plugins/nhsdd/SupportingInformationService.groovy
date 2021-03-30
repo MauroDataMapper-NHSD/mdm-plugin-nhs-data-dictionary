@@ -28,12 +28,12 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
         Term supportingInformation = termService.get(id)
 
         String description = convertLinksInDescription(branch, supportingInformation.description)
-
+        String shortDesc = replaceLinksInShortDescription(getShortDescription(supportingInformation, null))
         def result = [
                 catalogueId: supportingInformation.id.toString(),
                 name: supportingInformation.code,
                 stereotype: "supportingInformation",
-                shortDescription: getShortDescription(supportingInformation),
+                shortDescription: shortDesc,
                 description: description,
                 alsoKnownAs: getAliases(supportingInformation)
         ]
@@ -62,7 +62,7 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
     }
 
     @Override
-    String getShortDescription(Term supportingInformation) {
+    String getShortDescription(Term supportingInformation, DataDictionary dataDictionary) {
         if(isPreparatory(supportingInformation)) {
             return "This item is being used for development purposes and has not yet been approved."
         } else {

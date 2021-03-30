@@ -37,12 +37,12 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         DataElement dataElement = dataElementService.get(id)
 
         String description = convertLinksInDescription(branch, dataElement.description)
-        String shortDescription = replaceLinksInShortDescription(getShortDescription(dataElement))
+        String shortDesc = replaceLinksInShortDescription(getShortDescription(dataElement, null))
         def result = [
                 catalogueId: dataElement.id.toString(),
                 name: dataElement.label,
                 stereotype: "attribute",
-                shortDescription: shortDescription,
+                shortDescription: shortDesc,
                 description: description,
                 alsoKnownAs: getAliases(dataElement)
         ]
@@ -116,7 +116,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
     }
 
     @Override
-    String getShortDescription(DataElement attribute) {
+    String getShortDescription(DataElement attribute, DataDictionary dataDictionary) {
         if(isPreparatory(attribute)) {
             return "This item is being used for development purposes and has not yet been approved."
         } else {
