@@ -24,10 +24,10 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
     }
 
     @Override
-    def show(String id) {
+    def show(String branch, String id) {
         Term supportingInformation = termService.get(id)
 
-        String description = supportingInformation.description
+        String description = convertLinksInDescription(branch, supportingInformation.description)
 
         def result = [
                 catalogueId: supportingInformation.id.toString(),

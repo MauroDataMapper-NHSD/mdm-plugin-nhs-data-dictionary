@@ -409,4 +409,9 @@ abstract class DataDictionaryComponent<C extends CatalogueItem> {
 
     }
 
+    String getInternalLink() {
+        "]()"
+    }
+
+
 }

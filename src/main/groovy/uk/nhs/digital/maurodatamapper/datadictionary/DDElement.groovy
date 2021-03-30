@@ -297,7 +297,7 @@ class DDElement extends DataDictionaryComponent<DataElement> {
                     String nationalCodesTitle = "Permitted National Codes"
                     if(getElementAttributes(dataDictionary).size() == 1 &&
                             getElementAttributes(dataDictionary).get(0).catalogueItem.dataType.getClass() == EnumerationType.class) {
-                        List<EnumerationValue> attributeValues =
+                        Set<EnumerationValue> attributeValues =
                                 ((EnumerationType)getElementAttributes(dataDictionary).get(0).catalogueItem.dataType).getEnumerationValues()
                         if(attributeValues.size() == nationalCodes.size()) {
                             nationalCodesTitle = "National Codes"
@@ -468,5 +468,15 @@ class DDElement extends DataDictionaryComponent<DataElement> {
             }
         }
     }
+
+    @Override
+    String getInternalLink() {
+        if(isRetired) {
+            return "](dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}|dc:${DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME}|dc:Retired|de:${DDHelperFunctions.tidyLabel(name)})"
+        } else {
+            return "](dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}|dc:${DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME}|de:${DDHelperFunctions.tidyLabel(name)})"
+        }
+    }
+
 
 }

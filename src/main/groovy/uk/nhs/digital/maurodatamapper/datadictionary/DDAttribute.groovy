@@ -275,4 +275,14 @@ class DDAttribute extends DataDictionaryComponent<DataElement> {
         }
     }
 
+    @Override
+    String getInternalLink() {
+        if(isRetired) {
+            return "](dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}|dc:${DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME}|dc:Retired|de:${DDHelperFunctions.tidyLabel(name)})"
+        } else {
+            return "](dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}|dc:${DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME}|de:${DDHelperFunctions.tidyLabel(name)})"
+        }
+    }
+
+
 }

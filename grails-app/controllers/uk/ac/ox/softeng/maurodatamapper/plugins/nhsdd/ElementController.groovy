@@ -7,6 +7,13 @@ class ElementController extends DataDictionaryComponentController<DataElement>{
 	static responseFormats = ['json', 'xml']
 
     @Override
+    String getParameterIdKey() {
+        "elementId"
+    }
+
+
+
+    @Override
     DataDictionaryComponentService getService() {
         return elementService
     }

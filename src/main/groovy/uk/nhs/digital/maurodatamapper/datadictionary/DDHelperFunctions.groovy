@@ -82,7 +82,7 @@ class DDHelperFunctions {
 
     static String getMetadataValue(MetadataAware ci, String key) {
         Metadata metadata = ci.getMetadata().find{md ->
-            md.namespace == metadataNamespace && md.key == key
+            md.namespace.startsWith(metadataNamespace) && md.key == key
         }
         if(metadata) {
             return metadata.value

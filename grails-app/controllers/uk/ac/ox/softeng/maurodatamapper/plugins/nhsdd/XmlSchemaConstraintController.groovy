@@ -7,6 +7,13 @@ class XmlSchemaConstraintController extends DataDictionaryComponentController<Te
     static responseFormats = ['json', 'xml']
 
     @Override
+    String getParameterIdKey() {
+        "xmlSchemaConstraintId"
+    }
+
+
+
+    @Override
     DataDictionaryComponentService getService() {
         return xmlSchemaConstraintService
     }

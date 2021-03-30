@@ -223,7 +223,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
 
         if (catalogueItem && catalogueItem.dataClasses && catalogueItem.dataClasses.size() > 0) {
             catalogueItem.dataClasses.sort {
-                dataClass -> Integer.parseInt(DDHelperFunctions.getMetadataValue(dataClass, "Web Order"))
+                dataClass -> Integer.parseInt(DDHelperFunctions.getMetadataValue(dataClass, "Web Order")?:"1")
             }.each {dataClass ->
                 if(catalogueItem.label.startsWith("CDS")) {
                     outputCDSClassAsDita(dataClass, dataSetSpecificationTopic.body, dataDictionary, catalogueItem)
@@ -261,7 +261,10 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
                 if(idx != 0 ) {
                     body.bodyElements.add(new Html(content: "<b>Or</b>"))
                 }
-                outputClassAsDita((DataClass)childDataClass, body, dataDictionary)
+                if(childDataClass instanceof DataClass) {
+                    outputClassAsDita((DataClass)childDataClass, body, dataDictionary)
+                }
+
             }
 
 
@@ -361,7 +364,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
         if(DataSetParser.isChoice(dataClass) && dataClass.label.startsWith("Choice")) {
             body.bodyElements.add(new Html(content: "<p> <b>One of the following options must be used:</b></p>"))
             dataClass.dataClasses
-                    .sort {childDataClass -> Integer.parseInt(DDHelperFunctions.getMetadataValue(childDataClass, "Web Order"))}
+                    .sort {childDataClass -> Integer.parseInt(DDHelperFunctions.getMetadataValue(childDataClass, "Web Order")?:"1")}
                     .eachWithIndex {childDataClass, idx ->
                         outputCDSClassAsDita(childDataClass, body, dataDictionary, dataModel)
                         if(idx < dataClass.dataClasses.size()-1) {
@@ -603,7 +606,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
                 String xRefs = ""
                 String rules = ""
                 ((DataClass) child).dataElements
-                        .sort { childDataElement -> Integer.parseInt(DDHelperFunctions.getMetadataValue(childDataElement, "Web Order")) }
+                        .sort { childDataElement -> Integer.parseInt(DDHelperFunctions.getMetadataValue(childDataElement, "Web Order")?:"1") }
                         .eachWithIndex {childDataElement, idx ->
                             String uin = DDHelperFunctions.getMetadataValue(childDataElement,"uin")
                             DDElement ddElement = dataDictionary.elements[uin]
@@ -652,7 +655,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
         }
 
         return children.sort {
-            child -> Integer.parseInt(DDHelperFunctions.getMetadataValue(child, "Web Order"))
+            child -> Integer.parseInt(DDHelperFunctions.getMetadataValue(child, "Web Order")?:"1")
         }
 
     }
@@ -749,6 +752,11 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
                 return name
             }
         }
+    }
+
+    @Override
+    String getInternalLink() {
+        return "](dm:${DDHelperFunctions.tidyLabel(name)})"
     }
 
 

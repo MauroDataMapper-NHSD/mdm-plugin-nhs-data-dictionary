@@ -153,4 +153,10 @@ class DDSupportingDefinition extends DataDictionaryComponent<Term> {
         }
     }
 
+
+    @Override
+    String getInternalLink() {
+        return "](te:${DataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}|tm:${titleCaseName})"
+    }
+
 }

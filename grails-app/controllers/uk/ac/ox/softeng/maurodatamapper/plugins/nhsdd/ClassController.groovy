@@ -10,6 +10,12 @@ class ClassController extends DataDictionaryComponentController<DataClass>{
 	static responseFormats = ['json', 'xml']
 
     @Override
+    String getParameterIdKey() {
+        "classId"
+    }
+
+
+    @Override
     DataDictionaryComponentService getService() {
         return classService
     }

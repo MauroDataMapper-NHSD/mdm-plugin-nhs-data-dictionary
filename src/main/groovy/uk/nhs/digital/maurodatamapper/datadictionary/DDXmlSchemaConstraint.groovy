@@ -140,6 +140,10 @@ class DDXmlSchemaConstraint extends DataDictionaryComponent<Term> {
         return "XML Schema Constraint"
     }
 
+    @Override
+    String getInternalLink() {
+        return "](te:${DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${titleCaseName})"
+    }
 
 
 

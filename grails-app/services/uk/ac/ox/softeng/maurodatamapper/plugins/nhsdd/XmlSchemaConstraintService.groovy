@@ -22,10 +22,11 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
     }
 
     @Override
-    def show(String id) {
+    def show(String branch, String id) {
         Term xmlSchemaConstraint = termService.get(id)
 
-        String description = xmlSchemaConstraint.description
+        String description = convertLinksInDescription(branch, xmlSchemaConstraint.description)
+
 
         def result = [
                 catalogueId: xmlSchemaConstraint.id.toString(),

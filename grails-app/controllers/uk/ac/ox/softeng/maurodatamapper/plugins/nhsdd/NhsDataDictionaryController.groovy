@@ -11,6 +11,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     NhsDataDictionaryService nhsDataDictionaryService
 
+    def branches() {
+        respond nhsDataDictionaryService.branches(currentUserSecurityPolicyManager)
+    }
 
     def statistics() {
 
@@ -38,5 +41,13 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         respond nhsDataDictionaryService.allItemsIndex()
     }
 
+    def publishDita() {
+
+        System.err.println(params.branchName)
+
+        File file = nhsDataDictionaryService.publishDita(params.branchName)
+
+        render(file: file, fileName: "DataDictionaryDita.zip", contentType: "application/zip")
+    }
 
 }
