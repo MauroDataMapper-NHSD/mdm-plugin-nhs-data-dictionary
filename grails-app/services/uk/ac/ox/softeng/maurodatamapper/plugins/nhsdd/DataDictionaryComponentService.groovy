@@ -2,6 +2,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -31,6 +32,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     TerminologyService terminologyService
     TermService termService
     FolderService folderService
+    MetadataService metadataService
 
     NhsDataDictionaryService nhsDataDictionaryService
 
@@ -60,9 +62,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
     abstract String getMetadataNamespace()
 
-    String getShortDescription(T catalogueItem) {
-        return "Short description has not been implemented for this type yet"
-    }
+    abstract String getShortDescription(T catalogueItem, DataDictionary dataDictionary)
 
     boolean isPreparatory(T item) {
         return item.metadata.find { md ->
@@ -71,6 +71,15 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                     md.value == "true"
         }
     }
+
+    boolean isRetired(T item) {
+        return item.metadata.find { md ->
+            md.namespace == getMetadataNamespace() &&
+                    md.key == "isRetired" &&
+                    md.value == "true"
+        }
+    }
+
 
     def getWhereUsed(DataDictionary dataDictionary, String id) {
         DataDictionaryComponent component = dataDictionary.getAllComponents().find{

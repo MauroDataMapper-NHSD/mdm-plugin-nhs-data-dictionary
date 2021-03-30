@@ -27,12 +27,13 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
 
         String description = convertLinksInDescription(branch, xmlSchemaConstraint.description)
 
+        String shortDesc = replaceLinksInShortDescription(getShortDescription(xmlSchemaConstraint, null))
 
         def result = [
                 catalogueId: xmlSchemaConstraint.id.toString(),
                 name: xmlSchemaConstraint.code,
                 stereotype: "xmlSchemaConstraint",
-                shortDescription: getShortDescription(xmlSchemaConstraint),
+                shortDescription: shortDesc,
                 description: description,
                 alsoKnownAs: getAliases(xmlSchemaConstraint)
 
@@ -61,7 +62,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
         DDHelperFunctions.metadataNamespace + ".XML schema constraint"
     }
 
-    String getShortDescription(Term catalogueItem) {
+    String getShortDescription(Term catalogueItem, DataDictionary dataDictionary) {
         return catalogueItem.code
     }
 
