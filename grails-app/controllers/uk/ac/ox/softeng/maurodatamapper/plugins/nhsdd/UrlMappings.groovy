@@ -25,6 +25,8 @@ class UrlMappings {
     static mappings = {
         // provide plugin url mappings here
 
+        get "/api/nhsdd/branches" (controller: 'NhsDataDictionary', action: 'branches')
+
         group "/api/nhsdd/$branchName", {
 
             get '/statistics' (controller: 'NhsDataDictionary', action: 'statistics')
@@ -42,13 +44,27 @@ class UrlMappings {
 
                 get '/allItemsIndex' (controller: 'NhsDataDictionary', action: 'allItemsIndex')
 
-                '/elements' (resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
-                '/attributes' (resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
-                '/classes' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
-                '/dataSets' (resources: 'dataSet', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
-                '/businessDefinitions' (resources: 'businessDefinition', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
-                '/supportingInformation' (resources: 'supportingInformation', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
-                '/xmlSchemaConstraints' (resources: 'xmlSchemaConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE)
+                '/businessDefinitions' (resources: 'businessDefinition', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'businessDefinition', action: 'whereUsed')
+                }
+                '/elements' (resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'element', action: 'whereUsed')
+                }
+                '/attributes' (resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'attribute', action: 'whereUsed')
+                }
+                '/classes' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'class', action: 'whereUsed')
+                }
+                '/dataSets' (resources: 'dataSet', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'dataSet', action: 'whereUsed')
+                }
+                '/supportingInformation' (resources: 'supportingInformation', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'supportingInformation', action: 'whereUsed')
+                }
+                '/xmlSchemaConstraints' (resources: 'xmlSchemaConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                    "/whereUsed" (controller: 'xmlSchemaConstraint', action: 'whereUsed')
+                }
             }
 
 

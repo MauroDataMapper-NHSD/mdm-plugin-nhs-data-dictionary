@@ -21,10 +21,11 @@ class DataSetService extends DataDictionaryComponentService <DataModel> {
     }
 
     @Override
-    def show(String id) {
+    def show(String branch, String id) {
         DataModel dataModel = dataModelService.get(id)
 
-        String description = dataModel.description
+        String description = convertLinksInDescription(branch, dataModel.description)
+
 
         def result = [
                 catalogueId: dataModel.id.toString(),

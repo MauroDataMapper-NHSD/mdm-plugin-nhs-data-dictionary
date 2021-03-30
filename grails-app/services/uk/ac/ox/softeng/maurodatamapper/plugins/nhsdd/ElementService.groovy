@@ -18,10 +18,11 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
     }
 
     @Override
-    def show(String id) {
+    def show(String branch, String id) {
         DataElement dataElement = dataElementService.get(id)
 
-        String description = dataElement.description
+        String description = convertLinksInDescription(branch, dataElement.description)
+
 
         def result = [
                 catalogueId: dataElement.id.toString(),

@@ -3,11 +3,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
+import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles.DDBusinessDefinitionProfileProviderService
+import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 
@@ -22,10 +24,14 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDXmlSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryOptions
+import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Li
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Topic
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Ul
 import uk.nhs.digital.maurodatamapper.datadictionary.importer.PluginImporter
+
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @Transactional
 class NhsDataDictionaryService {
@@ -44,6 +50,16 @@ class NhsDataDictionaryService {
     SupportingInformationService supportingInformationService
     XmlSchemaConstraintService xmlSchemaConstraintService
 
+
+
+
+    def branches(UserSecurityPolicyManager userSecurityPolicyManager) {
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel oldestAncestor = dataModelService.findOldestAncestor(coreModel)
+
+        List<VersionTreeModel> versionTreeModelList = dataModelService.buildModelVersionTree(oldestAncestor, null, userSecurityPolicyManager)
+        return versionTreeModelList
+    }
 
     def statistics(String branchName) {
         DataDictionary dataDictionary = buildDataDictionary(branchName)
@@ -143,6 +159,38 @@ class NhsDataDictionaryService {
             component.hasNoAliases()
         }.sort{it.name}.collect{it -> outputComponent(it)}
 
+        Set<String> duplicateAttributes = findDuplicates(dataDictionary.attributes.values().collect{it.name})
+        Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect{it.name})
+        Set<String> duplicateClasses = findDuplicates(dataDictionary.classes.values().collect{it.name})
+
+        Set<DataDictionaryComponent> foundDuplicates = []
+        if(duplicateAttributes.size() > 0) {
+            duplicateAttributes.each {attName ->
+                foundDuplicates.addAll(dataDictionary.attributes.values().findAll{it.name == attName})
+            }
+        }
+        if(duplicateElements.size() > 0) {
+            duplicateElements.each {elemName ->
+                foundDuplicates.addAll(dataDictionary.elements.values().findAll{it.name == elemName})
+            }
+        }
+        if(duplicateClasses.size() > 0) {
+            duplicateClasses.each {className ->
+                foundDuplicates.addAll(dataDictionary.classes.values().findAll{it.name == className})
+            }
+        }
+
+        List<Map> check7components = foundDuplicates.
+                sort{it.name}.collect{it -> outputComponent(it)}
+
+        List<DataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll{it.isPrepatory}
+        List<Map> check8components = dataDictionary.dataSets.values().findAll{component ->
+            component.catalogueItem.allDataElements.find {dataElement ->
+                prepItems.find {it.name == dataElement.label}
+            }
+        }.sort{it.name}.collect{it -> outputComponent(it)}
+
+
         return [
                 [
                     checkName: "Class Relationships Defined",
@@ -173,6 +221,16 @@ class NhsDataDictionaryService {
                         checkName: "All items have an alias",
                         description: "Check that all items have one of the alias fields completed",
                         errors: check6components
+                ],
+                [
+                        checkName: "Re-used item names",
+                        description: "Check that item names of retired classes, attributes and elements have not been re-used",
+                        errors: check7components
+                ],
+                [
+                        checkName: "Datasets that include preparatory items",
+                        description: "Check that a dataset doesn't include any preparatory data elements in its definition",
+                        errors: check8components
                 ]
 
         ]
@@ -350,6 +408,77 @@ class NhsDataDictionaryService {
     }
 
 
+    File publishDita(String branchName) {
+        DataDictionary dataDictionary = buildDataDictionary(branchName)
 
+        File tempDir = File.createTempDir()
+        System.err.println(tempDir.path)
+        GenerateDita generateDita = new GenerateDita(dataDictionary, tempDir.path)
+        dataDictionary.elements.values().each {ddElement ->
+            ddElement.calculateFormatLinkMatchedItem(dataDictionary)
+        }
+        //generateDita.cleanSourceTarget(options.ditaOutputDir)
+        generateDita.generateInput()
+
+        File outputFile = new File(tempDir.path + "/" + "map.ditamap")
+
+        File tempDir2 = File.createTempDir()
+        System.err.println(tempDir2.path)
+
+        FileOutputStream fos = new FileOutputStream(tempDir2.path + "/ditaCompressed.zip");
+        ZipOutputStream zipOut = new ZipOutputStream(fos);
+        File fileToZip = new File(tempDir.path);
+
+        zipFile(fileToZip, fileToZip.getName(), zipOut);
+
+        zipOut.close();
+        fos.close();
+
+        return new File(tempDir2.path + "/ditaCompressed.zip")
+
+    }
+
+    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+                zipOut.closeEntry();
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+            File[] children = fileToZip.listFiles();
+            for (File childFile : children) {
+                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+            }
+            return;
+        }
+        FileInputStream fis = new FileInputStream(fileToZip);
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+        fis.close();
+    }
+
+    private static <T> Set<T> findDuplicates(Collection<T> collection) {
+
+        Set<T> duplicates = new HashSet<>(1000);
+        Set<T> uniques = new HashSet<>();
+
+        for(T t : collection) {
+            if(!uniques.add(t)) {
+                duplicates.add(t);
+            }
+        }
+
+        return duplicates;
+    }
 
 }

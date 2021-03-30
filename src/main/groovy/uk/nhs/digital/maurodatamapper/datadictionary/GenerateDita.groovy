@@ -38,11 +38,18 @@ class GenerateDita {
     static Pattern pattern = Pattern.compile("(\\[([^\\]]*)\\])\\([^\\)]*\\)")
 
     List<String> unmatchedUrls = []
-
+    String outputDir
 
     GenerateDita(DataDictionary dataDictionary1, DataDictionaryOptions options) {
         dataDictionary = dataDictionary1
         this.options = options
+        outputDir = options.ditaOutputDir
+    }
+
+    GenerateDita(DataDictionary dataDictionary1, String outputDir) {
+        dataDictionary = dataDictionary1
+        this.options = null
+        this.outputDir = outputDir
     }
 
     static void cleanSourceTarget(String ditaOutputDir) {
@@ -91,7 +98,7 @@ class GenerateDita {
 
         Map keyMap = new Map(title: "Key Definitions")
 
-        if (options.processClasses) {
+        if (!options || options.processClasses) {
             log.info "Generating classes..."
             MapRef classesMapRef = new MapRef(href: "classes.ditamap", toc: false)
             generateClasses(keyMap)
@@ -101,7 +108,7 @@ class GenerateDita {
 
         }
 
-        if (options.processAttributes) {
+        if (!options || options.processAttributes) {
             log.info "Generating attributes..."
             //MapRef attributesMapRef = new MapRef(href: "attributes.ditamap")
 
@@ -111,7 +118,7 @@ class GenerateDita {
             MapRef indexMapRef = new MapRef(href: "attributes-index.ditamap")
             map.refs.add(indexMapRef)
         }
-        if (options.processElements) {
+        if (!options || options.processElements) {
             log.info "Generating elements..."
             MapRef elementsMapRef = new MapRef(href: "data_elements.ditamap", toc: false)
             generateElements(keyMap)
@@ -120,13 +127,13 @@ class GenerateDita {
             map.refs.add(indexMapRef)
 
         }
-        if (options.processDataSets) {
+        if (!options || options.processDataSets) {
             log.info "Generating data sets..."
             generateDataSets(keyMap)
             MapRef mapRef = new MapRef(href: "data_sets.ditamap")
             map.refs.add(mapRef)
         }
-        if (options.processNhsBusinessDefinitions) {
+        if (!options || options.processNhsBusinessDefinitions) {
             log.info "Generating business definitions..."
             generateBusinessDefinitions(keyMap)
             MapRef mapRef = new MapRef(href: "nhs_business_definitions.ditamap", toc: false)
@@ -135,7 +142,7 @@ class GenerateDita {
             map.refs.add(indexMapRef)
 
         }
-        if (options.processSupportingDefinitions) {
+        if (!options || options.processSupportingDefinitions) {
             log.info "Generating supporting information..."
             generateSupportingDefinitions(keyMap)
             MapRef mapRef = new MapRef(href: "supporting_information.ditamap", toc: false)
@@ -143,7 +150,7 @@ class GenerateDita {
             MapRef indexMapRef = new MapRef(href: "supporting_information-index.ditamap")
             map.refs.add(indexMapRef)
         }
-        if (options.processXmlSchemaConstraints) {
+        if (!options || options.processXmlSchemaConstraints) {
             log.info "Generating xml schema constraints..."
             generateXmlSchemaConstraints(keyMap)
             MapRef mapRef = new MapRef(href: "xml_schema_constraints.ditamap", toc: false)
@@ -157,13 +164,13 @@ class GenerateDita {
         MapRef allTopicRef = new MapRef(href: "all_items_index__a-z_.ditamap")
         map.refs.addAll(allTopicRef)
 
-        keyMap.outputAsFile(options.ditaOutputDir + "/keydefs.ditamap")
+        keyMap.outputAsFile(outputDir + "/keydefs.ditamap")
 
         MapRef keyMapRef = new MapRef(href: "keydefs.ditamap", toc: false)
         map.refs.add(keyMapRef)
 
         //File outputFile = new File()
-        map.outputAsFile(options.ditaOutputDir + "/" + MAP_FILE_NAME)
+        map.outputAsFile(outputDir + "/" + "map.ditamap")
 
     }
 
@@ -343,7 +350,7 @@ class GenerateDita {
         }
         //allItemsTree.print()
         //System.err.println(sourcePath)
-        allItemsTree.writeToFiles(options.ditaOutputDir, null, true, dataDictionary)
+        allItemsTree.writeToFiles(outputDir, null, true, dataDictionary)
 
 
     }
@@ -381,7 +388,7 @@ class GenerateDita {
             }
 
             prefixTopic.body.bodyElements.add(indexTable)
-            prefixTopic.outputAsFile(options.ditaOutputDir + "/" + keyPrefix + "/" + prefix.toLowerCase() + ".dita")
+            prefixTopic.outputAsFile(outputDir + "/" + keyPrefix + "/" + prefix.toLowerCase() + ".dita")
         }
 
         TopicSet indexTopicSet = new TopicSet(id: keyPrefix + "-index", chunk: "to-content", href: keyPrefix + "_overview.dita")
@@ -390,10 +397,10 @@ class GenerateDita {
             indexTopicSet.refs.add(topicRef)
         }
         Topic indexTopic = new Topic(id: keyPrefix + "-index", title: header)
-        indexTopic.outputAsFile(options.ditaOutputDir + "/" + keyPrefix + "-index.dita")
+        indexTopic.outputAsFile(outputDir + "/" + keyPrefix + "-index.dita")
         Map indexMap = new Map(title: header)
         indexMap.refs.add(indexTopicSet)
-        indexMap.outputAsFile(options.ditaOutputDir + "/" + keyPrefix.toLowerCase() + "-index.ditamap")
+        indexMap.outputAsFile(outputDir + "/" + keyPrefix.toLowerCase() + "-index.ditamap")
 
     }
 
@@ -425,7 +432,7 @@ class GenerateDita {
         //fileTree.print()
         //System.err.println(sourcePath)
         //fileTree.writeToFiles(sourcePath)
-        return fileTree.writeToFiles(options.ditaOutputDir, null, toc, dataDictionary)
+        return fileTree.writeToFiles(outputDir, null, toc, dataDictionary)
     }
 
 

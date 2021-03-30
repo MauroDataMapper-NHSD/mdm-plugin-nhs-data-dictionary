@@ -156,6 +156,10 @@ class DDBusinessDefinition extends DataDictionaryComponent<Term> {
         }
     }
 
+    @Override
+    String getInternalLink() {
+        return "](te:${DataDictionary.BUSDEF_TERMINOLOGY_NAME}|tm:${name})"
+    }
 
 
 

@@ -9,6 +9,12 @@ class AttributeController extends DataDictionaryComponentController<DataElement>
 	static responseFormats = ['json', 'xml']
 
     @Override
+    String getParameterIdKey() {
+        "attributeId"
+    }
+
+
+    @Override
     DataDictionaryComponentService getService() {
         return attributeService
     }

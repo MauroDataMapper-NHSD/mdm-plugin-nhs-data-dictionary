@@ -22,10 +22,11 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
     }
 
     @Override
-    def show(String id) {
+    def show(String branch, String id) {
         DataClass dataClass = dataClassService.get(id)
 
-        String description = dataClass.description
+        String description = convertLinksInDescription(branch, dataClass.description)
+
 
         def result = [
                 catalogueId: dataClass.id.toString(),

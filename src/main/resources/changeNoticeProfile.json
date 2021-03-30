@@ -1,0 +1,100 @@
+[
+  {
+    "sectionName": "Details",
+    "sectionDescription": "Details about the Change Request, Patch, or DDCN",
+    "fields": [
+      {
+        "fieldName": "Type",
+        "metadataPropertyName": "type",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "enumeration",
+        "allowedValues": ["Change Request", "Patch", "Data Dictionary Change Notice"]
+      },{
+        "fieldName": "Reference",
+        "metadataPropertyName": "reference",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Version No.",
+        "metadataPropertyName": "versionNo",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Subject",
+        "metadataPropertyName": "subject",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Effective Date",
+        "metadataPropertyName": "effectiveDate",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Reason for Change",
+        "metadataPropertyName": "reasonForChange",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Publication Date",
+        "metadataPropertyName": "publicationDate",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  },
+  {
+    "sectionName": "Background",
+    "sectionDescription": "Background text",
+    "fields": [
+      {
+        "fieldName": "Background text",
+        "metadataPropertyName": "backgroundText",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "text"
+      }
+    ]
+  },
+  {
+    "sectionName": "Notes",
+    "sectionDescription": "Notes",
+    "fields": [
+      {
+        "fieldName": "Date",
+        "metadataPropertyName": "date",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Sponsor",
+        "metadataPropertyName": "sponsor",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  }
+]

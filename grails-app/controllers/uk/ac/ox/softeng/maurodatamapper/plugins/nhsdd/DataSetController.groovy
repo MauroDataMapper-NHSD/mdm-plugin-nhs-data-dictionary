@@ -10,6 +10,13 @@ class DataSetController extends DataDictionaryComponentController<DataModel> {
     static responseFormats = ['json', 'xml']
 
     @Override
+    String getParameterIdKey() {
+        "dataSetId"
+    }
+
+
+
+    @Override
     DataDictionaryComponentService getService() {
         return dataSetService
     }

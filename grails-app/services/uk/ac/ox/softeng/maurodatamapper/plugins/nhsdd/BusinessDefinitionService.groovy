@@ -21,17 +21,14 @@ class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
             catalogueId: catalogueItem.id.toString(),
             name: catalogueItem.code,
             stereotype: "businessDefinition"
-
         ]
     }
 
     @Override
-    def show(String id) {
+    def show(String branch, String id) {
         Term businessDefinition = termService.get(id)
 
-        String description = businessDefinition.description
-
-
+        String description = convertLinksInDescription(branch, businessDefinition.description)
 
         def result = [
                 catalogueId: businessDefinition.id.toString(),

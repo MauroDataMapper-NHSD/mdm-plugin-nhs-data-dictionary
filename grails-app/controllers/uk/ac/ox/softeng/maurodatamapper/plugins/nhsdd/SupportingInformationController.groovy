@@ -11,6 +11,13 @@ class SupportingInformationController extends DataDictionaryComponentController<
     static responseFormats = ['json', 'xml']
 
     @Override
+    String getParameterIdKey() {
+        "supportingInformationId"
+    }
+
+
+
+    @Override
     DataDictionaryComponentService getService() {
         return supportingInformationService
     }
