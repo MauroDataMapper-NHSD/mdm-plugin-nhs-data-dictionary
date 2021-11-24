@@ -1,24 +1,24 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.EnumerationType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
+import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
 import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryOptions
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Li
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STEntry
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STHead
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STRow
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.SimpleTable
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Topic
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Ul
 
 @Transactional
 class AttributeService extends DataDictionaryComponentService<DataElement> {
@@ -134,6 +134,144 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                 return attribute.label
             }
         }
+    }
+
+    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                       NhsDataDictionary nhsDataDictionary) {
+        Folder attributeTerminologiesFolder =
+            new Folder(label: "Attribute Terminologies", createdBy: currentUserEmailAddress)
+        dictionaryFolder.addToChildFolders(attributeTerminologiesFolder)
+        attributeTerminologiesFolder.save()
+
+        DataClass allAttributesClass = new DataClass(label: DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+
+        DataClass retiredAttributesClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
+                                                         parentDataClass: allAttributesClass)
+        allAttributesClass.addToDataClasses(retiredAttributesClass)
+        coreDataModel.addToDataClasses(allAttributesClass)
+        coreDataModel.addToDataClasses(retiredAttributesClass)
+
+        Map<String, PrimitiveType> primitiveTypes = [:]
+        Map<String, Folder> folders = [:]
+        int idx = 0
+        xml.DDAttribute.sort { it.TitleCaseName.text()}.each { ddAttribute ->
+            DataType dataType
+            String attributeName = ddAttribute.TitleCaseName.text()
+            // if(attributeName.toLowerCase().startsWith('a')) {
+                if (ddAttribute."code-system".size() > 0) {
+                    String folderName = attributeName.substring(0, 1)
+                    Folder subFolder = folders[folderName]
+                    if (!subFolder) {
+                        subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
+                        attributeTerminologiesFolder.addToChildFolders(subFolder)
+                        subFolder.save()
+                        folders[folderName] = subFolder
+                    }
+                    // attributeTerminologiesFolder.save()
+
+                    Terminology terminology = new Terminology(
+                        label: attributeName,
+                        folder: subFolder,
+                        createdBy: currentUserEmailAddress,
+                        authority: authorityService.defaultAuthority)
+                    String version = ddAttribute."code-system"[0].Bundle.entry.resource.CodeSystem.version."@value".text()
+                    terminology.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.terminology", key: "version", value: version))
+
+                    ddAttribute."code-system"[0].Bundle.entry.resource.CodeSystem.concept.each {concept ->
+                        Term term = new Term(
+                            code: concept.code.@value.toString(),
+                            definition: concept.display.@value.toString(),
+                            createdBy: currentUserEmailAddress,
+                            label: concept.code.@value.toString() + " : " + concept.display.@value.toString(),
+                            depth: 1,
+                            terminology: terminology
+                        )
+                        String publishDate = concept.property.find{it.code."@value" == "Publish Date"}?.valueDateTime?."@value"?.text()
+                        Boolean isRetired = concept.property.find{it.code."@value" == "Status"}?.valueString?."@value"?.text() == "retired"
+                        String retiredDate = concept.property.find{it.code."@value" == "Retired Date"}?.valueDateTime?."@value"?.text()
+                        String webOrder = concept.property.find{it.code."@value" == "Web Order"}?.valueInteger?."@value"?.text()
+                        String webPresentation = concept.property.find{it.code."@value" == "Web Presentation"}?.valueString?."@value"?.text()
+                        Boolean isDefault = (webOrder == "0")
+                        if(publishDate) {
+                            term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                            key: "publishDate",
+                                                            value: publishDate))
+                        }
+                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                        key: "isRetired",
+                                                        value: isRetired))
+                        if(isRetired) {
+                            term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                            key: "retiredDate",
+                                                            value: retiredDate))
+                        }
+                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                        key: "webOrder",
+                                                        value: webOrder))
+                        if(webPresentation) {
+                            term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                            key: "webPresentation",
+                                                            value: webPresentation))
+                        }
+                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                        key: "isDefault",
+                                                        value: isDefault))
+
+                        //log.info("    " + term.label)
+                        terminology.addToTerms(term)
+                    }
+                    if (terminology.validate()) {
+                        terminology = terminologyService.saveModelWithContent(terminology)
+                        terminology.terms.each {
+                            //
+                        }
+                    } else {
+                        System.err.println(terminology.errors)
+                    }
+
+                    String uin = ddAttribute.uin.text()
+                    nhsDataDictionary.attributeTerminologies[uin] = terminology
+                    dataType = new ModelDataType(label: "${attributeName} Attribute Type",
+                                                 modelResourceDomainType: terminology.getDomainType(),
+                                                 modelResourceId: terminology.id,
+                                                 createdBy: currentUserEmailAddress)
+                    coreDataModel.addToDataTypes(dataType)
+                } else {
+                    // no "code-system" nodes
+                    String formatLength = ddAttribute."format-length".text()
+                    if (!formatLength) {
+                        formatLength = "String"
+                    }
+                    dataType = primitiveTypes[formatLength]
+                    if (!dataType) {
+                        dataType = new PrimitiveType(label: formatLength, createdBy: currentUserEmailAddress)
+                        primitiveTypes[formatLength] = dataType
+                        coreDataModel.addToDataTypes(dataType)
+                    }
+                }
+
+                DataElement attributeDataElement = new DataElement(
+                    label: attributeName,
+                    description: ddAttribute.definition.text(),
+                    createdBy: currentUserEmailAddress,
+                    dataType: dataType,
+                    index: idx++)
+
+                addMetadataFromXml(attributeDataElement, ddAttribute, currentUserEmailAddress)
+
+                if (ddAttribute.isRetired.text() == "true") {
+                    retiredAttributesClass.addToDataElements(attributeDataElement)
+                } else {
+                    allAttributesClass.addToDataElements(attributeDataElement)
+                }
+            //}
+        } // for each ddAttribute
+
+    }
+
+    @Override
+    String getProfileNamespace() {
+        return super.getProfileNamespace() + ".attribute"
     }
 
 }
