@@ -80,14 +80,6 @@
     "sectionDescription": "Notes",
     "fields": [
       {
-        "fieldName": "Date",
-        "metadataPropertyName": "date",
-        "description": "",
-        "maxMultiplicity": 1,
-        "minMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
         "fieldName": "Sponsor",
         "metadataPropertyName": "sponsor",
         "description": "",

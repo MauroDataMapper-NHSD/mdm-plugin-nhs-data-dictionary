@@ -113,7 +113,8 @@ bootRun {
     jvmArgs(
         '-Dspring.output.ansi.enabled=always', 
         '-noverify', 
-        '-XX:TieredStopAtLevel=1')
+        '-XX:TieredStopAtLevel=1',
+        '-Xmx8192m')
     sourceResources sourceSets.main
 
     System.properties.each {prop ->

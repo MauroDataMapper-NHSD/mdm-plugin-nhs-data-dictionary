@@ -1,0 +1,57 @@
+[
+  {
+    "sectionName": "Branch Properties",
+    "sectionDescription": "Branch Properties",
+    "fields": [
+      {
+        "fieldName": "Type",
+        "metadataPropertyName": "type",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "enumeration",
+        "values"
+      },
+      {
+        "fieldName": "Retired date",
+        "metadataPropertyName": "retiredDate",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
+        "dataType": "date"
+      },
+      {
+        "fieldName": "Publish date",
+        "metadataPropertyName": "publishDate",
+        "description": "The date when this code was first published",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 1,
+        "dataType": "date"
+      },
+      {
+        "fieldName": "Web Order",
+        "metadataPropertyName": "webOrder",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
+        "dataType": "int"
+      },
+      {
+        "fieldName": "Is Default Code",
+        "metadataPropertyName": "isDefault",
+        "description": "Whether this term represents a default code that is not part of the attribute",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
+        "dataType": "boolean"
+      },
+      {
+        "fieldName": "Web Presentation",
+        "metadataPropertyName": "webPresentation",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
+        "dataType": "string"
+      }
+    ]
+  }
+]

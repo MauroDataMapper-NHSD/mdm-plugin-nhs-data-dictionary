@@ -1,0 +1,16 @@
+[
+  {
+    "sectionName": "Basic Properties",
+    "sectionDescription": "Basic Properties",
+    "fields": [
+      {
+        "fieldName": "Version",
+        "metadataPropertyName": "version",
+        "description": "",
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
+        "dataType": "string"
+      }
+    ]
+  }
+]

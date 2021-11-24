@@ -305,8 +305,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
         }
     }
 
-    static void addSubClass(DataClass dataClass, TBody tBody, DataDictionary
-        dataDictionary) {
+    static void addSubClass(DataClass dataClass, TBody tBody, DataDictionary dataDictionary) {
 
         Row headerRow = new Row(outputClass: "table-primary")
         Entry mandationEntry = new Entry(nameSt: "col1", nameEnd: "col1")
@@ -345,8 +344,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
     }
 
 
-    static void addChildRow(CatalogueItem child, TBody tBody, DataDictionary
-        dataDictionary){
+    static void addChildRow(CatalogueItem child, TBody tBody, DataDictionary dataDictionary){
         Row elementRow = new Row(entries: [])
         tBody.rows.add(elementRow)
         elementRow.entries.add(new Entry(DataSetParser.getMRO(child)))
@@ -530,8 +528,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
         tBody.rows.add(headerRow)
     }
 
-    static void addCDSClassContents(DataClass dataClass, TBody tBody, DataModel
-        dataModel, DataDictionary dataDictionary, int totalDepth, int currentDepth) {
+    static void addCDSClassContents(DataClass dataClass, TBody tBody, DataModel dataModel, DataDictionary dataDictionary, int totalDepth, int currentDepth) {
         if (dataClass.dataElements) {
             getSortedChildElements(dataClass).each { child ->
                 addCDSChildRow(child, tBody, dataDictionary, totalDepth, currentDepth)
@@ -568,8 +565,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
         addCDSClassContents(dataClass, tBody, dataModel, dataDictionary, totalDepth, currentDepth)
     }
 
-    static void addCDSChildRow(CatalogueItem child, TBody tBody, DataDictionary
-        dataDictionary, int totalDepth, int currentDepth){
+    static void addCDSChildRow(CatalogueItem child, TBody tBody, DataDictionary dataDictionary, int totalDepth, int currentDepth) {
         if(child instanceof DataElement) {
             String uin = DDHelperFunctions.getMetadataValue(child,"uin")
             if (uin) {

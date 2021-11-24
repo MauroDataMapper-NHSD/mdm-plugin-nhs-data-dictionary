@@ -1,5 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
@@ -10,13 +11,13 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClassService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElementService
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 
 import grails.gorm.transactions.Transactional
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 
@@ -31,8 +32,10 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     DataElementService dataElementService
     TerminologyService terminologyService
     TermService termService
+    CodeSetService codeSetService
     FolderService folderService
     MetadataService metadataService
+    AuthorityService authorityService
 
     NhsDataDictionaryService nhsDataDictionaryService
 
@@ -229,6 +232,44 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
             return "dataSet"
         }
         return null
+    }
+
+
+    Map<String, String> attributeMetadata = [
+        'isPreparatory': 'isPreparatory',
+        'isRetired': 'isRetired',
+        'retiredDate': 'retiredDate',
+        'uin': 'uin',
+        'baseVersion': 'baseVersion',
+        'titleCaseName': 'TitleCaseName',
+        'shortDescription': 'shortDescription',
+        'aliasAlsoKnownAs': 'aliasAlsoKnownAs',
+        'aliasFormerly': 'aliasFormerly',
+        'aliasFullName': 'aliasFullName',
+        'aliasIndexName': 'aliasIndexName',
+        'aliasOid': 'aliasOid',
+        'aliasPlural': 'aliasPlural',
+        'aliasPossessive': 'aliasPossessive',
+        'aliasReportHeading': 'aliasReportHeading',
+        'aliasSchema': 'aliasSchema',
+        'aliasShortName': 'aliasShortName'
+    ]
+
+    void addMetadataFromXml(T domainObject, def xml, String currentUserEmailAddress) {
+
+        attributeMetadata.entrySet().each {entry ->
+            String xmlValue = xml[entry.value].text()
+            if(xmlValue && xmlValue != "") {
+                domainObject.addToMetadata(new Metadata(namespace: getProfileNamespace(),
+                                                                key: entry.key,
+                                                                value: xmlValue,
+                                                                createdBy: currentUserEmailAddress))
+            }
+        }
+    }
+
+    String getProfileNamespace() {
+        return 'uk.nhs.datadictionary'
     }
 
 

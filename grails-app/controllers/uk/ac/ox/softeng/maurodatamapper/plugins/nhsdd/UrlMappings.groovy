@@ -25,6 +25,8 @@ class UrlMappings {
     static mappings = {
         // provide plugin url mappings here
 
+        post "/api/nhsdd/ingest" (controller: 'NhsDataDictionary', action: 'ingest')
+
         get "/api/nhsdd/branches" (controller: 'NhsDataDictionary', action: 'branches')
 
         group "/api/nhsdd/$branchName", {
@@ -36,8 +38,11 @@ class UrlMappings {
 
                 get '/dita' (controller: 'NhsDataDictionary', action: 'publishDita')
 
-                // More endpoints to control publication to OntoServer
+                get '/changePaper' (controller: 'NhsDataDictionary', action: 'changePaper')
 
+                // More endpoints to control publication to OntoServer
+                get '/codeSystem/validateBundle' (controller: 'NhsDataDictionary', action: 'codeSystemValidateBundle')
+                get '/valueSet/validateBundle' (controller: 'NhsDataDictionary', action: 'valueSetValidateBundle')
             }
 
             group '/preview', {

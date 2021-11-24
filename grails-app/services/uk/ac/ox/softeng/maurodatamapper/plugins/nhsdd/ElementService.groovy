@@ -1,8 +1,18 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.EnumerationType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.enumeration.EnumerationValue
+import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
 import groovy.util.slurpersupport.GPathResult
@@ -10,6 +20,7 @@ import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Transactional
@@ -83,7 +94,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                 if(elementAttributes.size() == 1 &&
                         elementAttributes.get(0).dataType.getClass() == EnumerationType.class) {
                     Set<EnumerationValue> attributeValues =
-                            ((EnumerationType)getElementAttributes(dataDictionary).get(0).catalogueItem.dataType).getEnumerationValues()
+                            ((EnumerationType)getElementAttributes(dataElement, dataDictionary).get(0).dataType).getEnumerationValues()
                     if(attributeValues.size() == nationalCodes.size()) {
                         nationalCodesTitle = "nationalCodes"
                     }
@@ -187,6 +198,119 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                 log.error("Couldn't parse: " + dataElement.description)
                 return dataElement.label
             }
+        }
+    }
+
+    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                      NhsDataDictionary nhsDataDictionary) {
+
+        Map<String, PrimitiveType> primitiveTypes = [:]
+        coreDataModel.dataTypes.each {
+            if(it instanceof PrimitiveType) {
+                primitiveTypes[it.label] = it
+            }
+        }
+
+        Folder dataElementCodeSetsFolder =
+            new Folder(label: "Data Element CodeSets", createdBy: currentUserEmailAddress)
+        dictionaryFolder.addToChildFolders(dataElementCodeSetsFolder)
+        dataElementCodeSetsFolder.save()
+
+        DataClass allElementsClass = new DataClass(label: DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+
+        DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
+                                                         parentDataClass: allElementsClass)
+        allElementsClass.addToDataClasses(retiredElementsClass)
+        coreDataModel.addToDataClasses(allElementsClass)
+        coreDataModel.addToDataClasses(retiredElementsClass)
+
+
+        Map<String, Folder> folders = [:]
+        int idx = 0
+        xml.DDDataElement.sort {it.TitleCaseName.text()}.each {ddDataElement ->
+            DataType dataType
+            String elementName = ddDataElement.TitleCaseName[0].text()
+            // if(elementName.toLowerCase().startsWith('a')) {
+                if (ddDataElement."value-set".size() > 0) {
+                    String codeSetName = elementName
+                    String capitalizedCodeSetName = ddDataElement.name.text()
+                    String folderName = codeSetName.substring(0, 1)
+                    Folder subFolder = folders[folderName]
+                    if (!subFolder) {
+                        subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
+                        dataElementCodeSetsFolder.addToChildFolders(subFolder)
+                        subFolder.save()
+                        folders[folderName] = subFolder
+                    }
+                    dataElementCodeSetsFolder.save()
+
+                    CodeSet codeSet = new CodeSet(
+                        label: elementName,
+                        description: ddDataElement.definition.text(),
+                        folder: subFolder,
+                        createdBy: currentUserEmailAddress,
+                        authority: authorityService.defaultAuthority)
+                    String version = ddDataElement."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.version."@value".text()
+                    codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: version))
+
+
+                    String terminologyUin = ddDataElement.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
+                    Terminology attributeTerminology = nhsDataDictionary.attributeTerminologies[terminologyUin]
+                    if(!attributeTerminology) {
+                        log.error("No terminology with UIN ${terminologyUin} found for element ${elementName}")
+                    } else {
+                        ddDataElement."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.concept.each {concept ->
+                            if (concept.property.find {property ->
+                                property.code.@value.toString() == "Data Element" &&
+                                property.valueString.@value.toString() == capitalizedCodeSetName
+                            }) {
+                                Term t = attributeTerminology.terms.find {it -> it.code == concept.code.@value.toString()}
+                                if (!t) {
+                                    log.error("Cannot find term: ${concept.code.@value}")
+                                } else {
+                                    codeSet.addToTerms(t)
+                                }
+                            }
+                        }
+                    }
+                    if (codeSet.validate()) {
+                        codeSet = codeSetService.saveModelWithContent(codeSet)
+                    } else {
+                        System.err.println(codeSet.errors)
+                    }
+                    dataType = new ModelDataType(label: "${elementName} Element Type",
+                                                 modelResourceDomainType: codeSet.getDomainType(),
+                                                 modelResourceId: codeSet.id,
+                                                 createdBy: currentUserEmailAddress)
+                    coreDataModel.addToDataTypes(dataType)
+                } else {
+                    // no "value-set" nodes
+                    String formatLength = ddDataElement."format-length".text()
+                    if (!formatLength) {
+                        formatLength = "String"
+                    }
+                    dataType = primitiveTypes[formatLength]
+                    if (!dataType) {
+                        dataType = new PrimitiveType(label: formatLength, createdBy: currentUserEmailAddress)
+                        primitiveTypes[formatLength] = dataType
+                        coreDataModel.addToDataTypes(dataType)
+                    }
+                }
+                DataElement elementDataElement = new DataElement(
+                    label: elementName,
+                    description: ddDataElement.definition.text(),
+                    createdBy: currentUserEmailAddress,
+                    dataType: dataType,
+                    index: idx++)
+
+                addMetadataFromXml(elementDataElement, ddDataElement, currentUserEmailAddress)
+
+                if (ddDataElement.isRetired.text() == "true") {
+                    retiredElementsClass.addToDataElements(elementDataElement)
+                } else {
+                    allElementsClass.addToDataElements(elementDataElement)
+                }
+            // }
         }
     }
 
