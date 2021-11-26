@@ -16,16 +16,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Body
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.XRef
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.ColSpec
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Entry
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.TBody
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.TGroup
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.THead
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Table
 
 @Transactional
 class DataSetService extends DataDictionaryComponentService <DataModel> {
@@ -77,8 +69,8 @@ class DataSetService extends DataDictionaryComponentService <DataModel> {
 
     @Override
     Set<DataModel> getAll() {
-        Folder folder = folderService.findByPath(DataDictionary.DATA_DICTIONARY_FOLDER_NAME.toString())
-        Folder dataSetsFolder = folder.childFolders.find { it.label == DataDictionary.DATA_DICTIONARY_DATA_SETS_FOLDER_NAME }
+        Folder folder = folderService.findByPath(DataDictionary.FOLDER_NAME.toString())
+        Folder dataSetsFolder = folder.childFolders.find { it.label == DataDictionary.DATA_SETS_FOLDER_NAME }
 
         getAllDataSets(dataSetsFolder)
     }

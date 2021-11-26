@@ -216,7 +216,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         dictionaryFolder.addToChildFolders(dataElementCodeSetsFolder)
         dataElementCodeSetsFolder.save()
 
-        DataClass allElementsClass = new DataClass(label: DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+        DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy: currentUserEmailAddress)
 
         DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
                                                          parentDataClass: allElementsClass)

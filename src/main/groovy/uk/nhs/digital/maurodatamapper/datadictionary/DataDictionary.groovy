@@ -14,16 +14,6 @@ import java.util.regex.Matcher
 @Slf4j
 class DataDictionary {
 
-    static String DATA_DICTIONARY_FOLDER_NAME = "NHS Data Dictionary"
-    static String DATA_DICTIONARY_CORE_MODEL_NAME = "NHS Data Dictionary - Core"
-    static String DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME = "Attributes"
-    static String DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME = "Data Field Notes"
-    static String DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME = "Classes"
-    static String DATA_DICTIONARY_DATA_SETS_FOLDER_NAME = "Data Sets"
-    static String BUSDEF_TERMINOLOGY_NAME = "NHS Business Definitions"
-    static String SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME = "Supporting Information"
-    static String XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME = "XML Schema Constraints"
-    static String WEB_PAGES_TERMINOLOGY_NAME = "Web Pages"
 
     static final String MAP_FILE_NAME = "map.ditamap"
 

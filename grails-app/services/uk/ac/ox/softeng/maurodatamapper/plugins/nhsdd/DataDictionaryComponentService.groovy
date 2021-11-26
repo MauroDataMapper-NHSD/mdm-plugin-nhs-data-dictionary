@@ -161,10 +161,10 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                 return t
             }
         }
-        if(path[0].startsWith("dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}")) {
-            DataModel dm = dataModelService.findByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
-            if(path[1] == "dc:${DataDictionary.DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME)
+        if(path[0].startsWith("dm:${DataDictionary.CORE_MODEL_NAME}")) {
+            DataModel dm = dataModelService.findByLabel(DataDictionary.CORE_MODEL_NAME)
+            if(path[1] == "dc:${DataDictionary.DATA_CLASSES_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_CLASSES_CLASS_NAME)
                 if(path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataClass dc3 = dataClassService.findByParentAndLabel(dc2, path[3].replace("dc:", ""))
@@ -174,8 +174,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                     return dc2
                 }
             }
-            if(path[1] == "dc:${DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME)
+            if(path[1] == "dc:${DataDictionary.ATTRIBUTES_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.ATTRIBUTES_CLASS_NAME)
                 if(path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
@@ -185,8 +185,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                     return de2
                 }
             }
-            if(path[1] == "dc:${DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME)
+            if(path[1] == "dc:${DataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_FIELD_NOTES_CLASS_NAME)
                 if(path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
@@ -217,14 +217,14 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         if(path[0] == "te:${DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
             return "xmlSchemaConstraint"
         }
-        if(path[0] == "dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}") {
-            if(path[1] == "dc:${DataDictionary.DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME}") {
+        if(path[0] == "dm:${DataDictionary.CORE_MODEL_NAME}") {
+            if(path[1] == "dc:${DataDictionary.DATA_CLASSES_CLASS_NAME}") {
                 return "class"
             }
-            if(path[1] == "dc:${DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME}") {
+            if(path[1] == "dc:${DataDictionary.ATTRIBUTES_CLASS_NAME}") {
                 return "attribute"
             }
-            if(path[1] == "dc:${DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME}") {
+            if(path[1] == "dc:${DataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
                 return "element"
             }
         }

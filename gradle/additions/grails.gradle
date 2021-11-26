@@ -171,7 +171,7 @@ project.afterEvaluate {
         manifest {
             attributes(attrs)
         }
-        // sourceCompatibility = project.sourceCompatibility
+        sourceCompatibility = project.sourceCompatibility
         group 'archives'
     }
 

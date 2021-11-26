@@ -9,7 +9,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.EnumerationType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
-import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
@@ -81,9 +80,9 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
 
         List<Map> dataElements = []
 
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.CORE_MODEL_NAME)
         String uin = DDHelperFunctions.getMetadataValue(dataElement, "uin")
-        coreModel.dataClasses.find{it.label == DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME}.dataElements.each {relatedDataElement ->
+        coreModel.dataClasses.find{it.label == DataDictionary.DATA_FIELD_NOTES_CLASS_NAME}.dataElements.each { relatedDataElement ->
             String elementAttributes = DDHelperFunctions.getMetadataValue(relatedDataElement, "element_attributes")
             if(elementAttributes && elementAttributes.contains(uin)) {
                 Map relatedElement = [
@@ -143,7 +142,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         dictionaryFolder.addToChildFolders(attributeTerminologiesFolder)
         attributeTerminologiesFolder.save()
 
-        DataClass allAttributesClass = new DataClass(label: DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+        DataClass allAttributesClass = new DataClass(label: NhsDataDictionary.ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
 
         DataClass retiredAttributesClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
                                                          parentDataClass: allAttributesClass)

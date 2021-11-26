@@ -20,7 +20,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     @Transactional
     def ingest() {
         if(!params.ingestFile) {
-            throw new ApiBadRequestException("No ingestFile parameter supplied")
+            throw new ApiBadRequestException("NHSDD-01","No ingestFile parameter supplied")
         }
         def xml = xmlSlurper.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
