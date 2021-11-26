@@ -18,9 +18,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
-import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles.DDBusinessDefinitionProfileProviderService
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -42,18 +39,12 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDSupportingDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.DDXmlSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryOptions
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Li
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Topic
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Ul
-import uk.nhs.digital.maurodatamapper.datadictionary.importer.PluginImporter
 
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -82,7 +73,7 @@ class NhsDataDictionaryService {
 
 
     def branches(UserSecurityPolicyManager userSecurityPolicyManager) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
         DataModel oldestAncestor = dataModelService.findOldestAncestor(coreModel)
 
         List<VersionTreeModel> versionTreeModelList = dataModelService.buildModelVersionTree(oldestAncestor, null, userSecurityPolicyManager)
@@ -270,14 +261,14 @@ class NhsDataDictionaryService {
     DataDictionary buildDataDictionary(String branchName) {
         DataDictionary dataDictionary = new DataDictionary()
 
-        Terminology busDefTerminology = terminologyService.findCurrentMainBranchByLabel(DataDictionary.BUSDEF_TERMINOLOGY_NAME)
-        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(DataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
-        Terminology xmlSchemaConstraintsTerminology = terminologyService.findCurrentMainBranchByLabel(DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
+        Terminology busDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.BUSDEF_TERMINOLOGY_NAME)
+        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
+        Terminology xmlSchemaConstraintsTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
 
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        Folder folder = folderService.findByPath(DataDictionary.DATA_DICTIONARY_FOLDER_NAME.toString())
-        Folder dataSetsFolder = folder.childFolders.find { it.label == DataDictionary.DATA_DICTIONARY_DATA_SETS_FOLDER_NAME }
+        Folder folder = folderService.findByPath(DataDictionary.FOLDER_NAME.toString())
+        Folder dataSetsFolder = folder.childFolders.find { it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME }
 
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
@@ -376,9 +367,9 @@ class NhsDataDictionaryService {
 
 
     Set<DataClass> getDataClasses(includeRetired = false) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass classesClass = coreModel.dataClasses.find { it.label == DataDictionary.DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME }
+        DataClass classesClass = coreModel.dataClasses.find { it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME }
 
         Set<DataClass> classClasses = []
         classClasses.addAll(classesClass.dataClasses.findAll {it.label != "Retired"})
@@ -392,9 +383,9 @@ class NhsDataDictionaryService {
     }
 
     Set<DataElement> getDataFieldNotes(includeRetired = false) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass elementsClass = coreModel.dataClasses.find { it.label == DataDictionary.DATA_DICTIONARY_DATA_FIELD_NOTES_CLASS_NAME }
+        DataClass elementsClass = coreModel.dataClasses.find { it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME }
 
         Set<DataElement> elementElements = []
         elementElements.addAll(elementsClass.dataElements)
@@ -406,9 +397,9 @@ class NhsDataDictionaryService {
     }
 
     Set<DataElement> getAttributes(includeRetired = false) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass attributesClass = coreModel.dataClasses.find { it.label == DataDictionary.DATA_DICTIONARY_ATTRIBUTES_CLASS_NAME }
+        DataClass attributesClass = coreModel.dataClasses.find { it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME }
 
         Set<DataElement> attributeElements = []
         attributeElements.addAll(attributesClass.dataElements)
@@ -539,7 +530,7 @@ class NhsDataDictionaryService {
         dictionaryFolder.save()
 
         DataModel coreDataModel =
-            new DataModel(label: "Data Dictionary Core",
+            new DataModel(label: NhsDataDictionary.CORE_MODEL_NAME,
                           description: "Elements, attributes and classes",
                           folder: dictionaryFolder,
                           createdBy: currentUser.emailAddress,
@@ -547,7 +538,7 @@ class NhsDataDictionaryService {
                           type: DataModelType.DATA_STANDARD)
         if(prevDictionaryVersion) {
             DataModel prevCore = folderService.findAllModelsInFolder(prevDictionaryVersion).find {
-                it.label == "Data Dictionary Core"
+                it.label == NhsDataDictionary.CORE_MODEL_NAME
             }
             coreDataModel.addToVersionLinks(
                 linkType: VersionLinkType.NEW_MODEL_VERSION_OF,
@@ -555,18 +546,21 @@ class NhsDataDictionaryService {
                 targetModel: prevCore
             )
         }
-        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
         endTime = System.currentTimeMillis()
         log.warn("Create core model complete in ${Utils.getTimeString(endTime - startTime)}")
-        startTime = endTime
-        //attributeService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
-        endTime = System.currentTimeMillis()
-        log.warn("Ingest Attributes complete in ${Utils.getTimeString(endTime - startTime)}")
-        startTime = endTime
-        //elementService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
-        endTime = System.currentTimeMillis()
-        log.warn("Ingest Elements complete in ${Utils.getTimeString(endTime - startTime)}")
-        startTime = endTime
+
+        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
+
+        [
+                //attributeService,
+                //elementService,
+                businessDefinitionService
+        ].each {service ->
+            startTime = endTime
+            service.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
+            endTime = System.currentTimeMillis()
+            log.warn("${service.getClass().getCanonicalName()} ingest complete in ${Utils.getTimeString(endTime - startTime)}")
+        }
 
         //dictionaryFolder.save()
         endTime = System.currentTimeMillis()

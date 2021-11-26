@@ -39,12 +39,6 @@ apply plugin: 'ox.softeng.ox-brc-artifactory'
 apply plugin: "com.github.hierynomus.license"
 
 
-repositories {
-    mavenLocal()
-    maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-release"}
-    maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot"}
-    maven { url "https://repo.grails.org/grails/core" }
-}
 
 configurations {
     developmentOnly
@@ -106,6 +100,7 @@ dependencies {
     testCompile "org.grails:views-json-testing-support"
     //testCompile "org.grails:grails-plugin-testing"
     testCompile "io.micronaut:micronaut-http-client"
+
 }
 
 bootRun {
@@ -136,15 +131,6 @@ grailsPublish {
     title = "My Plugin"
     desc = "Full plugin description"
     developers = [johndoe:"John Doe"]
-}
-
-grails {
-    plugins {
-        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-core', version: mdmCoreVersion
-        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-datamodel', version: mdmCoreVersion
-        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-terminology', version: mdmCoreVersion
-        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-profile', version: mdmCoreVersion
-    }
 }
 
 apply from: 'dependencies.gradle'

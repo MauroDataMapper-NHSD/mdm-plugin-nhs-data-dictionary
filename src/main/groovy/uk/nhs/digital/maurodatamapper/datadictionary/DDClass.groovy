@@ -472,9 +472,9 @@ class DDClass extends DataDictionaryComponent<DataClass> {
     @Override
     String getInternalLink() {
         if(isRetired) {
-            return "](dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}|dc:${DataDictionary.DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${DDHelperFunctions.tidyLabel(name)})"
+            return "](dm:${DataDictionary.CORE_MODEL_NAME}|dc:${DataDictionary.DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${DDHelperFunctions.tidyLabel(name)})"
         } else {
-            return "](dm:${DataDictionary.DATA_DICTIONARY_CORE_MODEL_NAME}|dc:${DataDictionary.DATA_DICTIONARY_DATA_CLASSES_CLASS_NAME}|dc:${DDHelperFunctions.tidyLabel(name)})"
+            return "](dm:${DataDictionary.CORE_MODEL_NAME}|dc:${DataDictionary.DATA_CLASSES_CLASS_NAME}|dc:${DDHelperFunctions.tidyLabel(name)})"
         }
     }
 
