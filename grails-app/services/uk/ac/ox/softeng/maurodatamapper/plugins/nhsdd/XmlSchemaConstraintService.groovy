@@ -1,12 +1,14 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Transactional
 class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
@@ -66,5 +68,46 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
         return catalogueItem.code
     }
 
+    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                       NhsDataDictionary nhsDataDictionary) {
 
+        Terminology terminology = new Terminology(
+            label: NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME,
+            folder: dictionaryFolder,
+            createdBy: currentUserEmailAddress,
+            authority: authorityService.defaultAuthority)
+
+        Map<String, Term> allTerms = [:]
+        xml.DDXmlSchemaConstraint.each {ddXmlSchemaConstraint ->
+
+            String code = ddXmlSchemaConstraint."class".TitleCaseName[0].text()
+            // Either this is the first time we've seen a term...
+            // .. or if we've already got one, we'll overwrite it with this one
+            // (if this one isn't retired)
+            if (!allTerms[code] || ddXmlSchemaConstraint."class".isRetired.text() != "true") {
+
+                Term term = new Term(
+                    code: code,
+                    label: code,
+                    definition: code,
+                    url: ddXmlSchemaConstraint."class".DD_URL."class".text().replaceAll(" ", "%20"),
+                    description: DDHelperFunctions.parseHtml(ddXmlSchemaConstraint.definition),
+                    createdBy: currentUserEmailAddress,
+                    depth: 1,
+                    terminology: terminology)
+                addMetadataFromXml(term, ddXmlSchemaConstraint.class, currentUserEmailAddress)
+                allTerms[code] = term
+            }
+        }
+
+        allTerms.values().each {term ->
+            terminology.addToTerms(term)
+        }
+
+        if (terminology.validate()) {
+            terminology = terminologyService.saveModelWithContent(terminology)
+        } else {
+            System.err.println(terminology.errors)
+        }
+    }
 }

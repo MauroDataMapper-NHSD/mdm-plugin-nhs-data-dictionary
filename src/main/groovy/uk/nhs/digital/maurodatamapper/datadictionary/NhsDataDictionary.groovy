@@ -1,5 +1,10 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
+import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 
 class NhsDataDictionary {
@@ -15,8 +20,20 @@ class NhsDataDictionary {
     static String XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME = "XML Schema Constraints"
     static String WEB_PAGES_TERMINOLOGY_NAME = "Web Pages"
 
+    DataModel coreDataModel = null
+    User currentUser = null
 
-    Map<String, Terminology> attributeTerminologies = [:]
+    Map<String, Terminology> attributeTerminologiesByName = [:]
+    Map<String, DataElement> attributeElementsByUin = [:]
+
+    Map<String, DataElement> elementsByUrl = [:]
+
+    Map<String, DataClass> classesByUin = [:]
+    List<ClassLink> classLinks = []
+
+    Map<String, ReferenceType> classReferenceTypesByName = [:]
+
+    static XmlParser xmlParser = XmlParser.newInstance()
 
 
 }

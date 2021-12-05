@@ -1,6 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
@@ -8,6 +9,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Transactional
@@ -42,7 +44,7 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
 
     @Override
     Set<Term> getAll() {
-        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(DataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
+        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
         supDefTerminology.terms.findAll{
             (!it.metadata.find{md -> md.namespace == getMetadataNamespace() &&
                         md.key == "isRetired" &&
@@ -58,7 +60,7 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
 
     @Override
     String getMetadataNamespace() {
-        DDHelperFunctions.metadataNamespace + ".Supporting information"
+        DDHelperFunctions.metadataNamespace + ".supporting information"
     }
 
     @Override
@@ -81,5 +83,55 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
             }
         }
     }
+
+    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                       NhsDataDictionary nhsDataDictionary) {
+
+        Terminology terminology = new Terminology(
+            label: NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME,
+            folder: dictionaryFolder,
+            createdBy: currentUserEmailAddress,
+            authority: authorityService.defaultAuthority)
+
+        Map<String, Term> allTerms = [:]
+        xml.DDWebPage.findAll { ddWebPage ->
+            ddWebPage."base-uri".text().contains("Supporting_Definitions") ||
+                ddWebPage."base-uri".text().contains("Supporting_Information") ||
+                ddWebPage."base-uri".text().contains("CDS_Supporting_Information")
+        }.each { ddWebPage ->
+
+            String code = ddWebPage.TitleCaseName.text()
+            // Either this is the first time we've seen a term...
+            // .. or if we've already got one, we'll overwrite it with this one
+            // (if this one isn't retired)
+            if(!allTerms[code] || ddWebPage.isRetired.text() != "true") {
+
+                Term term = new Term(
+                    code: code,
+                    label: code,
+                    definition: code,
+                    url: ddWebPage.DD_URL.text().replaceAll(" ", "%20"),
+                    description: DDHelperFunctions.parseHtml(ddWebPage.definition),
+                    createdBy: currentUserEmailAddress,
+                    depth: 1,
+                    terminology: terminology)
+                addMetadataFromXml(term, ddWebPage, currentUserEmailAddress)
+                allTerms[code] = term
+            }
+        }
+
+        allTerms.values().each { term ->
+            terminology.addToTerms(term)
+        }
+
+        if (terminology.validate()) {
+            terminology = terminologyService.saveModelWithContent(terminology)
+        } else {
+            System.err.println(terminology.errors)
+        }
+
+
+    }
+
 
 }

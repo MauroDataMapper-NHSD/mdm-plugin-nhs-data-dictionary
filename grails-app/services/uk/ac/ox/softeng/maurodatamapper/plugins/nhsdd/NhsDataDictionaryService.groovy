@@ -18,6 +18,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -73,10 +74,14 @@ class NhsDataDictionaryService {
 
 
     def branches(UserSecurityPolicyManager userSecurityPolicyManager) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
-        DataModel oldestAncestor = dataModelService.findOldestAncestor(coreModel)
+        List<VersionedFolder> versionedFolders = VersionedFolder.findAll().findAll {
+            it.label.startsWith("NHS Data Dictionary")
+        }
 
-        List<VersionTreeModel> versionTreeModelList = dataModelService.buildModelVersionTree(oldestAncestor, null, userSecurityPolicyManager)
+        VersionedFolder oldestAncestor = versionedFolderService.findOldestAncestor(versionedFolders[0])
+
+        List<VersionTreeModel> versionTreeModelList = versionedFolderService.buildModelVersionTree(oldestAncestor, null, null,
+                                                                                                   true, userSecurityPolicyManager)
         return versionTreeModelList
     }
 
@@ -505,6 +510,7 @@ class NhsDataDictionaryService {
     @Transactional
     def ingest(User currentUser, def xml, String releaseDate, String finalise, String folderVersionNo, String prevVersion) {
         long startTime = System.currentTimeMillis()
+        long originalStartTime = startTime
         String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
         if(!finalise && !folderVersionNo && !prevVersion) {
             deleteOriginalFolder(dictionaryFolderName)
@@ -514,8 +520,7 @@ class NhsDataDictionaryService {
         log.warn("Delete old folder complete in ${Utils.getTimeString(endTime - startTime)}")
         startTime = endTime
         VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
-                                                               description: "", createdBy: currentUser
-            .emailAddress)
+                                                               description: "", createdBy: currentUser.emailAddress)
 
         VersionedFolder prevDictionaryVersion = null
         if(prevVersion) {
@@ -546,15 +551,21 @@ class NhsDataDictionaryService {
                 targetModel: prevCore
             )
         }
+        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
+        nhsDataDictionary.currentUser = currentUser
+        nhsDataDictionary.coreDataModel = coreDataModel
+
         endTime = System.currentTimeMillis()
         log.warn("Create core model complete in ${Utils.getTimeString(endTime - startTime)}")
 
-        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
 
         [
-                //attributeService,
-                //elementService,
-                businessDefinitionService
+            attributeService,
+            elementService,
+            businessDefinitionService,
+            supportingInformationService,
+            xmlSchemaConstraintService,
+            classService
         ].each {service ->
             startTime = endTime
             service.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
@@ -562,10 +573,14 @@ class NhsDataDictionaryService {
             log.warn("${service.getClass().getCanonicalName()} ingest complete in ${Utils.getTimeString(endTime - startTime)}")
         }
 
+        // cross link classes
+        classService.processLinks(nhsDataDictionary)
+        classService.linkReferences(nhsDataDictionary, currentUser.emailAddress)
+
         //dictionaryFolder.save()
-        endTime = System.currentTimeMillis()
-        log.warn("Save DD Folder complete in ${Utils.getTimeString(endTime - startTime)}")
-        startTime = endTime
+        //endTime = System.currentTimeMillis()
+        //log.warn("Save DD Folder complete in ${Utils.getTimeString(endTime - startTime)}")
+        //startTime = endTime
 
         if (coreDataModel.validate()) {
             endTime = System.currentTimeMillis()
@@ -579,9 +594,9 @@ class NhsDataDictionaryService {
                                                   coreDataModel.errors)
 
         startTime = System.currentTimeMillis()
-        // dataSetService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
+        dataSetService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
         endTime = System.currentTimeMillis()
-        log.warn("Ingest data models complete in ${Utils.getTimeString(endTime - startTime)}")
+        log.warn("Ingest dictionary complete in ${Utils.getTimeString(endTime - originalStartTime)}")
         if(finalise == "true") {
             versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, Version.from(folderVersionNo), VersionChangeType.MAJOR, releaseDate)
         }

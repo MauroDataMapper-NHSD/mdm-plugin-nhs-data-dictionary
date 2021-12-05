@@ -12,7 +12,7 @@
         "dataType": "boolean"
       },{
         "fieldName": "Is retired",
-        "metadataPropertyName": "retired",
+        "metadataPropertyName": "isRetired",
         "description": "",
         "maxMultiplicity": 0,
         "minMultiplicity": 1,
@@ -194,7 +194,7 @@
         "description": "",
         "maxMultiplicity": 0,
         "minMultiplicity": 1,
-        "dataType": "date"
+        "dataType": "string"
       },
       {
         "fieldName": "DD URL",

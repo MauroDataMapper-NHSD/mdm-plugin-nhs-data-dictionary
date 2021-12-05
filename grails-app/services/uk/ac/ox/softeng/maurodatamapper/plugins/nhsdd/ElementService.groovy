@@ -246,7 +246,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
                     CodeSet codeSet = new CodeSet(
                         label: elementName,
-                        description: ddDataElement.definition.text(),
+                        description: "",
                         folder: subFolder,
                         createdBy: currentUserEmailAddress,
                         authority: authorityService.defaultAuthority)
@@ -255,7 +255,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
 
                     String terminologyUin = ddDataElement.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
-                    Terminology attributeTerminology = nhsDataDictionary.attributeTerminologies[terminologyUin]
+                    Terminology attributeTerminology = nhsDataDictionary.attributeTerminologiesByName[terminologyUin]
                     if(!attributeTerminology) {
                         log.error("No terminology with UIN ${terminologyUin} found for element ${elementName}")
                     } else {
@@ -298,13 +298,13 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                 }
                 DataElement elementDataElement = new DataElement(
                     label: elementName,
-                    description: ddDataElement.definition.text(),
+                    description: DDHelperFunctions.parseHtml(ddDataElement.definition),
                     createdBy: currentUserEmailAddress,
                     dataType: dataType,
                     index: idx++)
 
                 addMetadataFromXml(elementDataElement, ddDataElement, currentUserEmailAddress)
-
+                nhsDataDictionary.elementsByUrl[ddDataElement.DD_URL.text()] = elementDataElement
                 if (ddDataElement.isRetired.text() == "true") {
                     retiredElementsClass.addToDataElements(elementDataElement)
                 } else {

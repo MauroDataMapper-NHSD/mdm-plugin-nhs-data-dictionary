@@ -1,5 +1,6 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets
 
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -13,8 +14,10 @@ import groovy.util.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
 import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+
+import java.nio.file.Paths
 
 @Slf4j
 class DataSetParser {
@@ -25,6 +28,97 @@ class DataSetParser {
 
     static Map<String, DataModel> dataModels = [:]
 
+    /*    static void main(String[] args) {
+
+            CatalogueClientFactory.newFromPropertiesPath("/Users/james/git/catalogue-tools/localclient.properties").withCloseable {
+                XmlSlurper slurper = XmlSlurper.newInstance()
+                def xml = slurper.parse(new File(xmlFileName))
+
+                xml.DDDataSet.each { ddDataSetXml ->
+                    log.info(ddDataSetXml.name.text())
+                    String dataSetName = ddDataSetXml.name.text()
+                    DataModel dataModel = new DataModel(label: dataSetName)
+                    log.info("Processing: " + dataSetName)
+                    //parseDataSet(ddDataSetXml.definition, dataModel, null)
+                    if (dataSetName.startsWith("CDS")) {
+                        CDSDataSetParser.parseCDSDataSet(ddDataSetXml.definition, dataModel, new DataDictionary())
+                    } else {
+                        parseDataSet(ddDataSetXml.definition, dataModel, new DataDictionary())
+                    }
+                    dataModels[dataSetName] = dataModel
+                }
+                //dataModels.keySet().each { System.err.println(it)}
+                Map<String, String> tests = [:]
+
+                tests["Inter-Provider_Transfer_Administrative_Minimum_Data_Set"] = "8C8E5E2E8E6E1E4E2E"
+                tests["National_Workforce_Data_Set"] = "6C6E17E17E33E9E55E"
+                tests["Chlamydia_Testing_Activity_Data_Set"] = "4C3E9E1C2E3E8E"
+                tests["National_Neonatal_Data_Set_-_Episodic_and_Daily_Care"] = "14C2C1C2E16E1C2E13E2C13E9E3C2E1C2E1E1C2E1E15E1C1C2E1E28E6C1C2E1E2E2E1C2E1E2E1C2E1E15E2C5C1C2E1E2E1C2E1E2E2E8E2C2E1C2E1E2E2C3E1C1C2E1E4E2C1E1C1C2E1E8E2C1E2C1C2E1E2E9E2C1E1C1C2E1E8E2C1E1C1C2E1E2C1E1C1C2E1E3E11C3C1C2E1E2E2E7E8E4E5E2E7E1E1C2E6E1E1E1E"
+                tests["National_Neonatal_Data_Set_-_Two_Year_Neonatal_Outcomes_Assessment"] = "1C22C2C2C2E2E8E2C2E2E5E2C1C2E5E3C2E2E2E2E8E2E2E4E3E4E3C1C2E1E1C2E1E1C2E1E3E7E6E5E3E3E1C1C2E1E4E12E12E4E24E1C1C2E1E6E1C1C2E1E9E"
+                tests["Radiotherapy_Data_Set"] = "5C1E3E7E9E6E"
+                tests["Community_Services_Data_Set"] = "10C7E7C25E5E3E8E4E3E4E5C13E7E2E10E4E2C21E13E10E4C2E2E4E3E2C5E4E12C4E3E5E12E6E4E4E4E4E2E4E3E5E6E"
+                tests["Maternity_Services_Data_Set"] = "8C8E4C10E5E3E3E9C28E10E10E4E6E7E4E3E11E5C18E15E3E20E17E6C27E5E4E4E17E3E4C11E4E7E6E2C5E4E6E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Upper_Gastrointestinal"] = "8C1E1E7E3E6E1E1E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Lung"] = "4C5C1E1E2E2E1E1E4E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Children_Teenagers_and_Young_Adults"] = "10C1E2E1E4C1E1E2E1E2C1E1E2E1E2E2E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Skin"] = "1C2E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Core"] = "38C6E1E2C1E1E3E2C3E1E3C5E3E2E2C1E2E1C1E9E8E3E3E2C3C1E1E3E2E2E2C1E1E1E11E5E3E1E2C1E2E2E4E8E4E4E2C1E5E7E6E4E4E14E2E10E11E3E5E2E3E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Central_Nervous_System"] = "7C4E1E3E1E2E1E2C1E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Haematological"] = "7C7C1E1E1E2E4E3E1E4C1E1E1E1E4E4C2E2E3E1E3C2E3E4E1E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Colorectal"] = "2C2E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Head_and_Neck"] = "3C2E3E5E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Breast"] = "3C1E1E6E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Sarcoma"] = "3C5E2C3E1E2C1E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Pathology"] = "35C6E1E2C1E1E3E1C1E4E13E1E2C1E1E25E16E2E7E7E4E4E6E8E7E4E1E4E2E9E1E2E2E3E5E11E3E2E5E3E5E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Gynaecological"] = "2C1E2E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Liver"] = "7C3E1E1E3E2E1E1E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Urological"] = "7C2E3E3E4E3E2C1E1E2E"
+                tests["HIV_and_AIDS_Reporting_Data_Set"] = "9C8E1E15E5E4E15E8E18E2E"
+                tests["Systemic_Anti-Cancer_Therapy_Data_Set"] = "6C1C2E9E1C2E1E10E4E10E6E"
+                tests["Sexual_and_Reproductive_Health_Activity_Data_Set"] = "5C3E7E5E4E1E"
+                tests["Female_Genital_Mutilation_Data_Set"] = "3C11E18E10E"
+                tests["Improving_Access_to_Psychological_Therapies_Data_Set"] = "8C7E6C12E5E15E2E3E3E2C9E5E5E3C21E10E7E4C3E5E5E3E6E4E"
+                tests["National_Cancer_Waiting_Times_Monitoring_Data_Set"] = "4C4E15E21E14E"
+                tests["Mental_Health_Services_Data_Set"] = "12C7E12C13E5E5E4E13E5E3E8E4E3E3E3E7C20E2E9E7E8E4E4E4C23E10E2E10E11E5C12E4E5E5E5E13C15E17E5E6E12E2E2E5E7E6E5E4E2E6C4E4E4E4E5E3E5E2C4E4E4C10E3E10E4E7E"
+                tests["Diagnostic_Imaging_Data_Set"] = "3C7E5E1C2E4E"
+                tests["GUMCAD_Sexually_Transmitted_Infection_Surveillance_System_Data_Set"] = "6C2E10E1C4E10E4C3E4E2E5E5E22E"
+                tests["National_Joint_Registry_Data_Set_-_Common_Details"] = "1C4C1C1C2E1E1E1C2E6E5E4E"
+                tests["National_Joint_Registry_Data_Set_-_Ankle"] = "2C7C9E4E2E9E1E1E2E9C4E2E3E3E2E9E1E1E2E"
+                tests["National_Joint_Registry_Data_Set_-_Knee"] = "2C7C4E5E2E6E1E1E2E9C4E2E4E3E2E6E1E1E2E"
+                tests["National_Joint_Registry_Data_Set_-_Hip"] = "2C7C2E5E2E6E1E1E2E9C4E2E6E3E2E6E1E1E2E"
+                tests["National_Joint_Registry_Data_Set_-_Elbow"] = "2C8C1E2E5E2E6E1E1E2E10C1E4E2E3E3E2E6E1E1E2E"
+                tests["National_Joint_Registry_Data_Set_-_Shoulder"] = "2C11C1E3E7E2E6E3E5E1E1E13E2E13C1E4E2E5E6E2E6E3E5E1E1E13E2E"
+                tests["AIDC_for_Patient_Identification_Data_Set"] = "3C3C4E2E4E5E4E"
+                tests["NHS_Continuing_Healthcare_Patient_Level_Data_Set"] = "5C7E11E38E14E7E"
+                tests["Aggregate_Contract_Monitoring_Data_Set"] = "5C3E4E3E18E8E"
+                tests["Patient_Level_Information_Costing_System_Acute_Data_Set_-_Out-Patient_Care"] = "5C8E8E8E1E4E"
+                tests["Patient_Level_Information_Costing_System_Acute_Data_Set_-_Admitted_Patient_Care"] = "5C8E8E10E3E4E"
+                tests["Patient_Level_Information_Costing_System_Acute_Data_Set_-_Emergency_Care"] = "5C8E8E6E1E4E"
+                tests["Patient_Level_Information_Costing_System_Data_Set_-_Reconciliation"] = "3C6E2E2E"
+                tests["Patient_Level_Contract_Monitoring_Data_Set"] = "6C3E5E8E11E19E5E"
+                tests["Drugs_Patient_Level_Contract_Monitoring_Data_Set"] = "6C3E4E7E15E16E5E"
+                tests["Paediatric_Critical_Care_Minimum_Data_Set"] = "5C3E6E1E1E1E"
+                tests["Devices_Patient_Level_Contract_Monitoring_Data_Set"] = "6C3E4E7E13E16E4E"
+                tests["Neonatal_Critical_Care_Minimum_Data_Set"] = "5C3E7E2E1E1E"
+                tests["Critical_Care_Minimum_Data_Set"] = "1C34E"
+                //tests["Information_Sharing_to_Tackle_Violence_Minimum_Data_Set"] = ""
+                tests["NHS_Continuing_Healthcare_Data_Set"] = "12C3E5E3E2E5E3E3E3E2E4E1E2E"
+                tests["Cover_of_Vaccination_Evaluated_Rapidly_(COVER)_Data_Set"] = "6C4E1C2E2E1C2E2E1C2E2E1C2E2E1C2E2E"
+
+                tests["CDS_V6-2_Type_020_-_Outpatient_CDS"] = "20C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C3E1C4E3C1E2E2E3C1E1E1E1C17E1C6E7C1E2E2E2E2E2E2E3C1E2E2E1C4E1C2E1C5E1C2E1C1E"
+                tests["CDS_V6-2-1_Type_005B_-_CDS_Transaction_Header_Group_-_Bulk_Update_Protocol"] = "1C1C12E"
+                tests["CDS_V6-2-1_Type_003_-_CDS_Message_Header"] = "1C1C4E"
+                tests["CDS_V6-2_Type_100_-_Elective_Admission_List_-_Event_During_Period_(Old_Service_Agreement)_CDS"] = "7C2C2C1C2E1E4E1C7E"
+                tests["CDS_V6-2_Type_060_-_Elective_Admission_List_-_Event_During_Period_(Add)_CDS"] = "20C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C2E1C7E1C14E1C4E7C1E2E2E2E2E2E2E3C1E2E2E1C3E1C2E1C2E1C1E1C3E1C1E1C2E"
+                tests["CDS_V6-2-2_Type_011_-_Emergency_Care_CDS"] = "23C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C7E1C5E1C2E1C2E1C2E1C14E1C10E1C1E1C6E1C4E1C3E1C3E1C3E1C5E1C13E1C2E"
+                tests["CDS_V6-2_Type_200_-_Admitted_Patient_Care_-_Unfinished_Delivery_Episode_CDS"] = "34C2C2C1C2E1E4E3C1C3E2C2E5E2C2E2C1E1E5E1C5E1C1E1C10E1C6E1C11E1C3E1C6E1C4E3C1E2E2E3C1E1E1E7C1E2E2E2E2E2E2E3C1E2E2E1C10E1C14E1C10E3C4E3E2E3C8E12E7E1C2E1C2E1C1E1C1E1C2E1C4E1C5E2C5E3C3E2C2E3E3C2E2E1E1C4E1C3E"
+                tests["CDS_V6-2_Type_140_-_Admitted_Patient_Care_-_Finished_Delivery_Episode_CDS"] = "34C2C2C1C2E1E4E3C1C3E2C2E5E2C2E2C1E1E5E1C5E1C1E1C10E1C6E1C11E1C3E1C6E1C4E3C1E2E2E3C1E1E1E7C1E2E2E2E2E2E2E3C1E2E2E1C10E1C14E1C10E3C4E3E2E3C8E12E7E1C2E1C2E1C1E1C1E1C2E1C4E1C5E2C5E3C3E2C2E3E3C2E2E1E1C4E1C3E"
+
+                tests.each { key, value ->
+                    verifyDataModel(key, value)
+                }
+            }
+    } */
 
     static void verifyDataModel(String name, String hash, Boolean print = false) {
         String generatedHash = generateDataSetHash(dataModels[name])
@@ -36,7 +130,7 @@ class DataSetParser {
         assert (hash != "")
     }
 
-    static void parseDataSet(GPathResult definition, DataModel dataModel, DataDictionary dataDictionary) {
+    static void parseDataSet(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> dataClasses = []
         if (definition.children().count { it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it) }) {
             dataClasses = OtherDataSetParser.parseDataSetWithHeaderTables(definition, dataModel, dataDictionary)
@@ -63,7 +157,7 @@ class DataSetParser {
     static void printDataModel(DataModel dataModel) {
         log.error("===============================")
         log.error(dataModel.label)
-        dataModel.dataClasses.sort { getOrder(it) }.each { dataClass ->
+        dataModel.childDataClasses.sort { getOrder(it) }.each { dataClass ->
             printDataClass(dataClass, 3)
         }
     }
@@ -102,9 +196,9 @@ class DataSetParser {
 
     static String generateDataSetHash(DataModel dataModel) {
         String ret = ""
-        if (dataModel.dataClasses) {
-            ret += dataModel.dataClasses.size() + "C"
-            dataModel.dataClasses.sort { getOrder(it) }.each { dataClass ->
+        if (dataModel.childDataClasses) {
+            ret += dataModel.childDataClasses.size() + "C"
+            dataModel.childDataClasses.sort { getOrder(it) }.each { dataClass ->
                 ret += generateDataClassHash(dataClass)
             }
         }
@@ -132,43 +226,43 @@ class DataSetParser {
     }
 
     static void setOrder(MetadataAware item, Integer order) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Web Order", value: "" + order)
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Web Order", value: "" + order ))
     }
 
     static void setChoice(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Choice", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Choice", value: "true"))
     }
 
     static void setAnd(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "And", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "And", value: "true"))
     }
 
     static void setAddress(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Address Choice", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Address Choice", value: "true"))
     }
 
     static void setNameChoice(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Name Choice", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Name Choice", value: "true"))
     }
 
     static void setInclusiveOr(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Inclusive", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Inclusive", value: "true"))
     }
 
     static void setDataSetReference(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Data Set Reference", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Data Set Reference", value: "true"))
     }
 
     static boolean isDataSetReference(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
-                    && it.key == "Data Set Reference"
-                    && it.value == "true")
+                && it.key == "Data Set Reference"
+                && it.value == "true")
         }
     }
 
     static void setDataSetReferenceTo(MetadataAware item, String dataSetName) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Data Set Reference To", value: dataSetName)
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Data Set Reference To", value: dataSetName))
     }
 
 
@@ -178,14 +272,14 @@ class DataSetParser {
     }
 
     static void setMultiplicityText(MetadataAware item, String multiplicity) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Multiplicity Text", value: multiplicity)
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Multiplicity Text", value: multiplicity))
     }
     static String getMultiplicityText(MetadataAware item) {
         item.getMetadata().find { it.key == "Multiplicity Text" }.value
     }
 
     static void setMRO(MetadataAware item, String mro) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "MRO", value: mro)
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "MRO", value: mro))
     }
 
     static String getMRO(MetadataAware item) {
@@ -193,7 +287,7 @@ class DataSetParser {
     }
 
     static void setRules(MetadataAware item, String rules) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Rules", value: rules)
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Rules", value: rules))
     }
 
     static String getRules(MetadataAware item) {
@@ -201,7 +295,7 @@ class DataSetParser {
     }
 
     static void setGroupRepeats(MetadataAware item, String groupRepeats) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "Group Repeats", value: groupRepeats)
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Group Repeats", value: groupRepeats))
     }
 
     static String getGroupRepeats(MetadataAware item) {
@@ -210,44 +304,44 @@ class DataSetParser {
 
 
     static void setNotOption(MetadataAware item) {
-        item.addToMetadata(namespace: DDHelperFunctions.metadataNamespace, key: "NotOption", value: "true")
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "NotOption", value: "true"))
     }
 
     static boolean isChoice(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
-                    && it.key == "Choice"
-                    && it.value == "true")
+                && it.key == "Choice"
+                && it.value == "true")
         }
     }
 
     static boolean isAnd(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
-                    && it.key == "And"
-                    && it.value == "true")
+                && it.key == "And"
+                && it.value == "true")
         }
     }
     static boolean isInclusiveOr(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
-                    && it.key == "Inclusive"
-                    && it.value == "true")
+                && it.key == "Inclusive"
+                && it.value == "true")
         }
     }
     static boolean isAddress(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
-                    && it.key == "Address Choice"
-                    && it.value == "true")
+                && it.key == "Address Choice"
+                && it.value == "true")
         }
     }
 
     static boolean isNotOption(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
-                    && it.key == "NotOption"
-                    && it.value == "true")
+                && it.key == "NotOption"
+                && it.value == "true")
         }
     }
 
@@ -290,10 +384,10 @@ class DataSetParser {
                 dataClass.description = cellContent.substring(carryIndex)
             } else {
                 if ((!dataClass.label || dataClass.label == "") && cellContent.startsWith("To carry the ")
-                        && cellContent.indexOf("details.") > 0) {
+                    && cellContent.indexOf("details.") > 0) {
                     // to deal with the GUMCAD data model...
                     int detailsLocation = cellContent.indexOf("details.")
-                    dataClass.label = cellContent.subSequence(13, detailsLocation)
+                    dataClass.label = capitalizeGumCad(cellContent.subSequence(13, detailsLocation).toString())
                     dataClass.description = cellContent
                 } else if ((!dataClass.label || dataClass.label == "") && cellContent.contains(".")) {
                     int detailsLocation = cellContent.indexOf(".")
@@ -311,7 +405,7 @@ class DataSetParser {
 
     }
 
-    static DataElement getElementFromText(Object anchor, DataModel dataModel, DataDictionary dataDictionary, String currentClass) {
+    static DataElement getElementFromText(Object anchor, DataModel dataModel, NhsDataDictionary dataDictionary, String currentClass) {
         //String elementLabel = ((String)anchor.@href).replaceAll(" ", "%20")
         String elementUrl = ((String) anchor.@href)
 
@@ -320,9 +414,9 @@ class DataSetParser {
         }
 
 
-        DDElement de = null
+        DataElement de = null
         if (dataDictionary) {
-            de = dataDictionary.elements.values().find { it.ddUrl == elementUrl }
+            de = dataDictionary.elementsByUrl[elementUrl]
         }
         if (!de) {
             log.error("Cannot find element: ${anchor.text()} - ${elementUrl}")
@@ -330,66 +424,66 @@ class DataSetParser {
             DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype" }
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
-                //dataModel.addToDataTypes(defaultDataType)
+                dataModel.addToDataTypes(defaultDataType)
             }
             DataElement dataElement = new DataElement(label: anchor.text(), dataType: defaultDataType)
             return dataElement
 
         } else {
-            return de.toCatalogueItem(dataDictionary)
+            return de
         }
     }
 
     static final Map<String, String> fileNameFixes = [
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_concluded_within_28_days_(standard)_de.asp":
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_conluded_within_28_days_(standard)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_local_identifier_de.asp"                                                 :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_identifier_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_team_local_identifier_de.asp"                                            :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_team_identifier_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(antenatal%20treatment)_de.asp"                                             :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(antenatal_treatment)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/h/hu/human_papillomavirus_vaccination_dose_de.asp"                                                :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/h/hu/human_papillomavirus_vaccination_dose_given_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/r/rep/residual_disease_size_(gynaecological_cancer)_de.asp"                                       :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/r/rep/residual_disease_size_(gynaecology_cancer)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pri/primary_induction_chemotherapy_failure_indicator_de.asp"                                    :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pri/primary_induction_failure_indicator_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/f/fo/french_american_british_classification_(acute_myeloid_leukaemia)_de.asp"                     :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/f/fo/french_american_british_classification_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/t/th/tissue_type_banked_at_diagnosis_de.asp"                                                      :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/t/th/tissue_banked_at_diagnosis_type_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_operating_surgeon_type_(cancer)_de.asp"                                  :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_surgeon_grade_(cancer)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(transthoracic_echocardiogram_test)_de.asp"                                 :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(transthoracic_echocardiograml)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_(baby))_de.asp"                           :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_baby)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_(mother))_de.asp"                         :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_mother)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/d/dea/decision_support_tool_completed_date_(nhs_continuing healthcare_standard)_de.asp"           :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/d/dea/decision_support_tool_completed_date_(nhs_continuing%20healthcare_standard)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_grade_(primary)_de.asp"                                                              :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_score_(primary)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_grade_(secondary)_de.asp"                                                            :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_score_(secondary)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_grade_(tertiary)_de.asp"                                                             :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_score_(tertiary)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/peritoneal_involvement_indicator_(endometrial_cancer)_de.asp"                                :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/peritoneal_involvement_indicator_(endomertrial_cancer)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gene_or_stratification_biomarker_authorised_date_de.asp"                                        :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gene_or_stratification_biomarker_reported_date_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/s/st/stage_date_(cancer_site_specific_stage)_de.asp"                                              :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/s/st/stage_grouping_date_(cancer_site_specific_stage)_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_site_identifier_(of_acute_oncology_assessment)_de.asp"                         :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_site_identifier_(of_clinical_assessment)1_de.asp",
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/a/act/acute_oncology_assessment_patient_presentation_type_de.asp"                                 :
-                    "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/a/act/acute_oncology_assessment_patient_presentattion_type_de.asp"
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_concluded_within_28_days_(standard)_de.asp":
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_conluded_within_28_days_(standard)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_local_identifier_de.asp"                                                 :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_identifier_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_team_local_identifier_de.asp"                                            :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_team_identifier_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(antenatal%20treatment)_de.asp"                                             :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(antenatal_treatment)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/h/hu/human_papillomavirus_vaccination_dose_de.asp"                                                :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/h/hu/human_papillomavirus_vaccination_dose_given_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/r/rep/residual_disease_size_(gynaecological_cancer)_de.asp"                                       :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/r/rep/residual_disease_size_(gynaecology_cancer)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pri/primary_induction_chemotherapy_failure_indicator_de.asp"                                    :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pri/primary_induction_failure_indicator_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/f/fo/french_american_british_classification_(acute_myeloid_leukaemia)_de.asp"                     :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/f/fo/french_american_british_classification_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/t/th/tissue_type_banked_at_diagnosis_de.asp"                                                      :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/t/th/tissue_banked_at_diagnosis_type_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_operating_surgeon_type_(cancer)_de.asp"                                  :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_surgeon_grade_(cancer)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(transthoracic_echocardiogram_test)_de.asp"                                 :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/proc/procedure_date_(transthoracic_echocardiograml)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_(baby))_de.asp"                           :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_baby)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_(mother))_de.asp"                         :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_identifier_(local_patient_identifier_mother)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/d/dea/decision_support_tool_completed_date_(nhs_continuing healthcare_standard)_de.asp"           :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/d/dea/decision_support_tool_completed_date_(nhs_continuing%20healthcare_standard)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_grade_(primary)_de.asp"                                                              :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_score_(primary)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_grade_(secondary)_de.asp"                                                            :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_score_(secondary)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_grade_(tertiary)_de.asp"                                                             :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gl/gleason_score_(tertiary)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/peritoneal_involvement_indicator_(endometrial_cancer)_de.asp"                                :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/peritoneal_involvement_indicator_(endomertrial_cancer)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gene_or_stratification_biomarker_authorised_date_de.asp"                                        :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/g/gene_or_stratification_biomarker_reported_date_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/s/st/stage_date_(cancer_site_specific_stage)_de.asp"                                              :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/s/st/stage_grouping_date_(cancer_site_specific_stage)_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_site_identifier_(of_acute_oncology_assessment)_de.asp"                         :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/o/org/organisation_site_identifier_(of_clinical_assessment)1_de.asp",
+        "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/a/act/acute_oncology_assessment_patient_presentation_type_de.asp"                                 :
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/a/act/acute_oncology_assessment_patient_presentattion_type_de.asp"
     ]
 
     static void fixPotentialDuplicates(DataModel dataModel) {
         List<String> classNames = []
-        dataModel.dataClasses.each { childDataClass ->
+        dataModel.childDataClasses.each { childDataClass ->
             if (classNames.contains(childDataClass.label)) {
                 log.error("Duplicate class label: ${childDataClass.label} in ${dataModel.label}")
                 int idx = 1
@@ -451,8 +545,13 @@ class DataSetParser {
         } else {
             log.error("Params error! ")
             log.error(elementList.toString())
+            log.error("" + elementList.size())
+            log.error("" + params.size())
             elementList.each { DataElement entry ->
                 log.error(entry.label)
+            }
+            params.each {
+                log.error(it.toString())
             }
             log.error(gPathResult.toString())
         }
@@ -524,21 +623,22 @@ class DataSetParser {
         List<List<String>> allValues = []
         List<String> currentValues = []
         for(int i=0;i<td.children().size(); i++) {
-            if(!(td.children()[i] instanceof Node) && td.children()[i].equalsIgnoreCase("or")) {
+            if(!(td.children()[i] instanceof Node) &&
+               (td.children()[i].equalsIgnoreCase("or") || td.children()[i].equalsIgnoreCase("and"))) {
                 allValues.add(currentValues)
                 currentValues = []
             } else if(!(td.children()[i] instanceof Node) &&
-                    td.children()[i] != "\u00a0" &&
-                    td.children()[i] != " ") {
+                      td.children()[i] != "\u00a0" &&
+                      td.children()[i] != " ") {
                 // System.err.println("Adding value: '${td.children()[i]}'")
                 currentValues.add(td.children()[i])
             } else if(isBr(td.children()[i]) && td.children()[i+1] && isBr(td.children()[i+1]) ) {
                 allValues.add(currentValues)
                 currentValues = []
             } else if(isBr(td.children()[i]) &&
-                    td.children()[i+1] && !(td.children()[i+1] instanceof Node) &&
-                    (td.children()[i+1] == " " || td.children()[i+1] == "\u00a0") &&
-                    td.children()[i+2] && isBr(td.children()[i+2]) ) {
+                      td.children()[i+1] && !(td.children()[i+1] instanceof Node) &&
+                      (td.children()[i+1] == " " || td.children()[i+1] == "\u00a0") &&
+                      td.children()[i+2] && isBr(td.children()[i+2]) ) {
                 // System.err.println("Here")
                 allValues.add(currentValues)
                 currentValues = []
@@ -589,7 +689,21 @@ class DataSetParser {
 
     }
 
-
+    static String capitalizeGumCad(String input) {
+        // System.err.println(input)
+        char[] chars = input.toLowerCase().toCharArray()
+        boolean found = false
+        for (int i = 0; i < chars.length; i++) {
+            if (!found && Character.isLetter(chars[i])) {
+                chars[i] = Character.toUpperCase(chars[i])
+                found = true
+            } else if (Character.isWhitespace(chars[i]) || chars[i]=='.' || chars[i]=='\'') { // You can add other chars here
+                found = false
+            }
+        }
+        // System.err.println(String.valueOf(chars))
+        return String.valueOf(chars)
+    }
 
 
 }
