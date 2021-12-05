@@ -1,5 +1,6 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.util.logging.Slf4j
@@ -22,8 +23,8 @@ class ClassLink {
     String relationClientExclusivity
     String direction
 
-    DDClass clientClass
-    DDClass supplierClass
+    DataClass clientClass
+    DataClass supplierClass
 
 
 
@@ -108,14 +109,14 @@ class ClassLink {
         }
     }
 
-    void findTargetClass(DataDictionary dataDictionary) {
-        supplierClass = dataDictionary.classes.values().find{it.uin == supplierUin}
+    void findTargetClass(NhsDataDictionary nhsDataDictionary) {
+        supplierClass = nhsDataDictionary.classesByUin[supplierUin]
         if(!supplierClass) {
             log.error("Cannot match supplier class relationship: ${uin}")
             log.error("SupplierUin: ${supplierUin}")
             log.error(this.toString())
         }
-        clientClass = dataDictionary.classes.values().find{it.uin == clientUin}
+        clientClass = nhsDataDictionary.classesByUin[clientUin]
         if(!clientClass) {
             log.error("Cannot match client class relationship: ${uin}")
             log.error("ClientUin: ${clientUin}")

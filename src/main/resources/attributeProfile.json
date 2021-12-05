@@ -178,7 +178,7 @@
         "description": "",
         "maxMultiplicity": 1,
         "minMultiplicity": 0,
-        "dataType": "date"
+        "dataType": "string"
       },
       {
         "fieldName": "DD URL",

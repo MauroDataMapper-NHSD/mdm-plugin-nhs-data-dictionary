@@ -156,6 +156,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         xml.DDAttribute.sort { it.TitleCaseName.text()}.each { ddAttribute ->
             DataType dataType
             String attributeName = ddAttribute.TitleCaseName.text()
+            String uin = ddAttribute.uin.text()
             // if(attributeName.toLowerCase().startsWith('a')) {
                 if (ddAttribute."code-system".size() > 0) {
                     String folderName = attributeName.substring(0, 1)
@@ -228,8 +229,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                         System.err.println(terminology.errors)
                     }
 
-                    String uin = ddAttribute.uin.text()
-                    nhsDataDictionary.attributeTerminologies[uin] = terminology
+
+                    nhsDataDictionary.attributeTerminologiesByName[uin] = terminology
                     dataType = new ModelDataType(label: "${attributeName} Attribute Type",
                                                  modelResourceDomainType: terminology.getDomainType(),
                                                  modelResourceId: terminology.id,
@@ -251,7 +252,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
 
                 DataElement attributeDataElement = new DataElement(
                     label: attributeName,
-                    description: ddAttribute.definition.text(),
+                    description: DDHelperFunctions.parseHtml(ddAttribute.definition),
                     createdBy: currentUserEmailAddress,
                     dataType: dataType,
                     index: idx++)
@@ -263,14 +264,11 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                 } else {
                     allAttributesClass.addToDataElements(attributeDataElement)
                 }
+            nhsDataDictionary.attributeElementsByUin[uin] = attributeDataElement
+
             //}
         } // for each ddAttribute
 
-    }
-
-    @Override
-    String getProfileNamespace() {
-        return super.getProfileNamespace() + ".attribute"
     }
 
 }

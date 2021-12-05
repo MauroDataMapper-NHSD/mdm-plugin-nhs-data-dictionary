@@ -15,6 +15,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
@@ -541,25 +542,81 @@ class DataSetService extends DataDictionaryComponentService <DataModel> {
         dictionaryFolder.addToChildFolders(dataSetsFolder)
         dataSetsFolder.save()
 
-        xml.DDDataSet.each {ddDataSetXml ->
+        xml.DDDataSet.
+            findAll{
+                it.TitleCaseName.text() != "Community Services Data Set" &&
+                it.TitleCaseName.text() != "Maternity Services Data Set" &&
+                it.TitleCaseName.text() != "Mental Health Services Data Set" &&
+                it.TitleCaseName.text() != "National Neonatal Data Set -- Episodic and Daily Care" &&
+                it.TitleCaseName.text() != "Cancer Outcomes and Services Data Set -- Core"
+            }.
+            each {ddDataSetXml ->
             String dataSetName = ddDataSetXml.TitleCaseName.text()
             boolean isRetired = ddDataSetXml.isRetired.text() == "true"
             List<String> path = getPath(ddDataSetXml."base-uri".text(), isRetired)
-            System.err.println(path)
             Folder folder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
 
             DataModel dataSetDataModel = new DataModel(
                 label: dataSetName,
-                description: ddDataSetXml.definition.text(),
+                description: DDHelperFunctions.parseHtml(ddDataSetXml.definition),
                 createdBy: currentUserEmailAddress,
                 type: DataModelType.DATA_STANDARD,
                 authority: authorityService.defaultAuthority,
                 folder: folder
             )
+
+            if (dataSetName.startsWith("CDS")) {
+                CDSDataSetParser.parseCDSDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
+            } else {
+                DataSetParser.parseDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
+            }
+            // Temporarily fix the created by field
+            dataModelService.checkImportedDataModelAssociations(nhsDataDictionary.currentUser, dataSetDataModel)
+            dataModelService.checkFacetsAfterImportingCatalogueItem(dataSetDataModel)
+
+                /*
+                Set<DataClass> dataClassList = []
+                dataClassList.addAll(dataSetDataModel.dataClasses)
+                dataClassList.each { dataClass ->
+                    addDataClassToDataModel(dataClass, dataSetDataModel)
+                }
+                dataSetDataModel.dataTypes.each { dataType ->
+                    dataSetDataModel.removeFromDataTypes(dataType)
+                }
+    */
+            //dataSetDataModel.setDataClasses([] as Set)
+
+/*            dataSetDataModel.metadata.each { it.createdBy = it.createdBy?:currentUserEmailAddress}
+            dataSetDataModel.dataTypes.each {dataType ->
+                dataType.createdBy = currentUserEmailAddress
+            }
+
+            dataSetDataModel.dataClasses.each {dataClass ->
+                dataClass.createdBy = currentUserEmailAddress
+                dataClass.metadata.each { it.createdBy = it.createdBy?:currentUserEmailAddress}
+                dataClass.dataElements.each {dataElement ->
+                    dataElement.createdBy = dataElement.createdBy?:currentUserEmailAddress
+                    dataElement.metadata.each { it.createdBy = it.createdBy?:currentUserEmailAddress}
+                }
+
+            }
+  */
+
+
+
+
+            //addMetadataFromXml(dataSetDataModel, ddDataSetXml, currentUserEmailAddress)
+            log.info("Saving Data model: ${dataSetDataModel.label}")
             if (dataModelService.validate(dataSetDataModel)) {
                 dataModelService.saveModelWithContent(dataSetDataModel)
             }
+            log.info("Saved Data model: ${dataSetDataModel.label}")
         }
+    }
+
+    void addDataClassToDataModel(DataClass dataClass, DataModel dataModel) {
+        dataModel.addToDataClasses(dataClass)
+        dataClass.dataClasses.each {childDataClass -> addDataClassToDataModel(childDataClass, dataModel)}
     }
 
     List<String> getPath(String pathStr, boolean isRetired) {

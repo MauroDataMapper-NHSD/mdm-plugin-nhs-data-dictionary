@@ -20,6 +20,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 import grails.gorm.transactions.Transactional
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -208,23 +209,23 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     }
 
     String getStereotypeByPath(String[] path) {
-        if(path[0] == "te:${DataDictionary.BUSDEF_TERMINOLOGY_NAME}") {
+        if(path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "businessDefinition"
         }
-        if(path[0] == "te:${DataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
+        if(path[0] == "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "supportingInformation"
         }
-        if(path[0] == "te:${DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
+        if(path[0] == "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
             return "xmlSchemaConstraint"
         }
-        if(path[0] == "dm:${DataDictionary.CORE_MODEL_NAME}") {
-            if(path[1] == "dc:${DataDictionary.DATA_CLASSES_CLASS_NAME}") {
+        if(path[0] == "dm:${NhsDataDictionary.CORE_MODEL_NAME}") {
+            if(path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
                 return "class"
             }
-            if(path[1] == "dc:${DataDictionary.ATTRIBUTES_CLASS_NAME}") {
+            if(path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
                 return "attribute"
             }
-            if(path[1] == "dc:${DataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
+            if(path[1] == "dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
                 return "element"
             }
         }
@@ -260,17 +261,12 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         attributeMetadata.entrySet().each {entry ->
             String xmlValue = xml[entry.value].text()
             if(xmlValue && xmlValue != "") {
-                domainObject.addToMetadata(new Metadata(namespace: getProfileNamespace(),
+                domainObject.addToMetadata(new Metadata(namespace: getMetadataNamespace(),
                                                                 key: entry.key,
                                                                 value: xmlValue,
                                                                 createdBy: currentUserEmailAddress))
             }
         }
     }
-
-    String getProfileNamespace() {
-        return 'uk.nhs.datadictionary'
-    }
-
 
 }
