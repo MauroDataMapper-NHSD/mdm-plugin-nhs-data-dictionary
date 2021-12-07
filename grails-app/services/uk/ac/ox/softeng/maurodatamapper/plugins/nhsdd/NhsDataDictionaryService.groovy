@@ -9,6 +9,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLink
 import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -85,8 +86,8 @@ class NhsDataDictionaryService {
         return versionTreeModelList
     }
 
-    def statistics(String branchName) {
-        DataDictionary dataDictionary = buildDataDictionary(branchName)
+    def statistics(UUID versionedFolderId) {
+        DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         return [
                 "Attributes"      : [
@@ -263,17 +264,21 @@ class NhsDataDictionaryService {
 
 
 
-    DataDictionary buildDataDictionary(String branchName) {
+    DataDictionary buildDataDictionary(UUID versionedFolderId) {
         DataDictionary dataDictionary = new DataDictionary()
 
-        Terminology busDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.BUSDEF_TERMINOLOGY_NAME)
-        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
-        Terminology xmlSchemaConstraintsTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
+        VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
 
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
+        List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
+        List<DataModel> dataModels = dataModelService.findAllByFolderId(versionedFolderId)
 
-        Folder folder = folderService.findByPath(DataDictionary.FOLDER_NAME.toString())
-        Folder dataSetsFolder = folder.childFolders.find { it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME }
+        Terminology busDefTerminology = terminologies.find { it.label == NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME }
+        Terminology supDefTerminology = terminologies.find { it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME }
+        Terminology xmlSchemaConstraintsTerminology = terminologies.find { it.label == NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME }
+
+        DataModel coreModel = dataModels.find { it.label == NhsDataDictionary.CORE_MODEL_NAME }
+
+        Folder dataSetsFolder = thisVersionedFolder.childFolders.find { it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME }
 
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
@@ -522,17 +527,15 @@ class NhsDataDictionaryService {
         VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
                                                                description: "", createdBy: currentUser.emailAddress)
 
+        dictionaryFolder.save()
+
+
         VersionedFolder prevDictionaryVersion = null
         if(prevVersion) {
             prevDictionaryVersion = versionedFolderService.get(prevVersion)
-            dictionaryFolder.addToVersionLinks(
-                linkType: VersionLinkType.NEW_FORK_OF,
-                createdBy: currentUser.emailAddress,
-                targetModel: prevDictionaryVersion
-            )
+            versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(dictionaryFolder, prevDictionaryVersion, currentUser)
         }
 
-        dictionaryFolder.save()
 
         DataModel coreDataModel =
             new DataModel(label: NhsDataDictionary.CORE_MODEL_NAME,

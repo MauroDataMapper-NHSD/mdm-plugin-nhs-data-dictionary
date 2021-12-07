@@ -29,7 +29,7 @@ class UrlMappings {
 
         get "/api/nhsdd/branches" (controller: 'NhsDataDictionary', action: 'branches')
 
-        group "/api/nhsdd/$branchName", {
+        group "/api/nhsdd/$versionedFolderId", {
 
             get '/statistics' (controller: 'NhsDataDictionary', action: 'statistics')
             get '/integrityChecks' (controller: 'NhsDataDictionary', action: 'integrityChecks')
