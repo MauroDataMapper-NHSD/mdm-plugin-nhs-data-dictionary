@@ -179,6 +179,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
 
         super.fromCatalogueItem(dataDictionary, dataModel, parentId, containerId, metadataService)
 
+
         catalogueItem = dataModel
     }
 /*    @Override
