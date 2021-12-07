@@ -7,39 +7,39 @@
         "fieldName": "Is preparatory",
         "metadataPropertyName": "isPreparatory",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "boolean"
       },{
         "fieldName": "Is retired",
         "metadataPropertyName": "isRetired",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "boolean"
       },
       {
         "fieldName": "Retired date",
         "metadataPropertyName": "retiredDate",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "date"
       },
       {
         "fieldName": "UIN",
         "metadataPropertyName": "uin",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Base Version",
         "metadataPropertyName": "baseVersion",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       }
     ]
@@ -52,40 +52,40 @@
         "fieldName": "Title Case Name",
         "metadataPropertyName": "TitleCaseName",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Explanatory Page",
         "metadataPropertyName": "explanatoryPage",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "text"
       },
       {
         "fieldName": "Overview",
         "metadataPropertyName": "overview",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "text"
       },
       {
         "fieldName": "Short Description",
         "metadataPropertyName": "shortDescription",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "text"
       },
       {
         "fieldName": "Website Page Heading",
         "metadataPropertyName": "websitePageHeading",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       }
     ]
@@ -98,80 +98,80 @@
         "fieldName": "Also known as",
         "metadataPropertyName": "aliasAlsoKnownAs",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Formerly",
         "metadataPropertyName": "aliasFormerly",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Full name",
         "metadataPropertyName": "aliasFullName",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Index name",
         "metadataPropertyName": "aliasIndexName",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Oid",
         "metadataPropertyName": "aliasOid",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Plural",
         "metadataPropertyName": "aliasPlural",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Possessive",
         "metadataPropertyName": "aliasPossessive",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Report heading",
         "metadataPropertyName": "aliasReportHeading",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Schema",
         "metadataPropertyName": "aliasSchema",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "ShortName",
         "metadataPropertyName": "aliasShortName",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       }
     ]
@@ -184,24 +184,24 @@
         "fieldName": "Base URI",
         "metadataPropertyName": "base-uri",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "Ultimate Path",
         "metadataPropertyName": "ultimatePath",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       },
       {
         "fieldName": "DD URL",
         "metadataPropertyName": "DD_URL",
         "description": "",
-        "maxMultiplicity": 0,
-        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "minMultiplicity": 0,
         "dataType": "string"
       }
     ]
