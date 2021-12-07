@@ -55,13 +55,11 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def statistics() {
 
-        String branchName = params.branchName?:'main'
-
-        def result = nhsDataDictionaryService.statistics(branchName)
+        //String branchName = params.branchName?:'main'
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        def result = nhsDataDictionaryService.statistics(versionedFolderId)
 
         respond(result)
-
-
     }
 
 
