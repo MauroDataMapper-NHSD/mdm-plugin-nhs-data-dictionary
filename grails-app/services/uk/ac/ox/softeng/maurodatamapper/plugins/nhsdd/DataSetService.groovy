@@ -605,7 +605,7 @@ class DataSetService extends DataDictionaryComponentService <DataModel> {
 
 
 
-            //addMetadataFromXml(dataSetDataModel, ddDataSetXml, currentUserEmailAddress)
+            addMetadataFromXml(dataSetDataModel, ddDataSetXml, currentUserEmailAddress)
             log.info("Saving Data model: ${dataSetDataModel.label}")
             if (dataModelService.validate(dataSetDataModel)) {
                 dataModelService.saveModelWithContent(dataSetDataModel)

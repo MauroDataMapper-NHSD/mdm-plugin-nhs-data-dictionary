@@ -146,9 +146,9 @@ class NhsDataDictionaryService {
     }
 
 
-    def integrityChecks(String branchName) {
+    def integrityChecks(UUID versionedFolderId) {
 
-        DataDictionary dataDictionary = buildDataDictionary()
+        DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
             !ddClass.isRetired && ddClass.classLinks.size() == 0
@@ -437,8 +437,8 @@ class NhsDataDictionaryService {
     }
 
 
-    File publishDita(String branchName) {
-        DataDictionary dataDictionary = buildDataDictionary(branchName)
+    File publishDita(UUID versionedFolderId) {
+        DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         File tempDir = File.createTempDir()
         System.err.println(tempDir.path)

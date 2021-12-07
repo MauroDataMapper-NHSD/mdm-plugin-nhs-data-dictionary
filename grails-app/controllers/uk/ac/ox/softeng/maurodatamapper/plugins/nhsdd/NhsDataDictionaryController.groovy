@@ -65,9 +65,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def integrityChecks() {
 
-        String branchName = params.branchName?:'main'
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
 
-        def result = nhsDataDictionaryService.integrityChecks(branchName)
+        def result = nhsDataDictionaryService.integrityChecks(versionedFolderId)
 
         respond(result)
 
@@ -81,7 +81,10 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
         System.err.println(params.branchName)
 
-        File file = nhsDataDictionaryService.publishDita(params.branchName)
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+
+
+        File file = nhsDataDictionaryService.publishDita(versionedFolderId)
 
         render(file: file, fileName: "DataDictionaryDita.zip", contentType: "application/zip")
     }

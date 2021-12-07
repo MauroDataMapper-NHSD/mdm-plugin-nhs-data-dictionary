@@ -253,7 +253,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         'aliasPossessive': 'aliasPossessive',
         'aliasReportHeading': 'aliasReportHeading',
         'aliasSchema': 'aliasSchema',
-        'aliasShortName': 'aliasShortName'
+        'aliasShortName': 'aliasShortName',
+        'base-uri': 'base_uri'
     ]
 
     void addMetadataFromXml(T domainObject, def xml, String currentUserEmailAddress) {

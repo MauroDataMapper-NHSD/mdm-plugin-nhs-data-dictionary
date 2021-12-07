@@ -188,7 +188,7 @@ abstract class DataDictionaryComponent<C extends CatalogueItem> {
 
     void fromCatalogueItem(DataDictionary dataDictionary, C catalogueItem, UUID parentId, UUID containerId, MetadataService metadataService) {
         List<uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata> metadata =
-                metadataService.findAllByCatalogueItemId(catalogueItem.id)
+                metadataService.findAllByMultiFacetAwareItemId(catalogueItem.id)
         if(metadata.size() == 0) {
             metadata = catalogueItem.metadata as List
         }
