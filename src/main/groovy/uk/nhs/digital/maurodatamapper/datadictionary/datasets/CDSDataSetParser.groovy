@@ -18,7 +18,7 @@ class CDSDataSetParser {
         List<DataClass> dataClasses = []
         dataClasses = parseCDSDataSetWithHeaderTables(definition, dataModel, dataDictionary)
 
-        dataClasses.eachWithIndex { dataClass, index ->
+        dataClasses.eachWithIndex {dataClass, index ->
             dataModel.addToDataClasses(dataClass)
             DataSetParser.setOrder(dataClass, index + 1)
         }
@@ -29,13 +29,13 @@ class CDSDataSetParser {
         List<DataClass> returnDataClasses = []
         // log.debug(partitionByDuckBlueClasses(definition).size())
         List<List<GPathResult>> sections = DataSetParser.partitionByDuckBlueClasses(definition)
-        for(int sectIdx = 0; sectIdx < sections.size(); sectIdx++) {
+        for (int sectIdx = 0; sectIdx < sections.size(); sectIdx++) {
             List<GPathResult> sect = sections.get(sectIdx)
-            List<GPathResult> ors = sect.findAll{
-                ( it.name() == "table" && it.text().trim() == "OR") ||
-                ( it.name() == "strong" && it.text().trim() == "OR")
+            List<GPathResult> ors = sect.findAll {
+                (it.name() == "table" && it.text().trim() == "OR") ||
+                (it.name() == "strong" && it.text().trim() == "OR")
             }
-            if(ors.size() == 1 && sect.size() == 3) {
+            if (ors.size() == 1 && sect.size() == 3) {
                 DataClass choiceClass = new DataClass(label: "Choice")
                 DataSetParser.setChoice(choiceClass)
                 List<DataClass> classes1 = parseCDSSection(sect, dataModel, dataDictionary)
@@ -43,15 +43,14 @@ class CDSDataSetParser {
                 sect = sections.get(sectIdx)
                 List<DataClass> classes2 = parseCDSSection(sect, dataModel, dataDictionary)
 
-                if(classes1.size() != 1 || classes2.size() != 1) {
+                if (classes1.size() != 1 || classes2.size() != 1) {
                     log.warn("Oh no!  More than one CDS class returned!")
                 } else {
                     choiceClass.addToDataClasses(classes1.get(0))
                     choiceClass.addToDataClasses(classes2.get(0))
                 }
                 returnDataClasses.add(choiceClass)
-            }
-            else {
+            } else {
                 List<DataClass> sectionClasses = parseCDSSection(sect, dataModel, dataDictionary)
                 returnDataClasses.addAll(sectionClasses)
             }
@@ -62,7 +61,7 @@ class CDSDataSetParser {
 
     static void parseCDSElementTable(List<GPathResult> tableRows, DataClass currentClass, DataModel dataModel, NhsDataDictionary dataDictionary,
                                      int position) {
-        if(tableRows.size() == 0) { return } // We're done
+        if (tableRows.size() == 0) {return} // We're done
         GPathResult firstRow = tableRows[0]
 
         if (tableRows.size() == 1 && firstRow.td[0].@bgcolor.text() == "#DCDCDC" && firstRow.td.size() == 3) {
@@ -82,11 +81,11 @@ class CDSDataSetParser {
             String multiplicityText = XmlUtil.serialize(tdNode).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
             multiplicityText = multiplicityText
                 .replaceFirst("<td[^>]*>", "")
-                .replaceFirst("</td>","")
+                .replaceFirst("</td>", "")
 
 
             DataSetParser.setMultiplicityText(currentClass, multiplicityText)
-        } else if(firstRow.td.size() == 4 && firstRow.td[2].@bgcolor.text() == "#DCDCDC") {
+        } else if (firstRow.td.size() == 4 && firstRow.td[2].@bgcolor.text() == "#DCDCDC") {
             // Let's start parsing a class
             DataClass childClass = getClassFromTD(firstRow.td[2], dataDictionary)
             //DataClass childClass = new DataClass(label: "Option 2")
@@ -95,11 +94,11 @@ class CDSDataSetParser {
             DataSetParser.setOrder(childClass, position)
             currentClass.addToDataClasses(childClass)
             Integer noRows = 1
-            if(firstRow.td[0].@rowspan) {
+            if (firstRow.td[0].@rowspan) {
                 noRows = Integer.parseInt(firstRow.td[0].@rowspan.text())
                 //log.debug("noRows: " + noRows)
             }
-            if(tableRows[noRows] && tableRows[noRows].td.size() == 6
+            if (tableRows[noRows] && tableRows[noRows].td.size() == 6
                 && (tableRows[noRows].td[4].text() == "PERSON BIRTH DATE" || tableRows[noRows].td[4].text() == "PERSON_BIRTH_DATE")) {
                 noRows++
             }
@@ -107,7 +106,7 @@ class CDSDataSetParser {
             parseCDSElementTable(classRows, childClass, dataModel, dataDictionary, position)
             List<GPathResult> otherRows = tableRows.drop(noRows)
             parseCDSElementTable(otherRows, currentClass, dataModel, dataDictionary, position + 1)
-        } else if((firstRow.td.size() == 2 || firstRow.td.size() == 3)
+        } else if ((firstRow.td.size() == 2 || firstRow.td.size() == 3)
             && firstRow.td[1].@bgcolor.text() == "#DCDCDC") {
             // This is a class like that of "Patient Identity"
             DataClass childClass = getClassFromTD(firstRow.td[1], dataDictionary)
@@ -140,24 +139,26 @@ class CDSDataSetParser {
                 DataSetParser.partitionList(tableRows,
                                             {it ->
                                                 (it.td.size() == 1
-                                                && it.td.strong.size() == 1
-                                                && (it.td.text() == "OR" || it.td.text() == "and"))})
+                                                    && it.td.strong.size() == 1
+                                                    && (it.td.text() == "OR" || it.td.text() == "and"))
+                                            })
             //log.debug(partitions.size())
             partitions.eachWithIndex {part, idx ->
-                parseCDSElementTable(part, choiceClass, dataModel, dataDictionary, idx+1)
+                parseCDSElementTable(part, choiceClass, dataModel, dataDictionary, idx + 1)
             }
 
-        } else if(firstRow.td.size() == 4 &&
-                  (firstRow.td[2].@bgcolor.text() == "white" || firstRow.td[2].@bgcolor.size() == 0)) {
+        } else if (firstRow.td.size() == 4 &&
+                   (firstRow.td[2].@bgcolor.text() == "white" || firstRow.td[2].@bgcolor.size() == 0)) {
             parseCDSElement(dataModel, currentClass, firstRow, dataDictionary, position)
             List<GPathResult> nextRows = tableRows.drop(1)
-            parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position+1)
-        } else if(firstRow.td.size() == 6 &&
-                  (firstRow.td[4].@bgcolor.text() == "white" || firstRow.td[4].@bgcolor.size() == 0)
-            && (firstRow.td[4].text() == "PERSON BIRTH DATE" || firstRow.td[4].text() == "PERSON_BIRTH_DATE" || firstRow.td[4].text() == "PROFESSIONAL_REGISTRATION_ISSUER_CODE")) {
+            parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position + 1)
+        } else if (firstRow.td.size() == 6 &&
+                   (firstRow.td[4].@bgcolor.text() == "white" || firstRow.td[4].@bgcolor.size() == 0)
+            && (firstRow.td[4].text() == "PERSON BIRTH DATE" || firstRow.td[4].text() == "PERSON_BIRTH_DATE" || firstRow.td[4].text() ==
+                "PROFESSIONAL_REGISTRATION_ISSUER_CODE")) {
             parseCDSElement(dataModel, currentClass, firstRow, dataDictionary, position)
             List<GPathResult> nextRows = tableRows.drop(1)
-            parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position+1)
+            parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position + 1)
         } else {
             log.error("Cannot pattern match row: {}\n{}\n{}",
                       dataModel.label,
@@ -173,13 +174,15 @@ class CDSDataSetParser {
         Node tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(td).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
 
 
-        def firstStringNode = tdNode.depthFirst().find { it instanceof String ||
-                                                         (it instanceof Node && it.localText().size() > 0 &&
-                                                          it.localText().find{it.trim() != "" && it != " "})}
-        if(firstStringNode instanceof String) {
+        def firstStringNode = tdNode.depthFirst().find {
+            it instanceof String ||
+            (it instanceof Node && it.localText().size() > 0 &&
+             it.localText().find {it.trim() != "" && it != " "})
+        }
+        if (firstStringNode instanceof String) {
             dataClass.label = firstStringNode
         } else {
-            dataClass.label = firstStringNode.localText().find{it.trim() != "" && it != " "}
+            dataClass.label = firstStringNode.localText().find {it.trim() != "" && it != " "}
         }
         /*
         dataClass.description = XmlUtil.serialize(tdNode).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
@@ -190,7 +193,7 @@ class CDSDataSetParser {
          */
         dataClass.label = dataClass.label.replaceFirst("DATA GROUP:", "").trim()
 
-        if(dataClass.label == " ") {
+        if (dataClass.label == " ") {
             log.warn("NBSP Found!!\n{}", XmlUtil.serialize(tdNode))
         }
 
@@ -199,8 +202,8 @@ class CDSDataSetParser {
     }
 
     static String getFirstStringNode(Node node) {
-        if(node.children()) {
-            node.children().each { it ->
+        if (node.children()) {
+            node.children().each {it ->
                 if ((it instanceof Node)) {
                     return getFirstStringNode(it)
                 }
@@ -211,17 +214,16 @@ class CDSDataSetParser {
     }
 
 
-
     static List<DataClass> parseCDSSection(List<GPathResult> components, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> returnClasses = []
         DataClass currentClass = null
         int classWebOrder = 0
-        int ors = components.count{
+        int ors = components.count {
             (it.name() == "table" && it.text().trim() == "OR") ||
             (it.name() == "strong" && it.text().trim() == "OR")
         }
 
-        components.each { component ->
+        components.each {component ->
             if (DDHelperFunctions.tableIsClassHeader(component)) {
                 currentClass = new DataClass(label: component.tbody.tr[0].td[1].text())
                 currentClass.label = currentClass.label.replaceFirst("DATA GROUP:", "").trim()
@@ -233,11 +235,12 @@ class CDSDataSetParser {
                     tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[0]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
                 }
 
-                currentClass.description = XmlUtil.serialize(tdNode).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
-                currentClass.description = currentClass.description
-                    .replaceFirst("<td[^>]*>", "")
-                    .replaceFirst("</td>", "")
-                    .replaceFirst("FUNCTION:", "")
+                currentClass.description = XmlUtil.serialize(tdNode)
+                                               .replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
+                                               .replaceFirst("<td[^>]*>", "")
+                                               .replaceFirst("</td>", "")
+                                               .replaceFirst("FUNCTION:", "")
+                                               .trim() ?: null
 
 
                 String mro = component.tbody.tr[1].td[0].text()
@@ -268,7 +271,7 @@ class CDSDataSetParser {
 
 
             } else if (component.name() == "table" && component.tbody.tr.size() >= 1 && currentClass) {
-                if (ors > 0 && component.tbody.tr.count { tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC" } > 1) {
+                if (ors > 0 && component.tbody.tr.count {tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC"} > 1) {
                     log.debug("Found an exception: " + dataModel.label)
                     log.debug(component.tbody.tr[0].td[1].text() + " " + component.tbody.tr[0].td[2].text())
                     component.tbody.tr.findAll {tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC"}.each {tr ->
@@ -285,7 +288,7 @@ class CDSDataSetParser {
 
                 } else {
                     List<GPathResult> tableRows = []
-                    component.tbody.tr.each { tr -> tableRows.add(tr) }
+                    component.tbody.tr.each {tr -> tableRows.add(tr)}
                     parseCDSElementTable(tableRows, currentClass, dataModel, dataDictionary, classWebOrder)
                     DataSetParser.setOrder(currentClass, classWebOrder)
                     classWebOrder++
@@ -298,7 +301,8 @@ class CDSDataSetParser {
     }
 
     static void parseCDSElement(DataModel dataModel, DataClass currentClass, GPathResult tr, NhsDataDictionary dataDictionary, int position) {
-        if(tr.td[2].a.size() == 6) { //
+        if (tr.td[2].a.size() == 6) {
+            //
             DataSetParser.setChoice(currentClass)
             DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass.label)
 
@@ -309,7 +313,7 @@ class CDSDataSetParser {
             DataSetParser.setOrder(andClass, 2)
             DataSetParser.setAnd(andClass)
             List<DataElement> deList = [dataElement1]
-            for(int i=1;i<6;i++) {
+            for (int i = 1; i < 6; i++) {
                 DataElement dataElement = DataSetParser.getElementFromText(tr.td[2].a[i], dataModel, dataDictionary, currentClass.label)
                 DataSetParser.setOrder(dataElement, i)
                 andClass.addToImportedDataElements(dataElement)
@@ -319,12 +323,12 @@ class CDSDataSetParser {
             DataSetParser.getAndSetMRO(tr.td[0], deList, currentClass)
             DataSetParser.getAndSetRepeats(tr.td[1], deList, currentClass)
             DataSetParser.getAndSetRules(tr.td[3], deList, currentClass)
-        }
-        else if(tr.td[2].a.size() == 4) { // Address
+        } else if (tr.td[2].a.size() == 4) {
+            // Address
             DataClass choiceClass = new DataClass(label: "Choice")
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
-            if(tr.td[2].a[0].text().contains("NAME")) {
+            if (tr.td[2].a[0].text().contains("NAME")) {
                 DataSetParser.setNameChoice(choiceClass)
             } else {
                 DataSetParser.setAddress(choiceClass)
@@ -342,8 +346,8 @@ class CDSDataSetParser {
             currentClass.addToDataClasses(choiceClass)
 
 
-        } else if((tr.td[2].em && tr.td[2].em.text().equalsIgnoreCase("Or")) ||
-                  (tr.td[2].strong && tr.td[2].strong.text().equalsIgnoreCase("OR")) ) {
+        } else if ((tr.td[2].em && tr.td[2].em.text().equalsIgnoreCase("Or")) ||
+                   (tr.td[2].strong && tr.td[2].strong.text().equalsIgnoreCase("OR"))) {
             DataClass choiceClass = new DataClass(label: "Choice")
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
@@ -360,7 +364,7 @@ class CDSDataSetParser {
             choiceClass.addToImportedDataElements(dataElement2)
             currentClass.addToDataClasses(choiceClass)
         } else {
-            if(tr.td.size() == 6) {
+            if (tr.td.size() == 6) {
                 // rare occurrence with unmerged first columns
                 DataElement dataElement = DataSetParser.getElementFromText(tr.td[4].a, dataModel, dataDictionary, currentClass.label)
                 DataSetParser.getAndSetMRO(tr.td[2], [dataElement])
@@ -371,7 +375,8 @@ class CDSDataSetParser {
 
             } else {
                 DataElement dataElement = null
-                if(tr.td[2].p.size() == 1) { // There's one example where the element is wrapped in a <p>
+                if (tr.td[2].p.size() == 1) {
+                    // There's one example where the element is wrapped in a <p>
                     dataElement = DataSetParser.getElementFromText(tr.td[2].p.a, dataModel, dataDictionary, currentClass.label)
                 } else {
                     dataElement = DataSetParser.getElementFromText(tr.td[2].a, dataModel, dataDictionary, currentClass.label)

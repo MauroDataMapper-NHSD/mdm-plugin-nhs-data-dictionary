@@ -656,7 +656,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
             String nextFolderName = path.remove(0)
             Folder nextFolder = sourceFolder.childFolders.find {it.label == nextFolderName}
             if (!nextFolder) {
-                nextFolder = new Folder(label: nextFolderName, description: "", createdBy: createdByEmail)
+                nextFolder = new Folder(label: nextFolderName, createdBy: createdByEmail)
                 sourceFolder.addToChildFolders(nextFolder)
                 sourceFolder.save()
                 nextFolder.save()

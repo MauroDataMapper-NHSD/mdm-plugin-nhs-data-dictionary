@@ -1,6 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
@@ -42,10 +43,13 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
     NhsDataDictionaryService nhsDataDictionaryService
 
+    abstract void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                                NhsDataDictionary nhsDataDictionary)
+
     abstract Map indexMap(T object)
 
     List<Map> index() {
-        getAll().sort{it.label}.collect { indexMap(it)}
+        getAll().sort {it.label}.collect {indexMap(it)}
     }
 
     abstract def show(String branch, String id)
@@ -127,7 +131,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                 newDescription = newDescription.replace(matcher.group(0), replacementLink)
             }
         }
-        return newDescription
+        return newDescription?.trim() ?: null
     }
 
     String replaceLinksInShortDescription(String input) {

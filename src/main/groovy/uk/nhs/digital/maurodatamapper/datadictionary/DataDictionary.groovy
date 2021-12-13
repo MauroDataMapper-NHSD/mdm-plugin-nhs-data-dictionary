@@ -219,7 +219,7 @@ class DataDictionary {
                 }
             }
         }
-        return newDescription
+        return newDescription?.trim() ?: null
 
     }
 

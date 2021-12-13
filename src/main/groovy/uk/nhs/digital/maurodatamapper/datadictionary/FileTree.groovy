@@ -89,7 +89,7 @@ class FileTree {
             }
             if(matchingWebPage) {
                 log.debug("matching: " + matchingWebPage.name)
-                indexTopic.body.bodyElements.add(new Html(content: DDHelperFunctions.parseHtml(matchingWebPage.definition)))
+                indexTopic.body.bodyElements.add(new Html(content: DDHelperFunctions.parseHtml(matchingWebPage.definition) ?: ''))
             }
 
         }
