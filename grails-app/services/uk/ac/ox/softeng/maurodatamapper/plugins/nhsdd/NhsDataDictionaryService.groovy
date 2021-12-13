@@ -9,7 +9,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
-import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLink
 import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -19,7 +18,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -32,6 +30,7 @@ import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.DDClass
@@ -50,6 +49,7 @@ import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+@Slf4j
 @Transactional
 class NhsDataDictionaryService {
 
@@ -155,7 +155,7 @@ class NhsDataDictionaryService {
         }.sort{it.name}.collect{it -> outputComponent(it)}
 
         List<Map> check2components = dataDictionary.attributes.values().findAll{ddAttribute ->
-            // System.err.println(ddAttribute.classLinks.size())
+            // log.debug(ddAttribute.classLinks.size())
             !ddAttribute.isRetired &&
                     !dataDictionary.classes.values().any{cls ->
                         cls.attributes.keySet().find{att -> att.name == ddAttribute.name }
@@ -163,13 +163,13 @@ class NhsDataDictionaryService {
         }.sort{it.name}.collect{it -> outputComponent(it)}
 
         List<Map> check3components = dataDictionary.elements.values().findAll{ddElement ->
-            // System.err.println(ddAttribute.classLinks.size())
+            // log.debug(ddAttribute.classLinks.size())
             !ddElement.isRetired &&
             ddElement.getElementAttributes(dataDictionary) == []
         }.sort{it.name}.collect{it -> outputComponent(it)}
 
         List<Map> check4components = dataDictionary.dataSets.values().findAll{ddDataSet ->
-            // System.err.println(ddAttribute.classLinks.size())
+            // log.debug(ddAttribute.classLinks.size())
             !ddDataSet.isRetired &&
                     (ddDataSet.stringValues["overview"] == null || ddDataSet.stringValues["overview"] == "")
         }.sort{it.name}.collect{it -> outputComponent(it)}
@@ -441,7 +441,7 @@ class NhsDataDictionaryService {
         DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         File tempDir = File.createTempDir()
-        System.err.println(tempDir.path)
+        log.debug(tempDir.path)
         GenerateDita generateDita = new GenerateDita(dataDictionary, tempDir.path)
         dataDictionary.elements.values().each {ddElement ->
             ddElement.calculateFormatLinkMatchedItem(dataDictionary)
@@ -452,7 +452,7 @@ class NhsDataDictionaryService {
         File outputFile = new File(tempDir.path + "/" + "map.ditamap")
 
         File tempDir2 = File.createTempDir()
-        System.err.println(tempDir2.path)
+        log.debug(tempDir2.path)
 
         FileOutputStream fos = new FileOutputStream(tempDir2.path + "/ditaCompressed.zip");
         ZipOutputStream zipOut = new ZipOutputStream(fos);
@@ -522,7 +522,7 @@ class NhsDataDictionaryService {
         }
 
         long endTime = System.currentTimeMillis()
-        log.warn("Delete old folder complete in ${Utils.getTimeString(endTime - startTime)}")
+        log.info("Delete old folder complete in ${Utils.getTimeString(endTime - startTime)}")
         startTime = endTime
         VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
                                                                description: "", createdBy: currentUser.emailAddress)
@@ -559,7 +559,7 @@ class NhsDataDictionaryService {
         nhsDataDictionary.coreDataModel = coreDataModel
 
         endTime = System.currentTimeMillis()
-        log.warn("Create core model complete in ${Utils.getTimeString(endTime - startTime)}")
+        log.info("Create core model complete in ${Utils.getTimeString(endTime - startTime)}")
 
 
         [
@@ -573,7 +573,7 @@ class NhsDataDictionaryService {
             startTime = endTime
             service.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
             endTime = System.currentTimeMillis()
-            log.warn("${service.getClass().getCanonicalName()} ingest complete in ${Utils.getTimeString(endTime - startTime)}")
+            log.info("${service.getClass().getCanonicalName()} ingest complete in ${Utils.getTimeString(endTime - startTime)}")
         }
 
         // cross link classes
@@ -966,7 +966,7 @@ class NhsDataDictionaryService {
 */
 
         ObjectDiff od = versionedFolderService.getDiffForVersionedFolders(sourceVF, targetVF)
-        System.err.println(od)
+        log.debug(od)
 
         String outputPath = "/Users/james/git/mauro/plugins/mdm-plugin-nhs-data-dictionary/src/main/resources/changePaperOutput"
 

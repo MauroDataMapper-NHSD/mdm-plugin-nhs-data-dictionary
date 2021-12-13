@@ -112,15 +112,11 @@ class ClassLink {
     void findTargetClass(NhsDataDictionary nhsDataDictionary) {
         supplierClass = nhsDataDictionary.classesByUin[supplierUin]
         if(!supplierClass) {
-            log.error("Cannot match supplier class relationship: ${uin}")
-            log.error("SupplierUin: ${supplierUin}")
-            log.error(this.toString())
+            log.error("Cannot match supplier class relationship: {} :: SupplierUin: {}\n{}", uin, supplierUin, this.toString())
         }
         clientClass = nhsDataDictionary.classesByUin[clientUin]
         if(!clientClass) {
-            log.error("Cannot match client class relationship: ${uin}")
-            log.error("ClientUin: ${clientUin}")
-            log.error(this.toString())
+            log.error("Cannot match client class relationship: {} ClientUin: {}\n{}", uin, clientUin, this.toString())
         }
 
     }

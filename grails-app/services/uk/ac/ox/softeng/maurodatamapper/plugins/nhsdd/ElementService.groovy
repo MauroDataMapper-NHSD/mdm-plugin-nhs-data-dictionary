@@ -15,6 +15,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
@@ -23,6 +24,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
+@Slf4j
 @Transactional
 class ElementService extends DataDictionaryComponentService<DataElement> {
 
@@ -276,7 +278,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                     if (codeSet.validate()) {
                         codeSet = codeSetService.saveModelWithContent(codeSet)
                     } else {
-                        System.err.println(codeSet.errors)
+                        log.debug(codeSet.errors)
                     }
                     dataType = new ModelDataType(label: "${elementName} Element Type",
                                                  modelResourceDomainType: codeSet.getDomainType(),

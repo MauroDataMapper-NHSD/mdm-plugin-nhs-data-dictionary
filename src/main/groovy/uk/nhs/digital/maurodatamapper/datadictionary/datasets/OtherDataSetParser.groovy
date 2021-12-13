@@ -20,7 +20,7 @@ class OtherDataSetParser {
         Integer elementWebOrder = 0
         Integer choiceNo = 1
         List<DataClass> returnDataClasses = []
-        //System.err.println(partitionByDuckBlueClasses(definition).size())
+        //log.debug(partitionByDuckBlueClasses(definition).size())
         DataSetParser.partitionByDuckBlueClasses(definition).each {sect ->
             List<GPathResult> section = sect.findAll { it.name() != "br" }
             List<GPathResult> tables = section.findAll { it.name() == "table" }
@@ -224,7 +224,7 @@ class OtherDataSetParser {
                         currentClass.addToDataClasses(catalogueItem)
                     } else if(catalogueItem instanceof DataElement) {
                         currentClass.addToImportedDataElements(catalogueItem)
-                        //System.err.println("Added ${catalogueItem.label} to ${currentClass.label}")
+                        //log.debug("Added ${catalogueItem.label} to ${currentClass.label}")
                     }
                 }
 
@@ -403,15 +403,15 @@ class OtherDataSetParser {
                             */
             }
         }
-        //System.err.println("data classes " + dataClasses.size())
+        //log.debug("data classes " + dataClasses.size())
 
-        //System.err.println(currentClass.dataElements.size())
+        //log.debug(currentClass.dataElements.size())
         return dataClasses
 
     }
 
     static CatalogueItem parseDataElementRow(GPathResult tr, DataModel dataModel, NhsDataDictionary dataDictionary, String currentClassName ) {
-        //System.err.println("parseDataElementRow")
+        //log.debug("parseDataElementRow")
         CatalogueItem returnElement = null
         /*GPathResult elementTd = tr.td[0]
         if(tr.td.size() > 1) {
@@ -450,7 +450,7 @@ class OtherDataSetParser {
                     if (child.name() == "a") {
                         DataElement dataElement = DataSetParser.getElementFromText(child, dataModel, dataDictionary, returnElement.label)
                         returnElement.addToImportedDataElements(dataElement)
-                        //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                        //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                         DataSetParser.setOrder(dataElement, choiceElementWebOrder)
                         choiceElementWebOrder++
                     }
@@ -480,7 +480,7 @@ class OtherDataSetParser {
                     returnElement = new DataClass(label: "Choice")
                     DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClassName)
                     returnElement.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                    //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 0)
                     DataSetParser.setChoice(returnElement)
 
@@ -489,11 +489,11 @@ class OtherDataSetParser {
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClassName)
                     DataSetParser.setOrder(dataElement, 0)
                     andClass.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${andClass.label}")
+                    //log.debug("Added ${dataElement.label} to ${andClass.label}")
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClassName)
                     DataSetParser.setOrder(dataElement, 1)
                     andClass.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${andClass.label}")
+                    //log.debug("Added ${dataElement.label} to ${andClass.label}")
                     returnElement.addToDataClasses(andClass)
                     DataSetParser.setOrder(andClass, 1)
 
@@ -505,17 +505,17 @@ class OtherDataSetParser {
                     DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClassName)
                     DataSetParser.setOrder(dataElement, 0)
                     andClass.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${andClass.label}")
+                    //log.debug("Added ${dataElement.label} to ${andClass.label}")
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClassName)
                     DataSetParser.setOrder(dataElement, 1)
                     andClass.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${andClass.label}")
+                    //log.debug("Added ${dataElement.label} to ${andClass.label}")
                     returnElement.addToDataClasses(andClass)
                     DataSetParser.setOrder(andClass, 0)
 
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClassName)
                     returnElement.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                    //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 1)
                 } else if (tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "or") {
                     returnElement = new DataClass(label: "Choice")
@@ -523,14 +523,14 @@ class OtherDataSetParser {
                     DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClassName)
                     DataSetParser.setOrder(dataElement, 0)
                     returnElement.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                    //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClassName)
                     DataSetParser.setOrder(dataElement, 1)
                     returnElement.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                    //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClassName)
                     returnElement.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                    //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 2)
                 } else if((dataModel.label == "National Joint Registry Data Set - Common Details" ||
                            dataModel.label == "National_Joint_Registry_Data_Set_-_Common_Details") &&
@@ -543,7 +543,7 @@ class OtherDataSetParser {
 
                 int multiples = getMultipleOccurrences(tr.td[1].text())
                 if(multiples == 3) {
-                    log.info("3 multiples!")
+                    log.trace("3 multiples!")
                     returnElement.dataElements.each {de ->
                         de.maxMultiplicity = -1
                     }
@@ -568,7 +568,7 @@ class OtherDataSetParser {
                     tr.td[1].a.each { anchor ->
                         DataElement dataElement = DataSetParser.getElementFromText(anchor, dataModel, dataDictionary, currentClassName)
                         returnElement.addToImportedDataElements(dataElement)
-                        //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                        //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                         DataSetParser.setOrder(dataElement, choiceElementWebOrder)
                         choiceElementWebOrder++
                     }
@@ -580,7 +580,7 @@ class OtherDataSetParser {
 
                     DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClassName)
                     returnElement.addToImportedDataElements(dataElement)
-                    //System.err.println("Added ${dataElement.label} to ${returnElement.label}")
+                    //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 1)
 
                     DataSetParser.setChoice(returnElement)
@@ -593,7 +593,7 @@ class OtherDataSetParser {
 
                 int multiples = getMultipleOccurrences(tr.td[1].text())
                 if(multiples == 4) {
-                    log.info("4 multiples!")
+                    log.trace("4 multiples!")
                     returnElement.dataElements.each {de ->
                         de.maxMultiplicity = -1
                     }
@@ -629,10 +629,7 @@ class OtherDataSetParser {
     }
 
     static void unmatchedPattern(String message, GPathResult component, String... context) {
-        log.error("Unmatched Pattern")
-        log.error(message)
-        log.error(component.toString())
-        context.each { log.error(it)}
+        log.error("Unmatched Pattern {}\n{}\n{}", message, component.toString(), context.join(','))
     }
 
     static int getMultipleOccurrences(String input) {

@@ -5,11 +5,9 @@ import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmCo
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.importer.DataDictionaryLoader
-import uk.nhs.digital.maurodatamapper.datadictionary.importer.PluginImporter
+import groovy.util.logging.Slf4j
 
-
+@Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {
 
     // For ingest
@@ -79,7 +77,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def publishDita() {
 
-        System.err.println(params.branchName)
+        log.debug(params.branchName)
 
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
 

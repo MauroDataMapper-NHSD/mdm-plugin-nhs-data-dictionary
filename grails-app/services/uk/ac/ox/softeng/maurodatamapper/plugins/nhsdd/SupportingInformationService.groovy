@@ -6,12 +6,14 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
+@Slf4j
 @Transactional
 class SupportingInformationService extends DataDictionaryComponentService <Term> {
 
@@ -127,7 +129,7 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
         if (terminology.validate()) {
             terminology = terminologyService.saveModelWithContent(terminology)
         } else {
-            System.err.println(terminology.errors)
+            log.debug(terminology.errors)
         }
 
 

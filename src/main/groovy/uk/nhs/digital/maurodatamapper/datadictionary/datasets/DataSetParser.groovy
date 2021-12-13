@@ -12,12 +12,9 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
-import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-
-import java.nio.file.Paths
 
 @Slf4j
 class DataSetParser {
@@ -47,14 +44,16 @@ class DataSetParser {
                     }
                     dataModels[dataSetName] = dataModel
                 }
-                //dataModels.keySet().each { System.err.println(it)}
+                //dataModels.keySet().each { log.debug(it)}
                 Map<String, String> tests = [:]
 
                 tests["Inter-Provider_Transfer_Administrative_Minimum_Data_Set"] = "8C8E5E2E8E6E1E4E2E"
                 tests["National_Workforce_Data_Set"] = "6C6E17E17E33E9E55E"
                 tests["Chlamydia_Testing_Activity_Data_Set"] = "4C3E9E1C2E3E8E"
-                tests["National_Neonatal_Data_Set_-_Episodic_and_Daily_Care"] = "14C2C1C2E16E1C2E13E2C13E9E3C2E1C2E1E1C2E1E15E1C1C2E1E28E6C1C2E1E2E2E1C2E1E2E1C2E1E15E2C5C1C2E1E2E1C2E1E2E2E8E2C2E1C2E1E2E2C3E1C1C2E1E4E2C1E1C1C2E1E8E2C1E2C1C2E1E2E9E2C1E1C1C2E1E8E2C1E1C1C2E1E2C1E1C1C2E1E3E11C3C1C2E1E2E2E7E8E4E5E2E7E1E1C2E6E1E1E1E"
-                tests["National_Neonatal_Data_Set_-_Two_Year_Neonatal_Outcomes_Assessment"] = "1C22C2C2C2E2E8E2C2E2E5E2C1C2E5E3C2E2E2E2E8E2E2E4E3E4E3C1C2E1E1C2E1E1C2E1E3E7E6E5E3E3E1C1C2E1E4E12E12E4E24E1C1C2E1E6E1C1C2E1E9E"
+                tests["National_Neonatal_Data_Set_-_Episodic_and_Daily_Care"] =
+                "14C2C1C2E16E1C2E13E2C13E9E3C2E1C2E1E1C2E1E15E1C1C2E1E28E6C1C2E1E2E2E1C2E1E2E1C2E1E15E2C5C1C2E1E2E1C2E1E2E2E8E2C2E1C2E1E2E2C3E1C1C2E1E4E2C1E1C1C2E1E8E2C1E2C1C2E1E2E9E2C1E1C1C2E1E8E2C1E1C1C2E1E2C1E1C1C2E1E3E11C3C1C2E1E2E2E7E8E4E5E2E7E1E1C2E6E1E1E1E"
+                tests["National_Neonatal_Data_Set_-_Two_Year_Neonatal_Outcomes_Assessment"] =
+                "1C22C2C2C2E2E8E2C2E2E5E2C1C2E5E3C2E2E2E2E8E2E2E4E3E4E3C1C2E1E1C2E1E1C2E1E3E7E6E5E3E3E1C1C2E1E4E12E12E4E24E1C1C2E1E6E1C1C2E1E9E"
                 tests["Radiotherapy_Data_Set"] = "5C1E3E7E9E6E"
                 tests["Community_Services_Data_Set"] = "10C7E7C25E5E3E8E4E3E4E5C13E7E2E10E4E2C21E13E10E4C2E2E4E3E2C5E4E12C4E3E5E12E6E4E4E4E4E2E4E3E5E6E"
                 tests["Maternity_Services_Data_Set"] = "8C8E4C10E5E3E3E9C28E10E10E4E6E7E4E3E11E5C18E15E3E20E17E6C27E5E4E4E17E3E4C11E4E7E6E2C5E4E6E"
@@ -155,8 +154,7 @@ class DataSetParser {
 
 
     static void printDataModel(DataModel dataModel) {
-        log.error("===============================")
-        log.error(dataModel.label)
+        log.debug("===============================\n{}", dataModel.label)
         dataModel.childDataClasses.sort { getOrder(it) }.each { dataClass ->
             printDataClass(dataClass, 3)
         }
@@ -176,7 +174,7 @@ class DataSetParser {
             choiceString = " (not option)"
         }
         String webOrder = DataSetParser.getOrder(dataClass)
-        log.error("${indentString}${dataClass.label}${choiceString} (${webOrder})")
+        log.debug("${indentString}${dataClass.label}${choiceString} (${webOrder})")
         List<CatalogueItem> components = []
         if (dataClass.dataElements) {
             components.addAll(dataClass.dataElements)
@@ -189,7 +187,7 @@ class DataSetParser {
             if (component instanceof DataClass) {
                 printDataClass(component, indent + 3)
             } else if (component instanceof DataElement) {
-                log.error("${indentString}${component.label}")
+                log.debug("${indentString}${component.label}")
             }
         }
     }
@@ -367,7 +365,7 @@ class DataSetParser {
 
     static void setNameAndDescriptionFromCell(DataClass dataClass, GPathResult cell) {
         String cellContent = cell.text()
-        // System.err.println(cellContent)
+        // log.debug(cellContent)
         int colonIndex = cellContent.indexOf(":")
 
         if (colonIndex > 0 && !cellContent.startsWith("CHOICE")) {
@@ -419,8 +417,7 @@ class DataSetParser {
             de = dataDictionary.elementsByUrl[elementUrl]
         }
         if (!de) {
-            log.error("Cannot find element: ${anchor.text()} - ${elementUrl}")
-            log.error("In class: ${currentClass}, model: ${dataModel.label}")
+            log.error("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass}, model: ${dataModel.label}")
             DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype" }
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
@@ -485,7 +482,7 @@ class DataSetParser {
         List<String> classNames = []
         dataModel.childDataClasses.each { childDataClass ->
             if (classNames.contains(childDataClass.label)) {
-                log.error("Duplicate class label: ${childDataClass.label} in ${dataModel.label}")
+                log.debug("Duplicate class label: ${childDataClass.label} in ${dataModel.label}")
                 int idx = 1
                 while(classNames.contains(childDataClass.label + " " + idx)) {
                     idx++
@@ -502,7 +499,7 @@ class DataSetParser {
             List<String> classNames = []
             dataClass.dataClasses.each { childDataClass ->
                 if (classNames.contains(childDataClass.label)) {
-                    log.error("Duplicate class label: ${childDataClass.label} in ${dataClass.label}  in ${modelName}")
+                    log.debug("Duplicate class label: ${childDataClass.label} in ${dataClass.label}  in ${modelName}")
                     int idx = 1
                     while(classNames.contains(childDataClass.label + " " + idx)) {
                         idx++
@@ -517,7 +514,7 @@ class DataSetParser {
             List<String> elementNames = []
             dataClass.dataElements.each { childDataElement ->
                 if (elementNames.contains(childDataElement.label)) {
-                    log.error("Duplicate element label: ${childDataElement.label} in ${dataClass.label} in ${modelName}")
+                    log.debug("Duplicate element label: ${childDataElement.label} in ${dataClass.label} in ${modelName}")
                     int idx = 1
                     while(elementNames.contains(childDataElement.label + " " + idx)) {
                         idx++
@@ -543,17 +540,17 @@ class DataSetParser {
                 setMRO(element, paramsToHtml(params[idx]))
             }
         } else {
-            log.error("Params error! ")
-            log.error(elementList.toString())
-            log.error("" + elementList.size())
-            log.error("" + params.size())
-            elementList.each { DataElement entry ->
-                log.error(entry.label)
+            log.debug("Params error! {} {}\n{}",
+                      "" + elementList.size(),
+                      "" + params.size(),
+                      elementList.toString())
+            elementList.each {DataElement entry ->
+                log.debug(entry.label)
             }
             params.each {
-                log.error(it.toString())
+                log.debug(it.toString())
             }
-            log.error(gPathResult.toString())
+            log.debug(gPathResult.toString())
         }
 
     }
@@ -570,12 +567,12 @@ class DataSetParser {
                 setGroupRepeats(element, paramsToHtml(params[idx]))
             }
         } else {
-            log.error("Params error! ")
-            log.error(elementList.toString())
-            elementList.each { DataElement entry ->
-                log.error(entry.label)
+            log.debug("Params error! ")
+            log.debug(elementList.toString())
+            elementList.each {DataElement entry ->
+                log.debug(entry.label)
             }
-            log.error(gPathResult.toString())
+            log.debug(gPathResult.toString())
         }
 
     }
@@ -593,12 +590,12 @@ class DataSetParser {
                 setRules(element, paramsToHtml(params[idx]))
             }
         } else {
-            log.error("Params error! ")
-            log.error(elementList.toString())
-            elementList.each { DataElement entry ->
-                log.error(entry.label)
+            log.debug("Params error! ")
+            log.debug(elementList.toString())
+            elementList.each {DataElement entry ->
+                log.debug(entry.label)
             }
-            log.error(gPathResult.toString())
+            log.debug(gPathResult.toString())
         }
 
     }
@@ -619,7 +616,7 @@ class DataSetParser {
         }
 
 
-        // System.err.println("getElementParameters")
+        // log.debug("getElementParameters")
         List<List<String>> allValues = []
         List<String> currentValues = []
         for(int i=0;i<td.children().size(); i++) {
@@ -630,7 +627,7 @@ class DataSetParser {
             } else if(!(td.children()[i] instanceof Node) &&
                       td.children()[i] != "\u00a0" &&
                       td.children()[i] != " ") {
-                // System.err.println("Adding value: '${td.children()[i]}'")
+                // log.debug("Adding value: '${td.children()[i]}'")
                 currentValues.add(td.children()[i])
             } else if(isBr(td.children()[i]) && td.children()[i+1] && isBr(td.children()[i+1]) ) {
                 allValues.add(currentValues)
@@ -639,7 +636,7 @@ class DataSetParser {
                       td.children()[i+1] && !(td.children()[i+1] instanceof Node) &&
                       (td.children()[i+1] == " " || td.children()[i+1] == "\u00a0") &&
                       td.children()[i+2] && isBr(td.children()[i+2]) ) {
-                // System.err.println("Here")
+                // log.debug("Here")
                 allValues.add(currentValues)
                 currentValues = []
                 i+=2
@@ -649,8 +646,8 @@ class DataSetParser {
                 // This should be a String...
                 currentValues.add(td.children()[i].children()[0])
             } else {
-                log.error("Unknown node!!")
-                log.error(td.children()[i])
+                log.error("Unknown node!!\n{}",
+                          td.children()[i])
             }
         }
         allValues.add(currentValues)
@@ -690,7 +687,7 @@ class DataSetParser {
     }
 
     static String capitalizeGumCad(String input) {
-        // System.err.println(input)
+        // log.debug(input)
         char[] chars = input.toLowerCase().toCharArray()
         boolean found = false
         for (int i = 0; i < chars.length; i++) {
@@ -701,7 +698,7 @@ class DataSetParser {
                 found = false
             }
         }
-        // System.err.println(String.valueOf(chars))
+        // log.debug(String.valueOf(chars))
         return String.valueOf(chars)
     }
 

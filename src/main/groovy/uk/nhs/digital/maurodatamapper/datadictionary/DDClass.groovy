@@ -90,28 +90,28 @@ class DDClass extends DataDictionaryComponent<DataClass> {
     @Override
     List<Topic> toDitaTopics(DataDictionary dataDictionary) {
 
-        //System.err.println("definition: ")
-        //System.err.println(definition)
-        //System.err.println(DDHelperFunctions.parseHtml(definition).toString())
+        //log.debug("definition: ")
+        //log.debug(definition)
+        //log.debug(DDHelperFunctions.parseHtml(definition).toString())
 
         Topic descriptionTopic = createDescriptionTopic()
-        //System.err.println(((Html)descriptionTopic.body.bodyElements[0]).content)
+        //log.debug(((Html)descriptionTopic.body.bodyElements[0]).content)
 
         Topic attributesTopic = createSubTopic("Attributes")
         Collection<DataElement> basicElements = catalogueItem.dataElements.
-                findAll{!(it.dataType instanceof ReferenceType)}
-        //System.err.println(catalogueItem.label)
-        //System.err.println(basicElements.size())
+            findAll {!(it.dataType instanceof ReferenceType)}
+        //log.debug(catalogueItem.label)
+        //log.debug(basicElements.size())
         catalogueItem.dataElements.each {
-            //System.err.println(it.dataType.getClass())
+            //log.debug(it.dataType.getClass())
         }
-        if(basicElements && basicElements.size() > 0) {
+        if (basicElements && basicElements.size() > 0) {
             SimpleTable attributeTable = new SimpleTable(relColWidth: "1* 9*")
             attributeTable.stHead = new STHead(stEntries: [new STEntry(value: "Key"), new STEntry(value: "Attribute Name") /*, new STEntry(value: "Attribute Type")*/])
 
-            basicElements.sort{a, b ->
+            basicElements.sort {a, b ->
                 DDHelperFunctions.getMetadataValue(a, "isUnique") <=> DDHelperFunctions.getMetadataValue(b, "isUnique") ?:
-                        b.label <=> a.label
+                b.label <=> a.label
             }.reverse().each { de ->
                 String uin = DDHelperFunctions.getMetadataValue(de, "uin")
                 if (uin) {
