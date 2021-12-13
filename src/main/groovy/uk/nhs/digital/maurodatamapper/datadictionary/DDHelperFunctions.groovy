@@ -30,17 +30,17 @@ class DDHelperFunctions {
 
     static String tidyLabel(String label) {
         label.replaceAll("_", " ")
-                .replaceAll("%20", " ")
-                .replaceAll("%2515", "")
-                .trim()
+            .replaceAll("%20", " ")
+            .replaceAll("%2515", "")
+            .trim()
     }
 
     static String parseHtml(String str) {
         String ret = str
-        if(!ret) {
+        if (!ret) {
             return null
         }
-        ret = ret.replaceAll(/<.xml.*?>/,"")
+        ret = ret.replaceAll(/<.xml.*?>/, "")
         ret = ret.replaceAll("<head>", "")
         ret = ret.replaceAll("</head>", "")
         ret = ret.replaceAll("<title>[^<]*</title>", "")
@@ -49,58 +49,56 @@ class DDHelperFunctions {
         ret = ret.replaceAll("\n", " ")
         ret = ret.replaceAll("<definition>", " ")
         ret = ret.replaceAll("</definition>", " ")
-        return ret.trim()
+        return ret.trim() ?: null
 
     }
 
     static String parseHtml(GPathResult res) {
-        if(!res || res.toString().trim() == "") {
-            return ""
+        if (!res || !res.toString().trim()) {
+            return null
         }
-        String str = ""
         try {
-            str =  XmlUtil.serialize(res)
-        } catch(Exception e) {
+            return parseHtml(XmlUtil.serialize(res))
+        } catch (Exception e) {
             log.error(res.toString())
-            // log.debug(res)
-            return ""
         }
-        return parseHtml(str)
+        null
     }
 
     static void addMetadata(MetadataAware ci, String key, String value) {
-        if(value) {
+        if (value) {
 
             Metadata metadata = new Metadata(
-                    namespace: metadataNamespace,
-                    key: key,
-                    value: value
+                namespace: metadataNamespace,
+                key: key,
+                value: value
             )
             ci.addToMetadata(metadata)
         }
     }
 
     static String getMetadataValue(MetadataAware ci, String key) {
-        Metadata metadata = ci.getMetadata().find{md ->
+        Metadata metadata = ci.getMetadata().find {md ->
             md.namespace.startsWith(metadataNamespace) && md.key == key
         }
-        if(metadata) {
+        if (metadata) {
             return metadata.value
         }
         return null
     }
 
-/*
-    static void addDataElementAtPath(DataClass topLevelClass, String path, DataElement dataElement) {
-        DataClass parentClass = getClassByPath(topLevelClass, path)
-        parentClass.addToDataElements(dataElement)
-    }
+    /*
+        static void addDataElementAtPath(DataClass topLevelClass, String path, DataElement dataElement) {
+            DataClass parentClass = getClassByPath(topLevelClass, path)
+            parentClass.addToDataElements(dataElement)
+        }
 
-    static void addDataClassAtPath(DataClass topLevelClass, String path, DataClass dataClass) {
-        DataClass parentClass = getClassByPath(topLevelClass, path)
-        parentClass.addToDataClasses(dataClass)
-    }
-*/
+        static void addDataClassAtPath(DataClass topLevelClass, String path, DataClass dataClass) {
+            DataClass parentClass = getClassByPath(topLevelClass, path)
+            parentClass.addToDataClasses(dataClass)
+        }
+    */
+
     static void addDataElementAtPath(DataClass topLevelClass, List<String> path, DataElement dataElement) {
         DataClass parentClass = getClassByPath(topLevelClass, path)
         parentClass.addToDataElements(dataElement)
@@ -110,27 +108,29 @@ class DDHelperFunctions {
         DataClass parentClass = getClassByPath(topLevelClass, path)
         parentClass.addToDataClasses(dataClass)
     }
-/*
-    static DataClass getClassByPath(DataClass topLevelClass, String path) {
-        DataClass parentClass = topLevelClass
-        String[] pathComponents = path.split("/")
-        pathComponents.each { componentName ->
-            if(componentName != pathComponents.last()) {
-                DataClass newParentClass = parentClass.getChildDataClasses().find {it.label == componentName}
-                if (!newParentClass) {
-                    newParentClass = new DataClass(label: componentName)
-                    parentClass.addToDataClasses(newParentClass)
-                }
-                parentClass = newParentClass
-            }
-        }
-        return parentClass
 
-    }
-*/
+    /*
+        static DataClass getClassByPath(DataClass topLevelClass, String path) {
+            DataClass parentClass = topLevelClass
+            String[] pathComponents = path.split("/")
+            pathComponents.each { componentName ->
+                if(componentName != pathComponents.last()) {
+                    DataClass newParentClass = parentClass.getChildDataClasses().find {it.label == componentName}
+                    if (!newParentClass) {
+                        newParentClass = new DataClass(label: componentName)
+                        parentClass.addToDataClasses(newParentClass)
+                    }
+                    parentClass = newParentClass
+                }
+            }
+            return parentClass
+
+        }
+    */
+
     static DataClass getClassByPath(DataClass topLevelClass, List<String> path) {
         DataClass parentClass = topLevelClass
-        path.each { componentName ->
+        path.each {componentName ->
             DataClass newParentClass = parentClass.getDataClasses().find {it.label == componentName}
             if (!newParentClass) {
                 newParentClass = new DataClass(label: componentName)
@@ -168,8 +168,8 @@ class DDHelperFunctions {
             return true
         }
         // For CDS
-        if (/*table.tbody.tr.size() == 2 && */table.tbody.tr[0].td.size() == 2 &&
-                table.tbody.tr[0].td[1].@class.text() == "duckblue") {
+        if (/*table.tbody.tr.size() == 2 && */ table.tbody.tr[0].td.size() == 2 &&
+                                               table.tbody.tr[0].td[1].@class.text() == "duckblue") {
             return true
         }
         return false
@@ -179,15 +179,15 @@ class DDHelperFunctions {
                                  DataDictionary dataDictionary, Integer index) {
 
         DataClass currentClass = parentClass
-        if(parentClass == null && useParentClass) {
-            currentClass = new DataClass (label: dataSetDataModel.label, description: "")
+        if (parentClass == null && useParentClass) {
+            currentClass = new DataClass(label: dataSetDataModel.label, description: "")
             addMetadata(currentClass, "item_order", "" + index)
         }
         int classIndex = index
         int itemIndex = 0
         table.tbody.tr.each {tr ->
             String classDesc = dataSetRowIsClassHeader(tr, dataSetDataModel.label)
-            if (!useParentClass && classDesc != null ) {
+            if (!useParentClass && classDesc != null) {
                 String className, description = ""
 
                 String[] classNameComps = classDesc.split(":")
@@ -215,54 +215,53 @@ class DDHelperFunctions {
             } else if (!dataSetRowIsIgnorable(tr)) {
                 itemIndex += addDataSetElements(dataSetDataModel, currentClass, tr, dataDictionary, itemIndex)
             } else {
-                if(tr.th.size() == 1 && tr.th.@class=="skyblue") {
+                if (tr.th.size() == 1 && tr.th.@class == "skyblue") {
                     currentClass.description = tr.th.text()
                 }
-                if(tr.th.size() == 2 && tr.th[0].@class=="skyblue") {
+                if (tr.th.size() == 2 && tr.th[0].@class == "skyblue") {
                 }
-                if((tr.td.size() == 1 && tr.td.@class == "skyblue")) {
+                if ((tr.td.size() == 1 && tr.td.@class == "skyblue")) {
                     currentClass.description = tr.td.text()
                 }
-                if((tr.td.size() == 2 && tr.td[0].@class == "skyblue")) {
+                if ((tr.td.size() == 2 && tr.td[0].@class == "skyblue")) {
                 }
             }
-
+            currentClass.description = currentClass.description ?: null
         }
     }
 
 
     static boolean dataSetRowIsIgnorable(GPathResult row) {
-        if(row.th.size() == 1 && row.th.@class=="skyblue") {
+        if (row.th.size() == 1 && row.th.@class == "skyblue") {
             return true
         }
-        if(row.th.size() == 2 && row.th[0].@class=="skyblue") {
+        if (row.th.size() == 2 && row.th[0].@class == "skyblue") {
             return true
         }
-        if((row.td.size() == 1 && row.td.@class == "skyblue")) {
+        if ((row.td.size() == 1 && row.td.@class == "skyblue")) {
             return true
         }
-        if((row.td.size() == 2 && row.td[0].@class == "skyblue")) {
+        if ((row.td.size() == 2 && row.td[0].@class == "skyblue")) {
             return true
         }
         return false
     }
 
     static String dataSetRowIsClassHeader(GPathResult row, String dataModelLabel) {
-        if(row.td.size() == 1 && row.td.@class=="skyblue") {
+        if (row.td.size() == 1 && row.td.@class == "skyblue") {
             return row.td.text()
         }
-        if(row.th.size() == 1 && row.th.@class=="skyblue") {
+        if (row.th.size() == 1 && row.th.@class == "skyblue") {
             return row.th.text()
         }
-        if(dataModelLabel == "National Joint Registry Data Set - Common Details" && row.td.size() == 2 && row.td[1].@class=="skyblue") {
+        if (dataModelLabel == "National Joint Registry Data Set - Common Details" && row.td.size() == 2 && row.td[1].@class == "skyblue") {
             return row.td[1].text()
         }
         return null
 
     }
 
-    static DataClass dataClassFromTable(GPathResult table, DataModel dataSetDataModel)
-    {
+    static DataClass dataClassFromTable(GPathResult table, DataModel dataSetDataModel) {
         DataClass currentClass = new DataClass(label: table.tbody.tr.th.text(), description: "")
         dataSetDataModel.addToDataClasses(currentClass)
         return currentClass
@@ -273,27 +272,27 @@ class DDHelperFunctions {
 
         GPathResult correctCell, multiplicityCell = null
         String multiplicityText = ""
-        if(tr.td.size() == 2) {
+        if (tr.td.size() == 2) {
             correctCell = tr.td[1]
             multiplicityCell = tr.td[0]
             multiplicityText = multiplicityCell.text().trim()
-        } else if( tr.td.size() == 1) {
+        } else if (tr.td.size() == 1) {
             correctCell = tr.td
         } else {
             log.error("Cannot interpret row: ${dataSetDataModel.label}, ${currentClass.label}, ${tr}")
             return
         }
         int idx = 0
-        correctCell.a.each { a ->
-            String elementLabel = ((String)a.@href).replaceAll(" ", "%20")
+        correctCell.a.each {a ->
+            String elementLabel = ((String) a.@href).replaceAll(" ", "%20")
             DDElement de = dataDictionary.elements.values().find {it.ddUrl == elementLabel}
-            if(!de) {
+            if (!de) {
                 log.error("Cannot find element: ${a.text()} - ${elementLabel}")
                 log.error("In class: ${currentClass.label}, model: ${dataSetDataModel.label}")
             } else {
                 DataElement newDataElement = de.toCatalogueItem(dataDictionary)
                 addMetadata(newDataElement, "item_order", "" + (index + idx))
-                if(multiplicityText) {
+                if (multiplicityText) {
                     addMetadata(newDataElement, "item_mro", multiplicityText)
                     if (multiplicityText == "R" || multiplicityText == "M") {
                         newDataElement.minMultiplicity = 1
@@ -308,7 +307,7 @@ class DDHelperFunctions {
                 }
 
 
-                if(currentClass.dataElements.find{it.label == newDataElement.label}) {
+                if (currentClass.dataElements.find {it.label == newDataElement.label}) {
                     log.error("data element already exists in class: ")
                     log.error("      ${currentClass.label} - ${newDataElement.label}")
                 } else {
@@ -320,17 +319,17 @@ class DDHelperFunctions {
         return idx
     }
 
-/*    static void writeDataModelAtPath(BindingMauroDataMapperClient mdmClient, UUID parentFolderId, List<String> path, DataModel dataModel) {
-        UUID folderId = parentFolderId
-        path.each { componentName ->
-            if(componentName != path.last()) {
-                folderId = mdmClient.findOrCreateFolderByName(componentName, folderId)
+    /*    static void writeDataModelAtPath(BindingMauroDataMapperClient mdmClient, UUID parentFolderId, List<String> path, DataModel dataModel) {
+            UUID folderId = parentFolderId
+            path.each { componentName ->
+                if(componentName != path.last()) {
+                    folderId = mdmClient.findOrCreateFolderByName(componentName, folderId)
+                }
             }
+            log.info("Uploading: ${dataModel.label}")
+            mdmClient.importDataModel(dataModel, folderId, dataModel.label, FINALISED, false)
         }
-        log.info("Uploading: ${dataModel.label}")
-        mdmClient.importDataModel(dataModel, folderId, dataModel.label, FINALISED, false)
-    }
-*/
+    */
 
     static String makeValidDitaName(String oldFilename) {
 
@@ -343,16 +342,17 @@ class DDHelperFunctions {
     }
 
     static String findFromMetadata(def catalogueXml, String key) {
-        return catalogueXml.metadata.find{it.namespace == metadataNamespace && it.key == key}?.value
+        return catalogueXml.metadata.find {it.namespace == metadataNamespace && it.key == key}?.value
     }
 
     static String findFromMetadataXml(def catalogueXml, String key) {
-        return catalogueXml.metadata.metadata.find{it.namespace == metadataNamespace && it.key == key}?.value
+        return catalogueXml.metadata.metadata.find {it.namespace == metadataNamespace && it.key == key}?.value
 
     }
-    static String  translateMRO(String mro_in, String datasetName) {
+
+    static String translateMRO(String mro_in, String datasetName) {
         String mro = mro_in?.trim()
-        if(!mro || mro == "") {
+        if (!mro || mro == "") {
             return ""
         } else if (mro.trim().startsWith("R")) {
             return "Required"
@@ -368,25 +368,25 @@ class DDHelperFunctions {
         }
     }
 
-    static List<String> getPrefixes (String path) {
+    static List<String> getPrefixes(String path) {
         int slashIndex = path.indexOf('/')
-        if(slashIndex < 0) {
+        if (slashIndex < 0) {
             return []
         } else {
             String head = path.substring(0, slashIndex)
             String tail = path.substring(slashIndex)
             List ret = [head]
-            ret.addAll(getPrefixes(tail).collect{ it -> head + "/" + it})
+            ret.addAll(getPrefixes(tail).collect {it -> head + "/" + it})
             return ret
         }
     }
 
     static String unquoteString(String input) {
         return input.
-                replaceAll("&quot;", "\"").
-                replaceAll("&gt;", ">").
-                replaceAll("&lt;", "<").
-                replaceAll("&apos;", "'")
+            replaceAll("&quot;", "\"").
+            replaceAll("&gt;", ">").
+            replaceAll("&lt;", "<").
+            replaceAll("&apos;", "'")
     }
 
 

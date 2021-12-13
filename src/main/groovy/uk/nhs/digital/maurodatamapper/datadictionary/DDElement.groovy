@@ -357,7 +357,7 @@ class DDElement extends DataDictionaryComponent<DataElement> {
                 valueEntry = new STEntry(bodyElement: new Html(content: webPresentation))
             }
             String description = DDHelperFunctions.getMetadataValue(enumValue, "description")
-            if(description && description != ""){
+            if (description) {
                 valueEntry = new STEntry(bodyElement: new Html(content: description))
             }
             STRow row = new STRow(stEntries: [keyEntry, valueEntry])

@@ -61,7 +61,8 @@ class DataSetParser {
                 tests["Cancer_Outcomes_and_Services_Data_Set_-_Lung"] = "4C5C1E1E2E2E1E1E4E1E"
                 tests["Cancer_Outcomes_and_Services_Data_Set_-_Children_Teenagers_and_Young_Adults"] = "10C1E2E1E4C1E1E2E1E2C1E1E2E1E2E2E1E"
                 tests["Cancer_Outcomes_and_Services_Data_Set_-_Skin"] = "1C2E"
-                tests["Cancer_Outcomes_and_Services_Data_Set_-_Core"] = "38C6E1E2C1E1E3E2C3E1E3C5E3E2E2C1E2E1C1E9E8E3E3E2C3C1E1E3E2E2E2C1E1E1E11E5E3E1E2C1E2E2E4E8E4E4E2C1E5E7E6E4E4E14E2E10E11E3E5E2E3E"
+                tests["Cancer_Outcomes_and_Services_Data_Set_-_Core"] =
+                "38C6E1E2C1E1E3E2C3E1E3C5E3E2E2C1E2E1C1E9E8E3E3E2C3C1E1E3E2E2E2C1E1E1E11E5E3E1E2C1E2E2E4E8E4E4E2C1E5E7E6E4E4E14E2E10E11E3E5E2E3E"
                 tests["Cancer_Outcomes_and_Services_Data_Set_-_Central_Nervous_System"] = "7C4E1E3E1E2E1E2C1E1E"
                 tests["Cancer_Outcomes_and_Services_Data_Set_-_Haematological"] = "7C7C1E1E1E2E4E3E1E4C1E1E1E1E4E4C2E2E3E1E3C2E3E4E1E1E"
                 tests["Cancer_Outcomes_and_Services_Data_Set_-_Colorectal"] = "2C2E1E"
@@ -78,7 +79,8 @@ class DataSetParser {
                 tests["Female_Genital_Mutilation_Data_Set"] = "3C11E18E10E"
                 tests["Improving_Access_to_Psychological_Therapies_Data_Set"] = "8C7E6C12E5E15E2E3E3E2C9E5E5E3C21E10E7E4C3E5E5E3E6E4E"
                 tests["National_Cancer_Waiting_Times_Monitoring_Data_Set"] = "4C4E15E21E14E"
-                tests["Mental_Health_Services_Data_Set"] = "12C7E12C13E5E5E4E13E5E3E8E4E3E3E3E7C20E2E9E7E8E4E4E4C23E10E2E10E11E5C12E4E5E5E5E13C15E17E5E6E12E2E2E5E7E6E5E4E2E6C4E4E4E4E5E3E5E2C4E4E4C10E3E10E4E7E"
+                tests["Mental_Health_Services_Data_Set"] =
+                "12C7E12C13E5E5E4E13E5E3E8E4E3E3E3E7C20E2E9E7E8E4E4E4C23E10E2E10E11E5C12E4E5E5E5E13C15E17E5E6E12E2E2E5E7E6E5E4E2E6C4E4E4E4E5E3E5E2C4E4E4C10E3E10E4E7E"
                 tests["Diagnostic_Imaging_Data_Set"] = "3C7E5E1C2E4E"
                 tests["GUMCAD_Sexually_Transmitted_Infection_Surveillance_System_Data_Set"] = "6C2E10E1C4E10E4C3E4E2E5E5E22E"
                 tests["National_Joint_Registry_Data_Set_-_Common_Details"] = "1C4C1C1C2E1E1E1C2E6E5E4E"
@@ -104,14 +106,19 @@ class DataSetParser {
                 tests["NHS_Continuing_Healthcare_Data_Set"] = "12C3E5E3E2E5E3E3E3E2E4E1E2E"
                 tests["Cover_of_Vaccination_Evaluated_Rapidly_(COVER)_Data_Set"] = "6C4E1C2E2E1C2E2E1C2E2E1C2E2E1C2E2E"
 
-                tests["CDS_V6-2_Type_020_-_Outpatient_CDS"] = "20C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C3E1C4E3C1E2E2E3C1E1E1E1C17E1C6E7C1E2E2E2E2E2E2E3C1E2E2E1C4E1C2E1C5E1C2E1C1E"
+                tests["CDS_V6-2_Type_020_-_Outpatient_CDS"] =
+                "20C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C3E1C4E3C1E2E2E3C1E1E1E1C17E1C6E7C1E2E2E2E2E2E2E3C1E2E2E1C4E1C2E1C5E1C2E1C1E"
                 tests["CDS_V6-2-1_Type_005B_-_CDS_Transaction_Header_Group_-_Bulk_Update_Protocol"] = "1C1C12E"
                 tests["CDS_V6-2-1_Type_003_-_CDS_Message_Header"] = "1C1C4E"
                 tests["CDS_V6-2_Type_100_-_Elective_Admission_List_-_Event_During_Period_(Old_Service_Agreement)_CDS"] = "7C2C2C1C2E1E4E1C7E"
-                tests["CDS_V6-2_Type_060_-_Elective_Admission_List_-_Event_During_Period_(Add)_CDS"] = "20C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C2E1C7E1C14E1C4E7C1E2E2E2E2E2E2E3C1E2E2E1C3E1C2E1C2E1C1E1C3E1C1E1C2E"
-                tests["CDS_V6-2-2_Type_011_-_Emergency_Care_CDS"] = "23C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C7E1C5E1C2E1C2E1C2E1C14E1C10E1C1E1C6E1C4E1C3E1C3E1C3E1C5E1C13E1C2E"
-                tests["CDS_V6-2_Type_200_-_Admitted_Patient_Care_-_Unfinished_Delivery_Episode_CDS"] = "34C2C2C1C2E1E4E3C1C3E2C2E5E2C2E2C1E1E5E1C5E1C1E1C10E1C6E1C11E1C3E1C6E1C4E3C1E2E2E3C1E1E1E7C1E2E2E2E2E2E2E3C1E2E2E1C10E1C14E1C10E3C4E3E2E3C8E12E7E1C2E1C2E1C1E1C1E1C2E1C4E1C5E2C5E3C3E2C2E3E3C2E2E1E1C4E1C3E"
-                tests["CDS_V6-2_Type_140_-_Admitted_Patient_Care_-_Finished_Delivery_Episode_CDS"] = "34C2C2C1C2E1E4E3C1C3E2C2E5E2C2E2C1E1E5E1C5E1C1E1C10E1C6E1C11E1C3E1C6E1C4E3C1E2E2E3C1E1E1E7C1E2E2E2E2E2E2E3C1E2E2E1C10E1C14E1C10E3C4E3E2E3C8E12E7E1C2E1C2E1C1E1C1E1C2E1C4E1C5E2C5E3C3E2C2E3E3C2E2E1E1C4E1C3E"
+                tests["CDS_V6-2_Type_060_-_Elective_Admission_List_-_Event_During_Period_(Add)_CDS"] =
+                "20C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C2E1C7E1C14E1C4E7C1E2E2E2E2E2E2E3C1E2E2E1C3E1C2E1C2E1C1E1C3E1C1E1C2E"
+                tests["CDS_V6-2-2_Type_011_-_Emergency_Care_CDS"] =
+                "23C2C2C1C2E1E4E3C1C3E2C2E5E3C2E2C1E1E2E3E1C7E1C5E1C2E1C2E1C2E1C14E1C10E1C1E1C6E1C4E1C3E1C3E1C3E1C5E1C13E1C2E"
+                tests["CDS_V6-2_Type_200_-_Admitted_Patient_Care_-_Unfinished_Delivery_Episode_CDS"] =
+                "34C2C2C1C2E1E4E3C1C3E2C2E5E2C2E2C1E1E5E1C5E1C1E1C10E1C6E1C11E1C3E1C6E1C4E3C1E2E2E3C1E1E1E7C1E2E2E2E2E2E2E3C1E2E2E1C10E1C14E1C10E3C4E3E2E3C8E12E7E1C2E1C2E1C1E1C1E1C2E1C4E1C5E2C5E3C3E2C2E3E3C2E2E1E1C4E1C3E"
+                tests["CDS_V6-2_Type_140_-_Admitted_Patient_Care_-_Finished_Delivery_Episode_CDS"] =
+                "34C2C2C1C2E1E4E3C1C3E2C2E5E2C2E2C1E1E5E1C5E1C1E1C10E1C6E1C11E1C3E1C6E1C4E3C1E2E2E3C1E1E1E7C1E2E2E2E2E2E2E3C1E2E2E1C10E1C14E1C10E3C4E3E2E3C8E12E7E1C2E1C2E1C1E1C1E1C2E1C4E1C5E2C5E3C3E2C2E3E3C2E2E1E1C4E1C3E"
 
                 tests.each { key, value ->
                     verifyDataModel(key, value)
@@ -131,17 +138,17 @@ class DataSetParser {
 
     static void parseDataSet(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> dataClasses = []
-        if (definition.children().count { it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it) }) {
+        if (definition.children().count {it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it)}) {
             dataClasses = OtherDataSetParser.parseDataSetWithHeaderTables(definition, dataModel, dataDictionary)
         } else {
-            definition.children().findAll { it.name() == "table" }.each { GPathResult table ->
+            definition.children().findAll {it.name() == "table"}.each {GPathResult table ->
                 dataClasses.addAll(OtherDataSetParser.parseDataClassTable(table, dataModel, dataDictionary, 1))
             }
         }
         if (dataClasses.size() == 1 && !dataClasses[0].label) {
             dataClasses[0].label = "Data Set Data Elements"
         }
-        dataClasses.eachWithIndex { dataClass, index ->
+        dataClasses.eachWithIndex {dataClass, index ->
             dataModel.addToDataClasses(dataClass)
             setOrder(dataClass, index + 1)
         }
@@ -155,7 +162,7 @@ class DataSetParser {
 
     static void printDataModel(DataModel dataModel) {
         log.debug("===============================\n{}", dataModel.label)
-        dataModel.childDataClasses.sort { getOrder(it) }.each { dataClass ->
+        dataModel.childDataClasses.sort {getOrder(it)}.each {dataClass ->
             printDataClass(dataClass, 3)
         }
     }
@@ -183,7 +190,7 @@ class DataSetParser {
             components.addAll(dataClass.dataClasses)
         }
         indentString += "   "
-        components.sort { getOrder(it) }.each { component ->
+        components.sort {getOrder(it)}.each {component ->
             if (component instanceof DataClass) {
                 printDataClass(component, indent + 3)
             } else if (component instanceof DataElement) {
@@ -196,7 +203,7 @@ class DataSetParser {
         String ret = ""
         if (dataModel.childDataClasses) {
             ret += dataModel.childDataClasses.size() + "C"
-            dataModel.childDataClasses.sort { getOrder(it) }.each { dataClass ->
+            dataModel.childDataClasses.sort {getOrder(it)}.each {dataClass ->
                 ret += generateDataClassHash(dataClass)
             }
         }
@@ -209,7 +216,7 @@ class DataSetParser {
         String ret = ""
         if (dataClass.dataClasses) {
             ret += dataClass.dataClasses.size() + "C"
-            dataClass.dataClasses.sort { getOrder(it) }.each { childDataClass ->
+            dataClass.dataClasses.sort {getOrder(it)}.each {childDataClass ->
                 ret += generateDataClassHash(childDataClass)
             }
         }
@@ -220,11 +227,11 @@ class DataSetParser {
     }
 
     static Integer getOrder(MetadataAware item) {
-        Integer.parseInt(item.getMetadata().find { it.key == "Web Order" }.value)
+        Integer.parseInt(item.getMetadata().find {it.key == "Web Order"}.value)
     }
 
     static void setOrder(MetadataAware item, Integer order) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Web Order", value: "" + order ))
+        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Web Order", value: "" + order))
     }
 
     static void setChoice(MetadataAware item) {
@@ -264,16 +271,16 @@ class DataSetParser {
     }
 
 
-
     static String getDataSetReferenceTo(MetadataAware item) {
-        item.getMetadata().find { it.key == "Data Set Reference To" }.value
+        item.getMetadata().find {it.key == "Data Set Reference To"}.value
     }
 
     static void setMultiplicityText(MetadataAware item, String multiplicity) {
         item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Multiplicity Text", value: multiplicity))
     }
+
     static String getMultiplicityText(MetadataAware item) {
-        item.getMetadata().find { it.key == "Multiplicity Text" }.value
+        item.getMetadata().find {it.key == "Multiplicity Text"}.value
     }
 
     static void setMRO(MetadataAware item, String mro) {
@@ -281,7 +288,7 @@ class DataSetParser {
     }
 
     static String getMRO(MetadataAware item) {
-        item.getMetadata().find { it.key == "MRO" }?.value
+        item.getMetadata().find {it.key == "MRO"}?.value
     }
 
     static void setRules(MetadataAware item, String rules) {
@@ -289,7 +296,7 @@ class DataSetParser {
     }
 
     static String getRules(MetadataAware item) {
-        item.getMetadata().find { it.key == "Rules" }?.value
+        item.getMetadata().find {it.key == "Rules"}?.value
     }
 
     static void setGroupRepeats(MetadataAware item, String groupRepeats) {
@@ -297,7 +304,7 @@ class DataSetParser {
     }
 
     static String getGroupRepeats(MetadataAware item) {
-        item.getMetadata().find { it.key == "Group Repeats" }?.value
+        item.getMetadata().find {it.key == "Group Repeats"}?.value
     }
 
 
@@ -320,6 +327,7 @@ class DataSetParser {
                 && it.value == "true")
         }
     }
+
     static boolean isInclusiveOr(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
@@ -327,6 +335,7 @@ class DataSetParser {
                 && it.value == "true")
         }
     }
+
     static boolean isAddress(MetadataAware item) {
         item.metadata.find {
             (it.namespace == DDHelperFunctions.metadataNamespace
@@ -348,7 +357,7 @@ class DataSetParser {
 
         List<List<GPathResult>> topLevelClasses = []
         List<GPathResult> list = []
-        dataSetDefinition.children().each { childNode ->
+        dataSetDefinition.children().each {childNode ->
             if (DDHelperFunctions.tableIsClassHeader(childNode)) {
                 if (list.size() > 0) {
                     topLevelClasses.add(list)
@@ -400,7 +409,7 @@ class DataSetParser {
                 }
             }
         }
-
+        dataClass.description = dataClass.description?.trim() ?: null
     }
 
     static DataElement getElementFromText(Object anchor, DataModel dataModel, NhsDataDictionary dataDictionary, String currentClass) {
@@ -418,7 +427,7 @@ class DataSetParser {
         }
         if (!de) {
             log.error("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass}, model: ${dataModel.label}")
-            DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype" }
+            DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype"}
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
                 dataModel.addToDataTypes(defaultDataType)
@@ -433,7 +442,8 @@ class DataSetParser {
 
     static final Map<String, String> fileNameFixes = [
         "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_concluded_within_28_days_(standard)_de.asp":
-            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_conluded_within_28_days_(standard)_de.asp",
+            "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/p/pe/percentage_of_nhs_continuing_healthcare_referrals_conluded_within_28_days_(standard)_de" +
+            ".asp",
         "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_local_identifier_de.asp"                                                 :
             "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_identifier_de.asp",
         "https://v3.datadictionary.nhs.uk/data_dictionary/data_field_notes/c/care/care_professional_team_local_identifier_de.asp"                                            :
@@ -480,11 +490,11 @@ class DataSetParser {
 
     static void fixPotentialDuplicates(DataModel dataModel) {
         List<String> classNames = []
-        dataModel.childDataClasses.each { childDataClass ->
+        dataModel.childDataClasses.each {childDataClass ->
             if (classNames.contains(childDataClass.label)) {
                 log.debug("Duplicate class label: ${childDataClass.label} in ${dataModel.label}")
                 int idx = 1
-                while(classNames.contains(childDataClass.label + " " + idx)) {
+                while (classNames.contains(childDataClass.label + " " + idx)) {
                     idx++
                 }
                 childDataClass.label = childDataClass.label + " " + idx
@@ -497,11 +507,11 @@ class DataSetParser {
     static void fixPotentialDuplicates(DataClass dataClass, String modelName) {
         if (dataClass.dataClasses) {
             List<String> classNames = []
-            dataClass.dataClasses.each { childDataClass ->
+            dataClass.dataClasses.each {childDataClass ->
                 if (classNames.contains(childDataClass.label)) {
                     log.debug("Duplicate class label: ${childDataClass.label} in ${dataClass.label}  in ${modelName}")
                     int idx = 1
-                    while(classNames.contains(childDataClass.label + " " + idx)) {
+                    while (classNames.contains(childDataClass.label + " " + idx)) {
                         idx++
                     }
                     childDataClass.label = childDataClass.label + " " + idx
@@ -512,11 +522,11 @@ class DataSetParser {
         }
         if (dataClass.dataElements) {
             List<String> elementNames = []
-            dataClass.dataElements.each { childDataElement ->
+            dataClass.dataElements.each {childDataElement ->
                 if (elementNames.contains(childDataElement.label)) {
                     log.debug("Duplicate element label: ${childDataElement.label} in ${dataClass.label} in ${modelName}")
                     int idx = 1
-                    while(elementNames.contains(childDataElement.label + " " + idx)) {
+                    while (elementNames.contains(childDataElement.label + " " + idx)) {
                         idx++
                     }
                     childDataElement.label = childDataElement.label + " " + idx
@@ -532,10 +542,9 @@ class DataSetParser {
         Node node = xmlParser.parseText(XmlUtil.serialize(gPathResult).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
         List<List<String>> params = getElementParameters(node)
 
-        if(params.size() == 1 && elementList.size() > 1) {
+        if (params.size() == 1 && elementList.size() > 1) {
             setMRO(choiceClass, paramsToHtml(params[0]))
-        }
-        else if(params.size() == elementList.size()) {
+        } else if (params.size() == elementList.size()) {
             elementList.eachWithIndex {element, idx ->
                 setMRO(element, paramsToHtml(params[idx]))
             }
@@ -559,10 +568,9 @@ class DataSetParser {
         Node node = xmlParser.parseText(XmlUtil.serialize(gPathResult).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
         List<List<String>> params = getElementParameters(node)
 
-        if(params.size() == 1 && elementList.size() > 1) {
+        if (params.size() == 1 && elementList.size() > 1) {
             setGroupRepeats(choiceClass, paramsToHtml(params[0]))
-        }
-        else if(params.size() == elementList.size()) {
+        } else if (params.size() == elementList.size()) {
             elementList.eachWithIndex {element, idx ->
                 setGroupRepeats(element, paramsToHtml(params[idx]))
             }
@@ -582,10 +590,9 @@ class DataSetParser {
         Node node = xmlParser.parseText(XmlUtil.serialize(gPathResult).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
         List<List<String>> params = getElementParameters(node)
 
-        if(choiceClass && params.size() == 1 && elementList.size() > 1) {
+        if (choiceClass && params.size() == 1 && elementList.size() > 1) {
             setRules(choiceClass, paramsToHtml(params[0]))
-        }
-        else if(params.size() == elementList.size()) {
+        } else if (params.size() == elementList.size()) {
             elementList.eachWithIndex {element, idx ->
                 setRules(element, paramsToHtml(params[idx]))
             }
@@ -609,7 +616,7 @@ class DataSetParser {
 
 
     static List<List<String>> getElementParameters(Node td) {
-        td.depthFirst().findAll{ n ->
+        td.depthFirst().findAll {n ->
             n instanceof Node && (n.name() == "strong" || n.name() == "em" || n.name() == "p")
         }.each {
             n -> Html.removeNodeKeepChildren(n)
@@ -619,30 +626,30 @@ class DataSetParser {
         // log.debug("getElementParameters")
         List<List<String>> allValues = []
         List<String> currentValues = []
-        for(int i=0;i<td.children().size(); i++) {
-            if(!(td.children()[i] instanceof Node) &&
-               (td.children()[i].equalsIgnoreCase("or") || td.children()[i].equalsIgnoreCase("and"))) {
+        for (int i = 0; i < td.children().size(); i++) {
+            if (!(td.children()[i] instanceof Node) &&
+                (td.children()[i].equalsIgnoreCase("or") || td.children()[i].equalsIgnoreCase("and"))) {
                 allValues.add(currentValues)
                 currentValues = []
-            } else if(!(td.children()[i] instanceof Node) &&
-                      td.children()[i] != "\u00a0" &&
-                      td.children()[i] != " ") {
+            } else if (!(td.children()[i] instanceof Node) &&
+                       td.children()[i] != "\u00a0" &&
+                       td.children()[i] != " ") {
                 // log.debug("Adding value: '${td.children()[i]}'")
                 currentValues.add(td.children()[i])
-            } else if(isBr(td.children()[i]) && td.children()[i+1] && isBr(td.children()[i+1]) ) {
+            } else if (isBr(td.children()[i]) && td.children()[i + 1] && isBr(td.children()[i + 1])) {
                 allValues.add(currentValues)
                 currentValues = []
-            } else if(isBr(td.children()[i]) &&
-                      td.children()[i+1] && !(td.children()[i+1] instanceof Node) &&
-                      (td.children()[i+1] == " " || td.children()[i+1] == "\u00a0") &&
-                      td.children()[i+2] && isBr(td.children()[i+2]) ) {
+            } else if (isBr(td.children()[i]) &&
+                       td.children()[i + 1] && !(td.children()[i + 1] instanceof Node) &&
+                       (td.children()[i + 1] == " " || td.children()[i + 1] == "\u00a0") &&
+                       td.children()[i + 2] && isBr(td.children()[i + 2])) {
                 // log.debug("Here")
                 allValues.add(currentValues)
                 currentValues = []
-                i+=2
-            } else if(isBr(td.children()[i])) {
+                i += 2
+            } else if (isBr(td.children()[i])) {
                 // skip
-            } else if(td.children()[i] instanceof Node && td.children()[i].name() == "strong") {
+            } else if (td.children()[i] instanceof Node && td.children()[i].name() == "strong") {
                 // This should be a String...
                 currentValues.add(td.children()[i].children()[0])
             } else {
@@ -664,21 +671,21 @@ class DataSetParser {
     static List<List> partitionList(List input, Closure<Boolean> cl) {
         List ret = []
         List currentList = null
-        input.each { inp ->
-            if(cl.call(inp)) {
-                if(currentList != null) {
+        input.each {inp ->
+            if (cl.call(inp)) {
+                if (currentList != null) {
                     ret.add(currentList)
                 }
                 currentList = null
             } else {
-                if(currentList == null) {
+                if (currentList == null) {
                     currentList = [inp]
                 } else {
                     currentList.add(inp)
                 }
             }
         }
-        if(currentList) {
+        if (currentList) {
             ret.add(currentList)
         }
         return ret
@@ -694,7 +701,8 @@ class DataSetParser {
             if (!found && Character.isLetter(chars[i])) {
                 chars[i] = Character.toUpperCase(chars[i])
                 found = true
-            } else if (Character.isWhitespace(chars[i]) || chars[i]=='.' || chars[i]=='\'') { // You can add other chars here
+            } else if (Character.isWhitespace(chars[i]) || chars[i] == '.' || chars[i] == '\'') {
+                // You can add other chars here
                 found = false
             }
         }

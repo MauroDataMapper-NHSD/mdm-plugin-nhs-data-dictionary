@@ -120,6 +120,7 @@ class OtherDataSetParser {
                     dataClass.description += par.text()
                 }
 
+                dataClass.description = dataClass.description.trim() ?: null
                 for (int idx = 1; idx < section.size(); idx++) {
                     if (section[idx].name() == "table") {
                         if (section[idx + 1] && section[idx + 1].name() == "strong" && section[idx + 1].text() == "OR") {
