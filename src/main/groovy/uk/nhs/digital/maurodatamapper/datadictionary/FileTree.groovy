@@ -21,12 +21,12 @@ class FileTree {
     List<Topic> topics = []
 
     void print(String indent = "") {
-        log.info(indent + name)
+        log.trace(indent + name)
         children.each{
             it.print(indent + "  ")
         }
         topics.each {
-            log.info(indent + "  " + it.title + "(Topic)")
+            log.trace(indent + "  " + it.title + "(Topic)")
         }
     }
 
@@ -88,7 +88,7 @@ class FileTree {
                 it.stringValues["aliasSchema"] == name
             }
             if(matchingWebPage) {
-                System.err.println("matching: " + matchingWebPage.name)
+                log.debug("matching: " + matchingWebPage.name)
                 indexTopic.body.bodyElements.add(new Html(content: DDHelperFunctions.parseHtml(matchingWebPage.definition)))
             }
 

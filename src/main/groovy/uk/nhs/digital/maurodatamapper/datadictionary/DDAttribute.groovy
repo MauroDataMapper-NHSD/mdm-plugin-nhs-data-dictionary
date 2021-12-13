@@ -42,7 +42,7 @@ class DDAttribute extends DataDictionaryComponent<DataElement> {
 
         DataType dataType = dataDictionary.dataTypes["Default String"]
 
-        //System.err.println(code_system)
+        //log.debug(code_system)
         //String valueSetTotal = code_system.Bundle.total.@value.text()
         //if( valueSetTotal && Integer.parseInt(valueSetTotal) > 0) {
         if( code_system?.Bundle?.entry?.resource?.CodeSystem?.concept?.size() > 0) {

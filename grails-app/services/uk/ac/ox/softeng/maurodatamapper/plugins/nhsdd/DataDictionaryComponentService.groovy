@@ -18,6 +18,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -25,6 +26,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+@Slf4j
 @Transactional
 abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
@@ -86,21 +88,21 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
 
     def getWhereUsed(DataDictionary dataDictionary, String id) {
-        DataDictionaryComponent component = dataDictionary.getAllComponents().find{
+        DataDictionaryComponent component = dataDictionary.getAllComponents().find {
             it.catalogueId.toString().equalsIgnoreCase(id)
         }
         List<Map> whereUsed = []
         String itemLink = component.getInternalLink()
-        System.err.println("itemLink: " + itemLink)
-        System.err.println("description: " + component.definition.toString())
-        dataDictionary.getAllComponents().collect{eachComponent ->
-            if(eachComponent.definition.toString().contains(itemLink)) {
+        log.debug("itemLink: " + itemLink)
+        log.debug("description: " + component.definition.toString())
+        dataDictionary.getAllComponents().collect {eachComponent ->
+            if (eachComponent.definition.toString().contains(itemLink)) {
                 whereUsed.add([
-                        type: eachComponent.typeText,
-                        name: eachComponent.name,
-                        stereotype: eachComponent.outputClassForLink,
-                        componentId: eachComponent.catalogueId.toString(),
-                        text: "references in description ${component.name}"
+                    type       : eachComponent.typeText,
+                    name       : eachComponent.name,
+                    stereotype : eachComponent.outputClassForLink,
+                    componentId: eachComponent.catalogueId.toString(),
+                    text       : "references in description ${component.name}"
                 ])
             }
         }
@@ -198,12 +200,12 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                 }
             }
         }
-        if(path.length == 1 && path[0].startsWith("dm:")) {
+        if (path.length == 1 && path[0].startsWith("dm:")) {
             DataModel dm = dataModelService.findByLabel(path[0].replace("dm:", ""))
             return dm
         }
-        System.err.println("Cannot find by path!")
-        System.err.println(path[1])
+        log.debug("Cannot find by path!")
+        log.debug(path[1])
 
         return null
     }

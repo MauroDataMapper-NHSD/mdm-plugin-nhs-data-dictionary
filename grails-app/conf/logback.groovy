@@ -62,7 +62,7 @@ appender('STDOUT', ConsoleAppender) {
         }
     } else {
         filter(ThresholdFilter) {
-            level = WARN
+            level = INFO
         }
     }
     filter(HibernateMappingFilter)

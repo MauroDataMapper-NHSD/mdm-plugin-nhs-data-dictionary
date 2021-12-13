@@ -2,10 +2,12 @@ package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
+import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Topic
 
+@Slf4j
 class DDWebPage extends DataDictionaryComponent<Term> {
 
 

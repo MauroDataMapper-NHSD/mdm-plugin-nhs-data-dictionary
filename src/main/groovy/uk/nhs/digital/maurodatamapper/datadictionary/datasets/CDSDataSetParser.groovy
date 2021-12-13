@@ -27,7 +27,7 @@ class CDSDataSetParser {
 
     static List<DataClass> parseCDSDataSetWithHeaderTables(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> returnDataClasses = []
-        // System.err.println(partitionByDuckBlueClasses(definition).size())
+        // log.debug(partitionByDuckBlueClasses(definition).size())
         List<List<GPathResult>> sections = DataSetParser.partitionByDuckBlueClasses(definition)
         for(int sectIdx = 0; sectIdx < sections.size(); sectIdx++) {
             List<GPathResult> sect = sections.get(sectIdx)
@@ -97,7 +97,7 @@ class CDSDataSetParser {
             Integer noRows = 1
             if(firstRow.td[0].@rowspan) {
                 noRows = Integer.parseInt(firstRow.td[0].@rowspan.text())
-                //System.err.println("noRows: " + noRows)
+                //log.debug("noRows: " + noRows)
             }
             if(tableRows[noRows] && tableRows[noRows].td.size() == 6
                 && (tableRows[noRows].td[4].text() == "PERSON BIRTH DATE" || tableRows[noRows].td[4].text() == "PERSON_BIRTH_DATE")) {
@@ -127,8 +127,8 @@ class CDSDataSetParser {
             && firstRow.td.strong.size() == 0
             && tableRows[1].td.size() == 1) {
             // This is in the "BABY" groups, where we're starting a choice
-            //System.err.println("Blank line")
-            //System.err.println(tableRows.size())
+            //log.debug("Blank line")
+            //log.debug(tableRows.size())
             tableRows = tableRows.drop(1)
 
             DataClass choiceClass = getClassFromTD(tableRows[0].td[0], dataDictionary)
@@ -138,10 +138,11 @@ class CDSDataSetParser {
             tableRows = tableRows.drop(1)
             List<List<GPathResult>> partitions =
                 DataSetParser.partitionList(tableRows,
-                                            { it -> (it.td.size() == 1
+                                            {it ->
+                                                (it.td.size() == 1
                                                 && it.td.strong.size() == 1
                                                 && (it.td.text() == "OR" || it.td.text() == "and"))})
-            //System.err.println(partitions.size())
+            //log.debug(partitions.size())
             partitions.eachWithIndex {part, idx ->
                 parseCDSElementTable(part, choiceClass, dataModel, dataDictionary, idx+1)
             }
@@ -158,10 +159,10 @@ class CDSDataSetParser {
             List<GPathResult> nextRows = tableRows.drop(1)
             parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position+1)
         } else {
-            log.error("Cannot pattern match row:")
-            log.error(dataModel.label)
-            log.error(currentClass.label)
-            log.error(firstRow.toString())
+            log.error("Cannot pattern match row: {}\n{}\n{}",
+                      dataModel.label,
+                      currentClass.label,
+                      firstRow.toString())
         }
 
 
@@ -190,8 +191,7 @@ class CDSDataSetParser {
         dataClass.label = dataClass.label.replaceFirst("DATA GROUP:", "").trim()
 
         if(dataClass.label == " ") {
-            log.warn("NBSP Found!!")
-            log.warn(XmlUtil.serialize(tdNode))
+            log.warn("NBSP Found!!\n{}", XmlUtil.serialize(tdNode))
         }
 
         return dataClass
@@ -254,11 +254,11 @@ class CDSDataSetParser {
                 }
 
                 if (component.tbody.tr.size() > 2) {
-                    //System.err.println("Got it!")
-                    //System.err.println(component.tbody.tr[1].td.text())
+                    //log.debug("Got it!")
+                    //log.debug(component.tbody.tr[1].td.text())
 
                     List<GPathResult> tableRows = []
-                    component.tbody.tr.each { tr -> tableRows.add(tr) }
+                    component.tbody.tr.each {tr -> tableRows.add(tr)}
                     tableRows = tableRows.drop(2)
                     parseCDSElementTable(tableRows, currentClass, dataModel, dataDictionary, classWebOrder)
                 }
@@ -269,16 +269,16 @@ class CDSDataSetParser {
 
             } else if (component.name() == "table" && component.tbody.tr.size() >= 1 && currentClass) {
                 if (ors > 0 && component.tbody.tr.count { tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC" } > 1) {
-                    System.err.println("Found an exception: " + dataModel.label)
-                    System.err.println(component.tbody.tr[0].td[1].text() + " " + component.tbody.tr[0].td[2].text())
-                    component.tbody.tr.findAll { tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC" }.each { tr ->
-                        System.err.println(tr.td[1].text() + " " + tr.td[2].text())
+                    log.debug("Found an exception: " + dataModel.label)
+                    log.debug(component.tbody.tr[0].td[1].text() + " " + component.tbody.tr[0].td[2].text())
+                    component.tbody.tr.findAll {tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC"}.each {tr ->
+                        log.debug(tr.td[1].text() + " " + tr.td[2].text())
                     }
                     DataClass andClass = new DataClass(label: "And")
                     DataSetParser.setAnd(andClass)
                     currentClass.addToDataClasses(andClass)
                     List<GPathResult> tableRows = []
-                    component.tbody.tr.each { tr -> tableRows.add(tr) }
+                    component.tbody.tr.each {tr -> tableRows.add(tr)}
                     parseCDSElementTable(tableRows, andClass, dataModel, dataDictionary, classWebOrder)
                     DataSetParser.setOrder(andClass, classWebOrder)
                     classWebOrder++

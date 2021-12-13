@@ -96,7 +96,7 @@ class Html extends BodyElement{
             content2 = content2.replace("&" + replacement.key + ";", "&#" + replacement.value + ";")
         }
 
-        //System.err.println("content: " + content2)
+        //log.debug("content: " + content2)
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
 
         try {
@@ -106,11 +106,11 @@ class Html extends BodyElement{
             log.error("Couldn't tidy: " + content2.getBytes())
         }
 
-        //System.err.println(node)
+        //log.debug(node)
         //tidy.pprint(node, System.err)
-        //System.err.println(baos.toString())
+        //log.debug(baos.toString())
 
-        //System.err.println("content2 : " + baos.toString())
+        //log.debug("content2 : " + baos.toString())
         GPathResult xml
         try {
             xml = xmlSlurper.parseText("<xml>" + baos.toString() + "</xml>")
@@ -244,7 +244,7 @@ class Html extends BodyElement{
                 n.replaceNode {}
         }
 
-        //System.err.println(XmlUtil.serialize(xml))
+        //log.debug(XmlUtil.serialize(xml))
         String ret = XmlUtil.serialize(node).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
         ret = ret.replace("<xml>", "")
         ret = ret.replace("</xml>", "")
@@ -300,15 +300,15 @@ class Html extends BodyElement{
                         "${newNodeName}"(n.attributes(), n.children())
                     }
                 } catch (Exception e) {
-                    // System.err.println("Cannot replace node")
+                    // log.debug("Cannot replace node")
                     // e.printStackTrace(System.err)
-                    // System.err.println(n)
-                    replaceNode(n, new groovy.util.Node(null, "${newNodeName}",n.attributes(), n.children()))
-                    // System.err.println(n.parent())
-                    // System.err.println(n.parent().children().indexOf)
-                    // System.err.println(newNodeName)
+                    // log.debug(n)
+                    replaceNode(n, new groovy.util.Node(null, "${newNodeName}", n.attributes(), n.children()))
+                    // log.debug(n.parent())
+                    // log.debug(n.parent().children().indexOf)
+                    // log.debug(newNodeName)
                 }
-                //System.err.println(XmlUtil.serialize(n))
+                //log.debug(XmlUtil.serialize(n))
             }
         }
 

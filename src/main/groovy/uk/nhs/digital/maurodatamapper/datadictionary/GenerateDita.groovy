@@ -283,9 +283,9 @@ class GenerateDita {
             while (matcher.find()) {
                 String linkToFind = "]" + matcher.group(0).split("]")[1]
                 if(!dataDictionary.internalLinks[linkToFind]) {
-                    //System.err.println("cannot match: " + linkToFind)
+                    //log.debug("cannot match: " + linkToFind)
                     /*dataDictionary.internalLinks.each {
-                        System.err.println(it)
+                        log.debug(it)
                     }*/
                 }
                 DataDictionaryComponent ddc = dataDictionary.internalLinks[linkToFind]
@@ -349,7 +349,7 @@ class GenerateDita {
                     "allItems_" + DDHelperFunctions.makeValidDitaName(entry.key))
         }
         //allItemsTree.print()
-        //System.err.println(sourcePath)
+        //log.debug(sourcePath)
         allItemsTree.writeToFiles(outputDir, null, true, dataDictionary)
 
 
@@ -430,7 +430,7 @@ class GenerateDita {
 
         }
         //fileTree.print()
-        //System.err.println(sourcePath)
+        //log.debug(sourcePath)
         //fileTree.writeToFiles(sourcePath)
         return fileTree.writeToFiles(outputDir, null, toc, dataDictionary)
     }

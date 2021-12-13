@@ -6,10 +6,12 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
+@Slf4j
 @Transactional
 class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
 
@@ -107,7 +109,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
         if (terminology.validate()) {
             terminology = terminologyService.saveModelWithContent(terminology)
         } else {
-            System.err.println(terminology.errors)
+            log.debug(terminology.errors)
         }
     }
 }

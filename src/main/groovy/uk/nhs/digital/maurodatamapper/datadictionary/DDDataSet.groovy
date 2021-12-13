@@ -65,10 +65,10 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
                     attributes.add(referencedAttribute)
                 }
                 else {
-                    System.err.println("Already existing data element '${existingAttribute.name}' in class '${name}'")
+                    log.debug("Already existing data element '${existingAttribute.name}' in class '${name}'")
                 }
             } else {
-                System.err.println("Cannot de-reference attribute from dataset: " + property.referencedElement.text())
+                log.debug("Cannot de-reference attribute from dataset: " + property.referencedElement.text())
             }
 
         }
@@ -113,7 +113,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
             if(overview) {
                 description = DDHelperFunctions.parseHtml(overview)
             } else {
-                log.error("No description found for data set: " + name)
+                log.warn("No description found for data set: " + name)
             }
         }
         catalogueItem = new DataModel(label: label, description: description)
@@ -375,7 +375,7 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
         } else if(!dataClass.dataClasses && !dataClass.dataElements && DataSetParser.isDataSetReference(dataClass)) {
             // We've got a pointer to another dataset
             //String linkedDataSetUrl = DataSetParser.getDataSetReferenceTo(dataClass)
-            //System.err.println(dataClass.label.replaceFirst("DATA GROUP: ", ""))
+            //log.debug(dataClass.label.replaceFirst("DATA GROUP: ", ""))
             DDDataSet linkedDataSet = dataDictionary.dataSets.values().find {
                 it.ddUrl == DataSetParser.getDataSetReferenceTo(dataClass) }
             if(!linkedDataSet) {
@@ -554,9 +554,9 @@ class DDDataSet extends DataDictionaryComponent<DataModel> {
                     }
                 }
             } else {
-                log.error("No data elements or data classes... ")
-                log.error(dataModel.label)
-                log.error(dataClass.label)
+                log.error("{}>{} No data elements or data classes... ",
+                          dataModel.label,
+                          dataClass.label)
             }
         }
     }

@@ -6,10 +6,9 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceTypeService
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
+import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.ClassLink
 import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
@@ -18,13 +17,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Paragraph
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STEntry
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STHead
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STRow
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.SimpleTable
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Topic
 
+@Slf4j
 @Transactional
 class ClassService extends DataDictionaryComponentService <DataClass> {
 
@@ -280,7 +274,7 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
                     if(attributeElement) {
                         attributeElement.addToImportingDataClasses(dataClass)
                     } else {
-                        System.err.println("Cannot find attributeElement with Uin: " + attributeUin)
+                        log.debug("Cannot find attributeElement with Uin: " + attributeUin)
                     }
                 }
 

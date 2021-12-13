@@ -23,7 +23,7 @@ class DDHelperFunctions {
         String suffixRemoved = input.replaceAll(suffix, "")
 
         String[] baseURI = suffixRemoved.split(delimiter + "/")
-        //System.err.println(baseURI)
+        //log.debug(baseURI)
         String[] path = baseURI[1].split("/")
         return path
     }
@@ -62,7 +62,7 @@ class DDHelperFunctions {
             str =  XmlUtil.serialize(res)
         } catch(Exception e) {
             log.error(res.toString())
-            // System.err.println(res)
+            // log.debug(res)
             return ""
         }
         return parseHtml(str)
@@ -158,7 +158,7 @@ class DDHelperFunctions {
         }
         topLevelClasses.add(list)
         topLevelClasses.each {thisList ->
-            //System.err.println(thisList.size())
+            //log.debug(thisList.size())
         }
         topLevelClasses
     }
@@ -206,7 +206,7 @@ class DDHelperFunctions {
                 currentClass = new DataClass(label: className, description: description)
                 addMetadata(currentClass, "item_order", "" + classIndex)
                 classIndex++
-                //System.err.println("    ${className}")
+                //log.debug("    ${className}")
                 if (parentClass) {
                     parentClass.addToDataClasses(currentClass)
                 } else {

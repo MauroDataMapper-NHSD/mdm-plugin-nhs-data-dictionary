@@ -102,7 +102,7 @@ class DDElement extends DataDictionaryComponent<DataElement> {
 
 
                 if (dataElements.find{it.equalsIgnoreCase(name)}) {
-                    //System.err.println(concept.display.@value)
+                    //log.debug(concept.display.@value)
                     EnumerationValue enumerationValue = new EnumerationValue()
                     enumerationValue.key = concept.code.@value
                     enumerationValue.value = concept.display.@value
