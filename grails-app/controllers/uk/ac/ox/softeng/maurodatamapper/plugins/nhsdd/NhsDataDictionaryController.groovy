@@ -22,7 +22,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         }
         def xml = xmlSlurper.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
-        nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.finalise, params.folderVersionNo, params.prevVersion)
+        nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params.folderVersionNo, params.prevVersion)
 
         respond([])
 
