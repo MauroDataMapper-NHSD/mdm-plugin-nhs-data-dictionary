@@ -513,11 +513,11 @@ class NhsDataDictionaryService {
 
 
     @Transactional
-    def ingest(User currentUser, def xml, String releaseDate, String finalise, String folderVersionNo, String prevVersion) {
+    VersionedFolder ingest(User currentUser, def xml, String releaseDate, boolean finalise, String folderVersionNo, String prevVersion) {
         long startTime = System.currentTimeMillis()
         long originalStartTime = startTime
         String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
-        if(!finalise && !folderVersionNo && !prevVersion) {
+        if (!finalise && !folderVersionNo && !prevVersion) {
             deleteOriginalFolder(dictionaryFolderName)
         }
 
@@ -586,8 +586,9 @@ class NhsDataDictionaryService {
         //dictionaryFolder.save()
         //endTime = System.currentTimeMillis()
         //log.warn("Save DD Folder complete in ${Utils.getTimeString(endTime - startTime)}")
-        //startTime = endTime
 
+        startTime = System.currentTimeMillis()
+        log.warn('Validating core model')
         if (coreDataModel.validate()) {
             endTime = System.currentTimeMillis()
             log.warn("Validate core model complete in ${Utils.getTimeString(endTime - startTime)}")
@@ -603,9 +604,10 @@ class NhsDataDictionaryService {
         dataSetService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
         endTime = System.currentTimeMillis()
         log.warn("Ingest dictionary complete in ${Utils.getTimeString(endTime - originalStartTime)}")
-        if(finalise == "true") {
+        if (finalise) {
             versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, Version.from(folderVersionNo), VersionChangeType.MAJOR, releaseDate)
         }
+        dictionaryFolder
     }
 
 
