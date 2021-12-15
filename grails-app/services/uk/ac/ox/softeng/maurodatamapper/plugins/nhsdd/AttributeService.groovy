@@ -2,7 +2,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -13,6 +12,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -25,8 +25,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 @Slf4j
 @Transactional
 class AttributeService extends DataDictionaryComponentService<DataElement> {
-
-    FolderService folderService
 
     @Override
     Map indexMap(DataElement object) {
@@ -229,18 +227,15 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                                                     key: "isDefault",
                                                     value: isDefault))
 
-                    //log.info("    " + term.label)
+                    // log.info("    " + term.label)
                     terminology.addToTerms(term)
                 }
                 if (terminology.validate()) {
                     terminology = terminologyService.saveModelWithContent(terminology)
-                    terminology.terms.each {
-                        //
-                    }
+                    terminology.terms.size() // Required to reload the terms back into the session
                 } else {
-                    log.debug(terminology.errors)
+                    GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???
                 }
-
 
                 nhsDataDictionary.attributeTerminologiesByName[uin] = terminology
                 dataType = new ModelDataType(label: "${attributeName} Attribute Type",

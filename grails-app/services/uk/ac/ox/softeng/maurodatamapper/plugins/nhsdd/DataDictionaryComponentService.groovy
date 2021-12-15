@@ -20,6 +20,8 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -42,6 +44,9 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     AuthorityService authorityService
 
     NhsDataDictionaryService nhsDataDictionaryService
+
+    @Autowired
+    MessageSource messageSource
 
     abstract void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
                                 NhsDataDictionary nhsDataDictionary)

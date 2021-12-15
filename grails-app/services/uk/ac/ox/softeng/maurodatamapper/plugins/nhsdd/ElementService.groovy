@@ -14,6 +14,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.enumeration.Enum
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -285,7 +286,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                     if (codeSet.validate()) {
                         codeSet = codeSetService.saveModelWithContent(codeSet)
                     } else {
-                        log.debug(codeSet.errors)
+                        GormUtils.outputDomainErrors(messageSource, codeSet) // TODO throw exception???
                     }
                     dataType = new ModelDataType(label: "${elementName} Element Type",
                                                  modelResourceDomainType: codeSet.getDomainType(),

@@ -596,15 +596,15 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         // Fix the created by field and any other associations
         dataModelService.checkImportedDataModelAssociations(nhsDataDictionary.currentUser, dataSetDataModel)
 
-        log.info("Validating Data model: ${dataSetDataModel.label}")
+        log.debug("Validating Data model: ${dataSetDataModel.label}")
         DataModel validated = dataModelService.validate(dataSetDataModel)
         if (validated.hasErrors()) {
             GormUtils.outputDomainErrors(messageSource, validated)
             //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
         } else {
-            log.info("Saving Data model: ${validated.label}")
+            log.debug("Saving Data model: ${validated.label}")
             dataModelService.saveModelWithContent(validated)
-            log.info("Saved Data model: ${validated.label}")
+            log.debug("Saved Data model: ${validated.label}")
         }
     }
 
