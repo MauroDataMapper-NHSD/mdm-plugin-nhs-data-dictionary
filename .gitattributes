@@ -4,7 +4,6 @@
 
 #
 # The above will handle all files NOT found below
-#
 # These files are text and should be normalized (Convert crlf => lf)
 *.css           text
 *.df            text
@@ -21,9 +20,7 @@
 *.tld           text
 *.txt           text
 *.xml           text
-
 *.bat           text eol=crlf
-
 # These files are binary and should be left untouched
 # (binary is a macro for -text -diff)
 *.class         binary
@@ -40,3 +37,4 @@
 *.xls           binary
 *.xlsx          binary
 *.pdf          binary
+*.xml filter=lfs diff=lfs merge=lfs -text

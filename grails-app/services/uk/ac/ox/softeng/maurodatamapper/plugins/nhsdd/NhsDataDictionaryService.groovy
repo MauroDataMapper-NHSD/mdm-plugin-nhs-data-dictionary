@@ -595,11 +595,13 @@ class NhsDataDictionaryService {
 
         startTime = System.currentTimeMillis()
         dataSetService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
-        endTime = System.currentTimeMillis()
-        log.info("Ingest dictionary complete in ${Utils.getTimeString(endTime - originalStartTime)}")
+        log.info('{} ingest complete in {}', dataSetService.getClass().getCanonicalName(), Utils.timeTaken(startTime))
         if (finalise) {
-            versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, Version.from(folderVersionNo), VersionChangeType.MAJOR, releaseDate)
+            startTime = System.currentTimeMillis()
+            versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, Version.from(folderVersionNo ?: '0.0.1'), VersionChangeType.MAJOR, releaseDate)
+            log.info('Finalise dictionary complete in {}', Utils.timeTaken(startTime))
         }
+        log.info("Ingest dictionary complete in ${Utils.timeTaken(originalStartTime)}")
         dictionaryFolder
     }
 
