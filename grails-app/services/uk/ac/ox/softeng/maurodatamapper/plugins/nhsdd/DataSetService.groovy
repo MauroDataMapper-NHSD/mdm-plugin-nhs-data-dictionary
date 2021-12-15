@@ -553,7 +553,10 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         Folder dataSetsFolder =
             new Folder(label: "Data Sets", createdBy: currentUserEmailAddress)
         dictionaryFolder.addToChildFolders(dataSetsFolder)
-        dataSetsFolder.save()
+        if (!folderService.validate(dataSetsFolder)) {
+            throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
+        }
+        folderService.save(dataSetsFolder)
 
         xml.DDDataSet.
             findAll{
@@ -658,8 +661,10 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
             if (!nextFolder) {
                 nextFolder = new Folder(label: nextFolderName, createdBy: createdByEmail)
                 sourceFolder.addToChildFolders(nextFolder)
-                sourceFolder.save()
-                nextFolder.save()
+                if (!folderService.validate(nextFolder)) {
+                    throw new ApiInvalidModelException('NHSDD', 'Invalid model', nextFolder.errors)
+                }
+                folderService.save(nextFolder)
             }
             return getFolderAtPath(nextFolder, path, createdByEmail)
 
