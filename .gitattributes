@@ -37,4 +37,5 @@
 *.xls           binary
 *.xlsx          binary
 *.pdf          binary
+*.xml filter=lfs diff=lfs merge=lfs -text
 . !text !filter !merge !diff

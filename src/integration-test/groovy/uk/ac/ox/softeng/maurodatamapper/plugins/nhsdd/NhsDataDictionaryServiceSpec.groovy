@@ -203,8 +203,9 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         noExceptionThrown()
         dd
 
-
         when: 'ingest again'
+        log.info('---------- 2nd Ingest --------')
+        // Delete old folder complete in 21 secs 547 ms with the batching
         dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null)
 
         then:
@@ -328,6 +329,20 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         checkFolderWithDataModelsOnly(retiredClinicalDataSets.childFolders.find {it.label == 'National Renal Data Set'}, 8)
     }
 
+    void 'F01 : Finalise Nov 2021 ingest'() {
+        given:
+        setupData()
+        def xml = loadXml('november2021.xml')
+        assert xml
+
+        when: 'finalise'
+        // finalise dictionary complete in 39 secs 787 ms
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null)
+
+        then:
+        noExceptionThrown()
+        dd
+    }
 
     private void checkFolderContentsWithChildren(Folder check, int childFolderCount, int terminologyCount, int codeSetCount, int dataModelCount) {
         Assert.assertEquals "ChildFolders in ${check.label}", childFolderCount, check.childFolders?.size() ?: 0
