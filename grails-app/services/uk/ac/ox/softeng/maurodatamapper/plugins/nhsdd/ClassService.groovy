@@ -206,7 +206,11 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
     }
 
     @Override
-    String getShortDescription(DataClass dataClass, DataDictionary dataDictionary) {
+    String getShortDescription(DataClass catalogueItem, DataDictionary dataDictionary) {
+        return null
+    }
+
+    String getShortDescription(DataClass dataClass, NhsDataDictionary dataDictionary) {
         if(isPreparatory(dataClass)) {
             return "This item is being used for development purposes and has not yet been approved."
         } else {
@@ -251,11 +255,12 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
         xml.DDClass.each {ddClass ->
 
             String label = ddClass.TitleCaseName.text()
+            String description = DDHelperFunctions.parseHtml(ddClass.definition)
             String uin = ddClass.uin.text()
             if(!allClasses[label] || ddClass.isRetired.text() != "true") {
                 DataClass dataClass = new DataClass(
                     label: label,
-                    description: DDHelperFunctions.parseHtml(ddClass.definition),
+                    description: description,
                     createdBy: currentUserEmailAddress,
                     parentDataClass: parentDataClass
                 )
@@ -280,6 +285,11 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
 
 
                 addMetadataFromXml(dataClass, ddClass, currentUserEmailAddress)
+
+                String shortDescription = getShortDesc(description, dataClass, nhsDataDictionary)
+                addToMetadata(dataClass, "shortDescription", shortDescription, currentUserEmailAddress)
+
+
                 allClasses[label] = dataClass
                 nhsDataDictionary.classesByUin[uin] = dataClass
                 List<ClassLink> classLinks = ddClass.link.collect{it -> new ClassLink(it)}
@@ -287,6 +297,32 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
             }
         }
 
+    }
+
+    String getShortDesc(String description, DataClass dataClass, NhsDataDictionary dataDictionary) {
+        boolean isPreparatory = dataClass.metadata.any { it.key == "isPreparatory" && it.value == "true" }
+        if(isPreparatory) {
+            return "This item is being used for development purposes and has not yet been approved."
+        } else {
+            try {
+                GPathResult xml
+                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
+                String firstParagraph = xml.p[0].text()
+                if (xml.p.size() == 0) {
+                    firstParagraph = xml.text()
+                }
+                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
+                if (firstSentence.toLowerCase().contains("a subtype of")) {
+                    String secondParagraph = xml.p[1].text()
+                    String secondSentence = secondParagraph.substring(0, secondParagraph.indexOf(".") + 1)
+                    return secondSentence
+                }
+                return firstSentence
+            } catch (Exception e) {
+                log.error("Couldn't parse: " + definition)
+                return name
+            }
+        }
     }
 
     void processLinks(NhsDataDictionary nhsDataDictionary) {

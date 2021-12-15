@@ -571,19 +571,24 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
     void createAndSaveDataModel(def ddDataSetXml, Folder dataSetsFolder, Folder dictionaryFolder, String currentUserEmailAddress, NhsDataDictionary nhsDataDictionary) {
         String dataSetName = ddDataSetXml.TitleCaseName.text()
+        String explanatoryPage = xml.DDWebPage.find { it.uin.text() == ddDataSetXml.explanatoryPage.text()}.definition
+        String description = ""
+        if(explanatoryPage) {
+            description = DDHelperFunctions.parseHtml(explanatoryPage)
+        }
         boolean isRetired = ddDataSetXml.isRetired.text() == "true"
         List<String> path = getPath(ddDataSetXml."base-uri".text(), isRetired)
         Folder folder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
         log.debug('Ingesting {}', dataSetName)
 
-        DataModel dataSetDataModel = new DataModel(
-            label: dataSetName,
-            description: DDHelperFunctions.parseHtml(ddDataSetXml.definition),
-            createdBy: currentUserEmailAddress,
-            type: DataModelType.DATA_STANDARD,
-            authority: authorityService.defaultAuthority,
-            folder: folder
-        )
+            DataModel dataSetDataModel = new DataModel(
+                label: dataSetName,
+                description: description,
+                createdBy: currentUserEmailAddress,
+                type: DataModelType.DATA_STANDARD,
+                authority: authorityService.defaultAuthority,
+                folder: folder
+            )
 
         if (dataSetName.startsWith("CDS")) {
             CDSDataSetParser.parseCDSDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
@@ -596,6 +601,9 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         // Fix the created by field and any other associations
         dataModelService.checkImportedDataModelAssociations(nhsDataDictionary.currentUser, dataSetDataModel)
 
+        String shortDescription = getShortDesc(description, dataSetDataModel, nhsDataDictionary)
+        addToMetadata(dataSetDataModel, "shortDescription", shortDescription, currentUserEmailAddress)
+
         log.debug("Validating Data model: ${dataSetDataModel.label}")
         DataModel validated = dataModelService.validate(dataSetDataModel)
         if (validated.hasErrors()) {
@@ -605,6 +613,41 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
             log.debug("Saving Data model: ${validated.label}")
             dataModelService.saveModelWithContent(validated)
             log.debug("Saved Data model: ${validated.label}")
+        }
+    }
+
+    String getShortDesc(String description, DataModel dataModel,NhsDataDictionary dataDictionary) {
+        boolean isPreparatory = dataModel.metadata.any { it.key == "isPreparatory" && it.value == "true" }
+        if(isPreparatory) {
+            return "This item is being used for development purposes and has not yet been approved."
+        } else {
+
+            List<String> aliases = [dataModel.label]
+            aliases.addAll(dataModel.metadata.findAll{it.key.startsWith("alias")}.collect {it.value})
+
+            try {
+                GPathResult xml
+                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
+                String allParagraphs = ""
+                xml.p.each { paragraph ->
+                    allParagraphs += paragraph.text()
+                }
+                String nextSentence = ""
+                while (!aliases.find { it -> nextSentence.contains(it) } && allParagraphs.contains(".")) {
+                    nextSentence = allParagraphs.substring(0, allParagraphs.indexOf(".") + 1)
+                    if (aliases.find { it -> nextSentence.contains(it) }) {
+                        if(nextSentence.startsWith("Introduction")) {
+                            nextSentence = nextSentence.replaceFirst("Introduction", "")
+                        }
+                        return nextSentence
+                    }
+                    allParagraphs = allParagraphs.substring(allParagraphs.indexOf(".") + 1)
+                }
+                return dataModel.label
+            } catch (Exception e) {
+                log.error("Couldn't parse: " + description)
+                return dataModel.label
+            }
         }
     }
 

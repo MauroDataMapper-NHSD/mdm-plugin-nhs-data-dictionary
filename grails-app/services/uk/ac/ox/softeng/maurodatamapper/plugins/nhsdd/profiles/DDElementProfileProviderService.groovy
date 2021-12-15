@@ -9,7 +9,7 @@ class DDElementProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getMetadataNamespace() {
-        'uk.nhs.datadictionary.data element'
+        'uk.nhs.datadictionary.element'
     }
 
     @Override

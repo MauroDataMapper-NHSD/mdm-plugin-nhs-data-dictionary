@@ -237,8 +237,9 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         xml.DDDataElement.sort {it.TitleCaseName.text()}.each {ddDataElement ->
             DataType dataType
             String elementName = ddDataElement.TitleCaseName[0].text()
-            // if(elementName.toLowerCase().startsWith('a')) {
-                if (ddDataElement."value-set".size() > 0) {
+            String description = DDHelperFunctions.parseHtml(ddDataElement.definition)
+            boolean isRetired = ddDataElement.isRetired.text() == "true"
+                if (ddDataElement."value-set".size() > 0 > 0 && !isRetired) {
                     String codeSetName = elementName
                     String capitalizedCodeSetName = ddDataElement.name.text()
                     String folderName = codeSetName.substring(0, 1)
@@ -254,14 +255,14 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                     }
 
 
-                    CodeSet codeSet = new CodeSet(
-                        label: elementName,
-                        description: "",
-                        folder: subFolder,
-                        createdBy: currentUserEmailAddress,
-                        authority: authorityService.defaultAuthority)
-                    String version = ddDataElement."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.version."@value".text()
-                    codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: version))
+                CodeSet codeSet = new CodeSet(
+                    label: elementName,
+                    description: "",
+                    folder: subFolder,
+                    createdBy: currentUserEmailAddress,
+                    authority: authorityService.defaultAuthority)
+                String version = ddDataElement."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.version."@value".text()
+                codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: version))
 
 
                     String terminologyUin = ddDataElement.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
@@ -308,20 +309,69 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                 }
                 DataElement elementDataElement = new DataElement(
                     label: elementName,
-                    description: DDHelperFunctions.parseHtml(ddDataElement.definition),
+                    description: description,
                     createdBy: currentUserEmailAddress,
                     dataType: dataType,
                     index: idx++)
 
-                addMetadataFromXml(elementDataElement, ddDataElement, currentUserEmailAddress)
-                nhsDataDictionary.elementsByUrl[ddDataElement.DD_URL.text()] = elementDataElement
-                if (ddDataElement.isRetired.text() == "true") {
-                    retiredElementsClass.addToDataElements(elementDataElement)
-                } else {
-                    allElementsClass.addToDataElements(elementDataElement)
-                }
-            // }
+            addMetadataFromXml(elementDataElement, ddDataElement, currentUserEmailAddress)
+
+            String elementAttributes = StringUtils.join(ddDataElement."link".collect {link ->
+                link.participant.find{p -> p["@role"] == "Supplier"}["@referencedUin"]
+            }.collect {
+                nhsDataDictionary.attributeElementsByUin[it]
+            }.collect {
+                it.label
+            }, ";")
+
+            addToMetadata(elementDataElement, "linkedAttributes", elementAttributes, currentUserEmailAddress)
+
+            String shortDescription = getShortDesc(description, elementDataElement, nhsDataDictionary)
+            addToMetadata(elementDataElement, "shortDescription", shortDescription, currentUserEmailAddress)
+
+            nhsDataDictionary.elementsByUrl[ddDataElement.DD_URL.text()] = elementDataElement
+            if (isRetired) {
+                retiredElementsClass.addToDataElements(elementDataElement)
+            } else {
+                allElementsClass.addToDataElements(elementDataElement)
+            }
         }
     }
+
+    String getShortDesc(String definition, DataElement dataElement, NhsDataDictionary dataDictionary) {
+        boolean isPreparatory = dataElement.metadata.any { it.key == "isPreparatory" && it.value == "true" }
+
+        if(isPreparatory) {
+            return "This item is being used for development purposes and has not yet been approved."
+        } else {
+            try {
+                GPathResult xml
+                xml = Html.xmlSlurper.parseText("<xml>" + definition + "</xml>")
+                String firstParagraph = xml.p[0].text()
+                if (xml.p.size() == 0) {
+                    firstParagraph = xml.text()
+                }
+                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
+                if (firstSentence.toLowerCase().contains("is the same as")) {
+                    String linkedAttributesString = dataElement.metadata.find { it.key == "linkedAttributes" }?.value
+                    String[] attributes = []
+                    if(linkedAttributesString) {
+                        attributes = linkedAttributesString.split(";")
+                    }
+                    if (attributes.length == 1) {
+                        firstSentence = dataDictionary.attributeElementsByName[attributes[0]].metadata.find {it.key == "shortDescription"}?.value
+                    } else {
+                        firstSentence = dataElement.label
+                    }
+                }
+                return firstSentence
+            } catch (Exception e) {
+                e.printStackTrace()
+                log.error("Couldn't parse: ${definition}")
+                return dataElement.label
+            }
+        }
+    }
+
 
 }
