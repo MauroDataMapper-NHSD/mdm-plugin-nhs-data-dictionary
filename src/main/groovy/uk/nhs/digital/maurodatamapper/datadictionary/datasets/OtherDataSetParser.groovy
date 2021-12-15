@@ -608,20 +608,21 @@ class OtherDataSetParser {
                             de.maxMultiplicity = -1
                         }
                     }
-                } else if(dataModel.label == "GUMCAD Sexually Transmitted Infection Surveillance System Data Set" &&
-                          multiples == 3) {
+                } else if (dataModel.label == "GUMCAD Sexually Transmitted Infection Surveillance System Data Set" &&
+                           multiples == 3) {
                     returnElement.dataElements[0].maxMultiplicity = -1
                     returnElement.dataElements[1].maxMultiplicity = -1
                     returnElement.dataElements[2].maxMultiplicity = -1
-                } else if(multiples != 0) {
+                } else if (multiples != 0) {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
                 }
 
             } else {
                 unmatchedPattern("Unknown number of links!", tr, dataModel.label, currentClassName)
             }
-            String mro = tr.td[0].text().trim().replaceAll(" ", "")
-            if(mro == "M" || mro == "R" || mro == "O" || mro == "P") {
+            // Replace then trim as NBSP is not whitespace and could be removed to result in WS left over
+            String mro = tr.td[0].text().replaceAll(" ", "").trim()
+            if (mro == "M" || mro == "R" || mro == "O" || mro == "P") {
                 DataSetParser.setMRO(returnElement, mro)
             } else {
                 unmatchedPattern("Unknown MRO", tr.td[0], dataModel.label, currentClassName)

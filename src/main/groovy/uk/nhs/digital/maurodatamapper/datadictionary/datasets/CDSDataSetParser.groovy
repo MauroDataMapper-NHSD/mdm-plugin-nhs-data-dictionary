@@ -121,7 +121,7 @@ class CDSDataSetParser {
         } else if (firstRow.td.size() == 1 && tableRows.size() == 1 && firstRow.td.strong.size() == 1) {
             // This is probably "One of the following two options must be used",
             // "OR", or similar.
-            log.info("Ignoring: " + firstRow.td.strong.text())
+            log.debug("Ignoring: " + firstRow.td.strong.text())
         } else if (firstRow.td.size() == 1 && firstRow.td.@bgcolor.text() == "white"
             && firstRow.td.strong.size() == 0
             && tableRows[1].td.size() == 1) {
@@ -169,20 +169,30 @@ class CDSDataSetParser {
 
     }
 
+    static String cleanWhiteSpace(String content) {
+        if (!content) return null
+        // Replace then trim as NBSP is not whitespace and could be removed to result in WS left over
+        String trimmed = content.replaceAll(' ', '').trim()
+        trimmed ?: null
+    }
+
     static DataClass getClassFromTD(GPathResult td, NhsDataDictionary dataDictionary) {
         DataClass dataClass = new DataClass(label: "")
         Node tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(td).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
 
-
+        // Issue where the trimmed content == NBSP so we need to trim it then check that for NBSP
         def firstStringNode = tdNode.depthFirst().find {
             it instanceof String ||
             (it instanceof Node && it.localText().size() > 0 &&
-             it.localText().find {it.trim() != "" && it != " "})
+             it.localText().any {cleanWhiteSpace(it)})
         }
+
+        String label
+
         if (firstStringNode instanceof String) {
-            dataClass.label = firstStringNode
+            label = firstStringNode
         } else {
-            dataClass.label = firstStringNode.localText().find {it.trim() != "" && it != " "}
+            label = (firstStringNode as Node).localText().find {cleanWhiteSpace(it)}
         }
         /*
         dataClass.description = XmlUtil.serialize(tdNode).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
@@ -191,10 +201,10 @@ class CDSDataSetParser {
             .replaceFirst("</td>","")
 
          */
-        dataClass.label = dataClass.label.replaceFirst("DATA GROUP:", "").trim()
+        dataClass.label = label.replaceFirst("DATA GROUP:", '').trim()
 
         if (dataClass.label == " ") {
-            log.warn("NBSP Found!!\n{}", XmlUtil.serialize(tdNode))
+            log.error("NBSP Found for DataClass name. Extracted Label:[{}]\nXML: {}", label, XmlUtil.serialize(tdNode))
         }
 
         return dataClass
