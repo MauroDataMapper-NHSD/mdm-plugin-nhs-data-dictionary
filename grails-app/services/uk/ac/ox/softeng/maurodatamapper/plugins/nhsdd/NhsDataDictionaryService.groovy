@@ -524,14 +524,17 @@ class NhsDataDictionaryService {
         long endTime = System.currentTimeMillis()
         log.info("Delete old folder complete in ${Utils.getTimeString(endTime - startTime)}")
         startTime = endTime
-        VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
-                                                               description: "", createdBy: currentUser.emailAddress)
+        VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName, createdBy: currentUser.emailAddress)
 
-        dictionaryFolder.save()
+        if (!folderService.validate(dictionaryFolder)) {
+            throw new ApiInvalidModelException('NHSDD', 'Invalid model', dictionaryFolder.errors)
+        }
+
+        versionedFolderService.save(dictionaryFolder)
 
 
         VersionedFolder prevDictionaryVersion = null
-        if(prevVersion) {
+        if (prevVersion) {
             prevDictionaryVersion = versionedFolderService.get(prevVersion)
             versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(dictionaryFolder, prevDictionaryVersion, currentUser)
         }

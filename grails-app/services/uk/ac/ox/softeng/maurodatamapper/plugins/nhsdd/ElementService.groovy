@@ -1,5 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -208,7 +209,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
         Map<String, PrimitiveType> primitiveTypes = [:]
         coreDataModel.dataTypes.each {
-            if(it instanceof PrimitiveType) {
+            if (it instanceof PrimitiveType) {
                 primitiveTypes[it.label] = it
             }
         }
@@ -216,12 +217,15 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         Folder dataElementCodeSetsFolder =
             new Folder(label: "Data Element CodeSets", createdBy: currentUserEmailAddress)
         dictionaryFolder.addToChildFolders(dataElementCodeSetsFolder)
-        dataElementCodeSetsFolder.save()
+        if (!folderService.validate(dataElementCodeSetsFolder)) {
+            throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataElementCodeSetsFolder.errors)
+        }
+        folderService.save(dataElementCodeSetsFolder)
 
         DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy: currentUserEmailAddress)
 
         DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
-                                                         parentDataClass: allElementsClass)
+                                                       parentDataClass: allElementsClass)
         allElementsClass.addToDataClasses(retiredElementsClass)
         coreDataModel.addToDataClasses(allElementsClass)
         coreDataModel.addToDataClasses(retiredElementsClass)
@@ -241,10 +245,13 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                     if (!subFolder) {
                         subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
                         dataElementCodeSetsFolder.addToChildFolders(subFolder)
-                        subFolder.save()
+                        if (!folderService.validate(subFolder)) {
+                            throw new ApiInvalidModelException('NHSDD', 'Invalid model', subFolder.errors)
+                        }
+                        folderService.save(subFolder)
                         folders[folderName] = subFolder
                     }
-                    dataElementCodeSetsFolder.save()
+
 
                     CodeSet codeSet = new CodeSet(
                         label: elementName,
