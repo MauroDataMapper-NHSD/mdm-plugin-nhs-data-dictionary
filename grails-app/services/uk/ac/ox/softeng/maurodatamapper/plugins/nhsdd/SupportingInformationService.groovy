@@ -4,6 +4,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -129,7 +130,7 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
         if (terminology.validate()) {
             terminology = terminologyService.saveModelWithContent(terminology)
         } else {
-            log.debug(terminology.errors)
+            GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???
         }
 
 
