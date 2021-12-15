@@ -1,15 +1,19 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
@@ -24,6 +28,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
 @Slf4j
 @Transactional
 class DataSetService extends DataDictionaryComponentService<DataModel> {
+
+    @Autowired
+    MessageSource messageSource
 
     @Override
     Map indexMap(DataModel catalogueItem) {
@@ -550,83 +557,54 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
     void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
                        NhsDataDictionary nhsDataDictionary) {
 
-        Folder dataSetsFolder =
-            new Folder(label: "Data Sets", createdBy: currentUserEmailAddress)
+        Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUserEmailAddress)
         dictionaryFolder.addToChildFolders(dataSetsFolder)
         if (!folderService.validate(dataSetsFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
         }
         folderService.save(dataSetsFolder)
 
-        xml.DDDataSet.
-            findAll{
-                it.TitleCaseName.text() != "Community Services Data Set" &&
-                it.TitleCaseName.text() != "Maternity Services Data Set" &&
-                it.TitleCaseName.text() != "Mental Health Services Data Set" &&
-                it.TitleCaseName.text() != "National Neonatal Data Set -- Episodic and Daily Care" &&
-                it.TitleCaseName.text() != "Cancer Outcomes and Services Data Set -- Core"
-            }.
-            each {ddDataSetXml ->
-            String dataSetName = ddDataSetXml.TitleCaseName.text()
-            boolean isRetired = ddDataSetXml.isRetired.text() == "true"
-            List<String> path = getPath(ddDataSetXml."base-uri".text(), isRetired)
-            Folder folder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
+        xml.DDDataSet.each {ddDataSetXml ->
+            createAndSaveDataModel(ddDataSetXml, dataSetsFolder, dictionaryFolder, currentUserEmailAddress, nhsDataDictionary)
+        }
+    }
 
-            DataModel dataSetDataModel = new DataModel(
-                label: dataSetName,
-                description: DDHelperFunctions.parseHtml(ddDataSetXml.definition),
-                createdBy: currentUserEmailAddress,
-                type: DataModelType.DATA_STANDARD,
-                authority: authorityService.defaultAuthority,
-                folder: folder
-            )
+    void createAndSaveDataModel(def ddDataSetXml, Folder dataSetsFolder, Folder dictionaryFolder, String currentUserEmailAddress, NhsDataDictionary nhsDataDictionary) {
+        String dataSetName = ddDataSetXml.TitleCaseName.text()
+        boolean isRetired = ddDataSetXml.isRetired.text() == "true"
+        List<String> path = getPath(ddDataSetXml."base-uri".text(), isRetired)
+        Folder folder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
+        log.debug('Ingesting {}', dataSetName)
 
-            if (dataSetName.startsWith("CDS")) {
-                CDSDataSetParser.parseCDSDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
-            } else {
-                DataSetParser.parseDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
-            }
-            // Temporarily fix the created by field
-            dataModelService.checkImportedDataModelAssociations(nhsDataDictionary.currentUser, dataSetDataModel)
-            dataModelService.checkFacetsAfterImportingCatalogueItem(dataSetDataModel)
+        DataModel dataSetDataModel = new DataModel(
+            label: dataSetName,
+            description: DDHelperFunctions.parseHtml(ddDataSetXml.definition),
+            createdBy: currentUserEmailAddress,
+            type: DataModelType.DATA_STANDARD,
+            authority: authorityService.defaultAuthority,
+            folder: folder
+        )
 
-            /*
-            Set<DataClass> dataClassList = []
-            dataClassList.addAll(dataSetDataModel.dataClasses)
-            dataClassList.each { dataClass ->
-                addDataClassToDataModel(dataClass, dataSetDataModel)
-            }
-            dataSetDataModel.dataTypes.each { dataType ->
-                dataSetDataModel.removeFromDataTypes(dataType)
-            }
-*/
-            //dataSetDataModel.setDataClasses([] as Set)
+        if (dataSetName.startsWith("CDS")) {
+            CDSDataSetParser.parseCDSDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
+        } else {
+            DataSetParser.parseDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
+        }
 
-            /*            dataSetDataModel.metadata.each { it.createdBy = it.createdBy?:currentUserEmailAddress}
-                        dataSetDataModel.dataTypes.each {dataType ->
-                            dataType.createdBy = currentUserEmailAddress
-                        }
+        addMetadataFromXml(dataSetDataModel, ddDataSetXml, currentUserEmailAddress)
 
-                        dataSetDataModel.dataClasses.each {dataClass ->
-                            dataClass.createdBy = currentUserEmailAddress
-                            dataClass.metadata.each { it.createdBy = it.createdBy?:currentUserEmailAddress}
-                            dataClass.dataElements.each {dataElement ->
-                                dataElement.createdBy = dataElement.createdBy?:currentUserEmailAddress
-                                dataElement.metadata.each { it.createdBy = it.createdBy?:currentUserEmailAddress}
-                            }
+        // Fix the created by field and any other associations
+        dataModelService.checkImportedDataModelAssociations(nhsDataDictionary.currentUser, dataSetDataModel)
 
-                        }
-              */
-
-
-
-
-            addMetadataFromXml(dataSetDataModel, ddDataSetXml, currentUserEmailAddress)
-            log.info("Saving Data model: ${dataSetDataModel.label}")
-            if (dataModelService.validate(dataSetDataModel)) {
-                dataModelService.saveModelWithContent(dataSetDataModel)
-            }
-            log.info("Saved Data model: ${dataSetDataModel.label}")
+        log.info("Validating Data model: ${dataSetDataModel.label}")
+        DataModel validated = dataModelService.validate(dataSetDataModel)
+        if (validated.hasErrors()) {
+            GormUtils.outputDomainErrors(messageSource, validated)
+            //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
+        } else {
+            log.info("Saving Data model: ${validated.label}")
+            dataModelService.saveModelWithContent(validated)
+            log.info("Saved Data model: ${validated.label}")
         }
     }
 
