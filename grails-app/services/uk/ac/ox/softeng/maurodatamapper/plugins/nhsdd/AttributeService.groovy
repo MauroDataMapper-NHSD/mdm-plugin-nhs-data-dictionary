@@ -119,24 +119,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
     }
 
     @Override
-    String getShortDescription(DataElement attribute, DataDictionary dataDictionary) {
-        if (isPreparatory(attribute)) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(attribute.description.toString()) + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                return firstSentence
-            } catch (Exception e) {
-                log.error("Couldn't parse: " + attribute.description)
-                return attribute.label
-            }
-        }
+    String getShortDescription(DataElement catalogueItem, DataDictionary dataDictionary) {
+        return null
     }
 
     void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
@@ -163,6 +147,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         xml.DDAttribute.sort {it.TitleCaseName.text()}.each {ddAttribute ->
             DataType dataType
             String attributeName = ddAttribute.TitleCaseName.text()
+            String description = DDHelperFunctions.parseHtml(ddAttribute.definition)
             String uin = ddAttribute.uin.text()
             // if(attributeName.toLowerCase().startsWith('a')) {
             if (ddAttribute."code-system".size() > 0) {
@@ -257,25 +242,51 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                 }
             }
 
-            DataElement attributeDataElement = new DataElement(
-                label: attributeName,
-                description: DDHelperFunctions.parseHtml(ddAttribute.definition),
-                createdBy: currentUserEmailAddress,
-                dataType: dataType,
-                index: idx++)
+                DataElement attributeDataElement = new DataElement(
+                    label: attributeName,
+                    description: description,
+                    createdBy: currentUserEmailAddress,
+                    dataType: dataType,
+                    index: idx++)
 
             addMetadataFromXml(attributeDataElement, ddAttribute, currentUserEmailAddress)
 
-            if (ddAttribute.isRetired.text() == "true") {
-                retiredAttributesClass.addToDataElements(attributeDataElement)
-            } else {
-                allAttributesClass.addToDataElements(attributeDataElement)
-            }
+                String shortDescription = getShortDesc(description, attributeDataElement, nhsDataDictionary)
+                addToMetadata(attributeDataElement, "shortDescription", shortDescription, currentUserEmailAddress)
+
+
+                if (ddAttribute.isRetired.text() == "true") {
+                    retiredAttributesClass.addToDataElements(attributeDataElement)
+                } else {
+                    allAttributesClass.addToDataElements(attributeDataElement)
+                }
             nhsDataDictionary.attributeElementsByUin[uin] = attributeDataElement
+            nhsDataDictionary.attributeElementsByName[attributeName] = attributeDataElement
 
             //}
         } // for each ddAttribute
 
+    }
+
+    String getShortDesc(String description, DataElement attributeDataElement, NhsDataDictionary dataDictionary) {
+        boolean isPreparatory = attributeDataElement.metadata.any { it.key == "isPreparatory" && it.value == "true" }
+        if(isPreparatory) {
+            return "This item is being used for development purposes and has not yet been approved."
+        } else {
+            try {
+                GPathResult xml
+                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
+                String firstParagraph = xml.p[0].text()
+                if (xml.p.size() == 0) {
+                    firstParagraph = xml.text()
+                }
+                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
+                return firstSentence
+            } catch (Exception e) {
+                log.error("Couldn't parse: " + description)
+                return attributeDataElement.label
+            }
+        }
     }
 
 }

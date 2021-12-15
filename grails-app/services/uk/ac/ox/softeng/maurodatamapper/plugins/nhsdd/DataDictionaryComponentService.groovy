@@ -248,24 +248,74 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
 
     Map<String, String> attributeMetadata = [
-        'isPreparatory': 'isPreparatory',
-        'isRetired': 'isRetired',
-        'retiredDate': 'retiredDate',
-        'uin': 'uin',
-        'baseVersion': 'baseVersion',
-        'titleCaseName': 'TitleCaseName',
-        'shortDescription': 'shortDescription',
-        'aliasAlsoKnownAs': 'aliasAlsoKnownAs',
-        'aliasFormerly': 'aliasFormerly',
-        'aliasFullName': 'aliasFullName',
-        'aliasIndexName': 'aliasIndexName',
-        'aliasOid': 'aliasOid',
-        'aliasPlural': 'aliasPlural',
-        'aliasPossessive': 'aliasPossessive',
-        'aliasReportHeading': 'aliasReportHeading',
-        'aliasSchema': 'aliasSchema',
-        'aliasShortName': 'aliasShortName',
-        'base-uri': 'base_uri'
+        // Aliases
+        "aliasShortName": "aliasShortName",
+        "aliasAlsoKnownAs": "aliasAlsoKnownAs",
+        "aliasPlural": "aliasPlural",
+        "aliasFormerly": "aliasFormerly",
+        "aliasFullName": "aliasFullName",
+        "aliasIndexName": "aliasIndexName",
+        "aliasSchema": "aliasSchema",
+        "name": "name",
+        "titleCaseName": "TitleCaseName",
+        "websitePageHeading": "websitePageHeading",
+
+        // SNOMED
+        "aliasSnomedCTRefsetId": "aliasSnomedCTRefsetId",
+        "aliasSnomedCTRefsetName": "aliasSnomedCTRefsetName",
+        "aliasSnomedCTSubsetName": "aliasSnomedCTSubsetName",
+        "aliasSnomedCTSubsetOriginalId": "aliasSnomedCTSubsetOriginalId",
+
+        // Publication Lifecycle
+        "isPreparatory": "isPrepatory",
+        "isRetired": "isRetired",
+        "retiredDate": "retiredDate",
+
+        // Legacy
+        "uin": "uin",
+        "baseUri": "base-uri",
+        "ultimatePath": "ultimate-path",
+        "ddUrl": "DD_URL",
+        "search": "search",
+        "baseVersion": "baseVersion",
+        // "modFinal": "mod__final",
+        // "modAbstract": "mod__abstract",
+
+        // Encoding
+        "formatLength": "format-length",
+
+
+        //"fhirItem": "FHIR_Item",
+        //"definition": "definition",
+        //"codeSystem": "code-system",
+        //"link": "link",
+        //"linkTarget": "link-target",
+        //"property": "property",
+        //"extends": "extends",
+        //"type": "type",
+        //"readOnly": "readOnly",
+        //"clientRole": "clientRole",
+        //"formatLink": "format-link",
+        //"permittedNationalCodes": "permitted-national-codes",
+        "navigationParent": "navigationParent",
+        "explanatoryPage": "explanatoryPage",
+        "class": "class",
+        "doNotShowChangeLog": "doNotShowChangeLog",
+        "node": "node",
+        "referencedElement": "referencedElement",
+        "participant": "participant",
+        "supportingFile": "supportingFile",
+        "isNavigationComponent": "isNavigationComponent",
+        "isWebsiteIndex": "isWebsiteIndex",
+
+        // Not sure about this one...
+        // "extraFieldHead": "ExtraFieldhead",
+
+        // do I need to parse these for history?
+        //"defaultCode": "DefaultCode",
+        //"nationalCodes": "national-codes",
+        //"defaultCodes": "default-codes",
+        //"valueSet": "value-set",
     ]
 
     void addMetadataFromXml(T domainObject, def xml, String currentUserEmailAddress) {
@@ -273,12 +323,17 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         attributeMetadata.entrySet().each {entry ->
             String xmlValue = xml[entry.value].text()
             if(xmlValue && xmlValue != "") {
-                domainObject.addToMetadata(new Metadata(namespace: getMetadataNamespace(),
-                                                                key: entry.key,
-                                                                value: xmlValue,
-                                                                createdBy: currentUserEmailAddress))
+                addToMetadata(domainObject, entry.key, xmlValue, currentUserEmailAddress)
             }
         }
+    }
+
+    void addToMetadata(T domainObject, String key, String value, String currentUserEmailAddress) {
+
+        domainObject.addToMetadata(new Metadata(namespace: getMetadataNamespace(),
+                                                key: key,
+                                                value: value,
+                                                createdBy: currentUserEmailAddress))
     }
 
 }

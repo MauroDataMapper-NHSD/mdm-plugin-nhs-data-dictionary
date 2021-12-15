@@ -10,6 +10,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
+import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -84,45 +85,54 @@ class NhsDataDictionaryService {
         return versionTreeModelList
     }
 
+    boolean isPreparatory(MetadataAware metadataAware) {
+        return metadataAware.metadata.any { it.key == "isPreparatory" && it.value == "true"}
+    }
+
+    boolean isRetired(MetadataAware metadataAware) {
+        return metadataAware.metadata.any { it.key == "isRetired" && it.value == "true"}
+    }
+
+
     def statistics(UUID versionedFolderId) {
-        DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         return [
-            "Attributes"            : [
-                "Total"      : dataDictionary.attributes.size(),
-                "Preparatory": dataDictionary.attributes.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.attributes.values().findAll {it.isRetired}.size()
-            ],
-            "Data Field Notes"      : [
-                "Total"      : dataDictionary.elements.size(),
-                "Preparatory": dataDictionary.elements.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.elements.values().findAll {it.isRetired}.size()
-            ],
-            "Classes"               : [
-                "Total"      : dataDictionary.classes.size(),
-                "Preparatory": dataDictionary.classes.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.classes.values().findAll {it.isRetired}.size()
-            ],
-            "Data Sets"             : [
-                "Total"      : dataDictionary.dataSets.size(),
-                "Preparatory": dataDictionary.dataSets.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.dataSets.values().findAll {it.isRetired}.size()
-            ],
-            "Business Definitions"  : [
-                "Total"      : dataDictionary.businessDefinitions.size(),
-                "Preparatory": dataDictionary.businessDefinitions.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.businessDefinitions.values().findAll {it.isRetired}.size()
-            ],
-            "Supporting Information": [
-                "Total"      : dataDictionary.supportingInformation.size(),
-                "Preparatory": dataDictionary.supportingInformation.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.supportingInformation.values().findAll {it.isRetired}.size()
-            ],
-            "XML Schema Constraints": [
-                "Total"      : dataDictionary.xmlSchemaConstraints.size(),
-                "Preparatory": dataDictionary.xmlSchemaConstraints.values().findAll {it.isPrepatory}.size(),
-                "Retired"    : dataDictionary.xmlSchemaConstraints.values().findAll {it.isRetired}.size()
-            ]
+                "Attributes"                : [
+                        "Total"      : dataDictionary.attributeElementsByName.size(),
+                        "Preparatory": dataDictionary.attributeElementsByName.values().count { isPreparatory(it) },
+                        "Retired"    : dataDictionary.attributeElementsByName.values().count { isRetired(it) }
+                ],
+                "Data Field Notes"          : [
+                        "Total"      : dataDictionary.elementsByName.size(),
+                        "Preparatory": dataDictionary.elementsByName.values().count {  isPreparatory(it) },
+                        "Retired"    : dataDictionary.elementsByName.values().count {  isRetired(it) }
+                ],
+                "Classes"                   : [
+                        "Total"      : dataDictionary.classesByName.size(),
+                        "Preparatory": dataDictionary.classesByName.values().count {   isPreparatory(it) },
+                        "Retired"    : dataDictionary.classesByName.values().count { isRetired(it) }
+                ],
+                "Data Sets"                 : [
+                        "Total"      : dataDictionary.dataSetsByName.size(),
+                        "Preparatory": dataDictionary.dataSetsByName.values().count {  isPreparatory(it) },
+                        "Retired"    : dataDictionary.dataSetsByName.values().count { isRetired(it) }
+                ],
+                "Business Definitions"      : [
+                        "Total"      : dataDictionary.businessDefinitionsByName.size(),
+                        "Preparatory": dataDictionary.businessDefinitionsByName.values().count {  isPreparatory(it) },
+                        "Retired"    : dataDictionary.businessDefinitionsByName.values().count { isRetired(it) }
+                ],
+                "Supporting Information"    : [
+                        "Total"      : dataDictionary.supportingInformationByName.size(),
+                        "Preparatory": dataDictionary.supportingInformationByName.values().count {  isPreparatory(it) },
+                        "Retired"    : dataDictionary.supportingInformationByName.values().count { isRetired(it) }
+                ],
+                "XML Schema Constraints"    : [
+                        "Total"      : dataDictionary.xmlSchemaConstraintsByName.size(),
+                        "Preparatory": dataDictionary.xmlSchemaConstraintsByName.values().count { isPreparatory(it) },
+                        "Retired"    : dataDictionary.xmlSchemaConstraintsByName.values().count { isRetired(it) }
+                ]
 
 
         ]
@@ -130,14 +140,14 @@ class NhsDataDictionaryService {
 
     }
 
-    Map outputComponent(DataDictionaryComponent ddComponent) {
+    Map outputComponent(MetadataAware ddComponent, String type) {
         return [
-            type      : ddComponent.typeText,
-            label     : ddComponent.name,
-            id        : ddComponent.catalogueId.toString(),
-            domainType: ddComponent.catalogueItem.domainType,
-            parentId  : ddComponent.parentCatalogueId.toString(),
-            modelId   : ddComponent.containerCatalogueId.toString()
+                type        : type,
+                label       : ddComponent.label,
+                id          : ddComponent.id.toString(),
+                domainType  : ddComponent.domainType,
+                parentId    : ddComponent.parentDataClass?.id?.toString(),
+                modelId     : ddComponent.dataModel.id.toString()
 
         ]
     }
@@ -145,19 +155,19 @@ class NhsDataDictionaryService {
 
     def integrityChecks(UUID versionedFolderId) {
 
-        DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
-        List<Map> check1components = dataDictionary.classes.values().findAll {ddClass ->
-            !ddClass.isRetired && ddClass.classLinks.size() == 0
-        }.sort {it.name}.collect {it -> outputComponent(it)}
+        List<Map> check1components = dataDictionary.classesByName.values().findAll{ddClass ->
+            !isRetired(ddClass) && ddClass.dataElements.count { it.dataType instanceof ReferenceType } == 0
+        }.sort{it.label}.collect{it -> outputComponent(it)}
 
-        List<Map> check2components = dataDictionary.attributes.values().findAll {ddAttribute ->
+        List<Map> check2components = dataDictionary.attributesByName.values().findAll{ddAttribute ->
             // log.debug(ddAttribute.classLinks.size())
-            !ddAttribute.isRetired &&
-            !dataDictionary.classes.values().any {cls ->
-                cls.attributes.keySet().find {att -> att.name == ddAttribute.name}
-            }
-        }.sort {it.name}.collect {it -> outputComponent(it)}
+            !isRetired(ddAttribute) &&
+                    !dataDictionary.classesByName.values().any { cls ->
+                        cls.attributes.keySet().find{att -> att.name == ddAttribute.name }
+                    }
+        }.sort{it.name}.collect{it -> outputComponent(it)}
 
         List<Map> check3components = dataDictionary.elements.values().findAll {ddElement ->
             // log.debug(ddAttribute.classLinks.size())
@@ -259,8 +269,10 @@ class NhsDataDictionaryService {
     }
 
 
-    DataDictionary buildDataDictionary(UUID versionedFolderId) {
-        DataDictionary dataDictionary = new DataDictionary()
+
+
+    NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
+        NhsDataDictionary dataDictionary = new NhsDataDictionary()
 
         VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
 
@@ -288,85 +300,85 @@ class NhsDataDictionaryService {
         return dataDictionary
     }
 
-    void addAttributesToDictionary(DataModel coreModel, DataDictionary dataDictionary) {
-        DataClass attributesClass = coreModel.dataClasses.find {it.label == "Attributes"}
-        DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
+    void addAttributesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
+        DataClass attributesClass = coreModel.dataClasses.find { it.label == "Attributes" }
+        DataClass retiredAttributesClass = attributesClass.dataClasses.find { it.label == "Retired" }
 
         Set<DataElement> attributeElements = []
         attributeElements.addAll(attributesClass.dataElements)
         attributeElements.addAll(retiredAttributesClass.dataElements)
 
-        attributeElements.each {dataElement ->
-            DDAttribute ddAttribute = new DDAttribute()
-            ddAttribute.fromCatalogueItem(dataDictionary, dataElement, attributesClass.id, coreModel.id, metadataService)
-            dataDictionary.attributes[ddAttribute.uin] = ddAttribute
+        attributeElements.each { dataElement ->
+            //DDAttribute ddAttribute = new DDAttribute()
+            //ddAttribute.fromCatalogueItem(dataDictionary, dataElement, attributesClass.id, coreModel.id, metadataService)
+            dataDictionary.attributeElementsByName[dataElement.label] = dataElement
         }
 
     }
 
-    void addElementsToDictionary(DataModel coreModel, DataDictionary dataDictionary) {
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == "Data Field Notes"}
-        DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
+    void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
+        DataClass elementsClass = coreModel.dataClasses.find { it.label == "Data Field Notes" }
+        DataClass retiredElementsClass = elementsClass.dataClasses.find { it.label == "Retired" }
 
         Set<DataElement> elementElements = []
         elementElements.addAll(elementsClass.dataElements)
         elementElements.addAll(retiredElementsClass.dataElements)
 
-        elementElements.each {dataElement ->
-            DDElement ddElement = new DDElement()
-            ddElement.fromCatalogueItem(dataDictionary, dataElement, elementsClass.id, coreModel.id, metadataService)
-            dataDictionary.elements[ddElement.uin] = ddElement
+        elementElements.each { dataElement ->
+            //DDElement ddElement = new DDElement()
+            //ddElement.fromCatalogueItem(dataDictionary, dataElement, elementsClass.id, coreModel.id, metadataService)
+            dataDictionary.elementsByName[dataElement.label] = dataElement
         }
 
     }
 
-    void addClassesToDictionary(DataModel coreModel, DataDictionary dataDictionary) {
-        DataClass classesClass = coreModel.dataClasses.find {it.label == "Classes"}
-        DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
+    void addClassesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
+        DataClass classesClass = coreModel.dataClasses.find { it.label == "Classes" }
+        DataClass retiredClassesClass = classesClass.dataClasses.find { it.label == "Retired" }
 
         Set<DataClass> classClasses = []
         classClasses.addAll(classesClass.dataClasses)
         classClasses.addAll(retiredClassesClass.dataClasses)
 
-        classClasses.each {dataClass ->
-            DDClass ddClass = new DDClass()
-            ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
-            dataDictionary.classes[ddClass.uin] = ddClass
+        classClasses.each { dataClass ->
+            //DDClass ddClass = new DDClass()
+            //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
+            dataDictionary.classesByName[dataClass.label] = dataClass
         }
 
     }
 
-    void addDataSetsToDictionary(Folder dataSetsFolder, DataDictionary dataDictionary) {
+    void addDataSetsToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
         Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
 
-        dataSetModels.each {dataModel ->
-            DDDataSet ddDataSet = new DDDataSet()
-            ddDataSet.fromCatalogueItem(dataDictionary, dataModel, null, null, metadataService)
-            dataDictionary.dataSets[ddDataSet.uin] = ddDataSet
+        dataSetModels.each { dataModel ->
+            //DDDataSet ddDataSet = new DDDataSet()
+            //ddDataSet.fromCatalogueItem(dataDictionary, dataModel, null, null, metadataService)
+            dataDictionary.dataSetsByName[dataModel.label] = dataModel
         }
     }
 
-    void addBusDefsToDictionary(Terminology busDefsTerminology, DataDictionary dataDictionary) {
-        busDefsTerminology.terms.each {term ->
-            DDBusinessDefinition ddBusinessDefinition = new DDBusinessDefinition()
-            ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, busDefsTerminology.id, busDefsTerminology.id, metadataService)
-            dataDictionary.businessDefinitions[ddBusinessDefinition.uin] = ddBusinessDefinition
+    void addBusDefsToDictionary(Terminology busDefsTerminology, NhsDataDictionary dataDictionary) {
+        busDefsTerminology.terms.each { term ->
+            //DDBusinessDefinition ddBusinessDefinition = new DDBusinessDefinition()
+            //ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, busDefsTerminology.id, busDefsTerminology.id, metadataService)
+            dataDictionary.businessDefinitionsByName[term.code] = term
         }
     }
 
-    void addSupDefsToDictionary(Terminology supDefsTerminology, DataDictionary dataDictionary) {
-        supDefsTerminology.terms.each {term ->
-            DDSupportingDefinition ddSupportingDefinition = new DDSupportingDefinition()
-            ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, supDefsTerminology.id, supDefsTerminology.id, metadataService)
-            dataDictionary.supportingInformation[ddSupportingDefinition.uin] = ddSupportingDefinition
+    void addSupDefsToDictionary(Terminology supDefsTerminology, NhsDataDictionary dataDictionary) {
+        supDefsTerminology.terms.each { term ->
+            //DDSupportingDefinition ddSupportingDefinition = new DDSupportingDefinition()
+            //ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, supDefsTerminology.id, supDefsTerminology.id, metadataService)
+            dataDictionary.supportingInformationByName[term.code] = term
         }
     }
 
-    void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, DataDictionary dataDictionary) {
-        xmlSchemaConstraintsTerminology.terms.each {term ->
-            DDXmlSchemaConstraint ddXmlSchemaConstraint = new DDXmlSchemaConstraint()
-            ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, xmlSchemaConstraintsTerminology.id, xmlSchemaConstraintsTerminology.id, metadataService)
-            dataDictionary.xmlSchemaConstraints[ddXmlSchemaConstraint.uin] = ddXmlSchemaConstraint
+    void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, NhsDataDictionary dataDictionary) {
+        xmlSchemaConstraintsTerminology.terms.each { term ->
+            //DDXmlSchemaConstraint ddXmlSchemaConstraint = new DDXmlSchemaConstraint()
+            //ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, xmlSchemaConstraintsTerminology.id, xmlSchemaConstraintsTerminology.id,metadataService)
+            dataDictionary.xmlSchemaConstraintsByName[term.code] = term
         }
     }
 
