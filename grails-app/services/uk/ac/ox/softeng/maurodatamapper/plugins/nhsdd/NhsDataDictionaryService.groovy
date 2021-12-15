@@ -72,8 +72,6 @@ class NhsDataDictionaryService {
     CodeSetService codeSetService
 
 
-
-
     def branches(UserSecurityPolicyManager userSecurityPolicyManager) {
         List<VersionedFolder> versionedFolders = VersionedFolder.findAll().findAll {
             it.label.startsWith("NHS Data Dictionary")
@@ -90,42 +88,41 @@ class NhsDataDictionaryService {
         DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         return [
-                "Attributes"      : [
-                        "Total"      : dataDictionary.attributes.size(),
-                        "Preparatory": dataDictionary.attributes.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.attributes.values().findAll { it.isRetired }.size()
-                ],
-                "Data Field Notes": [
-                        "Total"      : dataDictionary.elements.size(),
-                        "Preparatory": dataDictionary.elements.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.elements.values().findAll { it.isRetired }.size()
-                ],
-                "Classes"         : [
-                        "Total"      : dataDictionary.classes.size(),
-                        "Preparatory": dataDictionary.classes.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.classes.values().findAll { it.isRetired }.size()
-                ],
-                "Data Sets" : [
-                        "Total"      : dataDictionary.dataSets.size(),
-                        "Preparatory": dataDictionary.dataSets.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.dataSets.values().findAll { it.isRetired }.size()
-                ],
-                "Business Definitions" : [
-                        "Total"      : dataDictionary.businessDefinitions.size(),
-                        "Preparatory": dataDictionary.businessDefinitions.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.businessDefinitions.values().findAll { it.isRetired }.size()
-                ],
-                "Supporting Information" : [
-                        "Total"      : dataDictionary.supportingInformation.size(),
-                        "Preparatory": dataDictionary.supportingInformation.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.supportingInformation.values().findAll { it.isRetired }.size()
-                ],
-                "XML Schema Constraints" : [
-                        "Total"      : dataDictionary.xmlSchemaConstraints.size(),
-                        "Preparatory": dataDictionary.xmlSchemaConstraints.values().findAll { it.isPrepatory }.size(),
-                        "Retired"    : dataDictionary.xmlSchemaConstraints.values().findAll { it.isRetired }.size()
-                ]
-
+            "Attributes"            : [
+                "Total"      : dataDictionary.attributes.size(),
+                "Preparatory": dataDictionary.attributes.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.attributes.values().findAll {it.isRetired}.size()
+            ],
+            "Data Field Notes"      : [
+                "Total"      : dataDictionary.elements.size(),
+                "Preparatory": dataDictionary.elements.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.elements.values().findAll {it.isRetired}.size()
+            ],
+            "Classes"               : [
+                "Total"      : dataDictionary.classes.size(),
+                "Preparatory": dataDictionary.classes.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.classes.values().findAll {it.isRetired}.size()
+            ],
+            "Data Sets"             : [
+                "Total"      : dataDictionary.dataSets.size(),
+                "Preparatory": dataDictionary.dataSets.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.dataSets.values().findAll {it.isRetired}.size()
+            ],
+            "Business Definitions"  : [
+                "Total"      : dataDictionary.businessDefinitions.size(),
+                "Preparatory": dataDictionary.businessDefinitions.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.businessDefinitions.values().findAll {it.isRetired}.size()
+            ],
+            "Supporting Information": [
+                "Total"      : dataDictionary.supportingInformation.size(),
+                "Preparatory": dataDictionary.supportingInformation.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.supportingInformation.values().findAll {it.isRetired}.size()
+            ],
+            "XML Schema Constraints": [
+                "Total"      : dataDictionary.xmlSchemaConstraints.size(),
+                "Preparatory": dataDictionary.xmlSchemaConstraints.values().findAll {it.isPrepatory}.size(),
+                "Retired"    : dataDictionary.xmlSchemaConstraints.values().findAll {it.isRetired}.size()
+            ]
 
 
         ]
@@ -135,12 +132,12 @@ class NhsDataDictionaryService {
 
     Map outputComponent(DataDictionaryComponent ddComponent) {
         return [
-                type: ddComponent.typeText,
-                label: ddComponent.name,
-                id: ddComponent.catalogueId.toString(),
-                domainType: ddComponent.catalogueItem.domainType,
-                parentId: ddComponent.parentCatalogueId.toString(),
-                modelId: ddComponent.containerCatalogueId.toString()
+            type      : ddComponent.typeText,
+            label     : ddComponent.name,
+            id        : ddComponent.catalogueId.toString(),
+            domainType: ddComponent.catalogueItem.domainType,
+            parentId  : ddComponent.parentCatalogueId.toString(),
+            modelId   : ddComponent.containerCatalogueId.toString()
 
         ]
     }
@@ -150,118 +147,116 @@ class NhsDataDictionaryService {
 
         DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
-        List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
+        List<Map> check1components = dataDictionary.classes.values().findAll {ddClass ->
             !ddClass.isRetired && ddClass.classLinks.size() == 0
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<Map> check2components = dataDictionary.attributes.values().findAll{ddAttribute ->
+        List<Map> check2components = dataDictionary.attributes.values().findAll {ddAttribute ->
             // log.debug(ddAttribute.classLinks.size())
             !ddAttribute.isRetired &&
-                    !dataDictionary.classes.values().any{cls ->
-                        cls.attributes.keySet().find{att -> att.name == ddAttribute.name }
-                    }
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+            !dataDictionary.classes.values().any {cls ->
+                cls.attributes.keySet().find {att -> att.name == ddAttribute.name}
+            }
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<Map> check3components = dataDictionary.elements.values().findAll{ddElement ->
+        List<Map> check3components = dataDictionary.elements.values().findAll {ddElement ->
             // log.debug(ddAttribute.classLinks.size())
             !ddElement.isRetired &&
             ddElement.getElementAttributes(dataDictionary) == []
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<Map> check4components = dataDictionary.dataSets.values().findAll{ddDataSet ->
+        List<Map> check4components = dataDictionary.dataSets.values().findAll {ddDataSet ->
             // log.debug(ddAttribute.classLinks.size())
             !ddDataSet.isRetired &&
-                    (ddDataSet.stringValues["overview"] == null || ddDataSet.stringValues["overview"] == "")
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+            (ddDataSet.stringValues["overview"] == null || ddDataSet.stringValues["overview"] == "")
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<Map> check5components = dataDictionary.getAllComponents().findAll{component ->
+        List<Map> check5components = dataDictionary.getAllComponents().findAll {component ->
             String shortDesc = component.getShortDesc(dataDictionary)
             (shortDesc == null || shortDesc == "")
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<Map> check6components = dataDictionary.getAllComponents().findAll{component ->
+        List<Map> check6components = dataDictionary.getAllComponents().findAll {component ->
             !component.isRetired &&
             component.hasNoAliases()
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
-        Set<String> duplicateAttributes = findDuplicates(dataDictionary.attributes.values().collect{it.name})
-        Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect{it.name})
-        Set<String> duplicateClasses = findDuplicates(dataDictionary.classes.values().collect{it.name})
+        Set<String> duplicateAttributes = findDuplicates(dataDictionary.attributes.values().collect {it.name})
+        Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect {it.name})
+        Set<String> duplicateClasses = findDuplicates(dataDictionary.classes.values().collect {it.name})
 
         Set<DataDictionaryComponent> foundDuplicates = []
-        if(duplicateAttributes.size() > 0) {
+        if (duplicateAttributes.size() > 0) {
             duplicateAttributes.each {attName ->
-                foundDuplicates.addAll(dataDictionary.attributes.values().findAll{it.name == attName})
+                foundDuplicates.addAll(dataDictionary.attributes.values().findAll {it.name == attName})
             }
         }
-        if(duplicateElements.size() > 0) {
+        if (duplicateElements.size() > 0) {
             duplicateElements.each {elemName ->
-                foundDuplicates.addAll(dataDictionary.elements.values().findAll{it.name == elemName})
+                foundDuplicates.addAll(dataDictionary.elements.values().findAll {it.name == elemName})
             }
         }
-        if(duplicateClasses.size() > 0) {
+        if (duplicateClasses.size() > 0) {
             duplicateClasses.each {className ->
-                foundDuplicates.addAll(dataDictionary.classes.values().findAll{it.name == className})
+                foundDuplicates.addAll(dataDictionary.classes.values().findAll {it.name == className})
             }
         }
 
         List<Map> check7components = foundDuplicates.
-                sort{it.name}.collect{it -> outputComponent(it)}
+            sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<DataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll{it.isPrepatory}
-        List<Map> check8components = dataDictionary.dataSets.values().findAll{component ->
+        List<DataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPrepatory}
+        List<Map> check8components = dataDictionary.dataSets.values().findAll {component ->
             component.catalogueItem.allDataElements.find {dataElement ->
                 prepItems.find {it.name == dataElement.label}
             }
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+        }.sort {it.name}.collect {it -> outputComponent(it)}
 
 
         return [
-                [
-                    checkName: "Class Relationships Defined",
-                    description: "Check that all live classes have relationships to other classes defined",
-                    errors: check1components
-                ],
-                [
-                    checkName: "Attributes linked to a class",
-                    description: "Check that all live attributes are linked to a class",
-                    errors: check2components
-                ],
-                [
-                    checkName: "Elements linked to an attribute",
-                    description: "Check that all live elements are linked to an attribute",
-                    errors: check3components
-                ],
-                [
-                    checkName: "Data Sets have an overview",
-                    description: "Check that all live datasets have an overview field",
-                    errors: check4components
-                ],
-                [
-                        checkName: "All items have a short description",
-                        description: "Check that all items have a short description",
-                        errors: check5components
-                ],
-                [
-                        checkName: "All items have an alias",
-                        description: "Check that all items have one of the alias fields completed",
-                        errors: check6components
-                ],
-                [
-                        checkName: "Re-used item names",
-                        description: "Check that item names of retired classes, attributes and elements have not been re-used",
-                        errors: check7components
-                ],
-                [
-                        checkName: "Datasets that include preparatory items",
-                        description: "Check that a dataset doesn't include any preparatory data elements in its definition",
-                        errors: check8components
-                ]
+            [
+                checkName  : "Class Relationships Defined",
+                description: "Check that all live classes have relationships to other classes defined",
+                errors     : check1components
+            ],
+            [
+                checkName  : "Attributes linked to a class",
+                description: "Check that all live attributes are linked to a class",
+                errors     : check2components
+            ],
+            [
+                checkName  : "Elements linked to an attribute",
+                description: "Check that all live elements are linked to an attribute",
+                errors     : check3components
+            ],
+            [
+                checkName  : "Data Sets have an overview",
+                description: "Check that all live datasets have an overview field",
+                errors     : check4components
+            ],
+            [
+                checkName  : "All items have a short description",
+                description: "Check that all items have a short description",
+                errors     : check5components
+            ],
+            [
+                checkName  : "All items have an alias",
+                description: "Check that all items have one of the alias fields completed",
+                errors     : check6components
+            ],
+            [
+                checkName  : "Re-used item names",
+                description: "Check that item names of retired classes, attributes and elements have not been re-used",
+                errors     : check7components
+            ],
+            [
+                checkName  : "Datasets that include preparatory items",
+                description: "Check that a dataset doesn't include any preparatory data elements in its definition",
+                errors     : check8components
+            ]
 
         ]
     }
-
-
 
 
     DataDictionary buildDataDictionary(UUID versionedFolderId) {
@@ -272,13 +267,13 @@ class NhsDataDictionaryService {
         List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
         List<DataModel> dataModels = dataModelService.findAllByFolderId(versionedFolderId)
 
-        Terminology busDefTerminology = terminologies.find { it.label == NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME }
-        Terminology supDefTerminology = terminologies.find { it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME }
-        Terminology xmlSchemaConstraintsTerminology = terminologies.find { it.label == NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME }
+        Terminology busDefTerminology = terminologies.find {it.label == NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}
+        Terminology supDefTerminology = terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
+        Terminology xmlSchemaConstraintsTerminology = terminologies.find {it.label == NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}
 
-        DataModel coreModel = dataModels.find { it.label == NhsDataDictionary.CORE_MODEL_NAME }
+        DataModel coreModel = dataModels.find {it.label == NhsDataDictionary.CORE_MODEL_NAME}
 
-        Folder dataSetsFolder = thisVersionedFolder.childFolders.find { it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME }
+        Folder dataSetsFolder = thisVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
@@ -294,14 +289,14 @@ class NhsDataDictionaryService {
     }
 
     void addAttributesToDictionary(DataModel coreModel, DataDictionary dataDictionary) {
-        DataClass attributesClass = coreModel.dataClasses.find { it.label == "Attributes" }
-        DataClass retiredAttributesClass = attributesClass.dataClasses.find { it.label == "Retired" }
+        DataClass attributesClass = coreModel.dataClasses.find {it.label == "Attributes"}
+        DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
 
         Set<DataElement> attributeElements = []
         attributeElements.addAll(attributesClass.dataElements)
         attributeElements.addAll(retiredAttributesClass.dataElements)
 
-        attributeElements.each { dataElement ->
+        attributeElements.each {dataElement ->
             DDAttribute ddAttribute = new DDAttribute()
             ddAttribute.fromCatalogueItem(dataDictionary, dataElement, attributesClass.id, coreModel.id, metadataService)
             dataDictionary.attributes[ddAttribute.uin] = ddAttribute
@@ -310,14 +305,14 @@ class NhsDataDictionaryService {
     }
 
     void addElementsToDictionary(DataModel coreModel, DataDictionary dataDictionary) {
-        DataClass elementsClass = coreModel.dataClasses.find { it.label == "Data Field Notes" }
-        DataClass retiredElementsClass = elementsClass.dataClasses.find { it.label == "Retired" }
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == "Data Field Notes"}
+        DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
 
         Set<DataElement> elementElements = []
         elementElements.addAll(elementsClass.dataElements)
         elementElements.addAll(retiredElementsClass.dataElements)
 
-        elementElements.each { dataElement ->
+        elementElements.each {dataElement ->
             DDElement ddElement = new DDElement()
             ddElement.fromCatalogueItem(dataDictionary, dataElement, elementsClass.id, coreModel.id, metadataService)
             dataDictionary.elements[ddElement.uin] = ddElement
@@ -326,14 +321,14 @@ class NhsDataDictionaryService {
     }
 
     void addClassesToDictionary(DataModel coreModel, DataDictionary dataDictionary) {
-        DataClass classesClass = coreModel.dataClasses.find { it.label == "Classes" }
-        DataClass retiredClassesClass = classesClass.dataClasses.find { it.label == "Retired" }
+        DataClass classesClass = coreModel.dataClasses.find {it.label == "Classes"}
+        DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
 
         Set<DataClass> classClasses = []
         classClasses.addAll(classesClass.dataClasses)
         classClasses.addAll(retiredClassesClass.dataClasses)
 
-        classClasses.each { dataClass ->
+        classClasses.each {dataClass ->
             DDClass ddClass = new DDClass()
             ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
             dataDictionary.classes[ddClass.uin] = ddClass
@@ -344,7 +339,7 @@ class NhsDataDictionaryService {
     void addDataSetsToDictionary(Folder dataSetsFolder, DataDictionary dataDictionary) {
         Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
 
-        dataSetModels.each { dataModel ->
+        dataSetModels.each {dataModel ->
             DDDataSet ddDataSet = new DDDataSet()
             ddDataSet.fromCatalogueItem(dataDictionary, dataModel, null, null, metadataService)
             dataDictionary.dataSets[ddDataSet.uin] = ddDataSet
@@ -352,7 +347,7 @@ class NhsDataDictionaryService {
     }
 
     void addBusDefsToDictionary(Terminology busDefsTerminology, DataDictionary dataDictionary) {
-        busDefsTerminology.terms.each { term ->
+        busDefsTerminology.terms.each {term ->
             DDBusinessDefinition ddBusinessDefinition = new DDBusinessDefinition()
             ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, busDefsTerminology.id, busDefsTerminology.id, metadataService)
             dataDictionary.businessDefinitions[ddBusinessDefinition.uin] = ddBusinessDefinition
@@ -360,7 +355,7 @@ class NhsDataDictionaryService {
     }
 
     void addSupDefsToDictionary(Terminology supDefsTerminology, DataDictionary dataDictionary) {
-        supDefsTerminology.terms.each { term ->
+        supDefsTerminology.terms.each {term ->
             DDSupportingDefinition ddSupportingDefinition = new DDSupportingDefinition()
             ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, supDefsTerminology.id, supDefsTerminology.id, metadataService)
             dataDictionary.supportingInformation[ddSupportingDefinition.uin] = ddSupportingDefinition
@@ -368,7 +363,7 @@ class NhsDataDictionaryService {
     }
 
     void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, DataDictionary dataDictionary) {
-        xmlSchemaConstraintsTerminology.terms.each { term ->
+        xmlSchemaConstraintsTerminology.terms.each {term ->
             DDXmlSchemaConstraint ddXmlSchemaConstraint = new DDXmlSchemaConstraint()
             ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, xmlSchemaConstraintsTerminology.id, xmlSchemaConstraintsTerminology.id, metadataService)
             dataDictionary.xmlSchemaConstraints[ddXmlSchemaConstraint.uin] = ddXmlSchemaConstraint
@@ -379,12 +374,12 @@ class NhsDataDictionaryService {
     Set<DataClass> getDataClasses(includeRetired = false) {
         DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass classesClass = coreModel.dataClasses.find { it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME }
+        DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
 
         Set<DataClass> classClasses = []
         classClasses.addAll(classesClass.dataClasses.findAll {it.label != "Retired"})
-        if(includeRetired) {
-            DataClass retiredClassesClass = classesClass.dataClasses.find { it.label == "Retired" }
+        if (includeRetired) {
+            DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
             classClasses.addAll(retiredClassesClass.dataClasses)
         }
 
@@ -395,12 +390,12 @@ class NhsDataDictionaryService {
     Set<DataElement> getDataFieldNotes(includeRetired = false) {
         DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass elementsClass = coreModel.dataClasses.find { it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME }
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}
 
         Set<DataElement> elementElements = []
         elementElements.addAll(elementsClass.dataElements)
-        if(includeRetired) {
-            DataClass retiredElementsClass = elementsClass.dataClasses.find { it.label == "Retired" }
+        if (includeRetired) {
+            DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
             elementElements.addAll(retiredElementsClass.dataElements)
         }
         return elementElements
@@ -409,12 +404,12 @@ class NhsDataDictionaryService {
     Set<DataElement> getAttributes(includeRetired = false) {
         DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass attributesClass = coreModel.dataClasses.find { it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME }
+        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
 
         Set<DataElement> attributeElements = []
         attributeElements.addAll(attributesClass.dataElements)
-        if(includeRetired) {
-            DataClass retiredAttributesClass = attributesClass.dataClasses.find { it.label == "Retired" }
+        if (includeRetired) {
+            DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
             attributeElements.addAll(retiredAttributesClass.dataElements)
         }
         return attributeElements
@@ -433,7 +428,7 @@ class NhsDataDictionaryService {
         allItems.addAll(xmlSchemaConstraintService.index())
 
 
-        return allItems.sort{it.name }
+        return allItems.sort {it.name}
     }
 
 
@@ -501,8 +496,8 @@ class NhsDataDictionaryService {
         Set<T> duplicates = new HashSet<>(1000);
         Set<T> uniques = new HashSet<>();
 
-        for(T t : collection) {
-            if(!uniques.add(t)) {
+        for (T t : collection) {
+            if (!uniques.add(t)) {
                 duplicates.add(t);
             }
         }
@@ -511,9 +506,9 @@ class NhsDataDictionaryService {
     }
 
 
-
     @Transactional
     VersionedFolder ingest(User currentUser, def xml, String releaseDate, boolean finalise, String folderVersionNo, String prevVersion) {
+        log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)
         long startTime = System.currentTimeMillis()
         long originalStartTime = startTime
         String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
@@ -547,7 +542,7 @@ class NhsDataDictionaryService {
                           createdBy: currentUser.emailAddress,
                           authority: authorityService.defaultAuthority,
                           type: DataModelType.DATA_STANDARD)
-        if(prevDictionaryVersion) {
+        if (prevDictionaryVersion) {
             DataModel prevCore = folderService.findAllModelsInFolder(prevDictionaryVersion).find {
                 it.label == NhsDataDictionary.CORE_MODEL_NAME
             }
@@ -583,27 +578,25 @@ class NhsDataDictionaryService {
         classService.processLinks(nhsDataDictionary)
         classService.linkReferences(nhsDataDictionary, currentUser.emailAddress)
 
-        //dictionaryFolder.save()
-        //endTime = System.currentTimeMillis()
-        //log.warn("Save DD Folder complete in ${Utils.getTimeString(endTime - startTime)}")
-
         startTime = System.currentTimeMillis()
-        log.warn('Validating core model')
-        if (coreDataModel.validate()) {
-            endTime = System.currentTimeMillis()
-            log.warn("Validate core model complete in ${Utils.getTimeString(endTime - startTime)}")
-            startTime = endTime
-            dataModelService.saveModelWithContent(coreDataModel)
-            endTime = System.currentTimeMillis()
-            log.warn("Save core model complete in ${Utils.getTimeString(endTime - startTime)}")
+        // Validation takes 2-6 mins which is annoying for testing
+        log.debug('Validating core model')
+        dataModelService.validate(coreDataModel)
+        endTime = System.currentTimeMillis()
+        log.info("Validate core model complete in ${Utils.getTimeString(endTime - startTime)}")
+        startTime = endTime
+        if (coreDataModel.hasErrors()) {
+            throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
+        }
 
-        } else throw new ApiInvalidModelException('DMSXX', 'Model is invalid',
-                                                  coreDataModel.errors)
+        dataModelService.saveModelWithContent(coreDataModel)
+        endTime = System.currentTimeMillis()
+        log.info("Save core model complete in ${Utils.getTimeString(endTime - startTime)}")
 
         startTime = System.currentTimeMillis()
         dataSetService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
         endTime = System.currentTimeMillis()
-        log.warn("Ingest dictionary complete in ${Utils.getTimeString(endTime - originalStartTime)}")
+        log.info("Ingest dictionary complete in ${Utils.getTimeString(endTime - originalStartTime)}")
         if (finalise) {
             versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, Version.from(folderVersionNo), VersionChangeType.MAJOR, releaseDate)
         }
@@ -613,7 +606,7 @@ class NhsDataDictionaryService {
 
     void deleteOriginalFolder(String coreFolderName) {
         Folder folder = folderService.findByPath(coreFolderName)
-        if(folder) {
+        if (folder) {
             folderService.delete(folder, true, true)
         }
     }
@@ -630,7 +623,8 @@ class NhsDataDictionaryService {
                 Terminology terminology = (Terminology) model
 
                 DataType linkedAttributeType = coreDataModel.dataTypes.find {
-                    it instanceof ModelDataType && ((ModelDataType) it).modelResourceId == terminology.id }
+                    it instanceof ModelDataType && ((ModelDataType) it).modelResourceId == terminology.id
+                }
                 DataElement linkedAttribute = linkedAttributeType.dataElements.first()
 
                 Map<CodeSet, ModelDataType> codeSetDataTypeMap = [:]
@@ -643,45 +637,45 @@ class NhsDataDictionaryService {
 
                 List concepts = []
                 terminology.terms.each {term ->
-                    Metadata retiredMetadata = term.metadata.find{it.namespace == "uk.nhs.datadictionary.term" && it.key == "isRetired" }
+                    Metadata retiredMetadata = term.metadata.find {it.namespace == "uk.nhs.datadictionary.term" && it.key == "isRetired"}
                     boolean isRetired = (!retiredMetadata || retiredMetadata.value == "true")
-                    Metadata defaultMetadata = term.metadata.find{it.namespace == "uk.nhs.datadictionary.term" && it.key == "isDefault" }
+                    Metadata defaultMetadata = term.metadata.find {it.namespace == "uk.nhs.datadictionary.term" && it.key == "isDefault"}
                     boolean isDefault = (!defaultMetadata || defaultMetadata.value == "true")
-                    String retiredDate = term.metadata.find{it.namespace == "uk.nhs.datadictionary.term" && it.key == "retiredDate" }?.value
+                    String retiredDate = term.metadata.find {it.namespace == "uk.nhs.datadictionary.term" && it.key == "retiredDate"}?.value
                     Map concept = [
-                        code: term.code,
-                        display: term.definition,
+                        code      : term.code,
+                        display   : term.definition,
                         definition: term.definition,
-                        property: [
+                        property  : [
                             [
-                                code: "Publish Date",
+                                code         : "Publish Date",
                                 valueDateTime: Instant.now().toString()
                             ],
                             [
-                                code: "status",
-                                valueCode: isRetired?"retired":"active"
+                                code     : "status",
+                                valueCode: isRetired ? "retired" : "active"
                             ],
                         ]
                     ]
-                    if(linkedAttribute && !isDefault) {
+                    if (linkedAttribute && !isDefault) {
                         concept.property << [
-                            code: "Data Attribute",
+                            code       : "Data Attribute",
                             valueString: linkedAttribute.label
                         ]
                     }
-                    if(retiredDate) {
+                    if (retiredDate) {
                         concept.property << [
-                            code: "Retired Date",
+                            code         : "Retired Date",
                             valueDateTime: retiredDate
                         ]
                     }
-                    codeSetDataTypeMap.entrySet().each { entry ->
+                    codeSetDataTypeMap.entrySet().each {entry ->
                         CodeSet codeSet = entry.key
                         ModelDataType dataType = entry.value
-                        if(codeSet.terms.contains(term)) {
+                        if (codeSet.terms.contains(term)) {
                             dataType.dataElements.each {dataElement ->
                                 concept.property << [
-                                    code: "Data Element",
+                                    code       : "Data Element",
                                     valueString: dataElement.label
                                 ]
                             }
@@ -691,137 +685,137 @@ class NhsDataDictionaryService {
                     concepts << concept
 
                 }
-                String id = terminology.label.toLowerCase().replace(" ","_")
-                String version = terminology.metadata.find { it.key == "version"}?.value
+                String id = terminology.label.toLowerCase().replace(" ", "_")
+                String version = terminology.metadata.find {it.key == "version"}?.value
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                 String versionId = LocalDate.now().format(formatter)
                 Map resource = [
-                    resourceType: "CodeSystem",
-                    id: "NHS-Data_Dictionary-CS-" + terminology.label.toLowerCase().replace(" ","-") + "-" + version,
-                    meta: [
-                        security: [
-                               [
-                                   system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                   code: "DDT.read"
-                               ],
-                               [
-                                   system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                   code: "DDT.write"
-                              ]
+                    resourceType    : "CodeSystem",
+                    id              : "NHS-Data_Dictionary-CS-" + terminology.label.toLowerCase().replace(" ", "-") + "-" + version,
+                    meta            : [
+                        security : [
+                            [
+                                system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
+                                code  : "DDT.read"
+                            ],
+                            [
+                                system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
+                                code  : "DDT.write"
+                            ]
                         ],
                         versionId: versionId
                     ],
-                    language: "en-GB",
-                    url: "https://private.datadictionary.nhs.uk/code_system/union/${id}",
-                    identifier: [
+                    language        : "en-GB",
+                    url             : "https://private.datadictionary.nhs.uk/code_system/union/${id}",
+                    identifier      : [
                         [
                             system: "https://datadictionary.nhs.uk/V3",
-                            value: "https://datadictionary.nhs.uk/data_dictionary/attributes/${id}"
+                            value : "https://datadictionary.nhs.uk/data_dictionary/attributes/${id}"
                         ]
                     ],
-                    version: version,
-                    name: terminology.label.toUpperCase().replaceAll("[^A-Za-z0-9]","_"),
-                    title: terminology.label,
-                    status: "active",
-                    experimental: "false",
-                    date: Instant.now().toString(),
-                    publisher: "NHS Digital",
-                    contact: [
+                    version         : version,
+                    name            : terminology.label.toUpperCase().replaceAll("[^A-Za-z0-9]", "_"),
+                    title           : terminology.label,
+                    status          : "active",
+                    experimental    : "false",
+                    date            : Instant.now().toString(),
+                    publisher       : "NHS Digital",
+                    contact         : [
                         [
-                            name: "NHS Digital Data Model and Dictionary Service",
+                            name   : "NHS Digital Data Model and Dictionary Service",
                             telecom: [
                                 [
                                     system: "email",
-                                    value: "information.standards@nhs.net"
+                                    value : "information.standards@nhs.net"
                                 ], [
                                     system: "url",
-                                    value: "https://datadictionary.nhs.uk/"
+                                    value : "https://datadictionary.nhs.uk/"
                                 ]
                             ]
                         ]
                     ],
-                    description: linkedAttribute.description,
-                    copyright: "Copyright © NHS Digital",
-                    caseSensitive: "false",
+                    description     : linkedAttribute.description,
+                    copyright       : "Copyright © NHS Digital",
+                    caseSensitive   : "false",
                     hierarchyMeaning: "is-a",
-                    compositional: "false",
-                    versionNeeded: "false",
-                    content: "complete",
-                    filter: [
+                    compositional   : "false",
+                    versionNeeded   : "false",
+                    content         : "complete",
+                    filter          : [
                         [
-                            code: "Data Element",
+                            code       : "Data Element",
                             description: "Filter to identify which Data Elements a concept relates to",
-                            operator: ["in", "=", "exists", "not-in"],
-                            value: "Data Element"
+                            operator   : ["in", "=", "exists", "not-in"],
+                            value      : "Data Element"
                         ],
                         [
-                            code: "Data Attribute",
+                            code       : "Data Attribute",
                             description: "Filter to identify which Data Attribute a concept relates to",
-                            operator: ["in", "=", "exists", "not-in"],
-                            value: "Data Attribute"
+                            operator   : ["in", "=", "exists", "not-in"],
+                            value      : "Data Attribute"
                         ],
                         [
-                            code: "Publish Date",
+                            code       : "Publish Date",
                             description: "Filter to enable filtering by Publish date/s",
-                            operator: ["in", "=", "exists", "not-in"],
-                            value: "Publish Date"
+                            operator   : ["in", "=", "exists", "not-in"],
+                            value      : "Publish Date"
                         ],
                         [
-                            code: "Retired Date",
+                            code       : "Retired Date",
                             description: "Filter to enable filtering by date of retirement",
-                            operator: ["in", "=", "exists", "not-in"],
-                            value: "Retired Date"
+                            operator   : ["in", "=", "exists", "not-in"],
+                            value      : "Retired Date"
                         ],
                         [
-                            code: "status",
+                            code       : "status",
                             description: "Filter to identify status of a concept",
-                            operator: ["in", "=", "not-in"],
-                            value: "status"
+                            operator   : ["in", "=", "not-in"],
+                            value      : "status"
                         ]
                     ],
-                    property: [
+                    property        : [
                         [
-                            code: "Data Element",
+                            code       : "Data Element",
                             description: "The Data Element that the concept relates to",
-                            type: "string"
+                            type       : "string"
                         ],
                         [
-                            code: "Data Attribute",
+                            code       : "Data Attribute",
                             description: "The Data Attribute that the concept relates to",
-                            type: "string"
+                            type       : "string"
                         ],
                         [
-                            code: "Publish Date",
+                            code       : "Publish Date",
                             description: "The date on which the concept was first published and/or updated",
-                            type: "dateTime"
+                            type       : "dateTime"
                         ],
                         [
-                            code: "Retired Date",
+                            code       : "Retired Date",
                             description: "The date from which the concept was published as retired",
-                            type: "dateTime"
+                            type       : "dateTime"
                         ],
                         [
-                            code: "status",
+                            code       : "status",
                             description: "The status of the concept can be one of: draft | active | retired | unknown",
-                            uri: "http://hl7.org/fhir/concept-properties#status",
-                            type: "code"
+                            uri        : "http://hl7.org/fhir/concept-properties#status",
+                            type       : "code"
                         ],
                     ],
-                    count: concepts.size(),
-                    concept: concepts
-               ]
-                   Map entry = [ //fullUrl: "CodeSystem/\$validate",
-                              request: [
-                                  method: "POST",
-                                  url: "CodeSystem/\$validate"
-                                  ],
-                              resource: [
-                                  resourceType: "Parameters",
-                                  parameter: [
-                                      [name: "Resource",
-                                       resource: resource]
-                                  ]
-                              ]
+                    count           : concepts.size(),
+                    concept         : concepts
+                ]
+                Map entry = [//fullUrl: "CodeSystem/\$validate",
+                             request : [
+                                 method: "POST",
+                                 url   : "CodeSystem/\$validate"
+                             ],
+                             resource: [
+                                 resourceType: "Parameters",
+                                 parameter   : [
+                                     [name    : "Resource",
+                                      resource: resource]
+                                 ]
+                             ]
                 ]
                 entries << entry
             }
@@ -841,105 +835,106 @@ class NhsDataDictionaryService {
                 CodeSet codeSet = (CodeSet) model
 
                 DataType linkedElementType = coreDataModel.dataTypes.find {
-                    it instanceof ModelDataType && ((ModelDataType) it).modelResourceId == codeSet.id }
+                    it instanceof ModelDataType && ((ModelDataType) it).modelResourceId == codeSet.id
+                }
                 DataElement linkedElement = linkedElementType.dataElements.first()
 
                 Map<Terminology, List<Term>> terminologyListMap = [:]
                 codeSet.terms.each {term ->
                     Terminology terminology = term.terminology
-                    if(terminologyListMap[terminology]) {
+                    if (terminologyListMap[terminology]) {
                         terminologyListMap[terminology] << term
                     } else {
                         terminologyListMap[terminology] = [term]
                     }
                 }
                 List includes = []
-                terminologyListMap.entrySet().each { entry ->
+                terminologyListMap.entrySet().each {entry ->
                     Terminology terminology = entry.key
-                    String terminologyId = terminology.label.toLowerCase().replace(" ","_")
-                    String version = terminology.metadata.find { it.key == "version"}?.value
+                    String terminologyId = terminology.label.toLowerCase().replace(" ", "_")
+                    String version = terminology.metadata.find {it.key == "version"}?.value
                     List<Term> terms = entry.value
                     def concept = []
                     terms.each {term ->
                         concept << [
-                            code: term.code,
+                            code   : term.code,
                             display: term.definition
                         ]
                     }
                     includes << [
-                        system: "https://private.datadictionary.nhs.uk/code_system/union/${terminologyId}",
+                        system : "https://private.datadictionary.nhs.uk/code_system/union/${terminologyId}",
                         version: version,
                         concept: concept
                     ]
                 }
-                String id = codeSet.label.toLowerCase().replace(" ","_")
-                String version = codeSet.metadata.find { it.key == "version"}?.value
+                String id = codeSet.label.toLowerCase().replace(" ", "_")
+                String version = codeSet.metadata.find {it.key == "version"}?.value
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                 String versionId = LocalDate.now().format(formatter)
                 Map resource = [
                     resourceType: "ValueSet",
-                    id: "NHS-Data_Dictionary-VS-" + codeSet.label.toLowerCase().replace(" ","-") + "-" + version,
-                    meta: [
-                        security: [
+                    id          : "NHS-Data_Dictionary-VS-" + codeSet.label.toLowerCase().replace(" ", "-") + "-" + version,
+                    meta        : [
+                        security : [
                             [
                                 system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                code: "DDT.read"
+                                code  : "DDT.read"
                             ],
                             [
                                 system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                code: "DDT.write"
+                                code  : "DDT.write"
                             ]
                         ],
                         versionId: versionId
                     ],
-                    language: "en-GB",
-                    url: "https://private.datadictionary.nhs.uk/valueSet/${id}",
-                    identifier: [
+                    language    : "en-GB",
+                    url         : "https://private.datadictionary.nhs.uk/valueSet/${id}",
+                    identifier  : [
                         [
                             system: "https://datadictionary.nhs.uk/V3",
-                            value: "https://datadictionary.nhs.uk/data_dictionary/data_field_notes/${id}"
+                            value : "https://datadictionary.nhs.uk/data_dictionary/data_field_notes/${id}"
                         ]
                     ],
-                    version: version,
-                    name: codeSet.label.toUpperCase().replaceAll("[^A-Za-z0-9]","_"),
-                    title: codeSet.label,
-                    status: "active",
+                    version     : version,
+                    name        : codeSet.label.toUpperCase().replaceAll("[^A-Za-z0-9]", "_"),
+                    title       : codeSet.label,
+                    status      : "active",
                     experimental: "false",
-                    date: Instant.now().toString(),
-                    publisher: "NHS Digital",
-                    contact: [
+                    date        : Instant.now().toString(),
+                    publisher   : "NHS Digital",
+                    contact     : [
                         [
-                            name: "NHS Digital Data Model and Dictionary Service",
+                            name   : "NHS Digital Data Model and Dictionary Service",
                             telecom: [
                                 [
                                     system: "email",
-                                    value: "information.standards@nhs.net"
+                                    value : "information.standards@nhs.net"
                                 ], [
                                     system: "url",
-                                    value: "https://datadictionary.nhs.uk/"
+                                    value : "https://datadictionary.nhs.uk/"
                                 ]
                             ]
                         ]
                     ],
-                    description: linkedElement.description,
-                    copyright: "Copyright © NHS Digital",
-                    immutable: "true",
-                    compose: [
+                    description : linkedElement.description,
+                    copyright   : "Copyright © NHS Digital",
+                    immutable   : "true",
+                    compose     : [
                         include: includes
                     ]
                 ]
-                Map entry = [ //fullUrl: "CodeSystem/\$validate",
-                              request: [
-                                  method: "POST",
-                                  url: "ValueSet/\$validate"
-                              ],
-                              resource: [
-                                  resourceType: "Parameters",
-                                  parameter: [
-                                      [name: "Resource",
-                                       resource: resource]
-                                  ]
-                              ]
+                Map entry = [//fullUrl: "CodeSystem/\$validate",
+                             request : [
+                                 method: "POST",
+                                 url   : "ValueSet/\$validate"
+                             ],
+                             resource: [
+                                 resourceType: "Parameters",
+                                 parameter   : [
+                                     [name    : "Resource",
+                                      resource: resource]
+                                 ]
+                             ]
                 ]
                 entries << entry
             }
@@ -952,23 +947,23 @@ class NhsDataDictionaryService {
         VersionedFolder sourceVF = versionedFolderService.get(sourceId)
         VersionedFolder targetVF = versionedFolderService.get(targetId)
 
-/*        sourceVF.addToMetadata(new Metadata(key: "type", value: "Data Dictionary Change Notice"))
-        sourceVF.addToMetadata(new Metadata(key: "reference", value: "1828"))
-        sourceVF.addToMetadata(new Metadata(key: "versionNo", value: "1.0"))
-        sourceVF.addToMetadata(new Metadata(key: "subject", value: "NHS England and NHS Improvement"))
-        sourceVF.addToMetadata(new Metadata(key: "effectiveDate", value: "Immediate"))
-        sourceVF.addToMetadata(new Metadata(key: "reasonForChange", value: "Change to Definitions"))
-        sourceVF.addToMetadata(new Metadata(key: "publicationDate", value: "3rd June 2021"))
-        sourceVF.addToMetadata(new Metadata(key: "backgroundText", value: backgroundText))
-        sourceVF.addToMetadata(new Metadata(key: "sponsor", value: "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"))
+        /*        sourceVF.addToMetadata(new Metadata(key: "type", value: "Data Dictionary Change Notice"))
+                sourceVF.addToMetadata(new Metadata(key: "reference", value: "1828"))
+                sourceVF.addToMetadata(new Metadata(key: "versionNo", value: "1.0"))
+                sourceVF.addToMetadata(new Metadata(key: "subject", value: "NHS England and NHS Improvement"))
+                sourceVF.addToMetadata(new Metadata(key: "effectiveDate", value: "Immediate"))
+                sourceVF.addToMetadata(new Metadata(key: "reasonForChange", value: "Change to Definitions"))
+                sourceVF.addToMetadata(new Metadata(key: "publicationDate", value: "3rd June 2021"))
+                sourceVF.addToMetadata(new Metadata(key: "backgroundText", value: backgroundText))
+                sourceVF.addToMetadata(new Metadata(key: "sponsor", value: "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"))
 
-        sourceVF.metadata.each {md ->
-            md.namespace = "uk.nhs.datadictionary.changeNotice"
-            md.createdBy = currentUser.emailAddress
-        }
+                sourceVF.metadata.each {md ->
+                    md.namespace = "uk.nhs.datadictionary.changeNotice"
+                    md.createdBy = currentUser.emailAddress
+                }
 
-        sourceVF.save()
-*/
+                sourceVF.save()
+        */
 
         ObjectDiff od = versionedFolderService.getDiffForVersionedFolders(sourceVF, targetVF)
         log.debug(od)
