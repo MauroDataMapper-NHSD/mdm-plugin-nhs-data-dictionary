@@ -6,8 +6,11 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.constraint.callable.VersionAwareConstraints
+import uk.ac.ox.softeng.maurodatamapper.core.model.Model
+import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.security.basic.PublicAccessSecurityPolicyManager
@@ -25,12 +28,16 @@ import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
-import org.junit.Assert
 import spock.lang.Shared
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertTrue
 
 /**
  * @since 14/12/2021
@@ -81,7 +88,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         dd
-        checkNovemeber2021(dd)
+        checkNovember2021(dd, false)
     }
 
     void 'I02 : test double ingest of November 2021'() {
@@ -106,7 +113,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         noExceptionThrown()
         dd
-        checkNovemeber2021(dd)
+        checkNovember2021(dd, false)
     }
 
     void 'F01 : Finalise Nov 2021 ingest'() {
@@ -122,6 +129,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         noExceptionThrown()
         dd
+        checkNovember2021(dd, true)
     }
 
     void 'B01 : Branch Nov 2021 ingest'() {
@@ -167,52 +175,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         noExceptionThrown()
-        checkNovemeber2021(mainBranch)
-    }
-
-    private void checkFolderContentsWithChildren(Folder check, int childFolderCount, int terminologyCount, int codeSetCount, int dataModelCount) {
-        Assert.assertEquals "ChildFolders in ${check.label}", childFolderCount, check.childFolders?.size() ?: 0
-        checkFolderContents(check, terminologyCount, codeSetCount, dataModelCount)
-    }
-
-    private void checkFolderContentsWithChildrenOnly(Folder check, int childFolderCount) {
-        Assert.assertEquals "ChildFolders in ${check.label}", childFolderCount, check.childFolders?.size() ?: 0
-        checkFolderContents(check, 0, 0, 0)
-    }
-
-    private void checkFolderWithTerminologiesOnly(Folder check, int terminologyCount) {
-        checkFolderContents(check, terminologyCount, 0, 0)
-    }
-
-    private void checkFolderWithCodeSetsOnly(Folder check, int codeSetCount) {
-        checkFolderContents(check, 0, codeSetCount, 0)
-    }
-
-    private void checkFolderWithDataModelsOnly(Folder check, int dataModelCount) {
-        checkFolderContents(check, 0, 0, dataModelCount)
-    }
-
-    private void checkFolderContents(Folder check, int terminologyCount, int codeSetCount, int dataModelCount) {
-        List<Terminology> terminologies = terminologyService.findAllByFolderId(check.id)
-        List<CodeSet> codeSets = codeSetService.findAllByFolderId(check.id)
-        List<DataModel> dataModels = dataModelService.findAllByFolderId(check.id)
-
-        if (terminologyCount) {
-            Assert.assertEquals "Terminologies in ${check.label}", terminologyCount, terminologies.size()
-        } else {
-            Assert.assertTrue("No Terminologies in ${check.label}", terminologies.isEmpty())
-        }
-        if (codeSetCount) {
-            Assert.assertEquals "CodeSets in ${check.label}", codeSetCount, codeSets.size()
-        } else {
-            Assert.assertTrue("No CodeSets in ${check.label}", codeSets.isEmpty())
-        }
-        if (dataModelCount) {
-            Assert.assertEquals "DataModels in ${check.label}", dataModelCount, dataModels.size()
-        } else {
-            Assert.assertTrue("No DataModels in ${check.label}", dataModels.isEmpty())
-        }
-
+        checkNovember2021(mainBranch, false)
     }
 
     void outputChildFolderContents(Folder parentFolder, String variableName) {
@@ -220,7 +183,6 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
             outputFolderContents(variableName, cf)
         }.join('\n')
     }
-
 
     String outputFolderContents(String parent, Folder check) {
         List<Terminology> terminologies = terminologyService.findAllByFolderId(check.id)
@@ -248,14 +210,77 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         Files.readAllBytes(testFilePath)
     }
 
-    void checkNovemeber2021(Folder nhsdd) {
-        checkFolderContentsWithChildren(nhsdd, 3, 3, 0, 1)
+    private void checkFolderContentsWithChildren(Folder check, int childFolderCount, int terminologyCount, int codeSetCount, int dataModelCount, boolean finalised) {
+        assertEquals "ChildFolders in ${check.label}", childFolderCount, check.childFolders?.size() ?: 0
+        checkFolderContents(check, terminologyCount, codeSetCount, dataModelCount, finalised)
+    }
+
+    private void checkFolderContentsWithChildrenOnly(Folder check, int childFolderCount, boolean finalised) {
+        assertEquals "ChildFolders in ${check.label}", childFolderCount, check.childFolders?.size() ?: 0
+        checkFolderContents(check, 0, 0, 0, finalised)
+    }
+
+    private void checkFolderWithTerminologiesOnly(Folder check, int terminologyCount, boolean finalised) {
+        checkFolderContents(check, terminologyCount, 0, 0, finalised)
+    }
+
+    private void checkFolderWithCodeSetsOnly(Folder check, int codeSetCount, boolean finalised) {
+        checkFolderContents(check, 0, codeSetCount, 0, finalised)
+    }
+
+    private void checkFolderWithDataModelsOnly(Folder check, int dataModelCount, boolean finalised) {
+        checkFolderContents(check, 0, 0, dataModelCount, finalised)
+    }
+
+    private void checkFolderContents(Folder check, int terminologyCount, int codeSetCount, int dataModelCount, boolean finalised) {
+        List<Terminology> terminologies = terminologyService.findAllByFolderId(check.id)
+        List<CodeSet> codeSets = codeSetService.findAllByFolderId(check.id)
+        List<DataModel> dataModels = dataModelService.findAllByFolderId(check.id)
+
+        checkModels(check.label, 'Terminologies', terminologyCount, finalised, terminologies)
+        checkModels(check.label, 'CodeSets', codeSetCount, finalised, codeSets)
+        checkModels(check.label, 'DataModels', dataModelCount, finalised, dataModels)
+    }
+
+    void checkModels(String label, String name, int count, boolean finalised, List<Model> models) {
+        if (count) {
+            assertEquals "${name} in ${label}", count, models.size()
+            assertTrue "${name} in ${label} are finalised ${finalised}", models.every {it.finalised == finalised}
+        } else {
+            assertTrue("No ${name} in ${label}", models.isEmpty())
+        }
+    }
+
+    void checkModelItemIndexes(Collection<ModelItem> modelItems, String path) {
+        if (!modelItems) return
+        modelItems.sort().eachWithIndex {mi, i ->
+            assertEquals("${path} >> ${mi.domainType} ${mi.label} idx", i, mi.idx)
+        }
+        if (modelItems.first() instanceof DataClass) {
+            modelItems.each {
+                checkModelItemIndexes(it.dataClasses, "${path}|${it.label}")
+                checkModelItemIndexes(it.dataElements, "${path}|${it.label}")
+            }
+        }
+    }
+
+
+    void checkNovember2021(VersionedFolder nhsdd, boolean finalised) {
+        assertEquals 'NHSDD Folder', finalised, nhsdd.finalised
+        checkFolderContentsWithChildren(nhsdd, 3, 3, 0, 1, finalised)
+
+        DataModel coreDataModel = dataModelService.findByLabel(NhsDataDictionary.CORE_MODEL_NAME)
+        assertNotNull(NhsDataDictionary.CORE_MODEL_NAME, coreDataModel)
+        assertEquals("NhsDataDictionary.CORE_MODEL_NAME dataclasses", 369, coreDataModel.dataClasses.size())
+        assertEquals("NhsDataDictionary.CORE_MODEL_NAME child dataclasses", 3, coreDataModel.childDataClasses.size())
+        checkModelItemIndexes(coreDataModel.childDataClasses, NhsDataDictionary.CORE_MODEL_NAME)
+        checkModelItemIndexes(coreDataModel.dataTypes, NhsDataDictionary.CORE_MODEL_NAME)
 
         // 'direct children'
         //        outputChildFolderContents(dd, 'dd')
-        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Attribute Terminologies'}, 24)
-        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Element CodeSets'}, 24)
-        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Sets'}, 8)
+        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Attribute Terminologies'}, 24, finalised)
+        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Element CodeSets'}, 24, finalised)
+        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Sets'}, 8, finalised)
 
 
         Folder dataSets = nhsdd.childFolders.find {it.label == 'Data Sets'}
@@ -266,66 +291,66 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         //        outputChildFolderContents(attributes, 'attributes')
         //        outputChildFolderContents(elements, 'elements')
         //        outputChildFolderContents(dataSets, 'dataSets')
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'A'}, 67)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'B'}, 32)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'C'}, 130)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'D'}, 31)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'E'}, 46)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'F'}, 24)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'G'}, 12)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'H'}, 18)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'I'}, 28)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'J'}, 7)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'K'}, 1)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'L'}, 29)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'M'}, 66)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'N'}, 33)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'O'}, 25)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'P'}, 138)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'Q'}, 4)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'R'}, 66)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'S'}, 88)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'T'}, 36)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'U'}, 12)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'V'}, 9)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'W'}, 15)
-        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'Y'}, 1)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'A'}, 67, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'B'}, 32, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'C'}, 130, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'D'}, 31, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'E'}, 46, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'F'}, 24, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'G'}, 12, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'H'}, 18, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'I'}, 28, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'J'}, 7, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'K'}, 1, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'L'}, 29, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'M'}, 66, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'N'}, 33, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'O'}, 25, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'P'}, 138, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'Q'}, 4, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'R'}, 66, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'S'}, 88, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'T'}, 36, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'U'}, 12, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'V'}, 9, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'W'}, 15, finalised)
+        checkFolderWithTerminologiesOnly(attributes.childFolders.find {it.label == 'Y'}, 1, finalised)
 
         // 'children of elements'
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'A'}, 74)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'B'}, 49)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'C'}, 169)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'D'}, 37)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'E'}, 52)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'F'}, 25)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'G'}, 14)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'H'}, 18)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'I'}, 35)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'J'}, 6)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'K'}, 1)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'L'}, 30)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'M'}, 81)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'N'}, 49)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'O'}, 35)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'P'}, 163)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'Q'}, 5)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'R'}, 74)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'S'}, 107)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'T'}, 48)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'U'}, 14)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'V'}, 11)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'W'}, 18)
-        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'Y'}, 1)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'A'}, 74, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'B'}, 49, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'C'}, 169, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'D'}, 37, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'E'}, 52, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'F'}, 25, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'G'}, 14, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'H'}, 18, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'I'}, 35, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'J'}, 6, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'K'}, 1, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'L'}, 30, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'M'}, 81, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'N'}, 49, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'O'}, 35, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'P'}, 163, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'Q'}, 5, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'R'}, 74, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'S'}, 107, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'T'}, 48, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'U'}, 14, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'V'}, 11, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'W'}, 18, finalised)
+        checkFolderWithCodeSetsOnly(elements.childFolders.find {it.label == 'Y'}, 1, finalised)
 
         // 'children of datasets'
-        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'Administrative Data Sets'}, 2)
-        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-2'}, 47)
-        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-3'}, 15)
-        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'Central Return Data Sets'}, 6)
-        checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Clinical Content'}, 1, 0, 0, 1)
-        checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Clinical Data Sets'}, 2, 0, 0, 13)
-        checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Supporting Data Sets'}, 1, 0, 0, 8)
-        checkFolderContentsWithChildrenOnly(dataSets.childFolders.find {it.label == 'Retired'}, 9)
+        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'Administrative Data Sets'}, 2, finalised)
+        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-2'}, 47, finalised)
+        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-3'}, 15, finalised)
+        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'Central Return Data Sets'}, 6, finalised)
+        checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Clinical Content'}, 1, 0, 0, 1, finalised)
+        checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Clinical Data Sets'}, 2, 0, 0, 13, finalised)
+        checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Supporting Data Sets'}, 1, 0, 0, 8, finalised)
+        checkFolderContentsWithChildrenOnly(dataSets.childFolders.find {it.label == 'Retired'}, 9, finalised)
 
         Folder clinicalContent = dataSets.childFolders.find {it.label == 'Clinical Content'}
         Folder clinicalDataSets = dataSets.childFolders.find {it.label == 'Clinical Data Sets'}
@@ -337,32 +362,32 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         //        outputChildFolderContents(clinicalDataSets, 'clinicalDataSets')
         //        outputChildFolderContents(supportingDataSets, 'supportingDataSets')
         //        outputChildFolderContents(retired, 'retired')
-        checkFolderContents(clinicalContent.childFolders.find {it.label == 'National Joint Registry Data Set'}, 0, 0, 6)
+        checkFolderContents(clinicalContent.childFolders.find {it.label == 'National Joint Registry Data Set'}, 0, 0, 6, finalised)
 
         // 'children of clinical datasets'
-        checkFolderContents(clinicalDataSets.childFolders.find {it.label == 'COSDS'}, 0, 0, 15)
-        checkFolderContents(clinicalDataSets.childFolders.find {it.label == 'National Neonatal Data Set'}, 0, 0, 2)
+        checkFolderContents(clinicalDataSets.childFolders.find {it.label == 'COSDS'}, 0, 0, 15, finalised)
+        checkFolderContents(clinicalDataSets.childFolders.find {it.label == 'National Neonatal Data Set'}, 0, 0, 2, finalised)
 
         // 'children of supporting datasets'
-        checkFolderContents(supportingDataSets.childFolders.find {it.label == 'PLICS Data Set'}, 0, 0, 10)
+        checkFolderContents(supportingDataSets.childFolders.find {it.label == 'PLICS Data Set'}, 0, 0, 10, finalised)
 
         // 'children of retired'
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-1'}, 27)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-2'}, 1)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6 Old Layout'}, 27)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Central Returns Data Sets'}, 29)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Clinical Content'}, 2)
-        checkFolderContentsWithChildren(retired.childFolders.find {it.label == 'Clinical Data Sets'}, 1, 0, 0, 13)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Commissioning Data Set V5'}, 26)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Supporting Data Sets'}, 1)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS Supporting Information'}, 2)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-1'}, 27, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-2'}, 1, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6 Old Layout'}, 27, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Central Returns Data Sets'}, 29, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Clinical Content'}, 2, finalised)
+        checkFolderContentsWithChildren(retired.childFolders.find {it.label == 'Clinical Data Sets'}, 1, 0, 0, 13, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Commissioning Data Set V5'}, 26, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Supporting Data Sets'}, 1, finalised)
+        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS Supporting Information'}, 2, finalised)
 
 
         Folder retiredClinicalDataSets = retired.childFolders.find {it.label == 'Clinical Data Sets'}
 
         // 'children of retired clinical datasets'
         //        outputChildFolderContents(retiredClinicalDataSets, 'retiredClinicalDataSets')
-        checkFolderWithDataModelsOnly(retiredClinicalDataSets.childFolders.find {it.label == 'National Renal Data Set'}, 8)
+        checkFolderWithDataModelsOnly(retiredClinicalDataSets.childFolders.find {it.label == 'National Renal Data Set'}, 8, finalised)
     }
 
     /**
