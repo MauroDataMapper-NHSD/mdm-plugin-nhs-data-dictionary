@@ -239,7 +239,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
             String elementName = ddDataElement.TitleCaseName[0].text()
             String description = DDHelperFunctions.parseHtml(ddDataElement.definition)
             boolean isRetired = ddDataElement.isRetired.text() == "true"
-                if (ddDataElement."value-set".size() > 0 > 0 && !isRetired) {
+                if (ddDataElement."value-set".size() > 0 && !isRetired) {
                     String codeSetName = elementName
                     String capitalizedCodeSetName = ddDataElement.name.text()
                     String folderName = codeSetName.substring(0, 1)
@@ -338,15 +338,15 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         }
     }
 
-    String getShortDesc(String definition, DataElement dataElement, NhsDataDictionary dataDictionary) {
-        boolean isPreparatory = dataElement.metadata.any { it.key == "isPreparatory" && it.value == "true" }
+    String getShortDesc(String description, DataElement dataElement, NhsDataDictionary dataDictionary) {
+        boolean isPreparatory = dataElement.metadata.any {it.key == "isPreparatory" && it.value == "true"}
 
-        if(isPreparatory) {
+        if (isPreparatory) {
             return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
                 GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + definition + "</xml>")
+                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
                 String firstParagraph = xml.p[0].text()
                 if (xml.p.size() == 0) {
                     firstParagraph = xml.text()
@@ -366,8 +366,8 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
                 }
                 return firstSentence
             } catch (Exception e) {
-                e.printStackTrace()
-                log.error("Couldn't parse: ${definition}")
+                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
+                log.trace('Unparsable Description:: {}', description)
                 return dataElement.label
             }
         }

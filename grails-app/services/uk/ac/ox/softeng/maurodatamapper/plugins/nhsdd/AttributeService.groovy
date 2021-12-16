@@ -283,7 +283,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                 String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
                 return firstSentence
             } catch (Exception e) {
-                log.error("Couldn't parse: " + description)
+                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
+                log.trace('Unparsable Description:: {}', description)
                 return attributeDataElement.label
             }
         }

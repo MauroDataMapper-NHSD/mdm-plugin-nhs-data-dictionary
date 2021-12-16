@@ -19,6 +19,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -33,13 +34,6 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
-import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.DDBusinessDefinition
-import uk.nhs.digital.maurodatamapper.datadictionary.DDClass
-import uk.nhs.digital.maurodatamapper.datadictionary.DDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.DDSupportingDefinition
-import uk.nhs.digital.maurodatamapper.datadictionary.DDXmlSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
