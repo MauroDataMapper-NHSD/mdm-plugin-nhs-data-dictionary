@@ -571,9 +571,9 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
     void createAndSaveDataModel(def ddDataSetXml, Folder dataSetsFolder, Folder dictionaryFolder, String currentUserEmailAddress, NhsDataDictionary nhsDataDictionary) {
         String dataSetName = ddDataSetXml.TitleCaseName.text()
-        String explanatoryPage = xml.DDWebPage.find { it.uin.text() == ddDataSetXml.explanatoryPage.text()}.definition
-        String description = ""
-        if(explanatoryPage) {
+        String explanatoryPage = ddDataSetXml.DDWebPage.find {it.uin.text() == ddDataSetXml.explanatoryPage.text()}.definition
+        String description = null
+        if (explanatoryPage) {
             description = DDHelperFunctions.parseHtml(explanatoryPage)
         }
         boolean isRetired = ddDataSetXml.isRetired.text() == "true"
@@ -581,8 +581,8 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         Folder folder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
         log.debug('Ingesting {}', dataSetName)
 
-            DataModel dataSetDataModel = new DataModel(
-                label: dataSetName,
+        DataModel dataSetDataModel = new DataModel(
+            label: dataSetName,
                 description: description,
                 createdBy: currentUserEmailAddress,
                 type: DataModelType.DATA_STANDARD,
@@ -627,7 +627,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
             try {
                 GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
+                xml = Html.xmlSlurper.parseText("<xml>" + description ?: '' + "</xml>")
                 String allParagraphs = ""
                 xml.p.each { paragraph ->
                     allParagraphs += paragraph.text()
@@ -645,7 +645,8 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
                 }
                 return dataModel.label
             } catch (Exception e) {
-                log.error("Couldn't parse: " + description)
+                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
+                log.trace('Unparsable Description:: {}', description)
                 return dataModel.label
             }
         }

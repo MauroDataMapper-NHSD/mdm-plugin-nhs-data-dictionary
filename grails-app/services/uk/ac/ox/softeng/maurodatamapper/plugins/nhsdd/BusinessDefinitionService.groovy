@@ -162,7 +162,8 @@ class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
                 }
                 return firstSentence
             } catch (Exception e) {
-                log.error("Couldn't parse: " + description)
+                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
+                log.trace('Unparsable Description:: {}', description)
                 return term.label
             }
         }

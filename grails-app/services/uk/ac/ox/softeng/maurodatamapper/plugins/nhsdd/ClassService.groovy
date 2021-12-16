@@ -319,8 +319,9 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
                 }
                 return firstSentence
             } catch (Exception e) {
-                log.error("Couldn't parse: " + definition)
-                return name
+                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
+                log.trace('Unparsable Description:: {}', description)
+                return dataClass.label
             }
         }
     }
