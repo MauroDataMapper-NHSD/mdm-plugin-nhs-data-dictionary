@@ -110,7 +110,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         dd
-        checkNovember2021(dd, false)
+        checkNovember2021(dd, false, 74, 921, 1116, 262)
     }
 
     void 'I02 : test double ingest of November 2021'() {
@@ -135,7 +135,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         noExceptionThrown()
         dd
-        checkNovember2021(dd, false)
+        checkNovember2021(dd, false, 74, 921, 1116, 262)
     }
 
     void 'F01 : Finalise Nov 2021 ingest'() {
@@ -151,7 +151,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         noExceptionThrown()
         dd
-        checkNovember2021(dd, true)
+        checkNovember2021(dd, true, 74, 921, 1116, 262)
     }
 
     void 'B01 : Branch Nov 2021 ingest'() {
@@ -172,6 +172,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
         VersionedFolder release = versionedFolderService.get(dd.id)
+        log.info('---------- Starting new branch ----------')
         long start = System.currentTimeMillis()
         VersionedFolder mainBranch = versionedFolderService.createNewBranchModelVersion(VersionAwareConstraints.DEFAULT_BRANCH_NAME,
                                                                                         release, user, true,
@@ -197,7 +198,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         noExceptionThrown()
-        checkNovember2021(mainBranch, false)
+        checkNovember2021(mainBranch, false, 148,  1842 , 2232 , 524)
     }
 
     void outputChildFolderContents(Folder parentFolder, String variableName) {
@@ -286,9 +287,22 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         }
     }
 
-
-    void checkNovember2021(VersionedFolder nhsdd, boolean finalised) {
+    void checkNovember2021(VersionedFolder nhsdd, boolean finalised, int totalFolders = 0, int totalTerminologies = 0, int totalCodeSets = 0, int dataModels = 0) {
         assertEquals 'NHSDD Folder', finalised, nhsdd.finalised
+
+        if (totalFolders) {
+            assertEquals('Total Folders', totalFolders, folderService.count())
+            assertEquals('Total Terminologies', totalTerminologies, terminologyService.count())
+            assertEquals('Total CodeSets', totalCodeSets, codeSetService.count())
+            assertEquals('Total DataModels', dataModels, dataModelService.count())
+        } else {
+            log.warn('Folders {}, Terminologies {} CodeSets {} DataModels {}',
+                     folderService.count(),
+                     terminologyService.count(),
+                     codeSetService.count(),
+                     dataModelService.count())
+        }
+
         checkFolderContentsWithChildren(nhsdd, 3, 3, 0, 1, finalised)
 
         DataModel coreDataModel = dataModelService.findByLabel(NhsDataDictionary.CORE_MODEL_NAME)
