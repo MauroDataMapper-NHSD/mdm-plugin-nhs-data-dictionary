@@ -5,6 +5,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.constraint.callable.VersionAwareConstraints
 import uk.ac.ox.softeng.maurodatamapper.core.model.Model
 import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
@@ -83,7 +84,8 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         assert xml
 
         when:
-        NhsDataDictionary dataDictionary = NhsDataDictionary.buildFromXml(xml, 'November 2021')
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary = uk
+            .nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.buildFromXml(xml, 'November 2021')
 
         then:
 
@@ -96,6 +98,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         assertEquals  dataDictionary.xmlSchemaConstraints.size(),     33
 
     }
+
 
 
     void 'I01 : test xml ingest and save of November 2021'() {
@@ -117,20 +120,14 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         // This is to test that ingesting again doesnt error and also to test the batch deletion code
         given:
         setupData()
+        cleanIngest('november2021.xml')
         def xml = loadXml('november2021.xml')
         assert xml
-
-        when: 'ingest once'
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null)
-
-        then:
-        noExceptionThrown()
-        dd
 
         when: 'ingest again'
         log.info('---------- 2nd Ingest --------')
         // Delete old folder complete in 21 secs 547 ms with the batching
-        dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null)
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null)
 
         then:
         noExceptionThrown()
@@ -157,38 +154,27 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'B01 : Branch Nov 2021 ingest'() {
         given:
         setupData()
-        def xml = loadXml('november2021.xml')
-        assert xml
-
-        when: 'finalise'
-        // finalise dictionary complete in 39 secs 787 ms
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null)
-
-        then:
-        noExceptionThrown()
-        dd
+        UUID releaseId = cleanIngest('november2021.xml')
+        VersionedFolder release = versionedFolderService.get(releaseId)
 
         when:
-        sessionFactory.currentSession.flush()
-        sessionFactory.currentSession.clear()
-        VersionedFolder release = versionedFolderService.get(dd.id)
         log.info('---------- Starting new branch ----------')
         long start = System.currentTimeMillis()
-        VersionedFolder mainBranch = versionedFolderService.createNewBranchModelVersion(VersionAwareConstraints.DEFAULT_BRANCH_NAME,
-                                                                                        release, user, true,
-                                                                                        PublicAccessSecurityPolicyManager.instance as UserSecurityPolicyManager)
+        VersionedFolder branched = versionedFolderService.createNewBranchModelVersion(VersionAwareConstraints.DEFAULT_BRANCH_NAME,
+                                                                                      release, user, true,
+                                                                                      PublicAccessSecurityPolicyManager.instance as UserSecurityPolicyManager)
         log.info('New branch creation took {}', Utils.timeTaken(start))
 
-        if (mainBranch && mainBranch.hasErrors()) {
-            GormUtils.outputDomainErrors(messageSource, mainBranch)
+        if (branched && branched.hasErrors()) {
+            GormUtils.outputDomainErrors(messageSource, branched)
         }
 
         then:
-        mainBranch
-        !mainBranch.hasErrors()
+        branched
+        !branched.hasErrors()
 
         when:
-        VersionedFolder validated = folderService.validate(mainBranch) as VersionedFolder
+        VersionedFolder validated = folderService.validate(branched) as VersionedFolder
 
         then:
         !validated.hasErrors()
@@ -198,7 +184,56 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         noExceptionThrown()
-        checkNovember2021(mainBranch, false, 148,  1842 , 2232 , 524)
+
+        when:
+        sessionFactory.currentSession.flush()
+        sessionFactory.currentSession.clear()
+        VersionedFolder branch = versionedFolderService.get(branched.id)
+
+        then:
+        checkNovember2021(branch, false, 148, 1842, 2232, 524)
+    }
+
+    void 'MD01 : Merge Diff Nov 2021 ingest and branch'() {
+        given:
+        setupData()
+        UUID releaseId = cleanIngest('november2021.xml')
+        VersionedFolder release = versionedFolderService.get(releaseId)
+        UUID mainBranchId = createBranch(release, VersionAwareConstraints.DEFAULT_BRANCH_NAME)
+        UUID testBranchId = createBranch(release, 'test')
+        VersionedFolder main = versionedFolderService.get(mainBranchId)
+        VersionedFolder test = versionedFolderService.get(testBranchId)
+
+        when:
+        log.info('---------- Starting merge diff ----------')
+        long start = System.currentTimeMillis()
+        MergeDiff<VersionedFolder> mergeDiff = versionedFolderService.getMergeDiffForVersionedFolders(test, main)
+        log.info('Merge Diff took {}', Utils.timeTaken(start))
+
+        then:
+        mergeDiff.empty
+    }
+
+    UUID cleanIngest(String name) {
+        def xml = loadXml(name)
+        assert xml
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null)
+        sessionFactory.currentSession.flush()
+        sessionFactory.currentSession.clear()
+        dd.id
+    }
+
+    UUID createBranch(VersionedFolder release, String branchName) {
+        log.info('---------- Starting main branch ----------')
+        VersionedFolder branch = versionedFolderService.createNewBranchModelVersion(branchName,
+                                                                                    release, user, true,
+                                                                                    PublicAccessSecurityPolicyManager.instance as UserSecurityPolicyManager)
+        VersionedFolder validated = folderService.validate(branch) as VersionedFolder
+        assert !validated.hasErrors()
+        VersionedFolder saved = versionedFolderService.save(validated, validate: false, flush: true)
+        sessionFactory.currentSession.flush()
+        sessionFactory.currentSession.clear()
+        saved.id
     }
 
     void outputChildFolderContents(Folder parentFolder, String variableName) {
@@ -288,7 +323,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     }
 
     void checkNovember2021(VersionedFolder nhsdd, boolean finalised, int totalFolders = 0, int totalTerminologies = 0, int totalCodeSets = 0, int dataModels = 0) {
-        assertEquals 'NHSDD Folder', finalised, nhsdd.finalised
+        assertEquals 'NHSDD Folder finalisation', finalised, nhsdd.finalised
 
         if (totalFolders) {
             assertEquals('Total Folders', totalFolders, folderService.count())
