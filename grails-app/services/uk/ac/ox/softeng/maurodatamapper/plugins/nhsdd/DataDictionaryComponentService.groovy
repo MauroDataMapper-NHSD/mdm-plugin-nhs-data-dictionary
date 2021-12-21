@@ -6,6 +6,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -25,6 +26,7 @@ import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -47,9 +49,6 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
     @Autowired
     MessageSource messageSource
-
-    abstract void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                                NhsDataDictionary nhsDataDictionary)
 
     abstract Map indexMap(T object)
 
@@ -76,24 +75,6 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     }
 
     abstract String getMetadataNamespace()
-
-    abstract String getShortDescription(T catalogueItem, DataDictionary dataDictionary)
-
-    boolean isPreparatory(T item) {
-        return item.metadata.find { md ->
-            md.namespace == getMetadataNamespace() &&
-                    md.key == "isPreparatory" &&
-                    md.value == "true"
-        }
-    }
-
-    boolean isRetired(T item) {
-        return item.metadata.find { md ->
-            md.namespace == getMetadataNamespace() &&
-                    md.key == "isRetired" &&
-                    md.value == "true"
-        }
-    }
 
 
     def getWhereUsed(DataDictionary dataDictionary, String id) {
@@ -318,6 +299,12 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         //"valueSet": "value-set",
     ]
 
+    void addMetadataFromComponent(T domainObject, NhsDataDictionaryComponent component, String currentUserEmailAddress) {
+        component.otherProperties.each {key, value ->
+            addToMetadata(domainObject, key, value, currentUserEmailAddress)
+        }
+    }
+
     void addMetadataFromXml(T domainObject, def xml, String currentUserEmailAddress) {
 
         attributeMetadata.entrySet().each {entry ->
@@ -328,12 +315,31 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         }
     }
 
-    void addToMetadata(T domainObject, String key, String value, String currentUserEmailAddress) {
+    void addToMetadata(MetadataAware domainObject, String key, String value, String currentUserEmailAddress) {
 
-        domainObject.addToMetadata(new Metadata(namespace: getMetadataNamespace(),
-                                                key: key,
-                                                value: value,
-                                                createdBy: currentUserEmailAddress))
+        if(value) {
+            domainObject.addToMetadata(new Metadata(namespace: getMetadataNamespace(),
+                                                    key: key,
+                                                    value: value,
+                                                    createdBy: currentUserEmailAddress))
+        }
+    }
+
+    void nhsDataDictionaryComponentFromItem(CatalogueItem catalogueItem, NhsDataDictionaryComponent component) {
+        component.name = catalogueItem.label
+        component.definition = catalogueItem.description
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
+            Metadata md = catalogueItem.metadata.find {
+                it.namespace == getMetadataNamespace() &&
+                    it.key == key
+
+            }
+            if(md) {
+                component.otherProperties[key] = md.value
+            } else {
+                component.otherProperties[key] = null
+            }
+        }
     }
 
 }

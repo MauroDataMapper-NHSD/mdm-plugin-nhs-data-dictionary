@@ -29,7 +29,7 @@ import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
 import spock.lang.Shared
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -76,7 +76,29 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
     }
 
-    void 'I01 : test ingest of November 2021'() {
+    void 'I00 : test xml ingest of November 2021'() {
+        given:
+        setupData()
+        def xml = loadXml('november2021.xml')
+        assert xml
+
+        when:
+        NhsDataDictionary dataDictionary = NhsDataDictionary.buildFromXml(xml, 'November 2021')
+
+        then:
+
+        Assert.assertEquals  dataDictionary.attributes.size(),             2526
+        Assert.assertEquals  dataDictionary.elements.size(),               4915
+        Assert.assertEquals  dataDictionary.classes.size(),                 363
+        Assert.assertEquals  dataDictionary.dataSets.size(),                261
+        Assert.assertEquals  dataDictionary.businessDefinitions.size(),    1230
+        Assert.assertEquals  dataDictionary.supportingInformation.size(),   152
+        Assert.assertEquals  dataDictionary.xmlSchemaConstraints.size(),     33
+
+    }
+
+
+    void 'I01 : test xml ingest and save of November 2021'() {
 
         given:
         setupData()

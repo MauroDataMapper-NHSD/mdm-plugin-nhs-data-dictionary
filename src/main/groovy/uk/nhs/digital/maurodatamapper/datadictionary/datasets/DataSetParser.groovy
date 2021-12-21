@@ -13,7 +13,7 @@ import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Slf4j
@@ -231,43 +231,43 @@ class DataSetParser {
     }
 
     static void setOrder(MetadataAware item, Integer order) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Web Order", value: "" + order))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Web Order", value: "" + order))
     }
 
     static void setChoice(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Choice", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Choice", value: "true"))
     }
 
     static void setAnd(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "And", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "And", value: "true"))
     }
 
     static void setAddress(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Address Choice", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address Choice", value: "true"))
     }
 
     static void setNameChoice(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Name Choice", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Name Choice", value: "true"))
     }
 
     static void setInclusiveOr(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Inclusive", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Inclusive", value: "true"))
     }
 
     static void setDataSetReference(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Data Set Reference", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Data Set Reference", value: "true"))
     }
 
     static boolean isDataSetReference(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == DDHelperFunctions.metadataNamespace
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
                 && it.key == "Data Set Reference"
                 && it.value == "true")
         }
     }
 
     static void setDataSetReferenceTo(MetadataAware item, String dataSetName) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Data Set Reference To", value: dataSetName))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Data Set Reference To", value: dataSetName))
     }
 
 
@@ -276,7 +276,7 @@ class DataSetParser {
     }
 
     static void setMultiplicityText(MetadataAware item, String multiplicity) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Multiplicity Text", value: multiplicity))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Multiplicity Text", value: multiplicity))
     }
 
     static String getMultiplicityText(MetadataAware item) {
@@ -284,7 +284,7 @@ class DataSetParser {
     }
 
     static void setMRO(MetadataAware item, String mro) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "MRO", value: mro))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "MRO", value: mro))
     }
 
     static String getMRO(MetadataAware item) {
@@ -292,7 +292,7 @@ class DataSetParser {
     }
 
     static void setRules(MetadataAware item, String rules) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Rules", value: rules))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Rules", value: rules))
     }
 
     static String getRules(MetadataAware item) {
@@ -300,7 +300,7 @@ class DataSetParser {
     }
 
     static void setGroupRepeats(MetadataAware item, String groupRepeats) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "Group Repeats", value: groupRepeats))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Group Repeats", value: groupRepeats))
     }
 
     static String getGroupRepeats(MetadataAware item) {
@@ -309,12 +309,12 @@ class DataSetParser {
 
 
     static void setNotOption(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: DDHelperFunctions.metadataNamespace, key: "NotOption", value: "true"))
+        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "NotOption", value: "true"))
     }
 
     static boolean isChoice(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == DDHelperFunctions.metadataNamespace
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
                 && it.key == "Choice"
                 && it.value == "true")
         }
@@ -322,7 +322,7 @@ class DataSetParser {
 
     static boolean isAnd(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == DDHelperFunctions.metadataNamespace
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
                 && it.key == "And"
                 && it.value == "true")
         }
@@ -330,7 +330,7 @@ class DataSetParser {
 
     static boolean isInclusiveOr(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == DDHelperFunctions.metadataNamespace
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
                 && it.key == "Inclusive"
                 && it.value == "true")
         }
@@ -338,7 +338,7 @@ class DataSetParser {
 
     static boolean isAddress(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == DDHelperFunctions.metadataNamespace
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
                 && it.key == "Address Choice"
                 && it.value == "true")
         }
@@ -346,7 +346,7 @@ class DataSetParser {
 
     static boolean isNotOption(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == DDHelperFunctions.metadataNamespace
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
                 && it.key == "NotOption"
                 && it.value == "true")
         }

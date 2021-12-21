@@ -1,5 +1,6 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets
 
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -9,7 +10,7 @@ import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 class OtherDataSetParser {
@@ -591,8 +592,8 @@ class OtherDataSetParser {
 
                     DataSetParser.setChoice(returnElement)
                     DataSetParser.setAddress(returnElement)
-                    DDHelperFunctions.addMetadata(dataElement, "Address 1", tr.td[1].a[1]."@href".text())
-                    DDHelperFunctions.addMetadata(dataElement, "Address 2", tr.td[1].a[3]."@href".text())
+                    dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 1", value: tr.td[1].a[1]."@href".text()))
+                    dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 2", value: tr.td[1].a[3]."@href".text()))
                 }  else {
                     unmatchedPattern("Unmatched 4 link pattern", tr, dataModel.label, currentClassName)
                 }

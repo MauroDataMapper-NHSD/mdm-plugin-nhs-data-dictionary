@@ -1,12 +1,11 @@
-package uk.nhs.digital.maurodatamapper.datadictionary
+package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
-import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 
-@Slf4j
-class ClassLink {
+class NhsDDClassLink {
 
     String uin
     String metaclass
@@ -23,12 +22,12 @@ class ClassLink {
     String relationClientExclusivity
     String direction
 
-    DataClass clientClass
-    DataClass supplierClass
+    NhsDDClass clientClass
+    NhsDDClass supplierClass
 
 
 
-    ClassLink(def link) {
+    NhsDDClassLink(def link) {
         uin = link."@uin".text()
         metaclass = link.metaclass.text()
         clientRole = link.clientRole.text()
@@ -44,7 +43,7 @@ class ClassLink {
         clientUin = link.participant.find {it."@role".text() == "Client"}."@referencedUin".text()
     }
 
-    ClassLink(DataElement dataElement) {
+/*    ClassLink(DataElement dataElement) {
         uin = DDHelperFunctions.getMetadataValue(dataElement, "uin")
         metaclass = DDHelperFunctions.getMetadataValue(dataElement, "metaclass")
         clientRole = DDHelperFunctions.getMetadataValue(dataElement, "clientRole")
@@ -59,9 +58,9 @@ class ClassLink {
         relationSupplierExclusivity = DDHelperFunctions.getMetadataValue(dataElement, "relationSupplierExclusivity")
         relationClientExclusivity = DDHelperFunctions.getMetadataValue(dataElement, "relationClientExclusivity")
         direction = DDHelperFunctions.getMetadataValue(dataElement, "direction")
-//        this.dataElement = dataElement
+        //        this.dataElement = dataElement
     }
-
+*/
     String toTableText() {
         String cardinality = clientCardinality
         if(direction == "client") {
@@ -75,7 +74,25 @@ class ClassLink {
 
     }
 
+/*    void addMetadata(DataElement dataElement) {
+        DDHelperFunctions.addMetadata(dataElement, "uin", uin)
+        DDHelperFunctions.addMetadata(dataElement, "metaclass", metaclass)
+        DDHelperFunctions.addMetadata(dataElement, "clientRole", clientRole)
+        DDHelperFunctions.addMetadata(dataElement, "supplierRole", supplierRole)
+        DDHelperFunctions.addMetadata(dataElement, "clientCardinality", clientCardinality)
+        DDHelperFunctions.addMetadata(dataElement, "supplierCardinality", supplierCardinality)
+        DDHelperFunctions.addMetadata(dataElement, "name", name)
+        DDHelperFunctions.addMetadata(dataElement, "partOfClientKey", partOfClientKey)
+        DDHelperFunctions.addMetadata(dataElement, "partOfSupplierKey", partOfSupplierKey)
+        DDHelperFunctions.addMetadata(dataElement, "supplierUin", supplierUin)
+        DDHelperFunctions.addMetadata(dataElement, "clientUin", clientUin)
+        DDHelperFunctions.addMetadata(dataElement, "relationSupplierExclusivity", relationSupplierExclusivity)
+        DDHelperFunctions.addMetadata(dataElement, "relationClientExclusivity", relationClientExclusivity)
+        DDHelperFunctions.addMetadata(dataElement, "direction", direction)
 
+
+    }
+*/
     static String getCardinalityText(String cardinality, String role) {
         switch(cardinality) {
             case "0..1":
@@ -91,7 +108,8 @@ class ClassLink {
         }
     }
 
-    void findTargetClass(NhsDataDictionary nhsDataDictionary) {
+    /*
+    void findTargetClass(uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary nhsDataDictionary) {
         supplierClass = nhsDataDictionary.classesByUin[supplierUin]
         if(!supplierClass) {
             log.error("Cannot match supplier class relationship: {} :: SupplierUin: {}\n{}", uin, supplierUin, this.toString())
@@ -102,5 +120,6 @@ class ClassLink {
         }
 
     }
+*/
 
 }

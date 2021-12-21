@@ -8,7 +8,7 @@ import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 class CDSDataSetParser {
@@ -75,7 +75,7 @@ class CDSDataSetParser {
             } else {
                 DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].a[0].@href.text())
             }
-            Node tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(firstRow.td[2]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+            Node tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(firstRow.td[2]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
             tdNode.children()[0].replaceNode {}
 
             String multiplicityText = XmlUtil.serialize(tdNode).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
@@ -178,7 +178,7 @@ class CDSDataSetParser {
 
     static DataClass getClassFromTD(GPathResult td, NhsDataDictionary dataDictionary) {
         DataClass dataClass = new DataClass(label: "")
-        Node tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(td).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+        Node tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(td).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
 
         // Issue where the trimmed content == NBSP so we need to trim it then check that for NBSP
         def firstStringNode = tdNode.depthFirst().find {
@@ -240,9 +240,9 @@ class CDSDataSetParser {
 
                 Node tdNode = null
                 if (component.tbody.tr[1].td.size() == 3) {
-                    tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[2]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+                    tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[2]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
                 } else {
-                    tdNode = dataDictionary.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[0]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+                    tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[0]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
                 }
 
                 currentClass.description = XmlUtil.serialize(tdNode)

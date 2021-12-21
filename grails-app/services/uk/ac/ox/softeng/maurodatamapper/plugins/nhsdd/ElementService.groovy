@@ -2,6 +2,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -25,6 +26,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 
 @Slf4j
 @Transactional
@@ -141,7 +145,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
     @Override
     String getMetadataNamespace() {
-        DDHelperFunctions.metadataNamespace + ".element"
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE +  ".element"
     }
 
     List<DataElement> getElementAttributes(DataElement dataElement, DataDictionary dataDictionary) {
@@ -176,43 +180,14 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         return returnCodesList
     }
 
-    @Override
-    String getShortDescription(DataElement dataElement, DataDictionary dataDictionary) {
-        if(isPreparatory(dataElement)) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(dataElement.description.toString()) + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                if (firstSentence.toLowerCase().contains("is the same as")) {
-                    List<DataElement> attributes = getElementAttributes(dataElement, dataDictionary)
-                    if (attributes.size() == 1) {
-                        firstSentence = attributeService.getShortDescription(attributes[0], dataDictionary)
-                    } else {
-                        firstSentence = dataElement.label
-                    }
-                }
-                return firstSentence
-            } catch (Exception e) {
-                log.error("Couldn't parse: " + dataElement.description)
-                return dataElement.label
-            }
-        }
-    }
+    void persistElements(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+                           VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                        Map<String, Terminology> attributeTerminologiesByName) {
 
-    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                      NhsDataDictionary nhsDataDictionary) {
-
-        Map<String, PrimitiveType> primitiveTypes = [:]
-        coreDataModel.dataTypes.each {
-            if (it instanceof PrimitiveType) {
-                primitiveTypes[it.label] = it
-            }
+        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find { it.label == "String" }
+        if(!stringDataType) {
+            stringDataType = new PrimitiveType(label: "String", createdBy: currentUserEmailAddress)
+            coreDataModel.addToDataTypes(stringDataType)
         }
 
         Folder dataElementCodeSetsFolder =
@@ -223,7 +198,8 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         }
         folderService.save(dataElementCodeSetsFolder)
 
-        DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+        DataClass allElementsClass = new DataClass(label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy:
+            currentUserEmailAddress)
 
         DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
                                                        parentDataClass: allElementsClass)
@@ -234,144 +210,90 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
         Map<String, Folder> folders = [:]
         int idx = 0
-        xml.DDDataElement.sort {it.TitleCaseName.text()}.each {ddDataElement ->
+        // Would sort, but assume already sorted
+        dataDictionary.elements.each {name, element ->
             DataType dataType
-            String elementName = ddDataElement.TitleCaseName[0].text()
-            String description = DDHelperFunctions.parseHtml(ddDataElement.definition)
-            boolean isRetired = ddDataElement.isRetired.text() == "true"
-                if (ddDataElement."value-set".size() > 0 && !isRetired) {
-                    String codeSetName = elementName
-                    String capitalizedCodeSetName = ddDataElement.name.text()
-                    String folderName = codeSetName.substring(0, 1)
-                    Folder subFolder = folders[folderName]
-                    if (!subFolder) {
-                        subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
-                        dataElementCodeSetsFolder.addToChildFolders(subFolder)
-                        if (!folderService.validate(subFolder)) {
-                            throw new ApiInvalidModelException('NHSDD', 'Invalid model', subFolder.errors)
-                        }
-                        folderService.save(subFolder)
-                        folders[folderName] = subFolder
+            if (element.codes.size() > 0 && !element.isRetired()) {
+                String folderName = name.substring(0, 1).toUpperCase()
+                Folder subFolder = folders[folderName]
+                if (!subFolder) {
+                    subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
+                    dataElementCodeSetsFolder.addToChildFolders(subFolder)
+                    if (!folderService.validate(subFolder)) {
+                        throw new ApiInvalidModelException('NHSDD', 'Invalid model', subFolder.errors)
                     }
+                    folderService.save(subFolder)
+                    folders[folderName] = subFolder
+                }
 
 
                 CodeSet codeSet = new CodeSet(
-                    label: elementName,
+                    label: name,
                     description: "",
                     folder: subFolder,
                     createdBy: currentUserEmailAddress,
                     authority: authorityService.defaultAuthority)
-                String version = ddDataElement."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.version."@value".text()
-                codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: version))
+                codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: element.codeSetVersion))
 
 
-                    String terminologyUin = ddDataElement.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
-                    Terminology attributeTerminology = nhsDataDictionary.attributeTerminologiesByName[terminologyUin]
+                // String terminologyUin = ddDataElement.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
+                // Terminology attributeTerminology = dataDictionary.attributeTerminologiesByName[terminologyUin]
+                element.codes.each {code ->
+                    Terminology attributeTerminology = attributeTerminologiesByName[code.owningAttribute.name]
                     if(!attributeTerminology) {
-                        log.error("No terminology with UIN ${terminologyUin} found for element ${elementName}")
+                        log.error("No terminology with name ${code.owningAttribute.name} found for element ${name}")
                     } else {
-                        ddDataElement."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.concept.each {concept ->
-                            if (concept.property.find {property ->
-                                property.code.@value.toString() == "Data Element" &&
-                                property.valueString.@value.toString() == capitalizedCodeSetName
-                            }) {
-                                Term t = attributeTerminology.terms.find {it -> it.code == concept.code.@value.toString()}
-                                if (!t) {
-                                    log.error("Cannot find term: ${concept.code.@value}")
-                                } else {
-                                    codeSet.addToTerms(t)
-                                }
-                            }
+                        Term t = attributeTerminology.terms.find {term -> term.code == code.code}
+                        if (!t) {
+                            log.error("Cannot find term: ${code.code}")
+                        } else {
+                            codeSet.addToTerms(t)
                         }
                     }
-                    if (codeSet.validate()) {
-                        codeSet = codeSetService.saveModelWithContent(codeSet)
-                    } else {
-                        GormUtils.outputDomainErrors(messageSource, codeSet) // TODO throw exception???
-                    }
-                    dataType = new ModelDataType(label: "${elementName} Element Type",
-                                                 modelResourceDomainType: codeSet.getDomainType(),
-                                                 modelResourceId: codeSet.id,
-                                                 createdBy: currentUserEmailAddress)
-                    coreDataModel.addToDataTypes(dataType)
-                } else {
-                    // no "value-set" nodes
-                    String formatLength = ddDataElement."format-length".text()
-                    if (!formatLength) {
-                        formatLength = "String"
-                    }
-                    dataType = primitiveTypes[formatLength]
-                    if (!dataType) {
-                        dataType = new PrimitiveType(label: formatLength, createdBy: currentUserEmailAddress)
-                        primitiveTypes[formatLength] = dataType
-                        coreDataModel.addToDataTypes(dataType)
-                    }
+
                 }
-                DataElement elementDataElement = new DataElement(
-                    label: elementName,
-                    description: description,
-                    createdBy: currentUserEmailAddress,
-                    dataType: dataType,
-                    index: idx++)
+                if (codeSet.validate()) {
+                    codeSet = codeSetService.saveModelWithContent(codeSet)
+                } else {
+                    GormUtils.outputDomainErrors(messageSource, codeSet) // TODO throw exception???
+                }
+                dataType = new ModelDataType(label: "${name} Element Type",
+                                             modelResourceDomainType: codeSet.getDomainType(),
+                                             modelResourceId: codeSet.id,
+                                             createdBy: currentUserEmailAddress)
+                coreDataModel.addToDataTypes(dataType)
+            } else {
+                // no "value-set" nodes
+                dataType = stringDataType
+            }
+            DataElement elementDataElement = new DataElement(
+                label: name,
+                description: element.definition,
+                createdBy: currentUserEmailAddress,
+                dataType: dataType,
+                index: idx++)
 
-            addMetadataFromXml(elementDataElement, ddDataElement, currentUserEmailAddress)
+            addMetadataFromComponent(elementDataElement, element, currentUserEmailAddress)
 
-            String elementAttributes = StringUtils.join(ddDataElement."link".collect {link ->
-                link.participant.find{p -> p["@role"] == "Supplier"}["@referencedUin"]
-            }.collect {
-                nhsDataDictionary.attributeElementsByUin[it]
-            }.collect {
-                it.label
-            }, ";")
+            String elementAttributes = StringUtils.join(element.instantiatesAttributes.collect {it.name }, ";")
 
             addToMetadata(elementDataElement, "linkedAttributes", elementAttributes, currentUserEmailAddress)
 
-            String shortDescription = getShortDesc(description, elementDataElement, nhsDataDictionary)
-            addToMetadata(elementDataElement, "shortDescription", shortDescription, currentUserEmailAddress)
 
-            nhsDataDictionary.elementsByUrl[ddDataElement.DD_URL.text()] = elementDataElement
-            if (isRetired) {
+            if (element.isRetired()) {
                 retiredElementsClass.addToDataElements(elementDataElement)
             } else {
                 allElementsClass.addToDataElements(elementDataElement)
             }
+            dataDictionary.elementsByUrl[element.otherProperties["ddUrl"]] = elementDataElement
         }
+
     }
 
-    String getShortDesc(String description, DataElement dataElement, NhsDataDictionary dataDictionary) {
-        boolean isPreparatory = dataElement.metadata.any {it.key == "isPreparatory" && it.value == "true"}
-
-        if (isPreparatory) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                if (firstSentence.toLowerCase().contains("is the same as")) {
-                    String linkedAttributesString = dataElement.metadata.find { it.key == "linkedAttributes" }?.value
-                    String[] attributes = []
-                    if(linkedAttributesString) {
-                        attributes = linkedAttributesString.split(";")
-                    }
-                    if (attributes.length == 1) {
-                        firstSentence = dataDictionary.attributeElementsByName[attributes[0]].metadata.find {it.key == "shortDescription"}?.value
-                    } else {
-                        firstSentence = dataElement.label
-                    }
-                }
-                return firstSentence
-            } catch (Exception e) {
-                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
-                log.trace('Unparsable Description:: {}', description)
-                return dataElement.label
-            }
-        }
+    NhsDDElement elementFromDataElement(DataElement de) {
+        NhsDDElement element = new NhsDDElement()
+        nhsDataDictionaryComponentFromItem(de, element)
+        return element
     }
-
 
 }
