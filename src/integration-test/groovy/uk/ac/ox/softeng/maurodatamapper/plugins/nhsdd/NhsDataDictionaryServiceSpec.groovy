@@ -87,13 +87,13 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
 
-        Assert.assertEquals  dataDictionary.attributes.size(),             2526
-        Assert.assertEquals  dataDictionary.elements.size(),               4915
-        Assert.assertEquals  dataDictionary.classes.size(),                 363
-        Assert.assertEquals  dataDictionary.dataSets.size(),                261
-        Assert.assertEquals  dataDictionary.businessDefinitions.size(),    1230
-        Assert.assertEquals  dataDictionary.supportingInformation.size(),   152
-        Assert.assertEquals  dataDictionary.xmlSchemaConstraints.size(),     33
+        assertEquals  dataDictionary.attributes.size(),             2526
+        assertEquals  dataDictionary.elements.size(),               4915
+        assertEquals  dataDictionary.classes.size(),                 363
+        assertEquals  dataDictionary.dataSets.size(),                261
+        assertEquals  dataDictionary.businessDefinitions.size(),    1230
+        assertEquals  dataDictionary.supportingInformation.size(),   152
+        assertEquals  dataDictionary.xmlSchemaConstraints.size(),     33
 
     }
 
