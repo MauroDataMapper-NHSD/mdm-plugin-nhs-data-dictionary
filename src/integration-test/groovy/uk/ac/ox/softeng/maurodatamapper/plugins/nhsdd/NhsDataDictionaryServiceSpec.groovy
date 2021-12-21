@@ -9,9 +9,11 @@ import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.constraint.callable.VersionAwareConstraints
 import uk.ac.ox.softeng.maurodatamapper.core.model.Model
 import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
+import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.merge.ObjectPatchData
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.path.PathNode
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.security.basic.PublicAccessSecurityPolicyManager
@@ -30,8 +32,11 @@ import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import grails.views.WritableScriptTemplate
+import grails.web.databinding.DataBindingUtils
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import spock.lang.PendingFeature
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -222,7 +227,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
     void 'MD02 : Merge Diff Nov 2021 and Sept 2021 ingest'() {
         /*
-        Sept2021 (1.0.0) -> Sept2021 (septemer_2021) // branch of the original
+        Sept2021 (1.0.0) -> Sept2021 (september_2021) // branch of the original
                          \
                           \-> Sept2021 (main) // ingest of nov2021 file
          */
@@ -231,31 +236,87 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         // Ingest, finalise september
         UUID releaseId = cleanIngest('september2021.xml', 'September 2021')
         // Ingest november
-        UUID branchId = cleanIngest('november2021.xml', 'November 2021', false)
+        UUID novBranchId = cleanIngest('november2021.xml', 'November 2021', false)
         // Change the folder name and link to the sept release
         VersionedFolder release = versionedFolderService.get(releaseId)
-        VersionedFolder test = versionedFolderService.get(branchId)
-        test.label = 'NHS Data Dictionary (September 2021)'
-        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(test, release, UnloggedUser.instance)
-        versionedFolderService.save(test, validate: false, flush: true)
+        VersionedFolder novBranch = versionedFolderService.get(novBranchId)
+        novBranch.label = 'NHS Data Dictionary (September 2021)'
+        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(novBranch, release, UnloggedUser.instance)
+        versionedFolderService.save(novBranch, validate: false, flush: true)
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
         // Create a september branch
         release = versionedFolderService.get(releaseId)
-        UUID mainBranchId = createBranch(release, 'september_2021')
-        test = versionedFolderService.get(branchId)
-        VersionedFolder main = versionedFolderService.get(mainBranchId)
+        UUID septBranchId = createBranch(release, 'september_2021')
+        novBranch = versionedFolderService.get(novBranchId)
+        VersionedFolder septBranch = versionedFolderService.get(septBranchId)
 
 
         when:
         log.info('---------- Starting merge diff ----------')
         long start = System.currentTimeMillis()
-        MergeDiff<VersionedFolder> mergeDiff = versionedFolderService.getMergeDiffForVersionedFolders(test, main)
+        MergeDiff<VersionedFolder> mergeDiff = versionedFolderService.getMergeDiffForVersionedFolders(novBranch, septBranch)
         log.info('Merge Diff took {}', Utils.timeTaken(start))
+        mergeDiff.flattenedDiffs.removeIf({
+            PathNode last = it.fullyQualifiedPath.last()
+            last.matches(new PathNode('md', 'uk.nhs.datadictionary.term.publishDate', null, 'value')) ||
+            last.attribute == 'modelResourceId'
+        })
 
         then:
         !mergeDiff.empty
         mergeDiff.numberOfDiffs == 144
+
+        // Uncomment to get an updated merge diff json file
+        //        when:
+        //        String actual = renderMergeDiffAsJson(mergeDiff)
+        //        log.error('Diffs {}', mergeDiff.numberOfDiffs)
+        //
+        //        then:
+        //        actual
+        //        writeFile('mergeDiff.json', actual)
+    }
+
+    @PendingFeature(reason = 'Need MDTs to be mergeable')
+    void 'M01 : Merge Nov 2021 patches into Sept 2021 ingest'() {
+        /*
+        Sept2021 (1.0.0) -> Sept2021 (september_2021) // branch of the original
+                         \
+                          \-> Sept2021 (main) // ingest of nov2021 file
+         */
+        given:
+        setupData()
+        // Ingest, finalise september
+        UUID releaseId = cleanIngest('september2021.xml', 'September 2021')
+        // Ingest november
+        UUID novBranchId = cleanIngest('november2021.xml', 'November 2021', false)
+        // Change the folder name and link to the sept release
+        VersionedFolder release = versionedFolderService.get(releaseId)
+        VersionedFolder novBranch = versionedFolderService.get(novBranchId)
+        novBranch.label = 'NHS Data Dictionary (September 2021)'
+        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(novBranch, release, UnloggedUser.instance)
+        versionedFolderService.save(novBranch, validate: false, flush: true)
+        sessionFactory.currentSession.flush()
+        sessionFactory.currentSession.clear()
+        // Create a september branch
+        release = versionedFolderService.get(releaseId)
+        UUID septBranchId = createBranch(release, 'september_2021')
+        novBranch = versionedFolderService.get(novBranchId)
+        VersionedFolder septBranch = versionedFolderService.get(septBranchId)
+        ObjectPatchData objectPatchData = new ObjectPatchData()
+        String patchJson = new String(loadTestFile('mergePatches.json'))
+        DataBindingUtils.bindObjectToInstance(objectPatchData, new JsonSlurper().parseText(patchJson))
+
+
+        when:
+        log.info('---------- Starting merge  ----------')
+        long start = System.currentTimeMillis()
+        VersionedFolder mergedFolder =
+            versionedFolderService.mergeObjectPatchDataIntoVersionedFolder(objectPatchData, septBranch, novBranch, PublicAccessSecurityPolicyManager.instance)
+        log.info('Merge  took {}', Utils.timeTaken(start))
+
+        then:
+        mergedFolder
 
         // Uncomment to get an updated merge diff json file
         //        when:
