@@ -628,7 +628,8 @@ class NhsDataDictionaryService {
         if (finalise) {
             log.info('Finalising {}', dictionaryFolderName)
             startTime = System.currentTimeMillis()
-            versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, Version.from(folderVersionNo ?: '0.0.1'), VersionChangeType.MAJOR, releaseDate)
+            Version requestedFolderVersion = folderVersionNo ? Version.from(folderVersionNo) : null
+            versionedFolderService.finaliseFolder(dictionaryFolder, currentUser, requestedFolderVersion, VersionChangeType.MAJOR, releaseDate)
             log.info('Finalise {} complete in {}', dictionaryFolderName, Utils.timeTaken(startTime))
         }
 
