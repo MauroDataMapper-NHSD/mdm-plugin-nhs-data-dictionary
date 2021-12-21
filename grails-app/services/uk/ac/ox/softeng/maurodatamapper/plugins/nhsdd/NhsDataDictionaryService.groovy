@@ -33,11 +33,16 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import org.hibernate.SessionFactory
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 import java.time.Instant
 import java.time.LocalDate
@@ -81,54 +86,48 @@ class NhsDataDictionaryService {
         return versionTreeModelList
     }
 
-    boolean isPreparatory(MetadataAware metadataAware) {
-        return metadataAware.metadata.any {it.key == "isPreparatory" && it.value == "true"}
-    }
 
-    boolean isRetired(MetadataAware metadataAware) {
-        return metadataAware.metadata.any {it.key == "isRetired" && it.value == "true"}
-    }
 
 
     def statistics(UUID versionedFolderId) {
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         return [
-            "Attributes"            : [
-                "Total"      : dataDictionary.attributeElementsByName.size(),
-                "Preparatory": dataDictionary.attributeElementsByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.attributeElementsByName.values().count {isRetired(it)}
-            ],
-            "Data Field Notes"      : [
-                "Total"      : dataDictionary.elementsByName.size(),
-                "Preparatory": dataDictionary.elementsByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.elementsByName.values().count {isRetired(it)}
-            ],
-            "Classes"               : [
-                "Total"      : dataDictionary.classesByName.size(),
-                "Preparatory": dataDictionary.classesByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.classesByName.values().count {isRetired(it)}
-            ],
-            "Data Sets"             : [
-                "Total"      : dataDictionary.dataSetsByName.size(),
-                "Preparatory": dataDictionary.dataSetsByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.dataSetsByName.values().count {isRetired(it)}
-            ],
-            "Business Definitions"  : [
-                "Total"      : dataDictionary.businessDefinitionsByName.size(),
-                "Preparatory": dataDictionary.businessDefinitionsByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.businessDefinitionsByName.values().count {isRetired(it)}
-            ],
-            "Supporting Information": [
-                "Total"      : dataDictionary.supportingInformationByName.size(),
-                "Preparatory": dataDictionary.supportingInformationByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.supportingInformationByName.values().count {isRetired(it)}
-            ],
-            "XML Schema Constraints": [
-                "Total"      : dataDictionary.xmlSchemaConstraintsByName.size(),
-                "Preparatory": dataDictionary.xmlSchemaConstraintsByName.values().count {isPreparatory(it)},
-                "Retired"    : dataDictionary.xmlSchemaConstraintsByName.values().count {isRetired(it)}
-            ]
+                "Attributes"                : [
+                        "Total"      : dataDictionary.attributes.size(),
+                        "Preparatory": dataDictionary.attributes.values().count { it.isPreparatory() },
+                        "Retired"    : dataDictionary.attributes.values().count { it.isRetired() }
+                ],
+                "Data Field Notes"          : [
+                        "Total"      : dataDictionary.elements.size(),
+                        "Preparatory": dataDictionary.elements.values().count {  it.isPreparatory() },
+                        "Retired"    : dataDictionary.elements.values().count {  it.isRetired() }
+                ],
+                "Classes"                   : [
+                        "Total"      : dataDictionary.classes.size(),
+                        "Preparatory": dataDictionary.classes.values().count {   it.isPreparatory() },
+                        "Retired"    : dataDictionary.classes.values().count { it.isRetired() }
+                ],
+                "Data Sets"                 : [
+                        "Total"      : dataDictionary.dataSets.size(),
+                        "Preparatory": dataDictionary.dataSets.values().count {  it.isPreparatory() },
+                        "Retired"    : dataDictionary.dataSets.values().count { it.isRetired() }
+                ],
+                "Business Definitions"      : [
+                        "Total"      : dataDictionary.businessDefinitions.size(),
+                        "Preparatory": dataDictionary.businessDefinitions.values().count {  it.isPreparatory() },
+                        "Retired"    : dataDictionary.businessDefinitions.values().count { it.isRetired() }
+                ],
+                "Supporting Information"    : [
+                        "Total"      : dataDictionary.supportingInformation.size(),
+                        "Preparatory": dataDictionary.supportingInformation.values().count {  it.isPreparatory() },
+                        "Retired"    : dataDictionary.supportingInformation.values().count { it.isRetired() }
+                ],
+                "XML Schema Constraints"    : [
+                        "Total"      : dataDictionary.xmlSchemaConstraints.size(),
+                        "Preparatory": dataDictionary.xmlSchemaConstraints.values().count { it.isPreparatory() },
+                        "Retired"    : dataDictionary.xmlSchemaConstraints.values().count { it.isRetired() }
+                ]
 
 
         ]
@@ -153,27 +152,27 @@ class NhsDataDictionaryService {
 
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
-        List<Map> check1components = dataDictionary.classesByName.values().findAll {ddClass ->
-            !isRetired(ddClass) && ddClass.dataElements.count {it.dataType instanceof ReferenceType} == 0
-        }.sort {it.label}.collect {it -> outputComponent(it)}
+        List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
+            !ddClass.isRetired() && ddClass.allAttributes().count { it.dataType instanceof ReferenceType } == 0
+        }.sort{it.name}.collect{it -> outputComponent(it)}
 
-        List<Map> check2components = dataDictionary.attributesByName.values().findAll {ddAttribute ->
+        List<Map> check2components = dataDictionary.attributes.values().findAll{ddAttribute ->
             // log.debug(ddAttribute.classLinks.size())
-            !isRetired(ddAttribute) &&
-            !dataDictionary.classesByName.values().any {cls ->
-                cls.attributes.keySet().find {att -> att.name == ddAttribute.name}
-            }
-        }.sort {it.name}.collect {it -> outputComponent(it)}
+            !ddAttribute.isRetired() &&
+                    !dataDictionary.classes.values().any { cls ->
+                        cls.attributes.keySet().find{att -> att.name == ddAttribute.name }
+                    }
+        }.sort{it.name}.collect{it -> outputComponent(it)}
 
         List<Map> check3components = dataDictionary.elements.values().findAll {ddElement ->
             // log.debug(ddAttribute.classLinks.size())
-            !ddElement.isRetired &&
+            !ddElement.isRetired() &&
             ddElement.getElementAttributes(dataDictionary) == []
         }.sort {it.name}.collect {it -> outputComponent(it)}
 
         List<Map> check4components = dataDictionary.dataSets.values().findAll {ddDataSet ->
             // log.debug(ddAttribute.classLinks.size())
-            !ddDataSet.isRetired &&
+            !ddDataSet.isRetired() &&
             (ddDataSet.stringValues["overview"] == null || ddDataSet.stringValues["overview"] == "")
         }.sort {it.name}.collect {it -> outputComponent(it)}
 
@@ -191,7 +190,7 @@ class NhsDataDictionaryService {
         Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect {it.name})
         Set<String> duplicateClasses = findDuplicates(dataDictionary.classes.values().collect {it.name})
 
-        Set<DataDictionaryComponent> foundDuplicates = []
+        Set<NhsDataDictionaryComponent> foundDuplicates = []
         if (duplicateAttributes.size() > 0) {
             duplicateAttributes.each {attName ->
                 foundDuplicates.addAll(dataDictionary.attributes.values().findAll {it.name == attName})
@@ -211,7 +210,7 @@ class NhsDataDictionaryService {
         List<Map> check7components = foundDuplicates.
             sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<DataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPrepatory}
+        List<NhsDataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPreparatory()}
         List<Map> check8components = dataDictionary.dataSets.values().findAll {component ->
             component.catalogueItem.allDataElements.find {dataElement ->
                 prepItems.find {it.name == dataElement.label}
@@ -302,12 +301,10 @@ class NhsDataDictionaryService {
         attributeElements.addAll(attributesClass.dataElements)
         attributeElements.addAll(retiredAttributesClass.dataElements)
 
-        attributeElements.each {dataElement ->
-            //DDAttribute ddAttribute = new DDAttribute()
-            //ddAttribute.fromCatalogueItem(dataDictionary, dataElement, attributesClass.id, coreModel.id, metadataService)
-            dataDictionary.attributeElementsByName[dataElement.label] = dataElement
+        attributeElements.each { dataElement ->
+            NhsDDAttribute attribute = attributeService.attributeFromDataElement(dataElement)
+            dataDictionary.attributes[attribute.name] = attribute
         }
-
     }
 
     void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
@@ -321,7 +318,9 @@ class NhsDataDictionaryService {
         elementElements.each {dataElement ->
             //DDElement ddElement = new DDElement()
             //ddElement.fromCatalogueItem(dataDictionary, dataElement, elementsClass.id, coreModel.id, metadataService)
-            dataDictionary.elementsByName[dataElement.label] = dataElement
+            NhsDDElement element = elementService.elementFromDataElement(dataElement)
+            dataDictionary.elements[element.name] = element
+
         }
 
     }
@@ -337,7 +336,9 @@ class NhsDataDictionaryService {
         classClasses.each {dataClass ->
             //DDClass ddClass = new DDClass()
             //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
-            dataDictionary.classesByName[dataClass.label] = dataClass
+            NhsDDClass clazz = classService.classFromDataClass(dataClass)
+            dataDictionary.classes[clazz.name] = clazz
+
         }
 
     }
@@ -348,7 +349,9 @@ class NhsDataDictionaryService {
         dataSetModels.each {dataModel ->
             //DDDataSet ddDataSet = new DDDataSet()
             //ddDataSet.fromCatalogueItem(dataDictionary, dataModel, null, null, metadataService)
-            dataDictionary.dataSetsByName[dataModel.label] = dataModel
+            NhsDDDataSet dataSet = dataSetService.dataSetFromDataModel(dataModel)
+            dataDictionary.dataSets[dataSet.name] = dataSet
+
         }
     }
 
@@ -356,7 +359,9 @@ class NhsDataDictionaryService {
         busDefsTerminology.terms.each {term ->
             //DDBusinessDefinition ddBusinessDefinition = new DDBusinessDefinition()
             //ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, busDefsTerminology.id, busDefsTerminology.id, metadataService)
-            dataDictionary.businessDefinitionsByName[term.code] = term
+            NhsDDBusinessDefinition businessDefinition = businessDefinitionService.businessDefinitionFromTerm(term)
+            dataDictionary.businessDefinitions[businessDefinition.name] = businessDefinition
+
         }
     }
 
@@ -364,7 +369,9 @@ class NhsDataDictionaryService {
         supDefsTerminology.terms.each {term ->
             //DDSupportingDefinition ddSupportingDefinition = new DDSupportingDefinition()
             //ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, supDefsTerminology.id, supDefsTerminology.id, metadataService)
-            dataDictionary.supportingInformationByName[term.code] = term
+            NhsDDSupportingInformation supportingInformation = supportingInformationService.supportingInformationFromTerm(term)
+            dataDictionary.supportingInformation[supportingInformation.name] = supportingInformation
+
         }
     }
 
@@ -372,7 +379,9 @@ class NhsDataDictionaryService {
         xmlSchemaConstraintsTerminology.terms.each {term ->
             //DDXmlSchemaConstraint ddXmlSchemaConstraint = new DDXmlSchemaConstraint()
             //ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, xmlSchemaConstraintsTerminology.id, xmlSchemaConstraintsTerminology.id,metadataService)
-            dataDictionary.xmlSchemaConstraintsByName[term.code] = term
+            NhsDDXMLSchemaConstraint xmlSchemaConstraint = xmlSchemaConstraintService.ddxmlSchemaConstraintFromTerm(term)
+            dataDictionary.xmlSchemaConstraints[xmlSchemaConstraint.name] = xmlSchemaConstraint
+
         }
     }
 
@@ -439,7 +448,7 @@ class NhsDataDictionaryService {
 
 
     File publishDita(UUID versionedFolderId) {
-        DataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         File tempDir = File.createTempDir()
         log.debug(tempDir.path)
@@ -513,7 +522,11 @@ class NhsDataDictionaryService {
 
 
     @Transactional
-    VersionedFolder ingest(User currentUser, def xml, String releaseDate, boolean finalise, String folderVersionNo, String prevVersion) {
+    VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion) {
+
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary nhsDataDictionary1 = uk
+            .nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.buildFromXml(xml, releaseDate)
+
         log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)
         long startTime = System.currentTimeMillis()
         long originalStartTime = startTime
@@ -541,12 +554,13 @@ class NhsDataDictionaryService {
         }
 
         DataModel coreDataModel =
-            new DataModel(label: NhsDataDictionary.CORE_MODEL_NAME,
+            new DataModel(label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.CORE_MODEL_NAME,
                           description: "Elements, attributes and classes",
                           folder: dictionaryFolder,
                           createdBy: currentUser.emailAddress,
                           authority: authorityService.defaultAuthority,
                           type: DataModelType.DATA_STANDARD)
+        /*
         if (prevDictionaryVersion) {
             DataModel prevCore = folderService.findAllModelsInFolder(prevDictionaryVersion).find {
                 it.label == NhsDataDictionary.CORE_MODEL_NAME
@@ -560,27 +574,22 @@ class NhsDataDictionaryService {
         NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
         nhsDataDictionary.currentUser = currentUser
         nhsDataDictionary.coreDataModel = coreDataModel
+        */
 
         endTime = System.currentTimeMillis()
-        log.info('{} model built in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+        log.info("Create core model complete in ${Utils.getTimeString(endTime - startTime)}")
 
-        [
-            attributeService,
-            elementService,
-            businessDefinitionService,
-            supportingInformationService,
-            xmlSchemaConstraintService,
-            classService
-        ].each {service ->
-            startTime = endTime
-            service.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
-            endTime = System.currentTimeMillis()
-            log.info('{} ingest complete in {}', service.getClass().getCanonicalName(), Utils.getTimeString(endTime - startTime))
-        }
+        Map<String, Terminology> attributeTerminologiesByName = [:]
+        Map<String, DataElement> attributeElementsByName = [:]
 
-        // cross link classes
-        classService.processLinks(nhsDataDictionary)
-        classService.linkReferences(nhsDataDictionary, currentUser.emailAddress)
+
+        attributeService.persistAttributes(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser.emailAddress,
+                                           attributeTerminologiesByName, attributeElementsByName)
+        elementService.persistElements(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
+        classService.persistClasses(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
+        businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary1, dictionaryFolder, currentUser.emailAddress)
+        supportingInformationService.persistSupportingInformation(nhsDataDictionary1, dictionaryFolder, currentUser.emailAddress)
+        xmlSchemaConstraintService.persistXmlSchemaConstraints(nhsDataDictionary1, dictionaryFolder, currentUser.emailAddress)
 
         startTime = System.currentTimeMillis()
         // Validation takes 2-6 mins which is annoying for testing
@@ -598,26 +607,8 @@ class NhsDataDictionaryService {
         log.info('Saved {} model complete in ', Utils.getTimeString(endTime - startTime))
 
         startTime = System.currentTimeMillis()
-        dataSetService.ingestFromXml(xml, dictionaryFolder, coreDataModel, currentUser.emailAddress, nhsDataDictionary)
-        log.info('{} ingest complete in {}', dataSetService.getClass().getCanonicalName(), Utils.timeTaken(startTime))
-
-        // If any changes remain on the dictionary folder then save them
-        if (dictionaryFolder.isDirty()) {
-            log.debug('Validate and save {}', dictionaryFolderName)
-            startTime = System.currentTimeMillis()
-            if (!folderService.validate(dictionaryFolder)) {
-                throw new ApiInvalidModelException('NHSDD', 'Invalid model', dictionaryFolder.errors)
-            }
-            versionedFolderService.save(dictionaryFolder, validate: false, flush: true)
-            log.info('Validate and save {} complete in {}', dictionaryFolderName, Utils.timeTaken(startTime))
-        } else {
-            // Otherwise flush and clear the session before we do anything else
-            log.debug('Flush the session')
-            sessionFactory.currentSession.flush()
-        }
-
-        dictionaryFolder = versionedFolderService.get(dictionaryFolder.id)
-
+        dataSetService.persistDataSets(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser)
+        log.info('{} persist complete in {}', dataSetService.getClass().getCanonicalName(), Utils.timeTaken(startTime))
         if (finalise) {
             log.info('Finalising {}', dictionaryFolderName)
             startTime = System.currentTimeMillis()
@@ -632,6 +623,7 @@ class NhsDataDictionaryService {
         versionedFolderService.saveFolderHierarchy(dictionaryFolder)
         log.info('Ingest {} complete in {}', dictionaryFolderName, Utils.timeTaken(originalStartTime))
         dictionaryFolder
+
     }
 
 

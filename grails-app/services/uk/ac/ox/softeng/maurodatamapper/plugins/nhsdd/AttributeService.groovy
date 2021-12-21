@@ -2,6 +2,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -21,6 +22,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 
 @Slf4j
 @Transactional
@@ -115,25 +118,23 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
 
     @Override
     String getMetadataNamespace() {
-        DDHelperFunctions.metadataNamespace + ".attribute"
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE + ".attribute"
     }
 
-    @Override
-    String getShortDescription(DataElement catalogueItem, DataDictionary dataDictionary) {
-        return null
-    }
+    void persistAttributes(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+                           VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                          Map<String, Terminology> attributeTerminologiesByName, Map<String, DataElement> attributeElementsByName) {
 
-    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                       NhsDataDictionary nhsDataDictionary) {
         Folder attributeTerminologiesFolder =
             new Folder(label: "Attribute Terminologies", createdBy: currentUserEmailAddress)
         dictionaryFolder.addToChildFolders(attributeTerminologiesFolder)
+
         if (!folderService.validate(attributeTerminologiesFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', attributeTerminologiesFolder.errors)
         }
         folderService.save(attributeTerminologiesFolder)
 
-        DataClass allAttributesClass = new DataClass(label: NhsDataDictionary.ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+        DataClass allAttributesClass = new DataClass(label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
 
         DataClass retiredAttributesClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
                                                          parentDataClass: allAttributesClass)
@@ -141,17 +142,21 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         coreDataModel.addToDataClasses(allAttributesClass)
         coreDataModel.addToDataClasses(retiredAttributesClass)
 
+
+        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find { it.label == "String" }
+        if(!stringDataType) {
+            stringDataType = new PrimitiveType(label: "String", createdBy: currentUserEmailAddress)
+            coreDataModel.addToDataTypes(stringDataType)
+        }
+
         Map<String, PrimitiveType> primitiveTypes = [:]
         Map<String, Folder> folders = [:]
         int idx = 0
-        xml.DDAttribute.sort {it.TitleCaseName.text()}.each {ddAttribute ->
+        dataDictionary.attributes.each {name, attribute ->
             DataType dataType
-            String attributeName = ddAttribute.TitleCaseName.text()
-            String description = DDHelperFunctions.parseHtml(ddAttribute.definition)
-            String uin = ddAttribute.uin.text()
-            // if(attributeName.toLowerCase().startsWith('a')) {
-            if (ddAttribute."code-system".size() > 0) {
-                String folderName = attributeName.substring(0, 1)
+
+            if (attribute.codes.size() > 0) {
+                String folderName = attribute.name.substring(0, 1).toUpperCase()
                 Folder subFolder = folders[folderName]
                 if (!subFolder) {
                     subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
@@ -165,129 +170,87 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
                 // attributeTerminologiesFolder.save()
 
                 Terminology terminology = new Terminology(
-                    label: attributeName,
+                    label: name,
                     folder: subFolder,
                     createdBy: currentUserEmailAddress,
                     authority: authorityService.defaultAuthority)
-                String version = ddAttribute."code-system"[0].Bundle.entry.resource.CodeSystem.version."@value".text()
-                terminology.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.terminology", key: "version", value: version))
+                terminology.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.terminology", key: "version", value: attribute.codesVersion))
 
-                ddAttribute."code-system"[0].Bundle.entry.resource.CodeSystem.concept.each {concept ->
+                attribute.codes.each {code ->
                     Term term = new Term(
-                        code: concept.code.@value.toString(),
-                        definition: concept.display.@value.toString(),
+                        code: code.code,
+                        definition: code.definition,
                         createdBy: currentUserEmailAddress,
-                        label: concept.code.@value.toString() + " : " + concept.display.@value.toString(),
+                        label: "${code.code} : ${code.definition}",
                         depth: 1,
                         terminology: terminology
                     )
-                    String publishDate = concept.property.find {it.code."@value" == "Publish Date"}?.valueDateTime?."@value"?.text()
-                    Boolean isRetired = concept.property.find {it.code."@value" == "Status"}?.valueString?."@value"?.text() == "retired"
-                    String retiredDate = concept.property.find {it.code."@value" == "Retired Date"}?.valueDateTime?."@value"?.text()
-                    String webOrder = concept.property.find {it.code."@value" == "Web Order"}?.valueInteger?."@value"?.text()
-                    String webPresentation = concept.property.find {it.code."@value" == "Web Presentation"}?.valueString?."@value"?.text()
-                    Boolean isDefault = (webOrder == "0")
-                    if (publishDate) {
-                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                        key: "publishDate",
-                                                        value: publishDate))
-                    }
-                    term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                    key: "isRetired",
-                                                    value: isRetired))
-                    if (isRetired) {
-                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                        key: "retiredDate",
-                                                        value: retiredDate))
-                    }
-                    term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                    key: "webOrder",
-                                                    value: webOrder))
-                    if (webPresentation) {
-                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                        key: "webPresentation",
-                                                        value: webPresentation))
-                    }
-                    term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                    key: "isDefault",
-                                                    value: isDefault))
 
-                    // log.info("    " + term.label)
+                    code.propertiesAsMap().each {key, value ->
+                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                        key: key,
+                                                        value: value,
+                                                        createdBy: currentUserEmailAddress))
+                    }
                     terminology.addToTerms(term)
+
                 }
                 if (terminology.validate()) {
                     terminology = terminologyService.saveModelWithContent(terminology)
                     terminology.terms.size() // Required to reload the terms back into the session
+                    attributeTerminologiesByName[name] = terminology
                 } else {
                     GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???
+                    log.error("Cannot save terminology: ${name}")
                 }
 
-                nhsDataDictionary.attributeTerminologiesByName[uin] = terminology
-                dataType = new ModelDataType(label: "${attributeName} Attribute Type",
+                //nhsDataDictionary.attributeTerminologiesByName[name] = terminology
+                dataType = new ModelDataType(label: "${name} Attribute Type",
                                              modelResourceDomainType: terminology.getDomainType(),
                                              modelResourceId: terminology.id,
                                              createdBy: currentUserEmailAddress)
                 coreDataModel.addToDataTypes(dataType)
             } else {
                 // no "code-system" nodes
-                String formatLength = ddAttribute."format-length".text()
-                if (!formatLength) {
-                    formatLength = "String"
-                }
-                dataType = primitiveTypes[formatLength]
-                if (!dataType) {
-                    dataType = new PrimitiveType(label: formatLength, createdBy: currentUserEmailAddress)
-                    primitiveTypes[formatLength] = dataType
-                    coreDataModel.addToDataTypes(dataType)
-                }
+                dataType = stringDataType
             }
 
-                DataElement attributeDataElement = new DataElement(
-                    label: attributeName,
-                    description: description,
-                    createdBy: currentUserEmailAddress,
-                    dataType: dataType,
-                    index: idx++)
+            DataElement attributeDataElement = new DataElement(
+                label: name,
+                description: attribute.definition,
+                createdBy: currentUserEmailAddress,
+                dataType: dataType,
+                index: idx++)
 
-            addMetadataFromXml(attributeDataElement, ddAttribute, currentUserEmailAddress)
+            addMetadataFromComponent(attributeDataElement, attribute, currentUserEmailAddress)
 
-                String shortDescription = getShortDesc(description, attributeDataElement, nhsDataDictionary)
-                addToMetadata(attributeDataElement, "shortDescription", shortDescription, currentUserEmailAddress)
-
-
-                if (ddAttribute.isRetired.text() == "true") {
-                    retiredAttributesClass.addToDataElements(attributeDataElement)
-                } else {
-                    allAttributesClass.addToDataElements(attributeDataElement)
-                }
-            nhsDataDictionary.attributeElementsByUin[uin] = attributeDataElement
-            nhsDataDictionary.attributeElementsByName[attributeName] = attributeDataElement
-
-            //}
-        } // for each ddAttribute
-
+            if (attribute.isRetired()) {
+                retiredAttributesClass.addToDataElements(attributeDataElement)
+            } else {
+                allAttributesClass.addToDataElements(attributeDataElement)
+            }
+            attributeElementsByName[name] = attributeDataElement
+        }
     }
 
-    String getShortDesc(String description, DataElement attributeDataElement, NhsDataDictionary dataDictionary) {
-        boolean isPreparatory = attributeDataElement.metadata.any { it.key == "isPreparatory" && it.value == "true" }
-        if(isPreparatory) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                return firstSentence
-            } catch (Exception e) {
-                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
-                log.trace('Unparsable Description:: {}', description)
-                return attributeDataElement.label
+    NhsDDAttribute attributeFromDataElement(DataElement de) {
+        NhsDDAttribute attribute = new NhsDDAttribute()
+        nhsDataDictionaryComponentFromItem(de, attribute)
+        if(de.dataType instanceof ModelDataType) {
+            Terminology terminology = terminologyService.get(((ModelDataType)de.dataType).modelResourceId)
+            terminology.terms.each {term ->
+                NhsDDCode code = new NhsDDCode(attribute)
+                code.code = term.code
+                code.definition = term.definition
+                code.publishDate = term.metadata.find {it.key == "publishDate"}?.value
+                code.webOrder = term.metadata.find {it.key == "webOrder"}?.value
+                code.webPresentation = term.metadata.find {it.key == "webPresentation"}?.value
+
+                attribute.codes.add(code)
             }
         }
+        return attribute
+
     }
 
 }

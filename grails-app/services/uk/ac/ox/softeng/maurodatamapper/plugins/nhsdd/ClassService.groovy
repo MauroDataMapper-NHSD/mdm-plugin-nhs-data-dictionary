@@ -1,11 +1,13 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceTypeService
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -17,6 +19,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassLink
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 
 @Slf4j
 @Transactional
@@ -202,44 +207,15 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
 
     @Override
     String getMetadataNamespace() {
-        DDHelperFunctions.metadataNamespace + ".class"
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE + ".class"
     }
 
-    @Override
-    String getShortDescription(DataClass catalogueItem, DataDictionary dataDictionary) {
-        return null
-    }
-
-    String getShortDescription(DataClass dataClass, NhsDataDictionary dataDictionary) {
-        if(isPreparatory(dataClass)) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(dataClass.description.toString()) + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                if (firstSentence.toLowerCase().contains("a subtype of")) {
-                    String secondParagraph = xml.p[1].text()
-                    String secondSentence = secondParagraph.substring(0, secondParagraph.indexOf(".") + 1)
-                    return secondSentence
-                }
-                return firstSentence
-            } catch (Exception e) {
-                log.error("Couldn't parse: " + dataClass.description)
-                return dataClass.label
-            }
-        }
-    }
-
-    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                       NhsDataDictionary nhsDataDictionary) {
+    void persistClasses(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+                         VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                         Map<String, DataElement> attributeElementsByName) {
 
         DataClass parentDataClass = new DataClass(
-            label: NhsDataDictionary.DATA_CLASSES_CLASS_NAME,
+            label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.DATA_CLASSES_CLASS_NAME,
             createdBy: currentUserEmailAddress,
             dataModel: coreDataModel)
         coreDataModel.addToDataClasses(parentDataClass)
@@ -251,20 +227,17 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
         coreDataModel.addToDataClasses(retiredDataClass)
         parentDataClass.addToDataClasses(retiredDataClass)
 
-        Map<String, DataClass> allClasses = [:]
-        xml.DDClass.each {ddClass ->
-
-            String label = ddClass.TitleCaseName.text()
-            String description = DDHelperFunctions.parseHtml(ddClass.definition)
-            String uin = ddClass.uin.text()
-            if(!allClasses[label] || ddClass.isRetired.text() != "true") {
+        Map<String, DataClass> classesByName = [:]
+        Map<String, DataClass> classesByUin = [:]
+        dataDictionary.classes.each {name, clazz ->
+            if(!classesByName[name] || !clazz.isRetired()) {
                 DataClass dataClass = new DataClass(
-                    label: label,
-                    description: description,
+                    label: name,
+                    description: clazz.definition,
                     createdBy: currentUserEmailAddress,
                     parentDataClass: parentDataClass
                 )
-                if(ddClass.isRetired.text() == "true") {
+                if(clazz.isRetired()) {
                     retiredDataClass.addToDataClasses(dataClass)
                 } else {
                     parentDataClass.addToDataClasses(dataClass)
@@ -273,138 +246,122 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
 
                 // Now link the attributes from the properties
 
-                ddClass.property.each { property ->
-                    String attributeUin = property.referencedElement.text()
-                    DataElement attributeElement = nhsDataDictionary.attributeElementsByUin[attributeUin]
+                clazz.allAttributes().each { attribute ->
+                    DataElement attributeElement = attributeElementsByName[attribute.name]
                     if(attributeElement) {
                         attributeElement.addToImportingDataClasses(dataClass)
                     } else {
-                        log.debug("Cannot find attributeElement with Uin: " + attributeUin)
+                        log.error("Cannot find attributeElement with name: " + attribute.name)
                     }
                 }
 
 
-                addMetadataFromXml(dataClass, ddClass, currentUserEmailAddress)
+                addMetadataFromComponent(dataClass, clazz, currentUserEmailAddress)
 
-                String shortDescription = getShortDesc(description, dataClass, nhsDataDictionary)
-                addToMetadata(dataClass, "shortDescription", shortDescription, currentUserEmailAddress)
+                classesByName[name] = dataClass
+                classesByUin[clazz.getUin()] = dataClass
 
 
-                allClasses[label] = dataClass
-                nhsDataDictionary.classesByUin[uin] = dataClass
-                List<ClassLink> classLinks = ddClass.link.collect{it -> new ClassLink(it)}
-                nhsDataDictionary.classLinks.addAll(classLinks)
             }
+
         }
 
-    }
+        // Now link the references
+        Map<String, ReferenceType> classReferenceTypesByName = [:]
+        dataDictionary.classes.each {name, clazz ->
+            clazz.classLinks.each {classLink ->
+                if (classLink.metaclass == "KernelAssociation20") {
 
-    String getShortDesc(String description, DataClass dataClass, NhsDataDictionary dataDictionary) {
-        boolean isPreparatory = dataClass.metadata.any { it.key == "isPreparatory" && it.value == "true" }
-        if(isPreparatory) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                if (firstSentence.toLowerCase().contains("a subtype of")) {
-                    String secondParagraph = xml.p[1].text()
-                    String secondSentence = secondParagraph.substring(0, secondParagraph.indexOf(".") + 1)
-                    return secondSentence
-                }
-                return firstSentence
-            } catch (Exception e) {
-                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
-                log.trace('Unparsable Description:: {}', description)
-                return dataClass.label
-            }
-        }
-    }
+                    if (classLink.supplierClass) {
+                        DataClass thisDataClass = classesByUin[classLink.clientClass.getUin()]
+                        // Get the target class
+                        DataClass targetDataClass = classesByUin[classLink.supplierClass.getUin()]
 
-    void processLinks(NhsDataDictionary nhsDataDictionary) {
+                        // Get a reference type (create if it doesn't exist)
+                        ReferenceType targetReferenceType = classReferenceTypesByName[targetDataClass.label]
+                        if (!targetReferenceType) {
 
-        nhsDataDictionary.classLinks.each {classLink ->
-            classLink.findTargetClass(nhsDataDictionary)
-        }
+                            targetReferenceType = new ReferenceType(
+                                label: "${targetDataClass.label} Reference",
+                                createdBy: currentUserEmailAddress,
+                                referenceClass: targetDataClass)
+                            targetDataClass.addToReferenceTypes(targetReferenceType)
+                            coreDataModel.addToDataTypes(targetReferenceType)
+                            classReferenceTypesByName[targetDataClass.label] = targetReferenceType
+                        }
 
-    }
+                        ReferenceType sourceReferenceType = classReferenceTypesByName[thisDataClass.label]
+                        if (!sourceReferenceType) {
+                            sourceReferenceType = new ReferenceType(
+                                label: "${thisDataClass.label} Reference",
+                                createdBy: currentUserEmailAddress,
+                                referenceClass: thisDataClass)
+                            thisDataClass.addToReferenceTypes(sourceReferenceType)
+                            coreDataModel.addToDataTypes(sourceReferenceType)
+                            classReferenceTypesByName[thisDataClass.label] = sourceReferenceType
+                        }
 
-    void linkReferences(NhsDataDictionary nhsDataDictionary, String currentUserEmailAddress) {
+                        // create a data element in the class
+                        String sourceLabel = classLink.clientRole
+                        int count = 0
+                        if (thisDataClass.dataElements) {
+                            count = thisDataClass.dataElements.findAll {it.label.startsWith(sourceLabel.trim())}.size()
+                        }
+                        if (count > 0) {
+                            sourceLabel += " (${count})"
+                        }
+                        DataElement sourceDataElement = new DataElement(label: sourceLabel, dataType: targetReferenceType,
+                                                                        createdBy: currentUserEmailAddress)
+                        addMetadataForLink(classLink, sourceDataElement, currentUserEmailAddress)
+                        addToMetadata(sourceDataElement, "direction", "client", currentUserEmailAddress)
+                        thisDataClass.addToDataElements(sourceDataElement)
 
-        nhsDataDictionary.classLinks.each {link ->
-            if(link.metaclass == "KernelAssociation20") {
-
-                if (link.supplierClass) {
-                    DataClass thisDataClass = link.clientClass
+                        String targetLabel = classLink.supplierRole
+                        count = 0
+                        if (targetDataClass.dataElements) {
+                            count = targetDataClass.dataElements.findAll {it.label.startsWith(targetLabel.trim())}.size()
+                        }
+                        if (count > 0) {
+                            targetLabel += " (${count})"
+                        }
+                        DataElement targetDataElement = new DataElement(label: targetLabel, dataType: sourceReferenceType,
+                                                                        createdBy: currentUserEmailAddress)
+                        addMetadataForLink(classLink, targetDataElement, currentUserEmailAddress)
+                        addToMetadata(targetDataElement, "direction", "supplier", currentUserEmailAddress)
+                        targetDataClass.addToDataElements(targetDataElement)
+                    }
+                } else if (classLink.metaclass == "Generalization20") {
+                    DataClass thisDataClass = classesByUin[classLink.clientClass.getUin()]
                     // Get the target class
-                    DataClass targetDataClass = link.supplierClass
-
-                    // Get a reference type (create if it doesn't exist)
-                    ReferenceType targetReferenceType = nhsDataDictionary.classReferenceTypesByName[targetDataClass.label]
-                    if (!targetReferenceType) {
-
-                        targetReferenceType = new ReferenceType(
-                            label: "${targetDataClass.label} Reference",
-                            createdBy: currentUserEmailAddress,
-                            referenceClass: targetDataClass)
-                        targetDataClass.addToReferenceTypes(targetReferenceType)
-                        nhsDataDictionary.coreDataModel.addToDataTypes(targetReferenceType)
-                        nhsDataDictionary.classReferenceTypesByName[targetDataClass.label] = targetReferenceType
-                    }
-
-                    ReferenceType sourceReferenceType = nhsDataDictionary.classReferenceTypesByName[thisDataClass.label]
-                    if (!sourceReferenceType) {
-                        sourceReferenceType = new ReferenceType(
-                            label: "${thisDataClass.label} Reference",
-                            createdBy: currentUserEmailAddress,
-                            referenceClass: thisDataClass)
-                        thisDataClass.addToReferenceTypes(sourceReferenceType)
-                        nhsDataDictionary.coreDataModel.addToDataTypes(sourceReferenceType)
-                        nhsDataDictionary.classReferenceTypesByName[thisDataClass.label] = sourceReferenceType
-                    }
-
-                    // create a data element in the class
-                    String sourceLabel = link.clientRole
-                    int count = 0
-                    if (thisDataClass.dataElements) {
-                        count = thisDataClass.dataElements.findAll {it.label.startsWith(sourceLabel.trim())}.size()
-                    }
-                    if (count > 0) {
-                        sourceLabel += " (${count})"
-                    }
-                    DataElement sourceDataElement = new DataElement(label: sourceLabel, dataType: targetReferenceType,
-                                                                    createdBy: currentUserEmailAddress)
-                    link.addMetadata(sourceDataElement)
-                    DDHelperFunctions.addMetadata(sourceDataElement, "direction", "client")
-                    thisDataClass.addToDataElements(sourceDataElement)
-
-                    String targetLabel = link.supplierRole
-                    count = 0
-                    if (targetDataClass.dataElements) {
-                        count = targetDataClass.dataElements.findAll {it.label.startsWith(targetLabel.trim())}.size()
-                    }
-                    if (count > 0) {
-                        targetLabel += " (${count})"
-                    }
-                    DataElement targetDataElement = new DataElement(label: targetLabel, dataType: sourceReferenceType,
-                                                                    createdBy: currentUserEmailAddress)
-                    link.addMetadata(targetDataElement)
-                    DDHelperFunctions.addMetadata(targetDataElement, "direction", "supplier")
-                    targetDataClass.addToDataElements(targetDataElement)
-
-
+                    DataClass targetDataClass = classesByUin[classLink.supplierClass.getUin()]
+                    thisDataClass.addToExtendedDataClasses(targetDataClass)
                 }
-            } else if (link.metaclass == "Generalization20") {
-                DataClass thisDataClass = link.clientClass
-                // Get the target class
-                DataClass targetDataClass = link.supplierClass
-                thisDataClass.addToExtendedDataClasses(targetDataClass)
             }
         }
     }
+
+    void addMetadataForLink(NhsDDClassLink classLink, DataElement dataElement, String currentUserEmailAddress) {
+        addToMetadata(dataElement, "uin", classLink.uin, currentUserEmailAddress)
+        addToMetadata(dataElement, "metaclass", classLink.metaclass, currentUserEmailAddress)
+        addToMetadata(dataElement, "clientRole", classLink.clientRole, currentUserEmailAddress)
+        addToMetadata(dataElement, "supplierRole", classLink.supplierRole, currentUserEmailAddress)
+        addToMetadata(dataElement, "clientCardinality", classLink.clientCardinality, currentUserEmailAddress)
+        addToMetadata(dataElement, "supplierCardinality", classLink.supplierCardinality, currentUserEmailAddress)
+        addToMetadata(dataElement, "name", classLink.name, currentUserEmailAddress)
+        addToMetadata(dataElement, "partOfClientKey", classLink.partOfClientKey, currentUserEmailAddress)
+        addToMetadata(dataElement, "partOfSupplierKey", classLink.partOfSupplierKey, currentUserEmailAddress)
+        addToMetadata(dataElement, "supplierUin", classLink.supplierUin, currentUserEmailAddress)
+        addToMetadata(dataElement, "clientUin", classLink.clientUin, currentUserEmailAddress)
+        addToMetadata(dataElement, "relationSupplierExclusivity", classLink.relationSupplierExclusivity, currentUserEmailAddress)
+        addToMetadata(dataElement, "relationClientExclusivity", classLink.relationClientExclusivity, currentUserEmailAddress)
+        addToMetadata(dataElement, "direction", classLink.direction, currentUserEmailAddress)
+
+    }
+
+    NhsDDClass classFromDataClass(DataClass dc) {
+        NhsDDClass clazz = new NhsDDClass()
+        nhsDataDictionaryComponentFromItem(dc, clazz)
+        return clazz
+    }
+
 }

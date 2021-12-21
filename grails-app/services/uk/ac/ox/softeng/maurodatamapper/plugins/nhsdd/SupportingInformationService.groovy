@@ -1,7 +1,9 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -13,6 +15,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
 
 @Slf4j
 @Transactional
@@ -63,71 +68,43 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
 
     @Override
     String getMetadataNamespace() {
-        DDHelperFunctions.metadataNamespace + ".supporting information"
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE + ".supporting information"
     }
 
-    @Override
-    String getShortDescription(Term supportingInformation, DataDictionary dataDictionary) {
-        if(isPreparatory(supportingInformation)) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(supportingInformation.description) + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(". ") + 1)
-                return firstSentence
-            } catch (Exception e) {
-                log.warn("Couldn't parse description to get shortDescription because {}", e.getMessage())
-                log.trace('Unparsable Description:: {}', supportingInformation.description)
-                return supportingInformation.code
-            }
-        }
-    }
 
-    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                       NhsDataDictionary nhsDataDictionary) {
+    void persistSupportingInformation(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+                                    VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
 
         Terminology terminology = new Terminology(
-            label: NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME,
+            label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME,
             folder: dictionaryFolder,
             createdBy: currentUserEmailAddress,
             authority: authorityService.defaultAuthority)
 
         Map<String, Term> allTerms = [:]
-        xml.DDWebPage.findAll { ddWebPage ->
-            ddWebPage."base-uri".text().contains("Supporting_Definitions") ||
-                ddWebPage."base-uri".text().contains("Supporting_Information") ||
-                ddWebPage."base-uri".text().contains("CDS_Supporting_Information")
-        }.each { ddWebPage ->
+        dataDictionary.supportingInformation.each { name, supportingInformation ->
 
-            String code = ddWebPage.TitleCaseName.text()
-            String description = DDHelperFunctions.parseHtml(ddWebPage.definition.toString())
             // Either this is the first time we've seen a term...
             // .. or if we've already got one, we'll overwrite it with this one
             // (if this one isn't retired)
-            if(!allTerms[code] || ddWebPage.isRetired.text() != "true") {
+            if(!allTerms[name] || !supportingInformation.isRetired()) {
 
                 Term term = new Term(
-                    code: code,
-                    label: code,
-                    definition: code,
-                    url: ddWebPage.DD_URL.text().replaceAll(" ", "%20"),
-                    description: description,
+                    code: name,
+                    label: name,
+                    definition: name,
+                    // Leave Url blank for now
+                    // url: businessDefinition.otherProperties["ddUrl"].replaceAll(" ", "%20"),
+                    description: supportingInformation.definition,
                     createdBy: currentUserEmailAddress,
                     depth: 1,
                     terminology: terminology)
-                addMetadataFromXml(term, ddWebPage, currentUserEmailAddress)
-                String shortDescription = getShortDesc(description, term, nhsDataDictionary)
-                addToMetadata(term, "shortDescription", shortDescription, currentUserEmailAddress)
 
-                allTerms[code] = term
+                addMetadataFromComponent(term, supportingInformation, currentUserEmailAddress)
+
+                allTerms[name] = term
             }
         }
-
         allTerms.values().each { term ->
             terminology.addToTerms(term)
         }
@@ -141,27 +118,9 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
 
     }
 
-    String getShortDesc(String description, Term term, NhsDataDictionary dataDictionary) {
-        boolean isPreparatory = term.metadata.any { it.key == "isPreparatory" && it.value == "true" }
-        if(isPreparatory) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + description + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                return firstSentence
-            } catch (Exception e) {
-                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
-                log.trace('Unparsable Description:: {}', description)
-                return term.label
-            }
-        }
+    NhsDDSupportingInformation supportingInformationFromTerm(Term term) {
+        NhsDDSupportingInformation supportingInformation = new NhsDDSupportingInformation()
+        nhsDataDictionaryComponentFromItem(term, supportingInformation)
+        return supportingInformation
     }
-
-
 }

@@ -13,7 +13,6 @@ import groovy.xml.XmlUtil
 @Slf4j
 class DDHelperFunctions {
 
-    static final String metadataNamespace = "uk.nhs.datadictionary"
     static String DATA_DICTIONARY_FOLDER_NAME = "NHS Data Dictionary"
     static String DATA_DICTIONARY_CORE_MODEL_NAME = "NHS Data Dictionary - Core"
     static boolean FINALISED = false
@@ -65,7 +64,7 @@ class DDHelperFunctions {
         null
     }
 
-    static void addMetadata(MetadataAware ci, String key, String value) {
+/*    static void addMetadata(MetadataAware ci, String key, String value) {
         if (value) {
 
             Metadata metadata = new Metadata(
@@ -86,7 +85,7 @@ class DDHelperFunctions {
         }
         return null
     }
-
+*/
     /*
         static void addDataElementAtPath(DataClass topLevelClass, String path, DataElement dataElement) {
             DataClass parentClass = getClassByPath(topLevelClass, path)

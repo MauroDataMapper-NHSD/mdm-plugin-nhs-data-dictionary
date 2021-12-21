@@ -2,11 +2,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
@@ -24,6 +26,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
 
 @Slf4j
 @Transactional
@@ -103,48 +107,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
     @Override
     String getMetadataNamespace() {
-        DDHelperFunctions.metadataNamespace + ".data set"
-    }
-
-    @Override
-    String getShortDescription(DataModel dataSet, DataDictionary dataDictionary) {
-        if (isPreparatory(dataSet)) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-
-            List<String> aliases = [dataSet.label]
-            DataDictionaryComponent.aliasFields.keySet().each {aliasType ->
-                String alias = DDHelperFunctions.getMetadataValue(dataSet, aliasType)
-                if (alias) {
-                    aliases.add(alias)
-                }
-            }
-
-
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(dataSet.description.toString()) + "</xml>")
-                String allParagraphs = ""
-                xml.p.each {paragraph ->
-                    allParagraphs += paragraph.text()
-                }
-                String nextSentence = ""
-                while (!aliases.find {it -> nextSentence.contains(it)} && allParagraphs.contains(".")) {
-                    nextSentence = allParagraphs.substring(0, allParagraphs.indexOf(".") + 1)
-                    if (aliases.find {it -> nextSentence.contains(it)}) {
-                        if (nextSentence.startsWith("Introduction")) {
-                            nextSentence = nextSentence.replaceFirst("Introduction", "")
-                        }
-                        return nextSentence
-                    }
-                    allParagraphs = allParagraphs.substring(allParagraphs.indexOf(".") + 1)
-                }
-                return dataSet.label
-            } catch (Exception e) {
-                log.debug("Couldn't parse: " + dataSet.description)
-                return dataSet.label
-            }
-        }
+        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE +  ".data set"
     }
 
     String outputClassAsDita(DataClass dataClass, DataDictionary dataDictionary) {
@@ -553,56 +516,48 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         return result.toString()
     }
 
+    void persistDataSets(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+                         VersionedFolder dictionaryFolder, DataModel coreDataModel, User currentUser) {
 
-    void ingestFromXml(def xml, Folder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                       NhsDataDictionary nhsDataDictionary) {
-
-        Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUserEmailAddress)
+        Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUser.emailAddress)
         dictionaryFolder.addToChildFolders(dataSetsFolder)
         if (!folderService.validate(dataSetsFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
         }
         folderService.save(dataSetsFolder)
 
-        xml.DDDataSet.each {ddDataSetXml ->
-            createAndSaveDataModel(ddDataSetXml, dataSetsFolder, dictionaryFolder, currentUserEmailAddress, nhsDataDictionary)
+        dataDictionary.dataSets.each {name, dataSet ->
+            createAndSaveDataModel(dataSet, dataSetsFolder, dictionaryFolder, currentUser, dataDictionary)
         }
+
+
     }
 
-    void createAndSaveDataModel(def ddDataSetXml, Folder dataSetsFolder, Folder dictionaryFolder, String currentUserEmailAddress, NhsDataDictionary nhsDataDictionary) {
-        String dataSetName = ddDataSetXml.TitleCaseName.text()
-        String explanatoryPage = ddDataSetXml.DDWebPage.find {it.uin.text() == ddDataSetXml.explanatoryPage.text()}.definition
-        String description = null
-        if (explanatoryPage) {
-            description = DDHelperFunctions.parseHtml(explanatoryPage)
-        }
-        boolean isRetired = ddDataSetXml.isRetired.text() == "true"
-        List<String> path = getPath(ddDataSetXml."base-uri".text(), isRetired)
-        Folder folder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
-        log.debug('Ingesting {}', dataSetName)
+    void createAndSaveDataModel(NhsDDDataSet dataSet, Folder dataSetsFolder, Folder dictionaryFolder, User currentUser,
+                                uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary nhsDataDictionary) {
+        List<String> path = getPath(dataSet.otherProperties["baseUri"], dataSet.isRetired())
+        Folder folder = getFolderAtPath(dataSetsFolder, path, currentUser.emailAddress)
+        log.debug('Ingesting {}', dataSet.name)
 
-        DataModel dataSetDataModel = new DataModel(
-            label: dataSetName,
-                description: description,
-                createdBy: currentUserEmailAddress,
+            DataModel dataSetDataModel = new DataModel(
+                label: dataSet.name,
+                description: dataSet.overview,
+                createdBy: currentUser.emailAddress,
                 type: DataModelType.DATA_STANDARD,
                 authority: authorityService.defaultAuthority,
                 folder: folder
             )
 
-        if (dataSetName.startsWith("CDS")) {
-            CDSDataSetParser.parseCDSDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
+        if (dataSet.name.startsWith("CDS")) {
+            CDSDataSetParser.parseCDSDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
         } else {
-            DataSetParser.parseDataSet((GPathResult) ddDataSetXml.definition, dataSetDataModel, nhsDataDictionary)
+            DataSetParser.parseDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
         }
 
-        addMetadataFromXml(dataSetDataModel, ddDataSetXml, currentUserEmailAddress)
+        addMetadataFromComponent(dataSetDataModel, dataSet, currentUser.emailAddress)
 
         // Fix the created by field and any other associations
-        dataModelService.checkImportedDataModelAssociations(nhsDataDictionary.currentUser, dataSetDataModel)
-
-        String shortDescription = getShortDesc(description, dataSetDataModel, nhsDataDictionary)
-        addToMetadata(dataSetDataModel, "shortDescription", shortDescription, currentUserEmailAddress)
+        dataModelService.checkImportedDataModelAssociations(currentUser, dataSetDataModel)
 
         log.debug("Validating Data model: ${dataSetDataModel.label}")
         DataModel validated = dataModelService.validate(dataSetDataModel)
@@ -613,42 +568,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
             log.debug("Saving Data model: ${validated.label}")
             dataModelService.saveModelWithContent(validated)
             log.debug("Saved Data model: ${validated.label}")
-        }
-    }
-
-    String getShortDesc(String description, DataModel dataModel,NhsDataDictionary dataDictionary) {
-        boolean isPreparatory = dataModel.metadata.any { it.key == "isPreparatory" && it.value == "true" }
-        if(isPreparatory) {
-            return "This item is being used for development purposes and has not yet been approved."
-        } else {
-
-            List<String> aliases = [dataModel.label]
-            aliases.addAll(dataModel.metadata.findAll{it.key.startsWith("alias")}.collect {it.value})
-
-            try {
-                GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + description ?: '' + "</xml>")
-                String allParagraphs = ""
-                xml.p.each { paragraph ->
-                    allParagraphs += paragraph.text()
-                }
-                String nextSentence = ""
-                while (!aliases.find { it -> nextSentence.contains(it) } && allParagraphs.contains(".")) {
-                    nextSentence = allParagraphs.substring(0, allParagraphs.indexOf(".") + 1)
-                    if (aliases.find { it -> nextSentence.contains(it) }) {
-                        if(nextSentence.startsWith("Introduction")) {
-                            nextSentence = nextSentence.replaceFirst("Introduction", "")
-                        }
-                        return nextSentence
-                    }
-                    allParagraphs = allParagraphs.substring(allParagraphs.indexOf(".") + 1)
-                }
-                return dataModel.label
-            } catch (Exception e) {
-                log.warn("Couldn't parse description to get shortDesc because {}", e.getMessage())
-                log.trace('Unparsable Description:: {}', description)
-                return dataModel.label
-            }
         }
     }
 
@@ -694,5 +613,10 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
     }
 
+    NhsDDDataSet dataSetFromDataModel(DataModel dm) {
+        NhsDDDataSet dataSet = new NhsDDDataSet()
+        nhsDataDictionaryComponentFromItem(dm, dataSet)
+        return dataSet
+    }
 
 }
