@@ -33,6 +33,7 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
