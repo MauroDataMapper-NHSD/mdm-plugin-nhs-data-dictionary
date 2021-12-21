@@ -25,10 +25,13 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Rollback
+import grails.plugin.json.view.JsonViewTemplateEngine
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
+import grails.views.WritableScriptTemplate
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -57,6 +60,9 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     DataModelService dataModelService
     VersionedFolderService versionedFolderService
     FolderService folderService
+
+    @Autowired
+    JsonViewTemplateEngine templateEngine
 
     @Shared
     User user
@@ -120,7 +126,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         // This is to test that ingesting again doesnt error and also to test the batch deletion code
         given:
         setupData()
-        cleanIngest('november2021.xml')
+        cleanIngest('november2021.xml', 'November 2021')
         def xml = loadXml('november2021.xml')
         assert xml
 
@@ -154,7 +160,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'B01 : Branch Nov 2021 ingest'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml')
+        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
         VersionedFolder release = versionedFolderService.get(releaseId)
 
         when:
@@ -197,7 +203,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'MD01 : Merge Diff Nov 2021 ingest and branch'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml')
+        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
         VersionedFolder release = versionedFolderService.get(releaseId)
         UUID mainBranchId = createBranch(release, VersionAwareConstraints.DEFAULT_BRANCH_NAME)
         UUID testBranchId = createBranch(release, 'test')
@@ -214,17 +220,69 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         mergeDiff.empty
     }
 
-    UUID cleanIngest(String name) {
+    void 'MD02 : Merge Diff Nov 2021 and Sept 2021 ingest'() {
+        /*
+        Sept2021 (1.0.0) -> Sept2021 (septemer_2021) // branch of the original
+                         \
+                          \-> Sept2021 (main) // ingest of nov2021 file
+         */
+        given:
+        setupData()
+        // Ingest, finalise september
+        UUID releaseId = cleanIngest('september2021.xml', 'September 2021')
+        // Ingest november
+        UUID branchId = cleanIngest('november2021.xml', 'November 2021', false)
+        // Change the folder name and link to the sept release
+        VersionedFolder release = versionedFolderService.get(releaseId)
+        VersionedFolder test = versionedFolderService.get(branchId)
+        test.label = 'NHS Data Dictionary (September 2021)'
+        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(test, release, UnloggedUser.instance)
+        versionedFolderService.save(test, validate: false, flush: true)
+        sessionFactory.currentSession.flush()
+        sessionFactory.currentSession.clear()
+        // Create a september branch
+        release = versionedFolderService.get(releaseId)
+        UUID mainBranchId = createBranch(release, 'september_2021')
+        test = versionedFolderService.get(branchId)
+        VersionedFolder main = versionedFolderService.get(mainBranchId)
+
+
+        when:
+        log.info('---------- Starting merge diff ----------')
+        long start = System.currentTimeMillis()
+        MergeDiff<VersionedFolder> mergeDiff = versionedFolderService.getMergeDiffForVersionedFolders(test, main)
+        log.info('Merge Diff took {}', Utils.timeTaken(start))
+
+        then:
+        !mergeDiff.empty
+        mergeDiff.numberOfDiffs == 144
+
+        // Uncomment to get an updated merge diff json file
+        //        when:
+        //        mergeDiff.flattenedDiffs.removeIf({
+        //            PathNode last = it.fullyQualifiedPath.last()
+        //            last.matches(new PathNode('md','uk.nhs.datadictionary.term.publishDate',null,'value')) ||
+        //            last.attribute == 'modelResourceId'
+        //        })
+        //        String actual = renderMergeDiffAsJson(mergeDiff)
+        //        log.error('Diffs {}', mergeDiff.numberOfDiffs)
+        //
+        //        then:
+        //        actual
+        //        writeFile('mergeDiff.json', actual)
+    }
+
+    UUID cleanIngest(String name, String releaseDate, boolean finalised = true) {
         def xml = loadXml(name)
         assert xml
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null)
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null)
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
         dd.id
     }
 
     UUID createBranch(VersionedFolder release, String branchName) {
-        log.info('---------- Starting main branch ----------')
+        log.info('---------- Starting {} branch ----------', branchName)
         VersionedFolder branch = versionedFolderService.createNewBranchModelVersion(branchName,
                                                                                     release, user, true,
                                                                                     PublicAccessSecurityPolicyManager.instance as UserSecurityPolicyManager)
@@ -255,6 +313,14 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         "${dataModels.size()})"
     }
 
+    String renderMergeDiffAsJson(MergeDiff mergeDiff) {
+        WritableScriptTemplate t = templateEngine.resolveTemplate(MergeDiff, Locale.default)
+        def writable = t.make(mergeDiff: mergeDiff)
+        def sw = new StringWriter()
+        writable.writeTo(sw)
+        sw.toString()
+    }
+
     def loadXml(String filename) {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
@@ -266,6 +332,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
         Files.readAllBytes(testFilePath)
+    }
+
+    void writeFile(String filename, String content) {
+        Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
+        Files.deleteIfExists(testFilePath)
+        Files.write(testFilePath, content.bytes)
     }
 
     private void checkFolderContentsWithChildren(Folder check, int childFolderCount, int terminologyCount, int codeSetCount, int dataModelCount, boolean finalised) {
