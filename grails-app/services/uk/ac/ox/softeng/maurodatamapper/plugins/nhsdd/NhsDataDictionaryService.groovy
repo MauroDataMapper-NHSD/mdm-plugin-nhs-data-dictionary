@@ -9,7 +9,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
-import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -525,8 +524,7 @@ class NhsDataDictionaryService {
     @Transactional
     VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion) {
 
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary nhsDataDictionary1 = uk
-            .nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.buildFromXml(xml, releaseDate)
+        NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate)
 
         log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)
         long startTime = System.currentTimeMillis()
@@ -555,7 +553,7 @@ class NhsDataDictionaryService {
         }
 
         DataModel coreDataModel =
-            new DataModel(label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.CORE_MODEL_NAME,
+            new DataModel(label: NhsDataDictionary.CORE_MODEL_NAME,
                           description: "Elements, attributes and classes",
                           folder: dictionaryFolder,
                           createdBy: currentUser.emailAddress,
@@ -578,19 +576,18 @@ class NhsDataDictionaryService {
         */
 
         endTime = System.currentTimeMillis()
-        log.info("Create core model complete in ${Utils.getTimeString(endTime - startTime)}")
+        log.info('{} model built in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
 
         Map<String, Terminology> attributeTerminologiesByName = [:]
         Map<String, DataElement> attributeElementsByName = [:]
 
 
-        attributeService.persistAttributes(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser.emailAddress,
-                                           attributeTerminologiesByName, attributeElementsByName)
-        elementService.persistElements(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
-        classService.persistClasses(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
-        businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary1, dictionaryFolder, currentUser.emailAddress)
-        supportingInformationService.persistSupportingInformation(nhsDataDictionary1, dictionaryFolder, currentUser.emailAddress)
-        xmlSchemaConstraintService.persistXmlSchemaConstraints(nhsDataDictionary1, dictionaryFolder, currentUser.emailAddress)
+        attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeElementsByName)
+        elementService.persistElements(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
+        classService.persistClasses(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
+        businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        supportingInformationService.persistSupportingInformation(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        xmlSchemaConstraintService.persistXmlSchemaConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
 
         startTime = System.currentTimeMillis()
         // Validation takes 2-6 mins which is annoying for testing
@@ -608,8 +605,26 @@ class NhsDataDictionaryService {
         log.info('Saved {} model complete in ', Utils.getTimeString(endTime - startTime))
 
         startTime = System.currentTimeMillis()
-        dataSetService.persistDataSets(nhsDataDictionary1, dictionaryFolder, coreDataModel, currentUser)
+        dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser)
         log.info('{} persist complete in {}', dataSetService.getClass().getCanonicalName(), Utils.timeTaken(startTime))
+
+        // If any changes remain on the dictionary folder then save them
+        if (dictionaryFolder.isDirty()) {
+            log.debug('Validate and save {}', dictionaryFolderName)
+            startTime = System.currentTimeMillis()
+            if (!folderService.validate(dictionaryFolder)) {
+                throw new ApiInvalidModelException('NHSDD', 'Invalid model', dictionaryFolder.errors)
+            }
+            versionedFolderService.save(dictionaryFolder, validate: false, flush: true)
+            log.info('Validate and save {} complete in {}', dictionaryFolderName, Utils.timeTaken(startTime))
+        } else {
+            // Otherwise flush and clear the session before we do anything else
+            log.debug('Flush the session')
+            sessionFactory.currentSession.flush()
+        }
+
+        dictionaryFolder = versionedFolderService.get(dictionaryFolder.id)
+
         if (finalise) {
             log.info('Finalising {}', dictionaryFolderName)
             startTime = System.currentTimeMillis()
