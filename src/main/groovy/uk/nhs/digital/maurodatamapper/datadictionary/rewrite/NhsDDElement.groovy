@@ -1,22 +1,8 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
-import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
-import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
-import org.apache.commons.lang3.StringUtils
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Slf4j
@@ -69,7 +55,7 @@ class NhsDDElement implements NhsDataDictionaryComponent {
     @Override
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
-        String capitalizedCodeSetName = xml.name.text()
+        String capitalizedCodeSetName = xml.name[0].text()
         if (xml."value-set".size() > 0 && !isRetired()) {
             String codeSetVersion = xml."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.version."@value".text()
             String attributeUin = xml.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
