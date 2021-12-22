@@ -7,6 +7,11 @@ import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent {
 
+    @Override
+    String getStereotype() {
+        "Data Set"
+    }
+
     List<String> path
     String overview
     GPathResult definitionAsXml

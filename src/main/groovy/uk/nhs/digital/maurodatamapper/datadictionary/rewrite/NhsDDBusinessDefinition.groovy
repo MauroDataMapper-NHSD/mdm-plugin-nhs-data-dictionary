@@ -13,6 +13,11 @@ import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
 
     @Override
+    String getStereotype() {
+        "NHS Business Definition"
+    }
+
+    @Override
     String calculateShortDescription() {
         String shortDescription
         if (isPreparatory()) {

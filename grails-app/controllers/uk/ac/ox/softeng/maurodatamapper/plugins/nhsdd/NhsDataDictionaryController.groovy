@@ -6,6 +6,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {
@@ -55,9 +56,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
         //String branchName = params.branchName?:'main'
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        def result = nhsDataDictionaryService.statistics(versionedFolderId)
+        NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
 
-        respond(result)
+        respond  dataDictionary, model: [nhsDataDictionary: dataDictionary], view: 'statistics'
     }
 
 

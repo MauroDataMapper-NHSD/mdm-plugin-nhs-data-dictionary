@@ -43,6 +43,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInfo
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllClassesHaveRelationships
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 
 import java.time.Instant
 import java.time.LocalDate
@@ -86,71 +88,36 @@ class NhsDataDictionaryService {
         return versionTreeModelList
     }
 
-
-
-
-    def statistics(UUID versionedFolderId) {
-        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
-
-        return [
-                "Attributes"                : [
-                        "Total"      : dataDictionary.attributes.size(),
-                        "Preparatory": dataDictionary.attributes.values().count { it.isPreparatory() },
-                        "Retired"    : dataDictionary.attributes.values().count { it.isRetired() }
-                ],
-                "Data Field Notes"          : [
-                        "Total"      : dataDictionary.elements.size(),
-                        "Preparatory": dataDictionary.elements.values().count {  it.isPreparatory() },
-                        "Retired"    : dataDictionary.elements.values().count {  it.isRetired() }
-                ],
-                "Classes"                   : [
-                        "Total"      : dataDictionary.classes.size(),
-                        "Preparatory": dataDictionary.classes.values().count {   it.isPreparatory() },
-                        "Retired"    : dataDictionary.classes.values().count { it.isRetired() }
-                ],
-                "Data Sets"                 : [
-                        "Total"      : dataDictionary.dataSets.size(),
-                        "Preparatory": dataDictionary.dataSets.values().count {  it.isPreparatory() },
-                        "Retired"    : dataDictionary.dataSets.values().count { it.isRetired() }
-                ],
-                "Business Definitions"      : [
-                        "Total"      : dataDictionary.businessDefinitions.size(),
-                        "Preparatory": dataDictionary.businessDefinitions.values().count {  it.isPreparatory() },
-                        "Retired"    : dataDictionary.businessDefinitions.values().count { it.isRetired() }
-                ],
-                "Supporting Information"    : [
-                        "Total"      : dataDictionary.supportingInformation.size(),
-                        "Preparatory": dataDictionary.supportingInformation.values().count {  it.isPreparatory() },
-                        "Retired"    : dataDictionary.supportingInformation.values().count { it.isRetired() }
-                ],
-                "XML Schema Constraints"    : [
-                        "Total"      : dataDictionary.xmlSchemaConstraints.size(),
-                        "Preparatory": dataDictionary.xmlSchemaConstraints.values().count { it.isPreparatory() },
-                        "Retired"    : dataDictionary.xmlSchemaConstraints.values().count { it.isRetired() }
-                ]
-
-
-        ]
-
-
-    }
-
-    Map outputComponent(MetadataAware ddComponent, String type) {
-        return [
-            type      : type,
-            label     : ddComponent.label,
-            id        : ddComponent.id.toString(),
-            domainType: ddComponent.domainType,
-            parentId  : ddComponent.parentDataClass?.id?.toString(),
-            modelId   : ddComponent.dataModel.id.toString()
-
-        ]
-    }
-
-
     def integrityChecks(UUID versionedFolderId) {
 
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+
+        List<Class<IntegrityCheck>> integrityChecks = [
+            AllClassesHaveRelationships
+        ]
+
+        List<Map> results = []
+        integrityChecks.each {checkClass ->
+            IntegrityCheck integrityCheck = checkClass.getDeclaredConstructor().newInstance()
+
+            def errors = integrityCheck.runCheck(dataDictionary).
+                sort{it.name}.
+                collect{outputComponent(it)}
+
+            Map checkResult = [:]
+
+
+            checkResult["name"] = integrityCheck.name
+            checkResult["description"] = integrityCheck.description
+            checkResult["errors"] = errors
+            checkResult["size"] = errors.size()
+            results.add(checkResult)
+        }
+        return results
+
+
+
+/*
 
         List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
             !ddClass.isRetired() && ddClass.allAttributes().count { it.dataType instanceof ReferenceType } == 0
@@ -261,8 +228,19 @@ class NhsDataDictionaryService {
             ]
 
         ]
+*/
     }
 
+    Map outputComponent(NhsDataDictionaryComponent dataDictionaryComponent) {
+        return [
+            type      : dataDictionaryComponent.getStereotype(),
+            label     : dataDictionaryComponent.name,
+            id        : dataDictionaryComponent.catalogueItem.id.toString(),
+            domainType: dataDictionaryComponent.catalogueItem.domainType,
+            parentId  : dataDictionaryComponent.catalogueItem.parentDataClass?.id?.toString(),
+            modelId   : dataDictionaryComponent.catalogueItem.dataModel.id.toString()
+        ]
+    }
 
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
         NhsDataDictionary dataDictionary = new NhsDataDictionary()

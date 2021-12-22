@@ -327,6 +327,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     void nhsDataDictionaryComponentFromItem(CatalogueItem catalogueItem, NhsDataDictionaryComponent component) {
         component.name = catalogueItem.label
         component.definition = catalogueItem.description
+        component.catalogueItem = catalogueItem
         NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
             Metadata md = catalogueItem.metadata.find {
                 it.namespace == getMetadataNamespace() &&

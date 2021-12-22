@@ -3,6 +3,12 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
 
     @Override
+    String getStereotype() {
+        "XML Schema Constraint"
+    }
+
+
+    @Override
     String calculateShortDescription() {
         String shortDescription = name
         otherProperties["shortDescription"] = shortDescription

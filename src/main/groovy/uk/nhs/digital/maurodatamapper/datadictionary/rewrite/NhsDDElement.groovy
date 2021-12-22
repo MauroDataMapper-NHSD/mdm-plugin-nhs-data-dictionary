@@ -8,6 +8,12 @@ import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent {
 
+    @Override
+    String getStereotype() {
+        "Data Element"
+    }
+
+
     List<NhsDDCode> codes = []
 
     String codeSetVersion
