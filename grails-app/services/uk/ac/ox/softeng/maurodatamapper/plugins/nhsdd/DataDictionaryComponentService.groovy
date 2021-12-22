@@ -1,7 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
@@ -25,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 import java.util.regex.Matcher
@@ -130,35 +129,35 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     }
 
     CatalogueItem getByPath(String[] path) {
-        if(path[0] == "te:${DataDictionary.BUSDEF_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(DataDictionary.BUSDEF_TERMINOLOGY_NAME)
+        if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
+            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
-            if(t) {
+            if (t) {
                 return t
             }
         }
-        if(path[0] == "te:${DataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(DataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
+        if (path[0] == "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
+            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
-            if(t) {
+            if (t) {
                 return t
             }
         }
-        if(path[0] == "te:${DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
+        if (path[0] == "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
+            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
-            if(t) {
+            if (t) {
                 return t
             }
         }
-        if(path[0].startsWith("dm:${DataDictionary.CORE_MODEL_NAME}")) {
-            DataModel dm = dataModelService.findByLabel(DataDictionary.CORE_MODEL_NAME)
-            if(path[1] == "dc:${DataDictionary.DATA_CLASSES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_CLASSES_CLASS_NAME)
-                if(path[2] == "dc:Retired") {
+        if (path[0].startsWith("dm:${NhsDataDictionary.CORE_MODEL_NAME}")) {
+            DataModel dm = dataModelService.findByLabel(NhsDataDictionary.CORE_MODEL_NAME)
+            if (path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_CLASSES_CLASS_NAME)
+                if (path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataClass dc3 = dataClassService.findByParentAndLabel(dc2, path[3].replace("dc:", ""))
                     return dc3
@@ -167,9 +166,9 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                     return dc2
                 }
             }
-            if(path[1] == "dc:${DataDictionary.ATTRIBUTES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.ATTRIBUTES_CLASS_NAME)
-                if(path[2] == "dc:Retired") {
+            if (path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.ATTRIBUTES_CLASS_NAME)
+                if (path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
                     return de3
@@ -178,9 +177,9 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
                     return de2
                 }
             }
-            if(path[1] == "dc:${DataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, DataDictionary.DATA_FIELD_NOTES_CLASS_NAME)
-                if(path[2] == "dc:Retired") {
+            if (path[1] == "dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME)
+                if (path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
                     return de3
@@ -328,13 +327,13 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     void nhsDataDictionaryComponentFromItem(CatalogueItem catalogueItem, NhsDataDictionaryComponent component) {
         component.name = catalogueItem.label
         component.definition = catalogueItem.description
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
+        NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
             Metadata md = catalogueItem.metadata.find {
                 it.namespace == getMetadataNamespace() &&
-                    it.key == key
+                it.key == key
 
             }
-            if(md) {
+            if (md) {
                 component.otherProperties[key] = md.value
             } else {
                 component.otherProperties[key] = null

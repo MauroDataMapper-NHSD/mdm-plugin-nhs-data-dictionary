@@ -17,13 +17,10 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -87,9 +84,9 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
 
         List<Map> dataElements = []
 
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(DataDictionary.CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
         String uin = DDHelperFunctions.getMetadataValue(dataElement, "uin")
-        coreModel.dataClasses.find {it.label == DataDictionary.DATA_FIELD_NOTES_CLASS_NAME}.dataElements.each {relatedDataElement ->
+        coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}.dataElements.each {relatedDataElement ->
             String elementAttributes = DDHelperFunctions.getMetadataValue(relatedDataElement, "element_attributes")
             if (elementAttributes && elementAttributes.contains(uin)) {
                 Map relatedElement = [
@@ -118,12 +115,12 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
 
     @Override
     String getMetadataNamespace() {
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE + ".attribute"
+        NhsDataDictionary.METADATA_NAMESPACE + ".attribute"
     }
 
-    void persistAttributes(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+    void persistAttributes(NhsDataDictionary dataDictionary,
                            VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                          Map<String, Terminology> attributeTerminologiesByName, Map<String, DataElement> attributeElementsByName) {
+                           Map<String, Terminology> attributeTerminologiesByName, Map<String, DataElement> attributeElementsByName) {
 
         Folder attributeTerminologiesFolder =
             new Folder(label: "Attribute Terminologies", createdBy: currentUserEmailAddress)
@@ -134,7 +131,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         }
         folderService.save(attributeTerminologiesFolder)
 
-        DataClass allAttributesClass = new DataClass(label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
+        DataClass allAttributesClass = new DataClass(label: NhsDataDictionary.ATTRIBUTES_CLASS_NAME, createdBy: currentUserEmailAddress)
 
         DataClass retiredAttributesClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
                                                          parentDataClass: allAttributesClass)
