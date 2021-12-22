@@ -88,7 +88,7 @@ class NhsDataDictionaryService {
         return versionTreeModelList
     }
 
-    def integrityChecks(UUID versionedFolderId) {
+    List<Map> integrityChecks(UUID versionedFolderId) {
 
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
