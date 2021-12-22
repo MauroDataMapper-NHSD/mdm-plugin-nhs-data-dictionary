@@ -33,6 +33,7 @@ import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import grails.views.WritableScriptTemplate
 import grails.web.databinding.DataBindingUtils
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -311,6 +312,45 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         mergedFolder
     }
 
+    void 'S01 : Obtain statistics for November 2021'() {
+        given:
+        setupData()
+        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+
+        when:
+        long start = System.currentTimeMillis()
+        NhsDataDictionary nhsDataDictionary = nhsDataDictionaryService.buildDataDictionary(releaseId)
+        String statsJson = renderStatisticsAsJson(nhsDataDictionary)
+        log.info('Stats obtained in {}', Utils.timeTaken(start))
+        def stats = new JsonSlurper().parseText(statsJson)
+
+        then:
+        stats
+        log.info('{}', statsJson)
+        checkStatsMapEntry(stats, 'Attributes', 2526, 0, 1175)
+        checkStatsMapEntry(stats, 'Data Field Notes', 4915, 8, 2196)
+        checkStatsMapEntry(stats, 'Classes', 364, 0, 137)
+        checkStatsMapEntry(stats, 'Data Sets', 125, 0, 0)
+        checkStatsMapEntry(stats, 'Business Definitions', 1230, 1, 388)
+        checkStatsMapEntry(stats, 'Supporting Information', 152, 0, 24)
+        checkStatsMapEntry(stats, 'XML Schema Constraints', 33, 0, 5)
+    }
+
+    void 'IN01 : Run integrity checks for November 2021'() {
+        given:
+        setupData()
+        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+
+        when:
+        long start = System.currentTimeMillis()
+        List<Map> checks = nhsDataDictionaryService.integrityChecks(releaseId)
+        log.info('Integrity checks obtained in {}', Utils.timeTaken(start))
+
+        then:
+        checks
+        log.info('{}', JsonOutput.prettyPrint(JsonOutput.toJson(checks)))
+    }
+
     void writeMergeDiffOut(MergeDiff mergeDiff) {
         log.error('Diffs {}', mergeDiff.numberOfDiffs)
         String actual = renderMergeDiffAsJson(mergeDiff)
@@ -367,6 +407,14 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         sw.toString()
     }
 
+    String renderStatisticsAsJson(NhsDataDictionary nhsDataDictionary) {
+        WritableScriptTemplate t = templateEngine.resolveTemplate('/NhsDataDictionary/statistics.gson')
+        def writable = t.make(nhsDataDictionary: nhsDataDictionary)
+        def sw = new StringWriter()
+        writable.writeTo(sw)
+        sw.toString()
+    }
+
     def loadXml(String filename) {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
@@ -384,6 +432,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         Files.deleteIfExists(testFilePath)
         Files.write(testFilePath, content.bytes)
+    }
+
+    private void checkStatsMapEntry(Map<String, Map<String, Number>> statsMap, String name, int total, int preparatory, int retired) {
+        assertEquals("Total ${name}", total, statsMap[name].Total)
+        assertEquals("Preparatory ${name}", preparatory, statsMap[name].Preparatory)
+        assertEquals("Retired ${name}", retired, statsMap[name].Retired)
     }
 
     private void checkFolderContentsWithChildren(Folder check, int childFolderCount, int terminologyCount, int codeSetCount, int dataModelCount, boolean finalised) {
