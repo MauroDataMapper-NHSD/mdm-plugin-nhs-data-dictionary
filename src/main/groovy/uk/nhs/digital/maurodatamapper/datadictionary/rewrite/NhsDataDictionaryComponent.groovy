@@ -1,7 +1,5 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 
@@ -31,7 +29,7 @@ trait NhsDataDictionaryComponent {
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         if(xml.TitleCaseName.text()) {
-            this.name = xml.TitleCaseName.text()
+            this.name = xml.TitleCaseName[0].text()
         } else { // This should only apply for XmlSchemaConstraints
             this.name = xml."class".websitePageHeading.text()
         }
