@@ -19,15 +19,10 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 
 @Slf4j
@@ -229,7 +224,6 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
                 CodeSet codeSet = new CodeSet(
                     label: name,
-                    description: "",
                     folder: subFolder,
                     createdBy: currentUserEmailAddress,
                     authority: authorityService.defaultAuthority)

@@ -1,7 +1,6 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
-import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
+
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -179,7 +178,7 @@ class DDHelperFunctions {
 
         DataClass currentClass = parentClass
         if (parentClass == null && useParentClass) {
-            currentClass = new DataClass(label: dataSetDataModel.label, description: "")
+            currentClass = new DataClass(label: dataSetDataModel.label)
             addMetadata(currentClass, "item_order", "" + index)
         }
         int classIndex = index
@@ -261,7 +260,7 @@ class DDHelperFunctions {
     }
 
     static DataClass dataClassFromTable(GPathResult table, DataModel dataSetDataModel) {
-        DataClass currentClass = new DataClass(label: table.tbody.tr.th.text(), description: "")
+        DataClass currentClass = new DataClass(label: table.tbody.tr.th.text())
         dataSetDataModel.addToDataClasses(currentClass)
         return currentClass
     }
