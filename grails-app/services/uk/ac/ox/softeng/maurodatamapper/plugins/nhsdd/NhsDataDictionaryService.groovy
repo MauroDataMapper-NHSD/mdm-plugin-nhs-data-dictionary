@@ -521,7 +521,6 @@ class NhsDataDictionaryService {
     }
 
 
-    @Transactional
     VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion) {
 
         NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate)

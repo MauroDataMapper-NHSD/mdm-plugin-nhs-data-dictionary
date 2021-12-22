@@ -24,6 +24,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -140,7 +141,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
     @Override
     String getMetadataNamespace() {
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE +  ".element"
+        NhsDataDictionary.METADATA_NAMESPACE + ".element"
     }
 
     List<DataElement> getElementAttributes(DataElement dataElement, DataDictionary dataDictionary) {
@@ -166,7 +167,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
             String label = DDHelperFunctions.getMetadataValue(code, "label")
             codeMap["code"] = label?:code.key
             String webPresentation = DDHelperFunctions.getMetadataValue(code, "Web Presentation")
-            codeMap["value"] = webPresentation?:code.value
+            codeMap["value"] = webPresentation ?: code.value
             String retired = DDHelperFunctions.getMetadataValue(code, "isRetired")
             codeMap["retired"] = retired
 
@@ -175,12 +176,12 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         return returnCodesList
     }
 
-    void persistElements(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
-                           VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                        Map<String, Terminology> attributeTerminologiesByName) {
+    void persistElements(NhsDataDictionary dataDictionary,
+                         VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                         Map<String, Terminology> attributeTerminologiesByName) {
 
-        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find { it.label == "String" }
-        if(!stringDataType) {
+        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find {it.label == "String"}
+        if (!stringDataType) {
             stringDataType = new PrimitiveType(label: "String", createdBy: currentUserEmailAddress)
             coreDataModel.addToDataTypes(stringDataType)
         }
@@ -193,7 +194,7 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         }
         folderService.save(dataElementCodeSetsFolder)
 
-        DataClass allElementsClass = new DataClass(label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy:
+        DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy:
             currentUserEmailAddress)
 
         DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,

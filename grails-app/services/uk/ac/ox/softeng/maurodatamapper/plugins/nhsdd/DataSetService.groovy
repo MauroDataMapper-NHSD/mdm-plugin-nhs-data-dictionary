@@ -13,21 +13,17 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -83,8 +79,8 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
     @Override
     Set<DataModel> getAll() {
-        Folder folder = folderService.findByPath(DataDictionary.FOLDER_NAME.toString())
-        Folder dataSetsFolder = folder.childFolders.find {it.label == DataDictionary.DATA_SETS_FOLDER_NAME}
+        Folder folder = folderService.findByPath(NhsDataDictionary.FOLDER_NAME.toString())
+        Folder dataSetsFolder = folder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
         getAllDataSets(dataSetsFolder)
     }
@@ -102,12 +98,12 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
             }
             returnModels.addAll(dataModelService.findAllByFolderId(dataSetsFolder.id))
             return returnModels
-        } else return []
+        } else return new HashSet<DataModel>()
     }
 
     @Override
     String getMetadataNamespace() {
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE +  ".data set"
+        NhsDataDictionary.METADATA_NAMESPACE + ".data set"
     }
 
     String outputClassAsDita(DataClass dataClass, DataDictionary dataDictionary) {
@@ -385,7 +381,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
                 if (DataSetParser.isChoice(dataClass)) {
                     result.append "<tr><td><p> <b>One of the following DATA GROUPS must be used:</b></p></td></tr>"
                 }
-                List<DataClass> sortedClasses = getSortedChildElements(dataClass)
+                List<DataClass> sortedClasses = getSortedChildElements(dataClass) as List<DataClass>
                 sortedClasses.each {childDataClass ->
                     result.append addCDSSubClass(childDataClass, dataModel, dataDictionary, totalDepth, currentDepth + 1)
                     if (DataSetParser.isChoice(dataClass) &&
@@ -409,7 +405,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         result.append addCDSClassContents(dataClass, dataModel, dataDictionary, totalDepth, currentDepth)
         return result.toString()
     }
-
 
     String addCDSClassHeader(DataClass dataClass, DataModel dataModel, DataDictionary dataDictionary, int totalDepth,
                              int currentDepth) {
@@ -516,7 +511,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
         return result.toString()
     }
 
-    void persistDataSets(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
+    void persistDataSets(NhsDataDictionary dataDictionary,
                          VersionedFolder dictionaryFolder, DataModel coreDataModel, User currentUser) {
 
         Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUser.emailAddress)
@@ -534,19 +529,19 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
     }
 
     void createAndSaveDataModel(NhsDDDataSet dataSet, Folder dataSetsFolder, Folder dictionaryFolder, User currentUser,
-                                uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary nhsDataDictionary) {
+                                NhsDataDictionary nhsDataDictionary) {
         List<String> path = getPath(dataSet.otherProperties["baseUri"], dataSet.isRetired())
         Folder folder = getFolderAtPath(dataSetsFolder, path, currentUser.emailAddress)
         log.debug('Ingesting {}', dataSet.name)
 
-            DataModel dataSetDataModel = new DataModel(
-                label: dataSet.name,
-                description: dataSet.overview,
-                createdBy: currentUser.emailAddress,
-                type: DataModelType.DATA_STANDARD,
-                authority: authorityService.defaultAuthority,
-                folder: folder
-            )
+        DataModel dataSetDataModel = new DataModel(
+            label: dataSet.name,
+            description: dataSet.overview,
+            createdBy: currentUser.emailAddress,
+            type: DataModelType.DATA_STANDARD,
+            authority: authorityService.defaultAuthority,
+            folder: folder
+        )
 
         if (dataSet.name.startsWith("CDS")) {
             CDSDataSetParser.parseCDSDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
@@ -577,11 +572,11 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
     }
 
     List<String> getPath(String pathStr, boolean isRetired) {
-        List<String> path
+        List<String> path = []
         try {
-            path = DDHelperFunctions.getPath(pathStr, "Messages", ".txaClass20")
+            path.addAll(DDHelperFunctions.getPath(pathStr, "Messages", ".txaClass20"))
         } catch (Exception e) {
-            path = DDHelperFunctions.getPath(pathStr, "Web_Site_Content", ".txaClass20")
+            path.addAll(DDHelperFunctions.getPath(pathStr, "Web_Site_Content", ".txaClass20"))
         }
         path.removeAll {it.equalsIgnoreCase("Data_Sets")}
         path.removeAll {it.equalsIgnoreCase("Content")}

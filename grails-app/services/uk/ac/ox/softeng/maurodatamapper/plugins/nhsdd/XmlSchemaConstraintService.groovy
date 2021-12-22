@@ -1,8 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -10,10 +8,8 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -51,7 +47,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
 
     @Override
     Set<Term> getAll() {
-        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
+        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
         supDefTerminology.terms.findAll{
             (!it.metadata.find{md -> md.namespace == DDHelperFunctions.metadataNamespace + ".XML schema constraint" &&
                         md.key == "isRetired" &&
@@ -67,22 +63,22 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
 
     @Override
     String getMetadataNamespace() {
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE + ".XML schema constraint"
+        NhsDataDictionary.METADATA_NAMESPACE + ".XML schema constraint"
     }
 
-    void persistXmlSchemaConstraints(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
-                                       VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
+    void persistXmlSchemaConstraints(NhsDataDictionary dataDictionary,
+                                     VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
 
-         Terminology terminology = new Terminology(
-             label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME,
-             folder: dictionaryFolder,
-             createdBy: currentUserEmailAddress,
-             authority: authorityService.defaultAuthority)
+        Terminology terminology = new Terminology(
+            label: NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME,
+            folder: dictionaryFolder,
+            createdBy: currentUserEmailAddress,
+            authority: authorityService.defaultAuthority)
 
-         Map<String, Term> allTerms = [:]
-         dataDictionary.xmlSchemaConstraints.each { name, xmlSchemaConstraint ->
+        Map<String, Term> allTerms = [:]
+        dataDictionary.xmlSchemaConstraints.each {name, xmlSchemaConstraint ->
 
-             // Either this is the first time we've seen a term...
+            // Either this is the first time we've seen a term...
              // .. or if we've already got one, we'll overwrite it with this one
              // (if this one isn't retired)
              if(!allTerms[name] || !xmlSchemaConstraint.isRetired()) {

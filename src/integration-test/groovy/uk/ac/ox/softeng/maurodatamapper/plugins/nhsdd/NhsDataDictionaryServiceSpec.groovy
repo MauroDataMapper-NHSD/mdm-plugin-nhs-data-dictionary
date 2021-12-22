@@ -95,21 +95,19 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         assert xml
 
         when:
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary = uk
-            .nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.buildFromXml(xml, 'November 2021')
+        NhsDataDictionary dataDictionary = NhsDataDictionary.buildFromXml(xml, 'November 2021')
 
         then:
 
-        assertEquals  dataDictionary.attributes.size(),             2526
-        assertEquals  dataDictionary.elements.size(),               4915
-        assertEquals  dataDictionary.classes.size(),                 363
-        assertEquals  dataDictionary.dataSets.size(),                261
-        assertEquals  dataDictionary.businessDefinitions.size(),    1230
-        assertEquals  dataDictionary.supportingInformation.size(),   152
-        assertEquals  dataDictionary.xmlSchemaConstraints.size(),     33
+        assertEquals dataDictionary.attributes.size(), 2526
+        assertEquals dataDictionary.elements.size(), 4915
+        assertEquals dataDictionary.classes.size(), 363
+        assertEquals dataDictionary.dataSets.size(), 261
+        assertEquals dataDictionary.businessDefinitions.size(), 1230
+        assertEquals dataDictionary.supportingInformation.size(), 152
+        assertEquals dataDictionary.xmlSchemaConstraints.size(), 33
 
     }
-
 
 
     void 'I01 : test xml ingest and save of November 2021'() {
@@ -265,16 +263,10 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         !mergeDiff.empty
+        if (mergeDiff.numberOfDiffs != 144) {
+            writeMergeDiffOut(mergeDiff)
+        }
         mergeDiff.numberOfDiffs == 144
-
-        // Uncomment to get an updated merge diff json file
-        //        when:
-        //        String actual = renderMergeDiffAsJson(mergeDiff)
-        //        log.error('Diffs {}', mergeDiff.numberOfDiffs)
-        //
-        //        then:
-        //        actual
-        //        writeFile('mergeDiff.json', actual)
     }
 
     @PendingFeature(reason = 'Need MDTs to be mergeable')
@@ -317,20 +309,13 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         mergedFolder
+    }
 
-        // Uncomment to get an updated merge diff json file
-        //        when:
-        //        mergeDiff.flattenedDiffs.removeIf({
-        //            PathNode last = it.fullyQualifiedPath.last()
-        //            last.matches(new PathNode('md','uk.nhs.datadictionary.term.publishDate',null,'value')) ||
-        //            last.attribute == 'modelResourceId'
-        //        })
-        //        String actual = renderMergeDiffAsJson(mergeDiff)
-        //        log.error('Diffs {}', mergeDiff.numberOfDiffs)
-        //
-        //        then:
-        //        actual
-        //        writeFile('mergeDiff.json', actual)
+    void writeMergeDiffOut(MergeDiff mergeDiff) {
+        log.error('Diffs {}', mergeDiff.numberOfDiffs)
+        String actual = renderMergeDiffAsJson(mergeDiff)
+        writeFile('mergeDiff.json', actual)
+
     }
 
     UUID cleanIngest(String name, String releaseDate, boolean finalised = true) {
@@ -448,7 +433,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
             assertEquals("${path} >> ${mi.domainType} ${mi.label} idx", i, mi.idx)
         }
         if (modelItems.first() instanceof DataClass) {
-            modelItems.each {
+            (modelItems as Collection<DataClass>).each {
                 checkModelItemIndexes(it.dataClasses, "${path}|${it.label}")
                 checkModelItemIndexes(it.dataElements, "${path}|${it.label}")
             }
@@ -593,37 +578,4 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         //        outputChildFolderContents(retiredClinicalDataSets, 'retiredClinicalDataSets')
         checkFolderWithDataModelsOnly(retiredClinicalDataSets.childFolders.find {it.label == 'National Renal Data Set'}, 8, finalised)
     }
-
-    /**
-     * Code to minify any XML
-     *
-     * you will need to add to the dependencies.gradle file
-     implementation 'org.dom4j:dom4j:2.1.3'
-     implementation 'jaxen:jaxen:1.2.0'
-     *
-     * Then run the below in a groovy console
-     *
-     import groovy.xml.XmlUtil
-     import org.dom4j.Document
-     import org.dom4j.DocumentHelper
-     import org.dom4j.io.OutputFormat
-     import org.dom4j.io.XMLWriter
-
-     import java.nio.file.Files
-     import java.nio.file.Path
-     import java.nio.file.Paths
-
-     String minify(String absolutePathToDirectory, String xmlFileName) {Path directory = Paths.get(absolutePathToDirectory)
-     Path testFilePath = directory.resolve(xmlFileName)
-     assert Files.exists(testFilePath)
-     def xml = new XmlSlurper().parse(Files.newBufferedReader(testFilePath))
-     String xmlStr = XmlUtil.serialize(xml)
-     Document document = DocumentHelper.parseText(xmlStr)
-     OutputFormat format = OutputFormat.createCompactFormat()
-     StringWriter stringWriter = new StringWriter()
-     XMLWriter writer = new XMLWriter(stringWriter, format)
-     writer.write(document)
-     String resultStr = stringWriter.toString()
-     Files.write(directory.resolve('minified.xml'), resultStr.bytes)}minify('<ABSOLUTE_FILE_PATH_TO_DIRECTORY>', 'XML_FILE_NAME')
-     */
 }

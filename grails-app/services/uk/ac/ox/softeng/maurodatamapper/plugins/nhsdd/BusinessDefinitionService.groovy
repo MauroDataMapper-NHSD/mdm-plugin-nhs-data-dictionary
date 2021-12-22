@@ -1,22 +1,16 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -50,7 +44,7 @@ class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
 
     @Override
     Set<Term> getAll() {
-        Terminology busDefTerminology = terminologyService.findCurrentMainBranchByLabel(DataDictionary.BUSDEF_TERMINOLOGY_NAME)
+        Terminology busDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
         busDefTerminology.terms.findAll{
             (it.depth > 1 &&
                 !it.metadata.find{md -> md.namespace == DDHelperFunctions.metadataNamespace + ".NHS business definition" &&
@@ -67,20 +61,20 @@ class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
 
     @Override
     String getMetadataNamespace() {
-        uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.METADATA_NAMESPACE + ".NHS business definition"
+        NhsDataDictionary.METADATA_NAMESPACE + ".NHS business definition"
     }
 
-    void persistBusinessDefinitions(uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary dataDictionary,
-                         VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
+    void persistBusinessDefinitions(NhsDataDictionary dataDictionary,
+                                    VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
 
         Terminology terminology = new Terminology(
-            label: uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME,
+            label: NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME,
             folder: dictionaryFolder,
             createdBy: currentUserEmailAddress,
             authority: authorityService.defaultAuthority)
 
         Map<String, Term> allTerms = [:]
-        dataDictionary.businessDefinitions.each { name, businessDefinition ->
+        dataDictionary.businessDefinitions.each {name, businessDefinition ->
 
             // Either this is the first time we've seen a term...
             // .. or if we've already got one, we'll overwrite it with this one
