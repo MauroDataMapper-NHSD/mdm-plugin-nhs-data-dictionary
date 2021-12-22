@@ -3,6 +3,12 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 class NhsDDWebPage implements NhsDataDictionaryComponent {
 
     @Override
+    String getStereotype() {
+        "Web Page"
+    }
+
+
+    @Override
     String calculateShortDescription() {
         return null
     }

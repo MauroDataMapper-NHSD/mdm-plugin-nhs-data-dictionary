@@ -9,6 +9,12 @@ import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 class NhsDDSupportingInformation implements NhsDataDictionaryComponent {
 
     @Override
+    String getStereotype() {
+        "Supporting Information"
+    }
+
+
+    @Override
     String calculateShortDescription() {
         String shortDescription
         if(isPreparatory()) {

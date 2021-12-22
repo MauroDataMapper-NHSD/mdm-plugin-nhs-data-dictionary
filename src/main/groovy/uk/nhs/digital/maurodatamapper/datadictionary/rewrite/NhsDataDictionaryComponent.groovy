@@ -1,9 +1,14 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 
 trait NhsDataDictionaryComponent {
+
+    abstract String getStereotype()
+
+    CatalogueItem catalogueItem
 
     String name
     String definition
