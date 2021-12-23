@@ -32,7 +32,7 @@ import java.util.regex.Pattern
 
 @Slf4j
 @Transactional
-abstract class DataDictionaryComponentService<T extends CatalogueItem> {
+abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends NhsDataDictionaryComponent> {
 
     DataModelService dataModelService
     DataClassService dataClassService
@@ -65,8 +65,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         Map<String, String> aliases = [:]
         DataDictionaryComponent.aliasFields.each {aliasField ->
 
-            Metadata foundMd = catalogueItem.metadata.find{it.namespace == getMetadataNamespace() && it.key == aliasField.key}
-            if(foundMd) {
+            Metadata foundMd = catalogueItem.metadata.find {it.namespace == getMetadataNamespace() && it.key == aliasField.key}
+            if (foundMd) {
                 aliases[aliasField.value] = foundMd.value
             }
         }
@@ -75,6 +75,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
     abstract String getMetadataNamespace()
 
+    abstract D getNhsDataDictionaryComponentFromCatalogueItem(T catalogueItem)
 
     def getWhereUsed(DataDictionary dataDictionary, String id) {
         DataDictionaryComponent component = dataDictionary.getAllComponents().find {
@@ -105,10 +106,10 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
         String newDescription = description
         Matcher matcher = pattern.matcher(description)
-        while(matcher.find()) {
+        while (matcher.find()) {
             String[] path = matcher.group(2).split("\\|")
             CatalogueItem foundCatalogueItem = getByPath(path)
-            if(foundCatalogueItem) {
+            if (foundCatalogueItem) {
                 String stereotype = getStereotypeByPath(path)
                 String catalogueId = foundCatalogueItem.id.toString()
                 String cssClass = stereotype
@@ -122,7 +123,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     String replaceLinksInShortDescription(String input) {
         String output = input
         Matcher matcher = pattern.matcher(input)
-        while(matcher.find()) {
+        while (matcher.find()) {
             output = output.replace(matcher.group(0), matcher.group(1))
         }
         return output
@@ -200,27 +201,27 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
     }
 
     String getStereotypeByPath(String[] path) {
-        if(path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
+        if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "businessDefinition"
         }
-        if(path[0] == "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
+        if (path[0] == "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "supportingInformation"
         }
-        if(path[0] == "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
+        if (path[0] == "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
             return "xmlSchemaConstraint"
         }
-        if(path[0] == "dm:${NhsDataDictionary.CORE_MODEL_NAME}") {
-            if(path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
+        if (path[0] == "dm:${NhsDataDictionary.CORE_MODEL_NAME}") {
+            if (path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
                 return "class"
             }
-            if(path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
+            if (path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
                 return "attribute"
             }
-            if(path[1] == "dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
+            if (path[1] == "dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
                 return "element"
             }
         }
-        if(path.length == 1 && path[0].startsWith("dm:")) {
+        if (path.length == 1 && path[0].startsWith("dm:")) {
             return "dataSet"
         }
         return null
@@ -229,40 +230,40 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
     Map<String, String> attributeMetadata = [
         // Aliases
-        "aliasShortName": "aliasShortName",
-        "aliasAlsoKnownAs": "aliasAlsoKnownAs",
-        "aliasPlural": "aliasPlural",
-        "aliasFormerly": "aliasFormerly",
-        "aliasFullName": "aliasFullName",
-        "aliasIndexName": "aliasIndexName",
-        "aliasSchema": "aliasSchema",
-        "name": "name",
-        "titleCaseName": "TitleCaseName",
-        "websitePageHeading": "websitePageHeading",
+        "aliasShortName"               : "aliasShortName",
+        "aliasAlsoKnownAs"             : "aliasAlsoKnownAs",
+        "aliasPlural"                  : "aliasPlural",
+        "aliasFormerly"                : "aliasFormerly",
+        "aliasFullName"                : "aliasFullName",
+        "aliasIndexName"               : "aliasIndexName",
+        "aliasSchema"                  : "aliasSchema",
+        "name"                         : "name",
+        "titleCaseName"                : "TitleCaseName",
+        "websitePageHeading"           : "websitePageHeading",
 
         // SNOMED
-        "aliasSnomedCTRefsetId": "aliasSnomedCTRefsetId",
-        "aliasSnomedCTRefsetName": "aliasSnomedCTRefsetName",
-        "aliasSnomedCTSubsetName": "aliasSnomedCTSubsetName",
+        "aliasSnomedCTRefsetId"        : "aliasSnomedCTRefsetId",
+        "aliasSnomedCTRefsetName"      : "aliasSnomedCTRefsetName",
+        "aliasSnomedCTSubsetName"      : "aliasSnomedCTSubsetName",
         "aliasSnomedCTSubsetOriginalId": "aliasSnomedCTSubsetOriginalId",
 
         // Publication Lifecycle
-        "isPreparatory": "isPrepatory",
-        "isRetired": "isRetired",
-        "retiredDate": "retiredDate",
+        "isPreparatory"                : "isPrepatory",
+        "isRetired"                    : "isRetired",
+        "retiredDate"                  : "retiredDate",
 
         // Legacy
-        "uin": "uin",
-        "baseUri": "base-uri",
-        "ultimatePath": "ultimate-path",
-        "ddUrl": "DD_URL",
-        "search": "search",
-        "baseVersion": "baseVersion",
+        "uin"                          : "uin",
+        "baseUri"                      : "base-uri",
+        "ultimatePath"                 : "ultimate-path",
+        "ddUrl"                        : "DD_URL",
+        "search"                       : "search",
+        "baseVersion"                  : "baseVersion",
         // "modFinal": "mod__final",
         // "modAbstract": "mod__abstract",
 
         // Encoding
-        "formatLength": "format-length",
+        "formatLength"                 : "format-length",
 
 
         //"fhirItem": "FHIR_Item",
@@ -277,16 +278,16 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         //"clientRole": "clientRole",
         //"formatLink": "format-link",
         //"permittedNationalCodes": "permitted-national-codes",
-        "navigationParent": "navigationParent",
-        "explanatoryPage": "explanatoryPage",
-        "class": "class",
-        "doNotShowChangeLog": "doNotShowChangeLog",
-        "node": "node",
-        "referencedElement": "referencedElement",
-        "participant": "participant",
-        "supportingFile": "supportingFile",
-        "isNavigationComponent": "isNavigationComponent",
-        "isWebsiteIndex": "isWebsiteIndex",
+        "navigationParent"             : "navigationParent",
+        "explanatoryPage"              : "explanatoryPage",
+        "class"                        : "class",
+        "doNotShowChangeLog"           : "doNotShowChangeLog",
+        "node"                         : "node",
+        "referencedElement"            : "referencedElement",
+        "participant"                  : "participant",
+        "supportingFile"               : "supportingFile",
+        "isNavigationComponent"        : "isNavigationComponent",
+        "isWebsiteIndex"               : "isWebsiteIndex",
 
         // Not sure about this one...
         // "extraFieldHead": "ExtraFieldhead",
@@ -308,7 +309,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
         attributeMetadata.entrySet().each {entry ->
             String xmlValue = xml[entry.value].text()
-            if(xmlValue && xmlValue != "") {
+            if (xmlValue && xmlValue != "") {
                 addToMetadata(domainObject, entry.key, xmlValue, currentUserEmailAddress)
             }
         }
@@ -316,7 +317,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
 
     void addToMetadata(MetadataAware domainObject, String key, String value, String currentUserEmailAddress) {
 
-        if(value) {
+        if (value) {
             domainObject.addToMetadata(new Metadata(namespace: getMetadataNamespace(),
                                                     key: key,
                                                     value: value,
@@ -324,22 +325,23 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem> {
         }
     }
 
-    void nhsDataDictionaryComponentFromItem(CatalogueItem catalogueItem, NhsDataDictionaryComponent component) {
+    void nhsDataDictionaryComponentFromItem(T catalogueItem, NhsDataDictionaryComponent component) {
         component.name = catalogueItem.label
         component.definition = catalogueItem.description
         component.catalogueItem = catalogueItem
-        NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
-            Metadata md = catalogueItem.metadata.find {
-                it.namespace == getMetadataNamespace() &&
-                it.key == key
+        List<Metadata> allRelevantMetadata = Metadata
+            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
+            .inList('key', NhsDataDictionary.METADATA_FIELD_MAPPING.keySet())
+            .list()
 
-            }
-            if (md) {
-                component.otherProperties[key] = md.value
-            } else {
-                component.otherProperties[key] = null
-            }
+        NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
+            component.otherProperties[key] = allRelevantMetadata.find {it.key == key}?.value
         }
     }
 
+    Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems) {
+        catalogueItems.collectEntries {ci ->
+            [ci.label, getNhsDataDictionaryComponentFromCatalogueItem(ci)]
+        }
+    }
 }

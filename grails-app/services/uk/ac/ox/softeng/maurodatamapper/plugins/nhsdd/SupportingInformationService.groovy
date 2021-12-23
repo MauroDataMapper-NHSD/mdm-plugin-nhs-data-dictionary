@@ -13,14 +13,14 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class SupportingInformationService extends DataDictionaryComponentService <Term> {
+class SupportingInformationService extends DataDictionaryComponentService<Term, NhsDDSupportingInformation> {
 
     @Override
     Map indexMap(Term catalogueItem) {
         [
             catalogueId: catalogueItem.id.toString(),
-            name: catalogueItem.code,
-            stereotype: "supportingInformation"
+            name       : catalogueItem.code,
+            stereotype : "supportingInformation"
 
         ]
     }
@@ -63,6 +63,12 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
         NhsDataDictionary.METADATA_NAMESPACE + ".supporting information"
     }
 
+    @Override
+    NhsDDSupportingInformation getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem) {
+        NhsDDSupportingInformation supportingInformation = new NhsDDSupportingInformation()
+        nhsDataDictionaryComponentFromItem(catalogueItem, supportingInformation)
+        return supportingInformation
+    }
 
     void persistSupportingInformation(NhsDataDictionary dataDictionary,
                                       VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
@@ -110,9 +116,8 @@ class SupportingInformationService extends DataDictionaryComponentService <Term>
 
     }
 
+    @Deprecated
     NhsDDSupportingInformation supportingInformationFromTerm(Term term) {
-        NhsDDSupportingInformation supportingInformation = new NhsDDSupportingInformation()
-        nhsDataDictionaryComponentFromItem(term, supportingInformation)
-        return supportingInformation
+        getNhsDataDictionaryComponentFromCatalogueItem(term)
     }
 }

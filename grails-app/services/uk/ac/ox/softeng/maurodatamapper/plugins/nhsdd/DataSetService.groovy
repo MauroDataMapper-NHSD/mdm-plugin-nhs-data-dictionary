@@ -27,7 +27,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class DataSetService extends DataDictionaryComponentService<DataModel> {
+class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDDataSet> {
 
     @Autowired
     MessageSource messageSource
@@ -104,6 +104,13 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
     @Override
     String getMetadataNamespace() {
         NhsDataDictionary.METADATA_NAMESPACE + ".data set"
+    }
+
+    @Override
+    NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem) {
+        NhsDDDataSet dataSet = new NhsDDDataSet()
+        nhsDataDictionaryComponentFromItem(catalogueItem, dataSet)
+        return dataSet
     }
 
     String outputClassAsDita(DataClass dataClass, DataDictionary dataDictionary) {
@@ -608,10 +615,9 @@ class DataSetService extends DataDictionaryComponentService<DataModel> {
 
     }
 
+    @Deprecated
     NhsDDDataSet dataSetFromDataModel(DataModel dm) {
-        NhsDDDataSet dataSet = new NhsDDDataSet()
-        nhsDataDictionaryComponentFromItem(dm, dataSet)
-        return dataSet
+        getNhsDataDictionaryComponentFromCatalogueItem(dm)
     }
 
 }

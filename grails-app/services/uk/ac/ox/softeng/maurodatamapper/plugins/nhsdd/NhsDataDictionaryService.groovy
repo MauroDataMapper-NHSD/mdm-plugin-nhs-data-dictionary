@@ -9,7 +9,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
-import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -18,7 +17,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -26,21 +24,16 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
+import grails.gorm.DetachedCriteria
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllClassesHaveRelationships
@@ -61,6 +54,7 @@ class NhsDataDictionaryService {
     FolderService folderService
     VersionedFolderService versionedFolderService
     MetadataService metadataService
+    TermService termService
 
     DataSetService dataSetService
     ClassService classService
@@ -101,8 +95,8 @@ class NhsDataDictionaryService {
             IntegrityCheck integrityCheck = checkClass.getDeclaredConstructor().newInstance()
 
             def errors = integrityCheck.runCheck(dataDictionary).
-                sort{it.name}.
-                collect{outputComponent(it)}
+                sort {it.name}.
+                collect {outputComponent(it)}
 
             Map checkResult = [:]
 
@@ -117,118 +111,118 @@ class NhsDataDictionaryService {
 
 
 
-/*
+        /*
 
-        List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
-            !ddClass.isRetired() && ddClass.allAttributes().count { it.dataType instanceof ReferenceType } == 0
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+                List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
+                    !ddClass.isRetired() && ddClass.allAttributes().count { it.dataType instanceof ReferenceType } == 0
+                }.sort{it.name}.collect{it -> outputComponent(it)}
 
-        List<Map> check2components = dataDictionary.attributes.values().findAll{ddAttribute ->
-            // log.debug(ddAttribute.classLinks.size())
-            !ddAttribute.isRetired() &&
-                    !dataDictionary.classes.values().any { cls ->
-                        cls.attributes.keySet().find{att -> att.name == ddAttribute.name }
+                List<Map> check2components = dataDictionary.attributes.values().findAll{ddAttribute ->
+                    // log.debug(ddAttribute.classLinks.size())
+                    !ddAttribute.isRetired() &&
+                            !dataDictionary.classes.values().any { cls ->
+                                cls.attributes.keySet().find{att -> att.name == ddAttribute.name }
+                            }
+                }.sort{it.name}.collect{it -> outputComponent(it)}
+
+                List<Map> check3components = dataDictionary.elements.values().findAll {ddElement ->
+                    // log.debug(ddAttribute.classLinks.size())
+                    !ddElement.isRetired() &&
+                    ddElement.getElementAttributes(dataDictionary) == []
+                }.sort {it.name}.collect {it -> outputComponent(it)}
+
+                List<Map> check4components = dataDictionary.dataSets.values().findAll {ddDataSet ->
+                    // log.debug(ddAttribute.classLinks.size())
+                    !ddDataSet.isRetired() &&
+                    (ddDataSet.stringValues["overview"] == null || ddDataSet.stringValues["overview"] == "")
+                }.sort {it.name}.collect {it -> outputComponent(it)}
+
+                List<Map> check5components = dataDictionary.getAllComponents().findAll {component ->
+                    String shortDesc = component.getShortDesc(dataDictionary)
+                    (shortDesc == null || shortDesc == "")
+                }.sort {it.name}.collect {it -> outputComponent(it)}
+
+                List<Map> check6components = dataDictionary.getAllComponents().findAll {component ->
+                    !component.isRetired &&
+                    component.hasNoAliases()
+                }.sort {it.name}.collect {it -> outputComponent(it)}
+
+                Set<String> duplicateAttributes = findDuplicates(dataDictionary.attributes.values().collect {it.name})
+                Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect {it.name})
+                Set<String> duplicateClasses = findDuplicates(dataDictionary.classes.values().collect {it.name})
+
+                Set<NhsDataDictionaryComponent> foundDuplicates = []
+                if (duplicateAttributes.size() > 0) {
+                    duplicateAttributes.each {attName ->
+                        foundDuplicates.addAll(dataDictionary.attributes.values().findAll {it.name == attName})
                     }
-        }.sort{it.name}.collect{it -> outputComponent(it)}
+                }
+                if (duplicateElements.size() > 0) {
+                    duplicateElements.each {elemName ->
+                        foundDuplicates.addAll(dataDictionary.elements.values().findAll {it.name == elemName})
+                    }
+                }
+                if (duplicateClasses.size() > 0) {
+                    duplicateClasses.each {className ->
+                        foundDuplicates.addAll(dataDictionary.classes.values().findAll {it.name == className})
+                    }
+                }
 
-        List<Map> check3components = dataDictionary.elements.values().findAll {ddElement ->
-            // log.debug(ddAttribute.classLinks.size())
-            !ddElement.isRetired() &&
-            ddElement.getElementAttributes(dataDictionary) == []
-        }.sort {it.name}.collect {it -> outputComponent(it)}
+                List<Map> check7components = foundDuplicates.
+                    sort {it.name}.collect {it -> outputComponent(it)}
 
-        List<Map> check4components = dataDictionary.dataSets.values().findAll {ddDataSet ->
-            // log.debug(ddAttribute.classLinks.size())
-            !ddDataSet.isRetired() &&
-            (ddDataSet.stringValues["overview"] == null || ddDataSet.stringValues["overview"] == "")
-        }.sort {it.name}.collect {it -> outputComponent(it)}
-
-        List<Map> check5components = dataDictionary.getAllComponents().findAll {component ->
-            String shortDesc = component.getShortDesc(dataDictionary)
-            (shortDesc == null || shortDesc == "")
-        }.sort {it.name}.collect {it -> outputComponent(it)}
-
-        List<Map> check6components = dataDictionary.getAllComponents().findAll {component ->
-            !component.isRetired &&
-            component.hasNoAliases()
-        }.sort {it.name}.collect {it -> outputComponent(it)}
-
-        Set<String> duplicateAttributes = findDuplicates(dataDictionary.attributes.values().collect {it.name})
-        Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect {it.name})
-        Set<String> duplicateClasses = findDuplicates(dataDictionary.classes.values().collect {it.name})
-
-        Set<NhsDataDictionaryComponent> foundDuplicates = []
-        if (duplicateAttributes.size() > 0) {
-            duplicateAttributes.each {attName ->
-                foundDuplicates.addAll(dataDictionary.attributes.values().findAll {it.name == attName})
-            }
-        }
-        if (duplicateElements.size() > 0) {
-            duplicateElements.each {elemName ->
-                foundDuplicates.addAll(dataDictionary.elements.values().findAll {it.name == elemName})
-            }
-        }
-        if (duplicateClasses.size() > 0) {
-            duplicateClasses.each {className ->
-                foundDuplicates.addAll(dataDictionary.classes.values().findAll {it.name == className})
-            }
-        }
-
-        List<Map> check7components = foundDuplicates.
-            sort {it.name}.collect {it -> outputComponent(it)}
-
-        List<NhsDataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPreparatory()}
-        List<Map> check8components = dataDictionary.dataSets.values().findAll {component ->
-            component.catalogueItem.allDataElements.find {dataElement ->
-                prepItems.find {it.name == dataElement.label}
-            }
-        }.sort {it.name}.collect {it -> outputComponent(it)}
+                List<NhsDataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPreparatory()}
+                List<Map> check8components = dataDictionary.dataSets.values().findAll {component ->
+                    component.catalogueItem.allDataElements.find {dataElement ->
+                        prepItems.find {it.name == dataElement.label}
+                    }
+                }.sort {it.name}.collect {it -> outputComponent(it)}
 
 
-        return [
-            [
-                checkName  : "Class Relationships Defined",
-                description: "Check that all live classes have relationships to other classes defined",
-                errors     : check1components
-            ],
-            [
-                checkName  : "Attributes linked to a class",
-                description: "Check that all live attributes are linked to a class",
-                errors     : check2components
-            ],
-            [
-                checkName  : "Elements linked to an attribute",
-                description: "Check that all live elements are linked to an attribute",
-                errors     : check3components
-            ],
-            [
-                checkName  : "Data Sets have an overview",
-                description: "Check that all live datasets have an overview field",
-                errors     : check4components
-            ],
-            [
-                checkName  : "All items have a short description",
-                description: "Check that all items have a short description",
-                errors     : check5components
-            ],
-            [
-                checkName  : "All items have an alias",
-                description: "Check that all items have one of the alias fields completed",
-                errors     : check6components
-            ],
-            [
-                checkName  : "Re-used item names",
-                description: "Check that item names of retired classes, attributes and elements have not been re-used",
-                errors     : check7components
-            ],
-            [
-                checkName  : "Datasets that include preparatory items",
-                description: "Check that a dataset doesn't include any preparatory data elements in its definition",
-                errors     : check8components
-            ]
+                return [
+                    [
+                        checkName  : "Class Relationships Defined",
+                        description: "Check that all live classes have relationships to other classes defined",
+                        errors     : check1components
+                    ],
+                    [
+                        checkName  : "Attributes linked to a class",
+                        description: "Check that all live attributes are linked to a class",
+                        errors     : check2components
+                    ],
+                    [
+                        checkName  : "Elements linked to an attribute",
+                        description: "Check that all live elements are linked to an attribute",
+                        errors     : check3components
+                    ],
+                    [
+                        checkName  : "Data Sets have an overview",
+                        description: "Check that all live datasets have an overview field",
+                        errors     : check4components
+                    ],
+                    [
+                        checkName  : "All items have a short description",
+                        description: "Check that all items have a short description",
+                        errors     : check5components
+                    ],
+                    [
+                        checkName  : "All items have an alias",
+                        description: "Check that all items have one of the alias fields completed",
+                        errors     : check6components
+                    ],
+                    [
+                        checkName  : "Re-used item names",
+                        description: "Check that item names of retired classes, attributes and elements have not been re-used",
+                        errors     : check7components
+                    ],
+                    [
+                        checkName  : "Datasets that include preparatory items",
+                        description: "Check that a dataset doesn't include any preparatory data elements in its definition",
+                        errors     : check8components
+                    ]
 
-        ]
-*/
+                ]
+        */
     }
 
     Map outputComponent(NhsDataDictionaryComponent dataDictionaryComponent) {
@@ -243,6 +237,7 @@ class NhsDataDictionaryService {
     }
 
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
+        long totalStart = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = new NhsDataDictionary()
 
         VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
@@ -257,112 +252,58 @@ class NhsDataDictionaryService {
         DataModel coreModel = dataModels.find {it.label == NhsDataDictionary.CORE_MODEL_NAME}
 
         Folder dataSetsFolder = thisVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
-
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
         addClassesToDictionary(coreModel, dataDictionary)
-
         addDataSetsToDictionary(dataSetsFolder, dataDictionary)
-
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
         addXmlSchemaConstraintsToDictionary(xmlSchemaConstraintsTerminology, dataDictionary)
-
+        log.debug('Data Dictionary built in {}', Utils.timeTaken(totalStart))
         return dataDictionary
     }
 
     void addAttributesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
         DataClass attributesClass = coreModel.dataClasses.find {it.label == "Attributes"}
         DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
+        List<DataElement> attributeElements = DataElement.by().inList('dataClass.id', [attributesClass.id, retiredAttributesClass.id]).list()
 
-        Set<DataElement> attributeElements = []
-        attributeElements.addAll(attributesClass.dataElements)
-        attributeElements.addAll(retiredAttributesClass.dataElements)
-
-        attributeElements.each { dataElement ->
-            NhsDDAttribute attribute = attributeService.attributeFromDataElement(dataElement)
-            dataDictionary.attributes[attribute.name] = attribute
-        }
+        dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements)
     }
 
     void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
         DataClass elementsClass = coreModel.dataClasses.find {it.label == "Data Field Notes"}
         DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
+        List<DataElement> elementElements = DataElement.by().inList('dataClass.id', [elementsClass.id, retiredElementsClass.id]).list()
 
-        Set<DataElement> elementElements = []
-        elementElements.addAll(elementsClass.dataElements)
-        elementElements.addAll(retiredElementsClass.dataElements)
-
-        elementElements.each {dataElement ->
-            //DDElement ddElement = new DDElement()
-            //ddElement.fromCatalogueItem(dataDictionary, dataElement, elementsClass.id, coreModel.id, metadataService)
-            NhsDDElement element = elementService.elementFromDataElement(dataElement)
-            dataDictionary.elements[element.name] = element
-
-        }
-
+        dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements)
     }
 
     void addClassesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
         DataClass classesClass = coreModel.dataClasses.find {it.label == "Classes"}
         DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
-
-        Set<DataClass> classClasses = []
-        classClasses.addAll(classesClass.dataClasses)
-        classClasses.addAll(retiredClassesClass.dataClasses)
-
-        classClasses.each {dataClass ->
-            //DDClass ddClass = new DDClass()
-            //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
-            NhsDDClass clazz = classService.classFromDataClass(dataClass)
-            dataDictionary.classes[clazz.name] = clazz
-
-        }
+        List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
+        dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses)
 
     }
 
     void addDataSetsToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
         Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
-
-        dataSetModels.each {dataModel ->
-            //DDDataSet ddDataSet = new DDDataSet()
-            //ddDataSet.fromCatalogueItem(dataDictionary, dataModel, null, null, metadataService)
-            NhsDDDataSet dataSet = dataSetService.dataSetFromDataModel(dataModel)
-            dataDictionary.dataSets[dataSet.name] = dataSet
-
-        }
+        dataDictionary.dataSets = dataSetService.collectNhsDataDictionaryComponents(dataSetModels)
     }
 
     void addBusDefsToDictionary(Terminology busDefsTerminology, NhsDataDictionary dataDictionary) {
-        busDefsTerminology.terms.each {term ->
-            //DDBusinessDefinition ddBusinessDefinition = new DDBusinessDefinition()
-            //ddBusinessDefinition.fromCatalogueItem(dataDictionary, term, busDefsTerminology.id, busDefsTerminology.id, metadataService)
-            NhsDDBusinessDefinition businessDefinition = businessDefinitionService.businessDefinitionFromTerm(term)
-            dataDictionary.businessDefinitions[businessDefinition.name] = businessDefinition
-
-        }
+        dataDictionary.businessDefinitions = businessDefinitionService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(busDefsTerminology.id))
     }
 
     void addSupDefsToDictionary(Terminology supDefsTerminology, NhsDataDictionary dataDictionary) {
-        supDefsTerminology.terms.each {term ->
-            //DDSupportingDefinition ddSupportingDefinition = new DDSupportingDefinition()
-            //ddSupportingDefinition.fromCatalogueItem(dataDictionary, term, supDefsTerminology.id, supDefsTerminology.id, metadataService)
-            NhsDDSupportingInformation supportingInformation = supportingInformationService.supportingInformationFromTerm(term)
-            dataDictionary.supportingInformation[supportingInformation.name] = supportingInformation
-
-        }
+        dataDictionary.supportingInformation = supportingInformationService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(supDefsTerminology.id))
     }
 
     void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, NhsDataDictionary dataDictionary) {
-        xmlSchemaConstraintsTerminology.terms.each {term ->
-            //DDXmlSchemaConstraint ddXmlSchemaConstraint = new DDXmlSchemaConstraint()
-            //ddXmlSchemaConstraint.fromCatalogueItem(dataDictionary, term, xmlSchemaConstraintsTerminology.id, xmlSchemaConstraintsTerminology.id,metadataService)
-            NhsDDXMLSchemaConstraint xmlSchemaConstraint = xmlSchemaConstraintService.ddxmlSchemaConstraintFromTerm(term)
-            dataDictionary.xmlSchemaConstraints[xmlSchemaConstraint.name] = xmlSchemaConstraint
-
-        }
+        dataDictionary.xmlSchemaConstraints =
+            xmlSchemaConstraintService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(xmlSchemaConstraintsTerminology.id))
     }
-
 
     Set<DataClass> getDataClasses(includeRetired = false) {
         DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
