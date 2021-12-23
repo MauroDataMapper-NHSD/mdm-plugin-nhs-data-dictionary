@@ -17,6 +17,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -34,10 +35,24 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllClassesHaveRelationships
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveAlias
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveShortDescription
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AttributesLinkedToAClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsHaveAnOverview
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
 
 import java.time.Instant
 import java.time.LocalDate
@@ -82,36 +97,32 @@ class NhsDataDictionaryService {
         return versionTreeModelList
     }
 
-    List<Map> integrityChecks(UUID versionedFolderId) {
+    List<IntegrityCheck> integrityChecks(UUID versionedFolderId) {
 
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
-        List<Class<IntegrityCheck>> integrityChecks = [
-            AllClassesHaveRelationships
+        List<Class<IntegrityCheck>> integrityCheckClasses = [
+            AllClassesHaveRelationships,
+            AttributesLinkedToAClass,
+            ElementsLinkedToAnAttribute,
+            DataSetsHaveAnOverview,
+            AllItemsHaveShortDescription,
+            AllItemsHaveAlias,
+            ReusedItemNames
         ]
 
-        List<Map> results = []
-        integrityChecks.each {checkClass ->
+        List<IntegrityCheck> integrityChecks = integrityCheckClasses.collect {checkClass ->
             IntegrityCheck integrityCheck = checkClass.getDeclaredConstructor().newInstance()
-
-            def errors = integrityCheck.runCheck(dataDictionary).
-                sort {it.name}.
-                collect {outputComponent(it)}
-
-            Map checkResult = [:]
-
-
-            checkResult["name"] = integrityCheck.name
-            checkResult["description"] = integrityCheck.description
-            checkResult["errors"] = errors
-            checkResult["size"] = errors.size()
-            results.add(checkResult)
+            integrityCheck.runCheck(dataDictionary)
+            integrityCheck.sortErrors()
+            integrityCheck
         }
-        return results
 
+        return integrityChecks
+        //return [new AllClassesHaveRelationships(name: "Hello", description: "Desc", errors: [])]
+    }
 
-
-        /*
+    /*
 
                 List<Map> check1components = dataDictionary.classes.values().findAll{ddClass ->
                     !ddClass.isRetired() && ddClass.allAttributes().count { it.dataType instanceof ReferenceType } == 0
@@ -221,20 +232,8 @@ class NhsDataDictionaryService {
                         errors     : check8components
                     ]
 
-                ]
-        */
-    }
-
-    Map outputComponent(NhsDataDictionaryComponent dataDictionaryComponent) {
-        return [
-            type      : dataDictionaryComponent.getStereotype(),
-            label     : dataDictionaryComponent.name,
-            id        : dataDictionaryComponent.catalogueItem.id.toString(),
-            domainType: dataDictionaryComponent.catalogueItem.domainType,
-            parentId  : dataDictionaryComponent.catalogueItem.parentDataClass?.id?.toString(),
-            modelId   : dataDictionaryComponent.catalogueItem.dataModel.id.toString()
         ]
-    }
+*/
 
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
         long totalStart = System.currentTimeMillis()
@@ -284,6 +283,25 @@ class NhsDataDictionaryService {
         DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
         List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses)
+
+       classClasses.each {dataClass ->
+            //DDClass ddClass = new DDClass()
+            //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
+            NhsDDClass clazz = classService.classFromDataClass(dataClass, dataDictionary)
+            dataDictionary.classes[clazz.name] = clazz
+        }
+        // Now link associations
+        dataDictionary.classes.values().each { dataClass ->
+            ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
+                if(dataElement.dataType instanceof ReferenceType) {
+                    DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
+                    dataClass.classRelationships.add(new NhsDDClassRelationship(
+                        targetClass: dataDictionary.classes[referencedClass.label],
+                        relationshipDescription: dataElement.label
+                    ))
+                }
+            }
+        }
 
     }
 

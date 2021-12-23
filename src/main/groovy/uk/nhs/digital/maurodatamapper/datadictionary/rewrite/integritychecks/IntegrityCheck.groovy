@@ -10,6 +10,13 @@ trait IntegrityCheck {
     String name
     String description
 
+    List<NhsDataDictionaryComponent> errors = []
+
     abstract List<NhsDataDictionaryComponent> runCheck (NhsDataDictionary dataDictionary)
+
+    void sortErrors() {
+        errors = errors.sort {it.name}
+    }
+
 
 }

@@ -119,6 +119,16 @@ class NhsDataDictionary {
         }
     }
 
+    static Set<String> getAllMetadataKeys() {
+        Set<String> allKeys = []
+        allKeys.addAll(METADATA_FIELD_MAPPING.keySet())
+
+        // These fields are not part of the original ingest from xml but calculated subsequently.
+        // Another approach would be to enumerate all the profile definitions from this plugin and list all their keys
+        allKeys.addAll(["shortDescription","overview"])
+        return allKeys
+    }
+
     static final Map<String, String> METADATA_FIELD_MAPPING = [
         // Aliases
         "aliasShortName": "aliasShortName",

@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.PendingFeature
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -363,12 +364,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         when:
         long start = System.currentTimeMillis()
-        List<Map> checks = nhsDataDictionaryService.integrityChecks(releaseId)
+        List<IntegrityCheck> checks = nhsDataDictionaryService.integrityChecks(releaseId)
         log.info('Integrity checks obtained in {}', Utils.timeTaken(start))
-
+        log.info('{}', checks)
         then:
         checks
-        log.info('{}', JsonOutput.prettyPrint(JsonOutput.toJson(checks)))
+        log.info('{}', checks)
     }
 
     void writeMergeDiffOut(MergeDiff mergeDiff) {

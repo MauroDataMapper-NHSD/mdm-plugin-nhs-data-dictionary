@@ -331,10 +331,26 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         component.catalogueItem = catalogueItem
         List<Metadata> allRelevantMetadata = Metadata
             .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
-            .inList('key', NhsDataDictionary.METADATA_FIELD_MAPPING.keySet())
+            .inList('key', NhsDataDictionary.getAllMetadataKeys())
             .list()
 
-        NhsDataDictionary.METADATA_FIELD_MAPPING.keySet().each {key ->
+
+        if(catalogueItem instanceof DataClass) {
+            component.catalogueItemParentId = ((DataClass)catalogueItem).parentDataClass?.id?.toString()
+            component.catalogueItemModelId = ((DataClass)catalogueItem).dataModel.id.toString()
+        }
+        if(catalogueItem instanceof DataElement) {
+            component.catalogueItemParentId = ((DataElement)catalogueItem).dataClass?.id?.toString()
+            component.catalogueItemModelId = ((DataElement)catalogueItem).dataClass?.dataModel?.id.toString()
+        }
+        if(catalogueItem instanceof DataModel) {
+            component.catalogueItemModelId = catalogueItem.id.toString()
+        }
+        if(catalogueItem instanceof Term) {
+            component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
+        }
+
+        NhsDataDictionary.getAllMetadataKeys().each {key ->
             component.otherProperties[key] = allRelevantMetadata.find {it.key == key}?.value
         }
     }

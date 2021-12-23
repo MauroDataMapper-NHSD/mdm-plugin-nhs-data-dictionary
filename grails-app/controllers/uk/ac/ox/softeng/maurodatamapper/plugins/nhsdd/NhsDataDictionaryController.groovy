@@ -7,6 +7,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.User
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 
 @Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {
@@ -66,9 +67,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
 
-        def result = nhsDataDictionaryService.integrityChecks(versionedFolderId)
+        List<IntegrityCheck> result = nhsDataDictionaryService.integrityChecks(versionedFolderId)
 
-        respond(result)
+        respond result, model: [integrityChecks: result]
 
     }
 

@@ -40,9 +40,8 @@ class NhsDDElement implements NhsDataDictionaryComponent {
                     } else {
                         firstSentence = name
                     }
-                } else {
-                    shortDescription = firstSentence
                 }
+                shortDescription = firstSentence
             } catch (Exception e) {
                 e.printStackTrace()
                 log.error("Couldn't parse: ${definition}")
