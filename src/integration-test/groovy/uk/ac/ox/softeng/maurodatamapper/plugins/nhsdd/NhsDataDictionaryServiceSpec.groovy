@@ -1,6 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.ac.ox.softeng.maurodatamapper.core.authority.Authority
+
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
@@ -50,6 +50,29 @@ import static org.junit.Assert.assertNotNull
 import static org.junit.Assert.assertTrue
 
 /**
+ * To run this against a PG db you need to alter the application.yml file.
+ * The block at the end inside environments needs to be altered to
+ * <pre>
+ *     test:
+ #        spring.flyway.enabled: false
+ #        maurodatamapper:
+ #            authority:
+ #                name: 'Test Authority'
+ #                url: 'http://localhost'
+ #        database:
+ #            name: 'nhsdd'
+ #            creation: 'CREATE SCHEMA IF NOT EXISTS CORE\;CREATE SCHEMA IF NOT EXISTS DATAMODEL\;CREATE SCHEMA IF NOT EXISTS TERMINOLOGY'
+ dataSource:
+ driverClassName: org.postgresql.Driver
+ dialect: org.hibernate.dialect.PostgreSQL10Dialect
+ username: maurodatamapper
+ password: MauroDataMapper1234
+ dbCreate: none
+ url: 'jdbc:postgresql://${database.host}:${database.port}/${database.name}'
+ * </pre>
+ *
+ * You can then use {@code UUID releaseId = VersionedFolder.by().id().get()} to get a pre-loaded ingest rather than loading a clean ingest
+ *
  * @since 14/12/2021
  */
 @Slf4j
@@ -72,11 +95,6 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
     @Shared
     User user
-
-    @Override
-    void preDomainDataSetup() {
-        assert Authority.findByLabel('Test Authority')
-    }
 
     @OnceBefore
     void setupResourcesPath() {
@@ -315,7 +333,8 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'S01 : Obtain statistics for November 2021'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+        UUID releaseId = cleanIngest('november2021.xml', 'November 2021', false)
+        //        UUID releaseId = VersionedFolder.by().id().get()
 
         when:
         long start = System.currentTimeMillis()
@@ -326,7 +345,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         stats
-        log.info('{}', statsJson)
+        log.info('{}', JsonOutput.prettyPrint(statsJson))
         checkStatsMapEntry(stats, 'Attributes', 2526, 0, 1175)
         checkStatsMapEntry(stats, 'Data Field Notes', 4915, 8, 2196)
         checkStatsMapEntry(stats, 'Classes', 364, 0, 137)
@@ -340,6 +359,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         given:
         setupData()
         UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+        //        UUID releaseId = VersionedFolder.by().id().get()
 
         when:
         long start = System.currentTimeMillis()
