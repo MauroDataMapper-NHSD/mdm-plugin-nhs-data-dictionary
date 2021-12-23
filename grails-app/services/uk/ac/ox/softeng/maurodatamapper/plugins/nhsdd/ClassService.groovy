@@ -21,7 +21,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class ClassService extends DataDictionaryComponentService <DataClass> {
+class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass> {
 
     ReferenceTypeService referenceTypeService
 
@@ -30,8 +30,8 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
     Map indexMap(DataClass catalogueItem) {
         [
             catalogueId: catalogueItem.id.toString(),
-            name: catalogueItem.label,
-            stereotype: "class"
+            name       : catalogueItem.label,
+            stereotype : "class"
 
         ]
     }
@@ -206,6 +206,13 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
         NhsDataDictionary.METADATA_NAMESPACE + ".class"
     }
 
+    @Override
+    NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem) {
+        NhsDDClass clazz = new NhsDDClass()
+        nhsDataDictionaryComponentFromItem(catalogueItem, clazz)
+        return clazz
+    }
+
     void persistClasses(NhsDataDictionary dataDictionary,
                         VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
                         Map<String, DataElement> attributeElementsByName) {
@@ -354,10 +361,9 @@ class ClassService extends DataDictionaryComponentService <DataClass> {
 
     }
 
+    @Deprecated
     NhsDDClass classFromDataClass(DataClass dc) {
-        NhsDDClass clazz = new NhsDDClass()
-        nhsDataDictionaryComponentFromItem(dc, clazz)
-        return clazz
+        getNhsDataDictionaryComponentFromCatalogueItem(dc)
     }
 
 }

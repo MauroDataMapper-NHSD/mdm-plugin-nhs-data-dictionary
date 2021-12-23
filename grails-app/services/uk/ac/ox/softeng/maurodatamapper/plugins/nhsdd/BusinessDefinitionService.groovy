@@ -14,14 +14,14 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
+class BusinessDefinitionService extends DataDictionaryComponentService<Term, NhsDDBusinessDefinition> {
 
     @Override
     Map indexMap(Term catalogueItem) {
         [
             catalogueId: catalogueItem.id.toString(),
-            name: catalogueItem.code,
-            stereotype: "businessDefinition"
+            name       : catalogueItem.code,
+            stereotype : "businessDefinition"
         ]
     }
 
@@ -62,6 +62,13 @@ class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
     @Override
     String getMetadataNamespace() {
         NhsDataDictionary.METADATA_NAMESPACE + ".NHS business definition"
+    }
+
+    @Override
+    NhsDDBusinessDefinition getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem) {
+        NhsDDBusinessDefinition businessDefinition = new NhsDDBusinessDefinition()
+        nhsDataDictionaryComponentFromItem(catalogueItem, businessDefinition)
+        return businessDefinition
     }
 
     void persistBusinessDefinitions(NhsDataDictionary dataDictionary,
@@ -110,10 +117,9 @@ class BusinessDefinitionService extends DataDictionaryComponentService <Term> {
 
     }
 
+    @Deprecated
     NhsDDBusinessDefinition businessDefinitionFromTerm(Term term) {
-        NhsDDBusinessDefinition businessDefinition = new NhsDDBusinessDefinition()
-        nhsDataDictionaryComponentFromItem(term, businessDefinition)
-        return businessDefinition
+        getNhsDataDictionaryComponentFromCatalogueItem(term)
     }
 
 }

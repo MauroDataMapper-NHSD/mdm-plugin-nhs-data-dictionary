@@ -13,14 +13,14 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
+class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, NhsDDXMLSchemaConstraint> {
 
     @Override
     Map indexMap(Term catalogueItem) {
         [
             catalogueId: catalogueItem.id.toString(),
-            name: catalogueItem.code,
-            stereotype: "xmlSchemaConstraint"
+            name       : catalogueItem.code,
+            stereotype : "xmlSchemaConstraint"
 
         ]
     }
@@ -64,6 +64,13 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
     @Override
     String getMetadataNamespace() {
         NhsDataDictionary.METADATA_NAMESPACE + ".XML schema constraint"
+    }
+
+    @Override
+    NhsDDXMLSchemaConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem) {
+        NhsDDXMLSchemaConstraint xMLSchemaConstraint = new NhsDDXMLSchemaConstraint()
+        nhsDataDictionaryComponentFromItem(catalogueItem, xMLSchemaConstraint)
+        return xMLSchemaConstraint
     }
 
     void persistXmlSchemaConstraints(NhsDataDictionary dataDictionary,
@@ -112,10 +119,9 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService <Term> {
 
      }
 
+    @Deprecated
     NhsDDXMLSchemaConstraint ddxmlSchemaConstraintFromTerm(Term term) {
-        NhsDDXMLSchemaConstraint xMLSchemaConstraint = new NhsDDXMLSchemaConstraint()
-        nhsDataDictionaryComponentFromItem(term, xMLSchemaConstraint)
-        return xMLSchemaConstraint
+        getNhsDataDictionaryComponentFromCatalogueItem(term)
     }
 
 

@@ -24,7 +24,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class AttributeService extends DataDictionaryComponentService<DataElement> {
+class AttributeService extends DataDictionaryComponentService<DataElement, NhsDDAttribute> {
 
     @Override
     Map indexMap(DataElement object) {
@@ -118,6 +118,31 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         NhsDataDictionary.METADATA_NAMESPACE + ".attribute"
     }
 
+    @Override
+    NhsDDAttribute getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem) {
+        NhsDDAttribute attribute = new NhsDDAttribute()
+        nhsDataDictionaryComponentFromItem(catalogueItem, attribute)
+        if (catalogueItem.dataType instanceof ModelDataType) {
+            List<Term> terms = termService.findAllByTerminologyId(((ModelDataType) catalogueItem.dataType).modelResourceId)
+            List<Metadata> allRelevantMetadata = Metadata
+                .byMultiFacetAwareItemIdInList(terms.collect {it.id})
+                .inList('key', ['publishDate', 'webOrder', 'webPresentation'])
+                .list()
+            attribute.codes = terms
+                .collect {term ->
+                    new NhsDDCode(attribute).tap {
+                        code = term.code
+                        definition = term.definition
+                        publishDate = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'publishDate'}?.value
+                        webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
+                        webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
+                    }
+                }
+        }
+        return attribute
+
+    }
+
     void persistAttributes(NhsDataDictionary dataDictionary,
                            VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
                            Map<String, Terminology> attributeTerminologiesByName, Map<String, DataElement> attributeElementsByName) {
@@ -140,8 +165,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         coreDataModel.addToDataClasses(retiredAttributesClass)
 
 
-        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find { it.label == "String" }
-        if(!stringDataType) {
+        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find {it.label == "String"}
+        if (!stringDataType) {
             stringDataType = new PrimitiveType(label: "String", createdBy: currentUserEmailAddress)
             coreDataModel.addToDataTypes(stringDataType)
         }
@@ -230,24 +255,9 @@ class AttributeService extends DataDictionaryComponentService<DataElement> {
         }
     }
 
+    @Deprecated
     NhsDDAttribute attributeFromDataElement(DataElement de) {
-        NhsDDAttribute attribute = new NhsDDAttribute()
-        nhsDataDictionaryComponentFromItem(de, attribute)
-        if(de.dataType instanceof ModelDataType) {
-            Terminology terminology = terminologyService.get(((ModelDataType)de.dataType).modelResourceId)
-            terminology.terms.each {term ->
-                NhsDDCode code = new NhsDDCode(attribute)
-                code.code = term.code
-                code.definition = term.definition
-                code.publishDate = term.metadata.find {it.key == "publishDate"}?.value
-                code.webOrder = term.metadata.find {it.key == "webOrder"}?.value
-                code.webPresentation = term.metadata.find {it.key == "webPresentation"}?.value
-
-                attribute.codes.add(code)
-            }
-        }
-        return attribute
-
+        getNhsDataDictionaryComponentFromCatalogueItem(de)
     }
 
 }

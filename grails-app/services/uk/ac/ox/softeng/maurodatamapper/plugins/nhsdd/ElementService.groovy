@@ -28,7 +28,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class ElementService extends DataDictionaryComponentService<DataElement> {
+class ElementService extends DataDictionaryComponentService<DataElement, NhsDDElement> {
 
     AttributeService attributeService
 
@@ -36,8 +36,8 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
     Map indexMap(DataElement object) {
         [
             catalogueId: object.id.toString(),
-            name: object.label,
-            stereotype: "element"
+            name       : object.label,
+            stereotype : "element"
         ]
     }
 
@@ -144,11 +144,18 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
         NhsDataDictionary.METADATA_NAMESPACE + ".element"
     }
 
+    @Override
+    NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem) {
+        NhsDDElement element = new NhsDDElement()
+        nhsDataDictionaryComponentFromItem(catalogueItem, element)
+        return element
+    }
+
     List<DataElement> getElementAttributes(DataElement dataElement, DataDictionary dataDictionary) {
         List<DataElement> attributeElements = []
         String elementAttributeList = DDHelperFunctions.getMetadataValue(dataElement, "element_attributes")
-        if(elementAttributeList) {
-            StringUtils.split(elementAttributeList, ",").each { uin ->
+        if (elementAttributeList) {
+            StringUtils.split(elementAttributeList, ",").each {uin ->
                 DDAttribute attribute = dataDictionary.attributes[uin]
                 if (attribute) {
                     attributeElements.add(attribute.catalogueItem)
@@ -285,10 +292,9 @@ class ElementService extends DataDictionaryComponentService<DataElement> {
 
     }
 
+    @Deprecated
     NhsDDElement elementFromDataElement(DataElement de) {
-        NhsDDElement element = new NhsDDElement()
-        nhsDataDictionaryComponentFromItem(de, element)
-        return element
+        getNhsDataDictionaryComponentFromCatalogueItem(de)
     }
 
 }
