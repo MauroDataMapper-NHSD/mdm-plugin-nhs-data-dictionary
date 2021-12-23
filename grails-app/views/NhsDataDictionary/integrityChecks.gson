@@ -1,0 +1,7 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
+
+model {
+    Iterable<IntegrityCheck> integrityChecks
+}
+
+json tmpl.integrityCheck(integrityChecks)

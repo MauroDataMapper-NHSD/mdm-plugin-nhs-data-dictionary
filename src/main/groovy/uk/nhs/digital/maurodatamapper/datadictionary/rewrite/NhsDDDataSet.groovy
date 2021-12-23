@@ -26,6 +26,8 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         NhsDDWebPage explanatoryWebPage = dataDictionary.webPagesByUin[xml.explanatoryPage.text()]
         if(explanatoryWebPage) {
             overview = explanatoryWebPage.definition
+        } else {
+            log.error("Cannot find explanatory page for dataset: {}", name)
         }
         definitionAsXml = xml.definition
     }

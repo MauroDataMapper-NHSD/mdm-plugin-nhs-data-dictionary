@@ -9,6 +9,8 @@ trait NhsDataDictionaryComponent {
     abstract String getStereotype()
 
     CatalogueItem catalogueItem
+    String catalogueItemModelId
+    String catalogueItemParentId
 
     String name
     String definition
@@ -57,5 +59,14 @@ trait NhsDataDictionaryComponent {
     }
 
     abstract String getXmlNodeName()
+
+    boolean hasNoAliases() {
+        Set<String> aliasFields = NhsDataDictionary.getAllMetadataKeys().findAll {it.startsWith("alias")}
+
+        return aliasFields.every {aliasField ->
+            otherProperties[aliasField] == "" || otherProperties[aliasField] == null
+        }
+
+    }
 
 }

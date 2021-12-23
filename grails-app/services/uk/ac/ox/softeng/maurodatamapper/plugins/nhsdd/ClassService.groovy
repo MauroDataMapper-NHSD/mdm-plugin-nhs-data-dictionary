@@ -15,9 +15,12 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassLink
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+
+import javax.lang.model.type.PrimitiveType
 
 @Slf4j
 @Transactional
@@ -361,9 +364,19 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
 
     }
 
-    @Deprecated
-    NhsDDClass classFromDataClass(DataClass dc) {
-        getNhsDataDictionaryComponentFromCatalogueItem(dc)
+    NhsDDClass classFromDataClass(DataClass dc, NhsDataDictionary dataDictionary) {
+        NhsDDClass clazz = getNhsDataDictionaryComponentFromCatalogueItem(dc)
+        dc.dataElements.each {dataElement ->
+            if(dataElement.dataType instanceof PrimitiveType) {
+                NhsDDAttribute foundAttribute = dataDictionary.attributes[dataElement.label]
+                if (foundAttribute) {
+                    clazz.keyAttributes.add(foundAttribute)
+                } else {
+                    log.error("Cannot find attribute: {}", dataElement.label)
+                }
+            }
+        }
+        return clazz
     }
 
 }

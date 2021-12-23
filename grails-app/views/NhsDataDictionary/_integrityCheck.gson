@@ -1,0 +1,13 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
+
+model {
+    IntegrityCheck integrityCheck
+}
+
+json {
+    name integrityCheck.name
+    description integrityCheck.description
+    errors tmpl.nhsDataDictionaryComponent(integrityCheck.errors ?: [])
+
+    size integrityCheck.errors.size()
+}
