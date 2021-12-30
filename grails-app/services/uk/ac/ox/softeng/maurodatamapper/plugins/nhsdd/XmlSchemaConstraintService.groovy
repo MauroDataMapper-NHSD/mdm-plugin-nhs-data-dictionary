@@ -67,7 +67,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
     }
 
     @Override
-    NhsDDXMLSchemaConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem) {
+    NhsDDXMLSchemaConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDXMLSchemaConstraint xMLSchemaConstraint = new NhsDDXMLSchemaConstraint()
         nhsDataDictionaryComponentFromItem(catalogueItem, xMLSchemaConstraint)
         return xMLSchemaConstraint

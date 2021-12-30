@@ -44,7 +44,7 @@ trait NhsDataDictionaryComponent {
         definition = (DDHelperFunctions.parseHtml(xml.definition)).replace("\u00a0", " ")
 
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
-            String xmlValue = xml[entry.value].text()
+            String xmlValue = xml[entry.value][0].text()
             if(!xmlValue || xmlValue == "") {
                 xmlValue = xml."class"[entry.value].text()
             }

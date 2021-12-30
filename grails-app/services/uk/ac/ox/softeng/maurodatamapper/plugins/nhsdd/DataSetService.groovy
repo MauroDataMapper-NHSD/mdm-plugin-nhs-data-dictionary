@@ -107,7 +107,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     }
 
     @Override
-    NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem) {
+    NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDDataSet dataSet = new NhsDDDataSet()
         nhsDataDictionaryComponentFromItem(catalogueItem, dataSet)
         return dataSet

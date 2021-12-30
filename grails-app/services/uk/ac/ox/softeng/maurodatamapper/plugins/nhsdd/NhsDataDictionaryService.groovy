@@ -267,7 +267,7 @@ class NhsDataDictionaryService {
         DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
         List<DataElement> attributeElements = DataElement.by().inList('dataClass.id', [attributesClass.id, retiredAttributesClass.id]).list()
 
-        dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements)
+        dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements, dataDictionary)
     }
 
     void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
@@ -275,21 +275,23 @@ class NhsDataDictionaryService {
         DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
         List<DataElement> elementElements = DataElement.by().inList('dataClass.id', [elementsClass.id, retiredElementsClass.id]).list()
 
-        dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements)
+        dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements, dataDictionary)
     }
 
     void addClassesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
         DataClass classesClass = coreModel.dataClasses.find {it.label == "Classes"}
         DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
         List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
-        dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses)
+        dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
 
-       classClasses.each {dataClass ->
+/*       classClasses.each {dataClass ->
             //DDClass ddClass = new DDClass()
             //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
             NhsDDClass clazz = classService.classFromDataClass(dataClass, dataDictionary)
             dataDictionary.classes[clazz.name] = clazz
         }
+
+ */
         // Now link associations
         dataDictionary.classes.values().each { dataClass ->
             ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
@@ -307,20 +309,20 @@ class NhsDataDictionaryService {
 
     void addDataSetsToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
         Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
-        dataDictionary.dataSets = dataSetService.collectNhsDataDictionaryComponents(dataSetModels)
+        dataDictionary.dataSets = dataSetService.collectNhsDataDictionaryComponents(dataSetModels, dataDictionary)
     }
 
     void addBusDefsToDictionary(Terminology busDefsTerminology, NhsDataDictionary dataDictionary) {
-        dataDictionary.businessDefinitions = businessDefinitionService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(busDefsTerminology.id))
+        dataDictionary.businessDefinitions = businessDefinitionService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(busDefsTerminology.id), dataDictionary)
     }
 
     void addSupDefsToDictionary(Terminology supDefsTerminology, NhsDataDictionary dataDictionary) {
-        dataDictionary.supportingInformation = supportingInformationService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(supDefsTerminology.id))
+        dataDictionary.supportingInformation = supportingInformationService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(supDefsTerminology.id), dataDictionary)
     }
 
     void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, NhsDataDictionary dataDictionary) {
         dataDictionary.xmlSchemaConstraints =
-            xmlSchemaConstraintService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(xmlSchemaConstraintsTerminology.id))
+            xmlSchemaConstraintService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(xmlSchemaConstraintsTerminology.id), dataDictionary)
     }
 
     Set<DataClass> getDataClasses(includeRetired = false) {
