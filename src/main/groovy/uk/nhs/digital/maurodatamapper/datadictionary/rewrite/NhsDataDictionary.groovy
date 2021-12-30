@@ -125,7 +125,7 @@ class NhsDataDictionary {
 
         // These fields are not part of the original ingest from xml but calculated subsequently.
         // Another approach would be to enumerate all the profile definitions from this plugin and list all their keys
-        allKeys.addAll(["shortDescription","overview"])
+        allKeys.addAll(["shortDescription","overview","linkedAttributes"])
         return allKeys
     }
 

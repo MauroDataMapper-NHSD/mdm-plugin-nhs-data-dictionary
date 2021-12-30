@@ -75,7 +75,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
 
     abstract String getMetadataNamespace()
 
-    abstract D getNhsDataDictionaryComponentFromCatalogueItem(T catalogueItem)
+    abstract D getNhsDataDictionaryComponentFromCatalogueItem(T catalogueItem, NhsDataDictionary dataDictionary)
 
     def getWhereUsed(DataDictionary dataDictionary, String id) {
         DataDictionaryComponent component = dataDictionary.getAllComponents().find {
@@ -355,9 +355,9 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         }
     }
 
-    Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems) {
+    Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems, NhsDataDictionary dataDictionary) {
         catalogueItems.collectEntries {ci ->
-            [ci.label, getNhsDataDictionaryComponentFromCatalogueItem(ci)]
+            [ci.label, getNhsDataDictionaryComponentFromCatalogueItem(ci, dataDictionary)]
         }
     }
 }

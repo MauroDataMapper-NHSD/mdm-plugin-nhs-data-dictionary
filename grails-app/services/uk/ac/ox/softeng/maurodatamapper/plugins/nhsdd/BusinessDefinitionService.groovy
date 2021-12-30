@@ -65,7 +65,7 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
     }
 
     @Override
-    NhsDDBusinessDefinition getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem) {
+    NhsDDBusinessDefinition getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDBusinessDefinition businessDefinition = new NhsDDBusinessDefinition()
         nhsDataDictionaryComponentFromItem(catalogueItem, businessDefinition)
         return businessDefinition

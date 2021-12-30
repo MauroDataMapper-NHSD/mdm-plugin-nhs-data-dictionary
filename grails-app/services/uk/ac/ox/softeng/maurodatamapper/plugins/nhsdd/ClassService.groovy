@@ -210,7 +210,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     }
 
     @Override
-    NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem) {
+    NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDClass clazz = new NhsDDClass()
         nhsDataDictionaryComponentFromItem(catalogueItem, clazz)
         return clazz
@@ -365,7 +365,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     }
 
     NhsDDClass classFromDataClass(DataClass dc, NhsDataDictionary dataDictionary) {
-        NhsDDClass clazz = getNhsDataDictionaryComponentFromCatalogueItem(dc)
+        NhsDDClass clazz = getNhsDataDictionaryComponentFromCatalogueItem(dc, dataDictionary)
         dc.dataElements.each {dataElement ->
             if(dataElement.dataType instanceof PrimitiveType) {
                 NhsDDAttribute foundAttribute = dataDictionary.attributes[dataElement.label]

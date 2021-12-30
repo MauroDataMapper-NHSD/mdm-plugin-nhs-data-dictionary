@@ -119,7 +119,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     }
 
     @Override
-    NhsDDAttribute getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem) {
+    NhsDDAttribute getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDAttribute attribute = new NhsDDAttribute()
         nhsDataDictionaryComponentFromItem(catalogueItem, attribute)
         if (catalogueItem.dataType instanceof ModelDataType) {

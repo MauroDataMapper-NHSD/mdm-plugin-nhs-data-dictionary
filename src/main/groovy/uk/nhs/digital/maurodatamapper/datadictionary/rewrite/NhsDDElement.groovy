@@ -66,7 +66,7 @@ class NhsDDElement implements NhsDataDictionaryComponent {
             String attributeUin = xml.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
             NhsDDAttribute linkedAttribute = dataDictionary.attributesByUin[attributeUin]
             if(!linkedAttribute) {
-                log.error("No linked attribute with UIN ${attributeUin} found for element ${elementName}")
+                log.error("No linked attribute with UIN ${attributeUin} found for element ${name}")
             } else {
                 xml."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.concept.each {concept ->
                     if (concept.property.find {property ->
@@ -78,13 +78,13 @@ class NhsDDElement implements NhsDataDictionaryComponent {
                     }
                 }
             }
-            instantiatesAttributes = xml."link".collect {link ->
-                link.participant.find{p -> p["@role"] == "Supplier"}["@referencedUin"]
-            }.collect {
-                dataDictionary.attributesByUin[it]
-            }
 
         }
+        instantiatesAttributes.addAll(xml."link".collect {link ->
+            link.participant.find{p -> p["@role"] == "Supplier"}["@referencedUin"]
+        }.collect {
+            dataDictionary.attributesByUin[it]
+        })
 
     }
 

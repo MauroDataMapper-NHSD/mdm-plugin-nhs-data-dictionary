@@ -145,9 +145,19 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     @Override
-    NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem) {
+    NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDElement element = new NhsDDElement()
         nhsDataDictionaryComponentFromItem(catalogueItem, element)
+        String linkedAttributeMetadata = element.otherProperties["linkedAttributes"]
+        if(linkedAttributeMetadata) {
+            String[] linkedAttributeNames = StringUtils.split(linkedAttributeMetadata,';')
+
+            element.instantiatesAttributes.addAll(
+                linkedAttributeNames.collect {
+                    dataDictionary.attributes[it]
+                }
+            )
+        }
         return element
     }
 
@@ -293,8 +303,10 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     @Deprecated
-    NhsDDElement elementFromDataElement(DataElement de) {
-        getNhsDataDictionaryComponentFromCatalogueItem(de)
+    NhsDDElement elementFromDataElement(DataElement de, NhsDataDictionary dataDictionary) {
+        NhsDDElement ddDataElement = getNhsDataDictionaryComponentFromCatalogueItem(de)
+
+        return ddDataElement
     }
 
 }

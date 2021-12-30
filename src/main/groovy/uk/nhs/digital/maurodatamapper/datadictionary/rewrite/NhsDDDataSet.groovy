@@ -27,7 +27,11 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         if(explanatoryWebPage) {
             overview = explanatoryWebPage.definition
         } else {
-            log.error("Cannot find explanatory page for dataset: {}", name)
+            if(isRetired()) {
+                log.info("Cannot find explanatory page for dataset: {}", name)
+            } else {
+                log.warn("Cannot find explanatory page for dataset: {}", name)
+            }
         }
         definitionAsXml = xml.definition
     }
