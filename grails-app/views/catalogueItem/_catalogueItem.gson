@@ -1,0 +1,12 @@
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+
+model {
+    CatalogueItem catalogueItem
+    String stereotype
+}
+
+json {
+    catalogueId  catalogueItem.id.toString()
+    name         catalogueItem.label
+    stereotype   stereotype
+}

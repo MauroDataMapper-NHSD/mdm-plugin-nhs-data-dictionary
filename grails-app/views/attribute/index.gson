@@ -1,0 +1,7 @@
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+
+model {
+    Iterable<DataElement> dataElementList
+}
+
+json tmpl.'/catalogueItem/catalogueItem'(dataElementList, [stereotype: "attribute"])

@@ -1,6 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
@@ -54,12 +55,10 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     }
 
     def statistics() {
-
-        //String branchName = params.branchName?:'main'
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
-
-        respond  dataDictionary, model: [nhsDataDictionary: dataDictionary], view: 'statistics'
+        //render(view:"statistics", model: [nhsDataDictionary: dataDictionary])
+        respond dataDictionary
     }
 
 
@@ -74,7 +73,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     }
 
     def allItemsIndex() {
-        respond nhsDataDictionaryService.allItemsIndex()
+        Map<CatalogueItem, String> allItemsMap = nhsDataDictionaryService.allItemsIndex(
+            UUID.fromString(params.versionedFolderId), params.boolean('includeRetired')?:true)
+        render(view: "allItemsIndex", model: [catalogueItemMap: allItemsMap])
     }
 
     def publishDita() {

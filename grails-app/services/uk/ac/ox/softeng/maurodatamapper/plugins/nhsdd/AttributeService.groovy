@@ -26,14 +26,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Transactional
 class AttributeService extends DataDictionaryComponentService<DataElement, NhsDDAttribute> {
 
-    @Override
-    Map indexMap(DataElement object) {
-        [
-            catalogueId: object.id.toString(),
-            name       : object.label,
-            stereotype : "attribute"
-        ]
-    }
 
     @Override
     def show(String branch, String id) {
@@ -104,8 +96,22 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     }
 
     @Override
-    Set<DataElement> getAll() {
-        nhsDataDictionaryService.getAttributes(false)
+    Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+
+        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
+        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
+
+        List<UUID> classIds = [attributesClass.id]
+        if(includeRetired) {
+            DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
+            classIds.add(retiredAttributesClass.id)
+        }
+        List<DataElement> attributes = DataElement.by().inList('dataClass.id', classIds).list()
+
+        attributes.findAll {dataElement ->
+            includeRetired || !catalogueItemIsRetired(dataElement)
+        }
+
     }
 
     @Override
@@ -253,11 +259,6 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
             }
             attributeElementsByName[name] = attributeDataElement
         }
-    }
-
-    @Deprecated
-    NhsDDAttribute attributeFromDataElement(DataElement de) {
-        getNhsDataDictionaryComponentFromCatalogueItem(de)
     }
 
 }

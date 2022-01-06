@@ -24,7 +24,7 @@ abstract class DataDictionaryComponentController<T extends CatalogueItem> {
 
 
     def index() {
-        respond getService().index()
+        respond getService().index(UUID.fromString(params.versionedFolderId), params.boolean('includeRetired')?:false)
     }
 
     def show() {

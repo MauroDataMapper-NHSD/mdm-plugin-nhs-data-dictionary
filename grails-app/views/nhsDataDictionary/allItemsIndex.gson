@@ -1,0 +1,9 @@
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+
+model {
+    Map<CatalogueItem, String> catalogueItemMap
+}
+
+catalogueItemMap.entrySet().each {entry ->
+    json tmpl.'/catalogueItem/catalogueItem' (catalogueItem: entry.key, stereotype: entry.value)
+}

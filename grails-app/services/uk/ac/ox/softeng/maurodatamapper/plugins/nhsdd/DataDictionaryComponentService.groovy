@@ -49,15 +49,13 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
     @Autowired
     MessageSource messageSource
 
-    abstract Map indexMap(T object)
-
-    List<Map> index() {
-        getAll().sort {it.label}.collect {indexMap(it)}
+    List<T> index(UUID versionedFolderId, boolean includeRetired = false) {
+        (getAll(versionedFolderId, includeRetired) as List).sort {it.label}
     }
 
     abstract def show(String branch, String id)
 
-    abstract Set<T> getAll()
+    abstract Set<T> getAll(UUID versionedFolderId, boolean includeRetired = false)
 
     abstract T getItem(UUID id)
 
@@ -329,10 +327,6 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         component.name = catalogueItem.label
         component.definition = catalogueItem.description
         component.catalogueItem = catalogueItem
-        List<Metadata> allRelevantMetadata = Metadata
-            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
-            .inList('key', NhsDataDictionary.getAllMetadataKeys())
-            .list()
 
 
         if(catalogueItem instanceof DataClass) {
@@ -350,6 +344,12 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
             component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
         }
 
+
+        List<Metadata> allRelevantMetadata = Metadata
+            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
+            .inList('key', NhsDataDictionary.getAllMetadataKeys())
+            .list()
+
         NhsDataDictionary.getAllMetadataKeys().each {key ->
             component.otherProperties[key] = allRelevantMetadata.find {it.key == key}?.value
         }
@@ -359,5 +359,14 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         catalogueItems.collectEntries {ci ->
             [ci.label, getNhsDataDictionaryComponentFromCatalogueItem(ci, dataDictionary)]
         }
+    }
+
+    boolean catalogueItemIsRetired(CatalogueItem catalogueItem) {
+        List<Metadata> allRelevantMetadata = Metadata
+            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
+            .eq('key', "isRetired")
+            .list()
+
+        return allRelevantMetadata.any{md -> md.value == "true"}
     }
 }
