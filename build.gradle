@@ -3,7 +3,7 @@ buildscript {
         mavenLocal()
         maven {url "https://jenkins.cs.ox.ac.uk/artifactory/plugins-snapshot"}
         maven {url "https://jenkins.cs.ox.ac.uk/artifactory/plugins-release"}
-        jcenter()
+        mavenCentral()
 
     }
     dependencies {
@@ -28,17 +28,21 @@ plugins {
     id 'jacoco'
 }
 
-apply plugin:"idea"
-apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
-apply plugin:"org.grails.plugins.views-json"
+apply plugin: "idea"
+apply plugin: "org.grails.grails-plugin"
+apply plugin: "org.grails.grails-plugin-publish"
+apply plugin: "org.grails.plugins.views-json"
 apply plugin: "org.grails.plugins.views-markup"
 
-apply plugin: 'ox.softeng.ox-brc-base'
-apply plugin: 'ox.softeng.ox-brc-artifactory'
+apply plugin: 'ox.softeng.grails'
 apply plugin: "com.github.hierynomus.license"
 
-
+repositories {
+    mavenLocal()
+    maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-release"}
+    maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot"}
+    maven {url "https://repo.grails.org/grails/core"}
+}
 
 configurations {
     developmentOnly
@@ -90,7 +94,7 @@ dependencies {
     }
     provided "org.springframework.boot:spring-boot-starter-tomcat"
     runtime "org.glassfish.web:el-impl:2.1.2-b03"
-    testRuntimeOnly "com.h2database:h2"
+    integrationTestRuntimeOnly "com.h2database:h2"
     runtime "org.apache.tomcat:tomcat-jdbc"
     runtime "javax.xml.bind:jaxb-api:$jaxbApiVersion"
     testCompile "org.grails:grails-gorm-testing-support"
@@ -100,16 +104,14 @@ dependencies {
     testCompile "org.grails:views-json-testing-support"
     //testCompile "org.grails:grails-plugin-testing"
     testCompile "io.micronaut:micronaut-http-client"
-
 }
 
 bootRun {
     ignoreExitValue true
     jvmArgs(
-        '-Dspring.output.ansi.enabled=always', 
-        '-noverify', 
-        '-XX:TieredStopAtLevel=1',
-        '-Xmx8192m')
+        '-Dspring.output.ansi.enabled=always',
+        '-noverify',
+        '-XX:TieredStopAtLevel=1')
     sourceResources sourceSets.main
 
     System.properties.each {prop ->
@@ -120,19 +122,17 @@ bootRun {
 }
 // enable if you wish to package this plugin as a standalone application
 bootJar.enabled = false
-grailsPublish {
-    // TODO: Provide values here
-    user = 'user'
-    key = 'key'
-    githubSlug = 'foo/bar'
-    license {
-        name = 'Apache-2.0'
+
+
+grails {
+    plugins {
+        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-core', version: mdmCoreVersion
+        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-datamodel', version: mdmCoreVersion
+        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-terminology', version: mdmCoreVersion
+        compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-profile', version: mdmCoreVersion
     }
-    title = "My Plugin"
-    desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
 }
 
 apply from: 'dependencies.gradle'
 apply from: "${projectDir}/gradle/additions/mdm.gradle"
-apply from: "${projectDir}/gradle/additions/grails.gradle"
+apply from: "${projectDir}/gradle/additions/staticCodeAnalysis.gradle"

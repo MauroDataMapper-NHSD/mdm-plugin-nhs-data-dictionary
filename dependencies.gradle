@@ -1,17 +1,10 @@
 dependencies {
 
-    compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-core', version: mdmCoreVersion
-    compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-datamodel', version: mdmCoreVersion
-    compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-terminology', version: mdmCoreVersion
-    compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-plugin-profile', version: mdmCoreVersion
-    compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmCoreVersion
-
+    testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmCoreVersion
 
     runtimeOnly "io.methvin:directory-watcher", {
         exclude group: 'com.google.guava', module: 'guava'
     }
-
-    //testImplementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'mdm-testing-framework', version: mdmTestingFrameworkVersion
 
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
