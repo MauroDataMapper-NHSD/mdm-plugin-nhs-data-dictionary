@@ -1,0 +1,9 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
+
+model {
+    NhsDDBusinessDefinition nhsDDBusinessDefinition
+}
+inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDBusinessDefinition, stereotype: "businessDefinition"]
+json {
+    hello "world"
+}

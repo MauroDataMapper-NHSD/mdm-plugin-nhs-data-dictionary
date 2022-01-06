@@ -1,0 +1,16 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
+
+model {
+    NhsDataDictionaryComponent nhsDataDictionaryComponent
+    String stereotype
+}
+
+json {
+        catalogueId nhsDataDictionaryComponent.catalogueItem.id.toString()
+        name        nhsDataDictionaryComponent.name
+        stereotype  stereotype
+        shortDescription nhsDataDictionaryComponent.otherProperties["shortDescription"]
+        description nhsDataDictionaryComponent.definition
+        alsoKnownAs nhsDataDictionaryComponent.getAliases()
+}
