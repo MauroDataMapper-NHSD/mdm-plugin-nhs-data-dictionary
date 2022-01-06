@@ -1,9 +1,7 @@
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 model {
-    Map<CatalogueItem, String> catalogueItemMap
+    List<StereotypedCatalogueItem> stereotypedCatalogueItemList
 }
 
-catalogueItemMap.entrySet().each {entry ->
-    json tmpl.'/catalogueItem/catalogueItem_nhsdd' (catalogueItem: entry.key, stereotype: entry.value)
-}
+json g.render(stereotypedCatalogueItemList)

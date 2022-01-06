@@ -1,7 +1,9 @@
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+
 model {
     Iterable<DataClass> dataClassList
 }
 
-json tmpl.'/catalogueItem/catalogueItem_nhsdd'(dataClassList, [stereotype: "class"])
+json g.render(dataClassList.collect {new StereotypedCatalogueItem(it, "class")})
