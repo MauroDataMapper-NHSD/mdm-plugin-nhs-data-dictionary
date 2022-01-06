@@ -4,4 +4,4 @@ model {
     Iterable<DataModel> dataModelList
 }
 
-json tmpl.'/catalogueItem/catalogueItem'(dataModelList, [stereotype: "dataSet"])
+json tmpl.'/catalogueItem/catalogueItem_nhsdd'(dataModelList, [stereotype: "dataSet"])

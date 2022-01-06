@@ -5,4 +5,4 @@ model {
 }
 
 
-json tmpl.'/catalogueItem/catalogueItem'(dataElementList, [stereotype: "element"])
+json tmpl.'/catalogueItem/catalogueItem_nhsdd'(dataElementList, [stereotype: "element"])

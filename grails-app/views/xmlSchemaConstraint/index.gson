@@ -4,4 +4,4 @@ model {
     Iterable<Term> termList
 }
 
-json tmpl.'/catalogueItem/catalogueItem'(termList, [stereotype: "xmlSchemaConstraint"])
+json tmpl.'/catalogueItem/catalogueItem_nhsdd'(termList, [stereotype: "xmlSchemaConstraint"])
