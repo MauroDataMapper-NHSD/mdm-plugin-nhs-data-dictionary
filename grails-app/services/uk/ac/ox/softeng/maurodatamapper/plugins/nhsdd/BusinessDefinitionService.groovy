@@ -2,6 +2,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -15,15 +16,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Slf4j
 @Transactional
 class BusinessDefinitionService extends DataDictionaryComponentService<Term, NhsDDBusinessDefinition> {
-
-    @Override
-    Map indexMap(Term catalogueItem) {
-        [
-            catalogueId: catalogueItem.id.toString(),
-            name       : catalogueItem.code,
-            stereotype : "businessDefinition"
-        ]
-    }
 
     @Override
     def show(String branch, String id) {
@@ -43,15 +35,15 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
     }
 
     @Override
-    Set<Term> getAll() {
-        Terminology busDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
-        busDefTerminology.terms.findAll{
-            (it.depth > 1 &&
-                !it.metadata.find{md -> md.namespace == DDHelperFunctions.metadataNamespace + ".NHS business definition" &&
-                        md.key == "isRetired" &&
-                        md.value == "true"
-                })}
+    Set<Term> getAll(UUID versionedFolderId, boolean includeRetired = false) {
 
+        Terminology busDefTerminology = nhsDataDictionaryService.getBusinessDefinitionTerminology(versionedFolderId)
+
+        List<Term> terms = termService.findAllByTerminologyId(busDefTerminology.id)
+
+        terms.findAll {term ->
+            includeRetired || !catalogueItemIsRetired(term)
+        }
     }
 
     @Override
@@ -115,11 +107,6 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
         }
 
 
-    }
-
-    @Deprecated
-    NhsDDBusinessDefinition businessDefinitionFromTerm(Term term) {
-        getNhsDataDictionaryComponentFromCatalogueItem(term)
     }
 
 }

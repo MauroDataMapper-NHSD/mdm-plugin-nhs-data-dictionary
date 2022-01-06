@@ -1,0 +1,7 @@
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+
+model {
+    Iterable<Term> termList
+}
+
+json tmpl.'/catalogueItem/catalogueItem'(termList, [stereotype: "xmlSchemaConstraint"])

@@ -33,15 +33,6 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     AttributeService attributeService
 
     @Override
-    Map indexMap(DataElement object) {
-        [
-            catalogueId: object.id.toString(),
-            name       : object.label,
-            stereotype : "element"
-        ]
-    }
-
-    @Override
     def show(String branch, String id) {
         DataElement dataElement = dataElementService.get(id)
 
@@ -130,8 +121,22 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     @Override
-    Set<DataElement> getAll() {
-        nhsDataDictionaryService.getDataFieldNotes(false)
+    Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+
+        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}
+
+        List<UUID> classIds = [elementsClass.id]
+        if(includeRetired) {
+            DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
+            classIds.add(retiredElementsClass.id)
+        }
+        List<DataElement> dataElements = DataElement.by().inList('dataClass.id', classIds).list()
+
+        dataElements.findAll {dataElement ->
+            includeRetired || !catalogueItemIsRetired(dataElement)
+        }
+
     }
 
     @Override
@@ -300,13 +305,6 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
             dataDictionary.elementsByUrl[element.otherProperties["ddUrl"]] = elementDataElement
         }
 
-    }
-
-    @Deprecated
-    NhsDDElement elementFromDataElement(DataElement de, NhsDataDictionary dataDictionary) {
-        NhsDDElement ddDataElement = getNhsDataDictionaryComponentFromCatalogueItem(de)
-
-        return ddDataElement
     }
 
 }

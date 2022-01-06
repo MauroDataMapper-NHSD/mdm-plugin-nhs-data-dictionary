@@ -1,6 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -14,16 +15,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Slf4j
 @Transactional
 class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, NhsDDXMLSchemaConstraint> {
-
-    @Override
-    Map indexMap(Term catalogueItem) {
-        [
-            catalogueId: catalogueItem.id.toString(),
-            name       : catalogueItem.code,
-            stereotype : "xmlSchemaConstraint"
-
-        ]
-    }
 
     @Override
     def show(String branch, String id) {
@@ -46,13 +37,15 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
     }
 
     @Override
-    Set<Term> getAll() {
-        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
-        supDefTerminology.terms.findAll{
-            (!it.metadata.find{md -> md.namespace == DDHelperFunctions.metadataNamespace + ".XML schema constraint" &&
-                        md.key == "isRetired" &&
-                        md.value == "true"
-                })}
+    Set<Term> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+
+        Terminology xmlSchemaConstraintTerminology = nhsDataDictionaryService.getXmlSchemaConstraintTerminology(versionedFolderId)
+
+        List<Term> terms = termService.findAllByTerminologyId(xmlSchemaConstraintTerminology.id)
+
+        terms.findAll {term ->
+            includeRetired || !catalogueItemIsRetired(term)
+        }
 
     }
 
@@ -118,11 +111,5 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
 
 
      }
-
-    @Deprecated
-    NhsDDXMLSchemaConstraint ddxmlSchemaConstraintFromTerm(Term term) {
-        getNhsDataDictionaryComponentFromCatalogueItem(term)
-    }
-
 
  }

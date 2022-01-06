@@ -28,17 +28,6 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
 
     ReferenceTypeService referenceTypeService
 
-
-    @Override
-    Map indexMap(DataClass catalogueItem) {
-        [
-            catalogueId: catalogueItem.id.toString(),
-            name       : catalogueItem.label,
-            stereotype : "class"
-
-        ]
-    }
-
     @Override
     def show(String branch, String id) {
         DataClass dataClass = dataClassService.get(id)
@@ -194,9 +183,24 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         result["relationships"] = relationships
         return result
     }
+
     @Override
-    Set<DataClass> getAll() {
-        nhsDataDictionaryService.getDataClasses(false)
+    Set<DataClass> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
+        DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
+
+        List<DataClass> allClasses = []
+        allClasses.addAll(DataClass.byParentDataClassId(classesClass.id).list())
+
+        if(includeRetired) {
+            DataClass retiredClassesClass = allClasses.find {it.label == "Retired"}
+            allClasses.addAll(DataClass.byParentDataClassId(retiredClassesClass.id).list())
+        }
+
+        allClasses.findAll {dataClass ->
+            dataClass.label != "Retired" && (
+                includeRetired || !catalogueItemIsRetired(dataClass))
+        }
     }
 
     @Override

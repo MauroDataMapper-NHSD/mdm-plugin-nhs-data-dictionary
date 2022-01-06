@@ -3,12 +3,15 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
@@ -31,16 +34,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
     @Autowired
     MessageSource messageSource
-
-    @Override
-    Map indexMap(DataModel catalogueItem) {
-        [
-            catalogueId: catalogueItem.id.toString(),
-            name       : catalogueItem.label,
-            stereotype : "dataSet"
-
-        ]
-    }
 
     @Override
     def show(String branch, String id) {
@@ -78,11 +71,12 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     }
 
     @Override
-    Set<DataModel> getAll() {
-        Folder folder = folderService.findByPath(NhsDataDictionary.FOLDER_NAME.toString())
-        Folder dataSetsFolder = folder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
+    Set<DataModel> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+        Folder dataSetsFolder = nhsDataDictionaryService.getDataSetsFolder(versionedFolderId)
 
-        getAllDataSets(dataSetsFolder)
+        getAllDataSets(dataSetsFolder, includeRetired).findAll {dataModel ->
+            includeRetired || !catalogueItemIsRetired(dataModel)
+        }
     }
 
     @Override
@@ -90,15 +84,13 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         dataModelService.get(id)
     }
 
-    Set<DataModel> getAllDataSets(Folder dataSetsFolder) {
-        if (dataSetsFolder.label != "Retired") {
-            Set<DataModel> returnModels = []
-            dataSetsFolder.childFolders.each {childFolder ->
-                returnModels.addAll(getAllDataSets(childFolder))
-            }
-            returnModels.addAll(dataModelService.findAllByFolderId(dataSetsFolder.id))
-            return returnModels
-        } else return new HashSet<DataModel>()
+    Set<DataModel> getAllDataSets(Folder dataSetsFolder, boolean includeRetired = false) {
+        Set<DataModel> returnModels = []
+        returnModels.addAll(dataModelService.findAllByFolderId(dataSetsFolder.id))
+        dataSetsFolder.childFolders.each {childFolder ->
+            returnModels.addAll(getAllDataSets(childFolder, includeRetired))
+        }
+        return returnModels
     }
 
     @Override
@@ -614,10 +606,4 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         }
 
     }
-
-    @Deprecated
-    NhsDDDataSet dataSetFromDataModel(DataModel dm) {
-        getNhsDataDictionaryComponentFromCatalogueItem(dm)
-    }
-
 }

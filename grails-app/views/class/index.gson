@@ -1,0 +1,7 @@
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+
+model {
+    Iterable<DataClass> dataClassList
+}
+
+json tmpl.'/catalogueItem/catalogueItem'(dataClassList, [stereotype: "class"])

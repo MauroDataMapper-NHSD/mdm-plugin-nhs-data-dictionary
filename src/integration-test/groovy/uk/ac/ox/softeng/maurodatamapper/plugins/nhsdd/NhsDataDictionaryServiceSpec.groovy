@@ -347,10 +347,10 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         stats
         log.info('{}', JsonOutput.prettyPrint(statsJson))
-        checkStatsMapEntry(stats, 'Attributes', 2526, 0, 1175)
-        checkStatsMapEntry(stats, 'Data Field Notes', 4915, 8, 2196)
-        checkStatsMapEntry(stats, 'Classes', 364, 0, 137)
-        checkStatsMapEntry(stats, 'Data Sets', 125, 0, 0)
+        checkStatsMapEntry(stats, 'Attributes', 2528, 0, 1194)
+        checkStatsMapEntry(stats, 'Data Field Notes', 4916, 8, 2202)
+        checkStatsMapEntry(stats, 'Classes', 363, 0, 138)
+        checkStatsMapEntry(stats, 'Data Sets', 261, 0, 136)
         checkStatsMapEntry(stats, 'Business Definitions', 1230, 1, 388)
         checkStatsMapEntry(stats, 'Supporting Information', 152, 0, 24)
         checkStatsMapEntry(stats, 'XML Schema Constraints', 33, 0, 5)

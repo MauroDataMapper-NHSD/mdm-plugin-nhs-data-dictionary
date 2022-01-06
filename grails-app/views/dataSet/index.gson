@@ -1,0 +1,7 @@
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+
+model {
+    Iterable<DataModel> dataModelList
+}
+
+json tmpl.'/catalogueItem/catalogueItem'(dataModelList, [stereotype: "dataSet"])

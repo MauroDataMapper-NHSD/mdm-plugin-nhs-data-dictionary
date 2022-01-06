@@ -2,6 +2,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -14,16 +15,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Slf4j
 @Transactional
 class SupportingInformationService extends DataDictionaryComponentService<Term, NhsDDSupportingInformation> {
-
-    @Override
-    Map indexMap(Term catalogueItem) {
-        [
-            catalogueId: catalogueItem.id.toString(),
-            name       : catalogueItem.code,
-            stereotype : "supportingInformation"
-
-        ]
-    }
 
     @Override
     def show(String branch, String id) {
@@ -43,13 +34,15 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
     }
 
     @Override
-    Set<Term> getAll() {
-        Terminology supDefTerminology = terminologyService.findCurrentMainBranchByLabel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
-        supDefTerminology.terms.findAll{
-            (!it.metadata.find{md -> md.namespace == getMetadataNamespace() &&
-                        md.key == "isRetired" &&
-                        md.value == "true"
-                })}
+    Set<Term> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+
+        Terminology supInfTerminology = nhsDataDictionaryService.getSupportingDefinitionTerminology(versionedFolderId)
+
+        List<Term> terms = termService.findAllByTerminologyId(supInfTerminology.id)
+
+        terms.findAll {term ->
+            includeRetired || !catalogueItemIsRetired(term)
+        }
 
     }
 
@@ -116,8 +109,4 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
 
     }
 
-    @Deprecated
-    NhsDDSupportingInformation supportingInformationFromTerm(Term term) {
-        getNhsDataDictionaryComponentFromCatalogueItem(term)
-    }
 }
