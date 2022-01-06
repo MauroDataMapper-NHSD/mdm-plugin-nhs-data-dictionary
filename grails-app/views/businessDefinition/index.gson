@@ -1,7 +1,9 @@
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+
 model {
     Iterable<Term> termList
 }
 
-json tmpl.'/catalogueItem/catalogueItem_nhsdd'(termList, [stereotype: "businessDefinition"])
+json g.render(termList.collect {new StereotypedCatalogueItem(it, 'businessDefinition')})

@@ -9,7 +9,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -36,16 +35,8 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllClassesHaveRelationships
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveAlias
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveShortDescription
@@ -54,6 +45,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Dat
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.time.Instant
 import java.time.LocalDate
@@ -282,32 +274,32 @@ class NhsDataDictionaryService {
         return attributeElements
     }
 
-    Map<CatalogueItem, String> allItemsIndex(UUID versionedFolderId, boolean includeRetired = true) {
-        LinkedHashMap<CatalogueItem, String> allItems = new LinkedHashMap<CatalogueItem, String>()
+    List<StereotypedCatalogueItem> allItemsIndex(UUID versionedFolderId, boolean includeRetired = true) {
+        List<StereotypedCatalogueItem> allItems = []
 
-        allItems.putAll(dataSetService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "dataModel"]
+        allItems.addAll(dataSetService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "dataModel")
         })
-        allItems.putAll(classService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "class"]
+        allItems.addAll(classService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "class")
         })
-        allItems.putAll(elementService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "element"]
+        allItems.addAll(elementService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "element")
         })
-        allItems.putAll(attributeService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "attribute"]
+        allItems.addAll(attributeService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "attribute")
         })
-        allItems.putAll(businessDefinitionService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "businessDefinition"]
+        allItems.addAll(businessDefinitionService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "businessDefinition")
         })
-        allItems.putAll(supportingInformationService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "supportingInformation"]
+        allItems.addAll(supportingInformationService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "supportingInformation")
         })
-        allItems.putAll(xmlSchemaConstraintService.index(versionedFolderId, includeRetired).collectEntries {
-            [it, "xmlSchemaConstraint"]
+        allItems.addAll(xmlSchemaConstraintService.index(versionedFolderId, includeRetired).collect {
+            new StereotypedCatalogueItem(it, "xmlSchemaConstraint")
         })
-        System.err.println(allItems.sort {it.key.label})
-        return allItems.sort {it.key.label}
+        //        System.err.println(allItems.sort {it.key.label})
+        return allItems.sort()
     }
 
 

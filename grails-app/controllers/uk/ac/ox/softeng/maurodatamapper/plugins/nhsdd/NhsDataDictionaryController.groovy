@@ -1,14 +1,11 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 
 @Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {
@@ -40,15 +37,12 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     def codeSystemValidateBundle() {
         User currentUser = getCurrentUser()
         respond nhsDataDictionaryService.codeSystemValidationBundle(currentUser, params.releaseDate)
-
     }
 
     def valueSetValidateBundle() {
         User currentUser = getCurrentUser()
         respond nhsDataDictionaryService.valueSetValidationBundle(currentUser, params.releaseDate)
-
     }
-
 
     def branches() {
         respond nhsDataDictionaryService.branches(currentUserSecurityPolicyManager)
@@ -56,25 +50,18 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def statistics() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
-        respond dataDictionary
+        respond nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
     }
 
 
     def integrityChecks() {
-
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-
-        List<IntegrityCheck> result = nhsDataDictionaryService.integrityChecks(versionedFolderId)
-
-        respond result, model: [integrityChecks: result]
-
+        respond integrityChecks: nhsDataDictionaryService.integrityChecks(versionedFolderId)
     }
 
     def allItemsIndex() {
-        Map<CatalogueItem, String> allItemsMap = nhsDataDictionaryService.allItemsIndex(
-            UUID.fromString(params.versionedFolderId), params.boolean('includeRetired')?:true)
-        render(view: "allItemsIndex", model: [catalogueItemMap: allItemsMap])
+        respond nhsDataDictionaryService.allItemsIndex(
+            UUID.fromString(params.versionedFolderId), params.boolean('includeRetired') ?: true)
     }
 
     def publishDita() {
