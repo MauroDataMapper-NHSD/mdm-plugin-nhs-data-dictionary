@@ -18,20 +18,11 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 class BusinessDefinitionService extends DataDictionaryComponentService<Term, NhsDDBusinessDefinition> {
 
     @Override
-    def show(String branch, String id) {
-        Term businessDefinition = termService.get(id)
+    NhsDDBusinessDefinition show(String branch, String id) {
 
-        String description = convertLinksInDescription(branch, businessDefinition.description)
-        String shortDesc = replaceLinksInShortDescription(getShortDescription(businessDefinition, null))
-        def result = [
-                catalogueId: businessDefinition.id.toString(),
-                name: businessDefinition.code,
-                stereotype: "businessDefinition",
-                shortDescription: shortDesc,
-                description: description,
-                alsoKnownAs: getAliases(businessDefinition)
-        ]
-        return result
+        Term businessDefinitionTerm = termService.get(id)
+        NhsDDBusinessDefinition businessDefinition = getNhsDataDictionaryComponentFromCatalogueItem(businessDefinitionTerm, null)
+        return businessDefinition
     }
 
     @Override

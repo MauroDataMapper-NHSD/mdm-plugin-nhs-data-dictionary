@@ -1,8 +1,10 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 
 trait NhsDataDictionaryComponent {
 
@@ -61,12 +63,20 @@ trait NhsDataDictionaryComponent {
     abstract String getXmlNodeName()
 
     boolean hasNoAliases() {
+        return getAliases().size() == 0
+    }
+
+    Map<String, String> getAliases() {
+        Map<String, String> aliases = [:]
         Set<String> aliasFields = NhsDataDictionary.getAllMetadataKeys().findAll {it.startsWith("alias")}
 
-        return aliasFields.every {aliasField ->
-            otherProperties[aliasField] == "" || otherProperties[aliasField] == null
+        aliasFields.each {aliasField ->
+            String aliasValue = otherProperties[aliasField]
+            if(aliasValue) {
+                aliases[aliasField] = aliasValue
+            }
         }
-
+        return aliases
     }
 
 }
