@@ -4,4 +4,4 @@ model {
     Iterable<Term> termList
 }
 
-json tmpl.'/catalogueItem/catalogueItem'(termList, [stereotype: "supportingInformation"])
+json tmpl.'/catalogueItem/catalogueItem_nhsdd'(termList, [stereotype: "supportingInformation"])

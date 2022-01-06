@@ -4,4 +4,4 @@ model {
     Iterable<DataElement> dataElementList
 }
 
-json tmpl.'/catalogueItem/catalogueItem'(dataElementList, [stereotype: "attribute"])
+json tmpl.'/catalogueItem/catalogueItem_nhsdd'(dataElementList, [stereotype: "attribute"])

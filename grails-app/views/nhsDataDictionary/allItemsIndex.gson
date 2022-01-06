@@ -5,5 +5,5 @@ model {
 }
 
 catalogueItemMap.entrySet().each {entry ->
-    json tmpl.'/catalogueItem/catalogueItem' (catalogueItem: entry.key, stereotype: entry.value)
+    json tmpl.'/catalogueItem/catalogueItem_nhsdd' (catalogueItem: entry.key, stereotype: entry.value)
 }

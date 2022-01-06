@@ -4,4 +4,4 @@ model {
     Iterable<DataClass> dataClassList
 }
 
-json tmpl.'/catalogueItem/catalogueItem'(dataClassList, [stereotype: "class"])
+json tmpl.'/catalogueItem/catalogueItem_nhsdd'(dataClassList, [stereotype: "class"])
