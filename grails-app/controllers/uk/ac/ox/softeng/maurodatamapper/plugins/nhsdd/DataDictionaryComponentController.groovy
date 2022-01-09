@@ -1,13 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
-
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
-
 
 abstract class DataDictionaryComponentController<T extends CatalogueItem> {
 	static responseFormats = ['json', 'xml']

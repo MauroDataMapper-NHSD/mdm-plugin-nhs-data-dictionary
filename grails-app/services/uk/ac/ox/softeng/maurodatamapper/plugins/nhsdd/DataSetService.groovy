@@ -3,15 +3,12 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.security.User
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
@@ -21,12 +18,10 @@ import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary

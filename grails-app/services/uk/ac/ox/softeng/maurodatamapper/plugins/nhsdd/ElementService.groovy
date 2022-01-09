@@ -9,7 +9,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.EnumerationType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.enumeration.EnumerationValue
@@ -25,7 +24,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary

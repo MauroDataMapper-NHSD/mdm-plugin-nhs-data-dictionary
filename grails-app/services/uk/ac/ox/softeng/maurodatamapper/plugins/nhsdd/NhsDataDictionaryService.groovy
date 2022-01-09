@@ -6,7 +6,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -14,23 +13,12 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
-import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Body
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.DitaMap
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.KeyDef
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Title
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Topic
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
-import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.ac.ox.softeng.maurodatamapper.version.Version
@@ -39,7 +27,6 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 import grails.gorm.DetachedCriteria
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import org.apache.tools.ant.taskdefs.Javadoc
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
@@ -62,8 +49,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaper
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.time.Instant
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -394,7 +379,7 @@ class NhsDataDictionaryService {
     }
 
 
-    VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion) {
+    VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion, boolean deletePrevious = false) {
 
         NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo)
 
@@ -403,7 +388,7 @@ class NhsDataDictionaryService {
         long originalStartTime = startTime
         long endTime
         String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
-        if (!finalise && !folderVersionNo && !prevVersion) {
+        if (deletePrevious || (!finalise && !folderVersionNo && !prevVersion)) {
             deleteOriginalFolder(dictionaryFolderName)
             endTime = System.currentTimeMillis()
             log.info("Delete old folder complete in ${Utils.getTimeString(endTime - startTime)}")

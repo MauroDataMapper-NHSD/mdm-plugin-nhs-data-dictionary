@@ -1,16 +1,12 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 

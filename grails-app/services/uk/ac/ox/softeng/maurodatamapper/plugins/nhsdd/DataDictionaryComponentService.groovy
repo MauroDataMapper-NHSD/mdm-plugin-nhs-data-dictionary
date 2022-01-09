@@ -22,7 +22,6 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary

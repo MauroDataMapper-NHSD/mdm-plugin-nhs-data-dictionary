@@ -183,7 +183,8 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'B01 : Branch Nov 2021 ingest'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+        //        UUID releaseId = VersionedFolder.by().id().get()
+        UUID releaseId = cleanIngest('november2021.xml', 'November 2021', true, true)
         VersionedFolder release = versionedFolderService.get(releaseId)
 
         when:
@@ -380,10 +381,10 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
     }
 
-    UUID cleanIngest(String name, String releaseDate, boolean finalised = true) {
+    UUID cleanIngest(String name, String releaseDate, boolean finalised = true, boolean deletePrevious = false) {
         def xml = loadXml(name)
         assert xml
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null)
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null, deletePrevious)
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
         dd.id
