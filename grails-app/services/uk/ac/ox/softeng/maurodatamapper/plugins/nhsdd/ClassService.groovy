@@ -1,23 +1,15 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceTypeService
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.ClassLink
-import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.DDClass
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassLink
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary

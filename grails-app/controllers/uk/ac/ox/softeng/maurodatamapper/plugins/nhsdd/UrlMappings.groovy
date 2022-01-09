@@ -17,7 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES
+
 import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES_AND_NO_SAVE
 
 class UrlMappings {

@@ -1,22 +1,15 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
-import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Body
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Title
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Topic
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
-
-import java.util.regex.Matcher
 
 @Slf4j
 class ChangePaperUtility {
 
 
     static void generateChangePaper(NhsDataDictionary dataDictionary, String outputPath) {
-
+/*
         DitaProject ditaProject = new DitaProject().tap {
             title = "Example Change Paper"
             filename = "changePaper"
@@ -82,9 +75,12 @@ class ChangePaperUtility {
                                                  owner.with summaryContent
                                             } })
         ditaProject.writeToDirectory(outputPath)
+
+ */
     }
 
-    static Topic createBackgroundTopic() {
+    static def createBackgroundTopic() {
+        /*
         Topic backgroundTopic = new Topic(id: "background", title: new Title("Background"))
 
         Map<String, String> properties = [
@@ -109,10 +105,12 @@ class ChangePaperUtility {
 
         backgroundTopic.body = new Body(backgroundContent)
         return backgroundTopic
+
+         */
     }
 
 
-    static Topic createBackgroundTopic(NhsDataDictionary dataDictionary) {
+    static def createBackgroundTopic(NhsDataDictionary dataDictionary) {
 
         //return summaryOfChangesTopic
     }

@@ -8,7 +8,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.EnumerationType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
@@ -17,11 +16,9 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
