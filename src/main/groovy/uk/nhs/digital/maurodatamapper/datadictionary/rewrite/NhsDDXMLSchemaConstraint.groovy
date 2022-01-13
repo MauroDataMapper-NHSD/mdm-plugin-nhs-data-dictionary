@@ -7,6 +7,11 @@ class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
         "XML Schema Constraint"
     }
 
+    @Override
+    String getStereotypeForPreview() {
+        "xmlSchemaConstraint"
+    }
+
 
     @Override
     String calculateShortDescription() {
@@ -24,4 +29,9 @@ class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
     }
+
+    String getMauroPath() {
+        return "tm:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}|te:${name}"
+    }
+
 }

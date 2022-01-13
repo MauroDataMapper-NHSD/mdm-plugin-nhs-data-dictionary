@@ -1,0 +1,18 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+
+model {
+    NhsDDAttribute nhsDDAttribute
+}
+inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDAttribute, stereotype: "attribute"]
+json {
+    nationalCodes g.render (nhsDDAttribute.codes.sort{it.webOrder})
+
+    if(nhsDDAttribute.otherProperties["formatLength"]) {
+        formatLength nhsDDAttribute.otherProperties["formatLength"]
+    }
+    if(nhsDDAttribute.otherProperties["formatLink"]) {
+        formatLink nhsDDAttribute.otherProperties["formatLink"]
+    }
+    dataElements g.render(nhsDDAttribute.instantiatedByElements.collect {new StereotypedCatalogueItem(it.catalogueItem, "element")})
+}

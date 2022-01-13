@@ -1,4 +1,3 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 model {

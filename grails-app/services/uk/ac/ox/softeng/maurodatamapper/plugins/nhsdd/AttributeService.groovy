@@ -20,80 +20,37 @@ import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
 class AttributeService extends DataDictionaryComponentService<DataElement, NhsDDAttribute> {
 
+    ElementService elementService
 
     @Override
-    def show(String branch, String id) {
-        DataElement dataElement = dataElementService.get(id)
-
-        String description = convertLinksInDescription(branch, dataElement.description)
-        String shortDesc = replaceLinksInShortDescription(getShortDescription(dataElement, null))
-        def result = [
-            catalogueId     : dataElement.id.toString(),
-            name            : dataElement.label,
-            stereotype      : "attribute",
-            shortDescription: shortDesc,
-            description     : description,
-            alsoKnownAs     : getAliases(dataElement)
-        ]
-
-        if (dataElement.dataType instanceof EnumerationType) {
-
-            List<Map> enumerationValues = []
-
-            ((EnumerationType) dataElement.dataType).enumerationValues.sort {
-                enumValue ->
-                    String webOrderString = DDHelperFunctions.getMetadataValue(enumValue, "Web Order")
-                    if (webOrderString) {
-                        return Integer.parseInt(webOrderString)
-                    } else return 0
-
-            }.each {enumValue ->
-
-                Map enumValueMap = [:]
-
-                enumValueMap["code"] = enumValue.key
-                enumValueMap["description"] = enumValue.value
-                String webPresentation = DDHelperFunctions.getMetadataValue(enumValue, "Web Presentation")
-                if (webPresentation && webPresentation != "") {
-                    enumValueMap["description"] = webPresentation
-                }
-
-                if (DDHelperFunctions.getMetadataValue(enumValue, "Status") == "retired") {
-                    enumValueMap["retired"] = "true"
-                }
-                enumerationValues.add(enumValueMap)
-            }
-            result["nationalCodes"] = enumerationValues
-        } else if (dataElement.dataType instanceof PrimitiveType && dataElement.dataType.label != "Default String") {
-            result["type"] = ((PrimitiveType) dataElement.dataType).label
-        }
-
-        List<Map> dataElements = []
-
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
-        String uin = DDHelperFunctions.getMetadataValue(dataElement, "uin")
-        coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}.dataElements.each {relatedDataElement ->
-            String elementAttributes = DDHelperFunctions.getMetadataValue(relatedDataElement, "element_attributes")
-            if (elementAttributes && elementAttributes.contains(uin)) {
-                Map relatedElement = [
-                    catalogueId: relatedDataElement.id.toString(),
-                    name       : relatedDataElement.label,
-                    stereotype : "element",
-                ]
-                dataElements.add(relatedElement)
-            }
-        }
-
-        result["dataElements"] = dataElements
-
-        return result
+    NhsDDAttribute show(UUID versionedFolderId, String id) {
+        DataElement attributeElement = dataElementService.get(id)
+        NhsDDAttribute attribute = getNhsDataDictionaryComponentFromCatalogueItem(attributeElement, new NhsDataDictionary())
+        attribute.instantiatedByElements.addAll (elementService.getAllForAttribute(versionedFolderId, attribute))
+        return attribute
     }
+
+    Set<NhsDDAttribute> getAllForElement(UUID versionedFolderId, NhsDDElement nhsDDElement) {
+        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
+        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
+        List<DataElement> dataElements = DataElement.by().inList('dataClass.id', attributesClass.id).list()
+        List<String> linkedAttributeList = elementService.getLinkedAttributesFromMetadata(nhsDDElement.catalogueItem)
+        linkedAttributeList.collect {elementName ->
+            dataElements.find {it.label == elementName}
+        }.collect {
+            getNhsDataDictionaryComponentFromCatalogueItem(it, new NhsDataDictionary())
+        }
+
+    }
+
 
     @Override
     Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
@@ -115,11 +72,6 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     }
 
     @Override
-    DataElement getItem(UUID id) {
-        dataElementService.get(id)
-    }
-
-    @Override
     String getMetadataNamespace() {
         NhsDataDictionary.METADATA_NAMESPACE + ".attribute"
     }
@@ -130,20 +82,11 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
         nhsDataDictionaryComponentFromItem(catalogueItem, attribute)
         if (catalogueItem.dataType instanceof ModelDataType) {
             List<Term> terms = termService.findAllByTerminologyId(((ModelDataType) catalogueItem.dataType).modelResourceId)
-            List<Metadata> allRelevantMetadata = Metadata
-                .byMultiFacetAwareItemIdInList(terms.collect {it.id})
-                .inList('key', ['publishDate', 'webOrder', 'webPresentation'])
-                .list()
-            attribute.codes = terms
-                .collect {term ->
-                    new NhsDDCode(attribute).tap {
-                        code = term.code
-                        definition = term.definition
-                        publishDate = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'publishDate'}?.value
-                        webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
-                        webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
-                    }
-                }
+            List<NhsDDCode> codes = getCodesForTerms(terms)
+            codes.each {code ->
+                code.owningAttribute = attribute
+                attribute.codes.add(code)
+            }
         }
         return attribute
 
@@ -215,10 +158,12 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                     )
 
                     code.propertiesAsMap().each {key, value ->
-                        term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                        key: key,
-                                                        value: value,
-                                                        createdBy: currentUserEmailAddress))
+                        if(value) {
+                            term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
+                                                            key: key,
+                                                            value: value,
+                                                            createdBy: currentUserEmailAddress))
+                        }
                     }
                     terminology.addToTerms(term)
 
@@ -258,6 +203,12 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 allAttributesClass.addToDataElements(attributeDataElement)
             }
             attributeElementsByName[name] = attributeDataElement
+        }
+    }
+
+    NhsDDAttribute getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.attributes.values().find {
+            it.catalogueItem.id == catalogueItemId
         }
     }
 

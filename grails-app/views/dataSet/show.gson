@@ -1,0 +1,9 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+
+model {
+    NhsDDDataSet nhsDDDataSet
+}
+inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDDataSet, stereotype: "dataSet"]
+json {
+
+}

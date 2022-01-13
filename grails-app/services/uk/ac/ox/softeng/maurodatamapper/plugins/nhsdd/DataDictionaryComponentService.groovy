@@ -24,8 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -53,11 +55,9 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         (getAll(versionedFolderId, includeRetired) as List).sort {it.label}
     }
 
-    abstract def show(String branch, String id)
+    abstract def show(UUID versionedFolderId, String id)
 
     abstract Set<T> getAll(UUID versionedFolderId, boolean includeRetired = false)
-
-    abstract T getItem(UUID id)
 
     Map<String, String> getAliases(T catalogueItem) {
         Map<String, String> aliases = [:]
@@ -75,27 +75,17 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
 
     abstract D getNhsDataDictionaryComponentFromCatalogueItem(T catalogueItem, NhsDataDictionary dataDictionary)
 
-    def getWhereUsed(DataDictionary dataDictionary, String id) {
-        DataDictionaryComponent component = dataDictionary.getAllComponents().find {
-            it.catalogueId.toString().equalsIgnoreCase(id)
-        }
-        List<Map> whereUsed = []
-        String itemLink = component.getInternalLink()
-        log.debug("itemLink: " + itemLink)
-        log.debug("description: " + component.definition.toString())
-        dataDictionary.getAllComponents().collect {eachComponent ->
-            if (eachComponent.definition.toString().contains(itemLink)) {
-                whereUsed.add([
-                    type       : eachComponent.typeText,
-                    name       : eachComponent.name,
-                    stereotype : eachComponent.outputClassForLink,
-                    componentId: eachComponent.catalogueId.toString(),
-                    text       : "references in description ${component.name}"
-                ])
-            }
-        }
+    abstract D getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary)
 
-        return whereUsed.sort {it.name}
+    List<StereotypedCatalogueItem> getWhereUsed(UUID versionedFolderId, String id) {
+        NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
+        NhsDataDictionaryComponent component = getByCatalogueItemId(UUID.fromString(id), dataDictionary)
+        String itemLink = component.getMauroPath()
+        List<NhsDataDictionaryComponent> whereUsedComponents = dataDictionary.getAllComponents().
+            findAll {it.definition.contains(itemLink)}
+        return whereUsedComponents.
+            sort { it.name}.
+            collect {new StereotypedCatalogueItem(it)}
     }
 
     static Pattern pattern = Pattern.compile("\\[([^\\]]*)\\]\\(([^\\)]*)\\)")
@@ -262,6 +252,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
 
         // Encoding
         "formatLength"                 : "format-length",
+        "formatLink"                   : "format-link",
 
 
         //"fhirItem": "FHIR_Item",
@@ -274,7 +265,6 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         //"type": "type",
         //"readOnly": "readOnly",
         //"clientRole": "clientRole",
-        //"formatLink": "format-link",
         //"permittedNationalCodes": "permitted-national-codes",
         "navigationParent"             : "navigationParent",
         "explanatoryPage"              : "explanatoryPage",
@@ -368,5 +358,24 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
             .list()
 
         return allRelevantMetadata.any{md -> md.value == "true"}
+    }
+
+    List<NhsDDCode> getCodesForTerms(List<Term> terms) {
+        List<NhsDDCode> codes = []
+        List<Metadata> allRelevantMetadata = Metadata
+            .byMultiFacetAwareItemIdInList(terms.collect {it.id})
+            .inList('key', ['publishDate', 'webOrder', 'webPresentation', 'isDefault'])
+            .list()
+        codes.addAll(terms.collect {term ->
+            new NhsDDCode().tap {
+                code = term.code
+                definition = term.definition
+                publishDate = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'publishDate'}?.value
+                webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
+                webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
+                isDefault = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isDefault'}?.value)
+            }
+        })
+        return codes
     }
 }

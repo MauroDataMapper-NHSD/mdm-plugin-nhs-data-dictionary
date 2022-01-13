@@ -9,6 +9,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
 trait NhsDataDictionaryComponent {
 
     abstract String getStereotype()
+    abstract String getStereotypeForPreview()
 
     CatalogueItem catalogueItem
     String catalogueItemModelId
@@ -37,11 +38,18 @@ trait NhsDataDictionaryComponent {
 
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
+        if(xml.name.text()) {
+            this.name = xml.name.text().replace("_", " ")
+        } else { // This should only apply for XmlSchemaConstraints
+            this.name = xml."class".name.text()
+        }
+
+        /*  We're doing capitalised items now
         if(xml.TitleCaseName.text()) {
             this.name = xml.TitleCaseName[0].text()
         } else { // This should only apply for XmlSchemaConstraints
             this.name = xml."class".websitePageHeading.text()
-        }
+        }*/
 
         definition = (DDHelperFunctions.parseHtml(xml.definition)).replace("\u00a0", " ")
 
@@ -78,5 +86,17 @@ trait NhsDataDictionaryComponent {
         }
         return aliases
     }
+
+
+
+    Map<String, String> getUrlReplacements() {
+        String ddUrl = this.otherProperties["ddUrl"]
+        return [
+            (ddUrl) : this.getMauroPath()
+        ]
+    }
+
+    abstract String getMauroPath()
+
 
 }

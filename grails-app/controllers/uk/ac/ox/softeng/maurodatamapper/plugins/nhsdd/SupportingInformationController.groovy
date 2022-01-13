@@ -15,8 +15,6 @@ class SupportingInformationController extends DataDictionaryComponentController<
         "supportingInformationId"
     }
 
-
-
     @Override
     DataDictionaryComponentService getService() {
         return supportingInformationService

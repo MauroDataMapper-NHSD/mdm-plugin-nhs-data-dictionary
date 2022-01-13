@@ -610,7 +610,7 @@ class OtherDataSetParser {
                         }
                     }
                 } else if (dataModel.label == "GUMCAD Sexually Transmitted Infection Surveillance System Data Set" &&
-                           multiples == 3) {
+                           multiples == 3 && returnElement.dataElements && returnElement.dataElements.size() >= 3) {
                     returnElement.dataElements[0].maxMultiplicity = -1
                     returnElement.dataElements[1].maxMultiplicity = -1
                     returnElement.dataElements[2].maxMultiplicity = -1

@@ -1,0 +1,9 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
+
+model {
+    NhsDDXMLSchemaConstraint nhsDDXMLSchemaConstraint
+}
+inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDXMLSchemaConstraint, stereotype: "xmlSchemaConstraint"]
+json {
+
+}

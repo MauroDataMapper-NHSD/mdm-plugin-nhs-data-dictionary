@@ -16,6 +16,9 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 @Slf4j
 @Transactional
 class NhsDataDictionary {
@@ -33,6 +36,9 @@ class NhsDataDictionary {
     static final String SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME = "Supporting Information"
     static final String XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME = "XML Schema Constraints"
     static final String WEB_PAGES_TERMINOLOGY_NAME = "Web Pages"
+
+    static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
+
 
     Map<String, NhsDDAttribute> attributes = [:]
     Map<String, NhsDDElement> elements = [:]
@@ -70,10 +76,11 @@ class NhsDataDictionary {
             dataSets.values() +
             businessDefinitions.values() +
             supportingInformation.values() +
-            xmlSchemaConstraints.values()
+            xmlSchemaConstraints.values() +
+            webPages.values()
     }
 
-    static NhsDataDictionary buildFromXml(def xml, String releaseDate) {
+    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo) {
         return new NhsDataDictionary().tap {
             log.info('Building new NHS Data Dictionary from XML')
             long startTime = System.currentTimeMillis()
@@ -98,13 +105,14 @@ class NhsDataDictionary {
                     }
                 }
             }
-            processLinks()
+            processClassLinks()
+            processLinksFromXml()
             long endTime = System.currentTimeMillis()
             log.info("Data Dictionary build from XML complete in ${Utils.getTimeString(endTime - startTime)}")
         }
     }
 
-    void processLinks() {
+    void processClassLinks() {
         classes.each {name, clazz ->
             clazz.classLinks.each {classLink ->
                 classLink.supplierClass = classesByUin[classLink.supplierUin]
@@ -118,6 +126,41 @@ class NhsDataDictionary {
             }
         }
     }
+
+    void processLinksFromXml() {
+        Map<String, String> replacements = [:]
+        getAllComponents().each {component ->
+            replacements.putAll(component.getUrlReplacements())
+        }
+        Map<String, List<String>> unmatchedUrls = [:]
+        getAllComponents().each {component ->
+            String newDefinition = component.definition
+            if(component.definition) {
+                Matcher matcher = pattern.matcher(newDefinition)
+                while(matcher.find()) {
+                    String matchedUrl = replacements[matcher.group(1)]
+                    if(matchedUrl) {
+                        String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
+                        newDefinition = newDefinition.replace(matcher.group(0), replacement)
+                        log.trace("Replacing: " + matcher.group(0) + " with " + replacement)
+                    } else {
+                        List<String> existingUnmatched = unmatchedUrls[component.name]
+                        if(existingUnmatched) {
+                            existingUnmatched.add(matcher.group(0))
+                        } else {
+                            unmatchedUrls[component.name] = [matcher.group(0)]
+                        }
+                    }
+
+                }
+            }
+            component.definition = newDefinition
+        }
+        log.debug("Unmatched Urls: ")
+        log.debug(unmatchedUrls.toString())
+
+    }
+
 
     static Set<String> getAllMetadataKeys() {
         Set<String> allKeys = []

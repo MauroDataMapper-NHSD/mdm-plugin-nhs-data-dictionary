@@ -5,5 +5,5 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDBusinessDefinition, stereotype: "businessDefinition"]
 json {
-    hello "world"
+
 }

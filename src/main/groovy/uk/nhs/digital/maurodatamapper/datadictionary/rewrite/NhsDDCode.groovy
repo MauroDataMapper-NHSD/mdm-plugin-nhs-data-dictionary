@@ -7,19 +7,22 @@ class NhsDDCode {
     String publishDate
     String webOrder
     String webPresentation
+    Boolean isDefault
 
     NhsDDAttribute owningAttribute
+    NhsDDElement owningElement
 
     boolean isRetired
     String retiredDate
 
     Map<String, String> propertiesAsMap() {
         return [
-            "publishDate"    : publishDate,
-            "isRetired"      : isRetired.toString(),
-            "retiredDate"    : retiredDate,
-            "webOrder"       : webOrder,
-            "webPresentation": webPresentation
+            "publishDate"       : publishDate,
+            "isRetired"         : isRetired.toString(),
+            "retiredDate"       : retiredDate,
+            "webOrder"          : webOrder,
+            "webPresentation"   : webPresentation,
+            "isDefault"         : isDefault.toString()
         ]
     }
 
@@ -27,7 +30,13 @@ class NhsDDCode {
         this.owningAttribute = owningAttribute
     }
 
+    NhsDDCode(NhsDDElement owningElement) {
+        this.owningElement = owningElement
+    }
 
+    NhsDDCode() {
+
+    }
 
 
 }
