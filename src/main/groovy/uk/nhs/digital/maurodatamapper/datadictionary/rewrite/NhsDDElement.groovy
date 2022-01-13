@@ -13,6 +13,12 @@ class NhsDDElement implements NhsDataDictionaryComponent {
         "Data Element"
     }
 
+    @Override
+    String getStereotypeForPreview() {
+        "element"
+    }
+
+
 
     List<NhsDDCode> codes = []
 
@@ -85,8 +91,18 @@ class NhsDDElement implements NhsDataDictionaryComponent {
         }.collect {
             dataDictionary.attributesByUin[it]
         })
+        instantiatesAttributes.each {nhsDDAttribute ->
+            nhsDDAttribute.instantiatedByElements.add(this)
+        }
 
     }
 
+    String getMauroPath() {
+        if(isRetired()) {
+            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}|dc:Retired|de:${name}"
+        } else {
+            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}|de:${name}"
+        }
+    }
 
 }

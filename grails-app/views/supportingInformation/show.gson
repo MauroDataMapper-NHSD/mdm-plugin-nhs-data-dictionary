@@ -1,0 +1,9 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
+
+model {
+    NhsDDSupportingInformation nhsDDSupportingInformation
+}
+inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDSupportingInformation, stereotype: "supportingInformation"]
+json {
+
+}

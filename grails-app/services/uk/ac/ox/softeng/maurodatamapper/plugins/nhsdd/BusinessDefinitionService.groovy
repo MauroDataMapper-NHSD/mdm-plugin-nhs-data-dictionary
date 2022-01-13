@@ -10,6 +10,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -18,8 +19,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 class BusinessDefinitionService extends DataDictionaryComponentService<Term, NhsDDBusinessDefinition> {
 
     @Override
-    NhsDDBusinessDefinition show(String branch, String id) {
-
+    NhsDDBusinessDefinition show(UUID versionedFolderId, String id) {
         Term businessDefinitionTerm = termService.get(id)
         NhsDDBusinessDefinition businessDefinition = getNhsDataDictionaryComponentFromCatalogueItem(businessDefinitionTerm, null)
         return businessDefinition
@@ -35,11 +35,6 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
         terms.findAll {term ->
             includeRetired || !catalogueItemIsRetired(term)
         }
-    }
-
-    @Override
-    Term getItem(UUID id) {
-        termService.get(id)
     }
 
     @Override
@@ -98,6 +93,12 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
         }
 
 
+    }
+
+    NhsDDBusinessDefinition getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.businessDefinitions.values().find {
+            it.catalogueItem.id == catalogueItemId
+        }
     }
 
 }

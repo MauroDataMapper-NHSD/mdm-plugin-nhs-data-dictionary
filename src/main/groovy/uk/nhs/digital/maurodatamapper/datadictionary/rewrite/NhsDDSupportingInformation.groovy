@@ -13,6 +13,11 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent {
         "Supporting Information"
     }
 
+    @Override
+    String getStereotypeForPreview() {
+        "supportingInformation"
+    }
+
 
     @Override
     String calculateShortDescription() {
@@ -52,6 +57,10 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent {
     @Override
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
+    }
+
+    String getMauroPath() {
+        return "tm:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}|te:${name}"
     }
 
 

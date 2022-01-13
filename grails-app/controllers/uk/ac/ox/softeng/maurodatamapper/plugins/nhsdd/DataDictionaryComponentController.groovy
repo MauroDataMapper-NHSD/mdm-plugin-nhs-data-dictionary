@@ -1,8 +1,12 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 
 abstract class DataDictionaryComponentController<T extends CatalogueItem> {
@@ -28,12 +32,11 @@ abstract class DataDictionaryComponentController<T extends CatalogueItem> {
     }
 
     def show() {
-        respond getService().show(params.branchName, params.id)
+        respond getService().show(UUID.fromString(params.versionedFolderId), params.id)
     }
 
     def whereUsed() {
-        DataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(params.branchName)
-        respond getService().getWhereUsed(dataDictionary, params[getParameterIdKey()])
+        respond getService().getWhereUsed(UUID.fromString(params.versionedFolderId), params[getParameterIdKey()])
     }
 
 }

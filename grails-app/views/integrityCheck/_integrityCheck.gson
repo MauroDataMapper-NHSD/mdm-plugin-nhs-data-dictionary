@@ -5,9 +5,9 @@ model {
 }
 
 json {
-    name integrityCheck.name
+    checkName integrityCheck.name
     description integrityCheck.description
-    errors g.render(integrityCheck.errors ?: [])
+    errors tmpl.'/nhsDataDictionaryComponent/nhsDataDictionaryComponent'(integrityCheck.errors ?: [])
 
     size integrityCheck.errors.size()
 }

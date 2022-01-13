@@ -1,0 +1,17 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
+
+model {
+    NhsDDCode nhsDDCode
+}
+json {
+    code nhsDDCode.code
+    if (nhsDDCode.webPresentation) {
+       description nhsDDCode.webPresentation
+    } else {
+        description nhsDDCode.definition
+    }
+    retired nhsDDCode.isRetired
+    if(nhsDDCode.isRetired) {
+        retiredDate nhsDDCode.retiredDate
+    }
+}

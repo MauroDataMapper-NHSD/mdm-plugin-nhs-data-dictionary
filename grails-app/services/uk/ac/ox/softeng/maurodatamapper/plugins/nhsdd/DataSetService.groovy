@@ -21,11 +21,14 @@ import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.DDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.DDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
@@ -36,7 +39,14 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     MessageSource messageSource
 
     @Override
-    def show(String branch, String id) {
+    NhsDDDataSet show(UUID versionedFolderId, String id) {
+        DataModel dataModel = dataModelService.get(id)
+        NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, null)
+        return dataSet
+    }
+
+/*    @Override
+    def show(UUID versionedFolderId, String id) {
         DataModel dataModel = dataModelService.get(id)
 
         String description = convertLinksInDescription(branch, dataModel.description)
@@ -70,6 +80,8 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         return result
     }
 
+ */
+
     @Override
     Set<DataModel> getAll(UUID versionedFolderId, boolean includeRetired = false) {
         Folder dataSetsFolder = nhsDataDictionaryService.getDataSetsFolder(versionedFolderId)
@@ -77,11 +89,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         getAllDataSets(dataSetsFolder, includeRetired).findAll {dataModel ->
             includeRetired || !catalogueItemIsRetired(dataModel)
         }
-    }
-
-    @Override
-    DataModel getItem(UUID id) {
-        dataModelService.get(id)
     }
 
     Set<DataModel> getAllDataSets(Folder dataSetsFolder, boolean includeRetired = false) {
@@ -524,18 +531,38 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             createAndSaveDataModel(dataSet, dataSetsFolder, dictionaryFolder, currentUser, dataDictionary)
         }
 
+        // Now set the descriptions of any data set folders that have a matching webpage:
+
+        setFolderDescriptions(dataSetsFolder, [], dataDictionary)
+    }
+
+    void setFolderDescriptions(Folder sourceFolder, List<String> path, NhsDataDictionary nhsDataDictionary) {
+        NhsDDWebPage matchingWebPage = nhsDataDictionary.webPages[sourceFolder.label + " Introduction"]
+
+        if(matchingWebPage) {
+            sourceFolder.description = matchingWebPage.definition
+            sourceFolder.save()
+        } else {
+            log.warn("Cannot match folder name: " + sourceFolder.label)
+        }
+        sourceFolder.childFolders.each {childFolder ->
+            List<String> newPath = []
+            newPath.addAll(path)
+            newPath.add(childFolder.label)
+            setFolderDescriptions(childFolder, newPath, nhsDataDictionary)
+        }
+
 
     }
 
     void createAndSaveDataModel(NhsDDDataSet dataSet, Folder dataSetsFolder, Folder dictionaryFolder, User currentUser,
                                 NhsDataDictionary nhsDataDictionary) {
-        List<String> path = getPath(dataSet.otherProperties["baseUri"], dataSet.isRetired())
-        Folder folder = getFolderAtPath(dataSetsFolder, path, currentUser.emailAddress)
+        Folder folder = getFolderAtPath(dataSetsFolder, dataSet.path, currentUser.emailAddress)
         log.debug('Ingesting {}', dataSet.name)
 
         DataModel dataSetDataModel = new DataModel(
             label: dataSet.name,
-            description: dataSet.overview,
+            description: dataSet.definition,
             createdBy: currentUser.emailAddress,
             type: DataModelType.DATA_STANDARD,
             authority: authorityService.defaultAuthority,
@@ -570,23 +597,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         dataClass.dataClasses.each {childDataClass -> addDataClassToDataModel(childDataClass, dataModel)}
     }
 
-    List<String> getPath(String pathStr, boolean isRetired) {
-        List<String> path = []
-        try {
-            path.addAll(DDHelperFunctions.getPath(pathStr, "Messages", ".txaClass20"))
-        } catch (Exception e) {
-            path.addAll(DDHelperFunctions.getPath(pathStr, "Web_Site_Content", ".txaClass20"))
-        }
-        path.removeAll {it.equalsIgnoreCase("Data_Sets")}
-        path.removeAll {it.equalsIgnoreCase("Content")}
-
-        if (isRetired) {
-            path.add(0, "Retired")
-        }
-        path = path.collect {DDHelperFunctions.tidyLabel(it)}
-        return path
-    }
-
     Folder getFolderAtPath(Folder sourceFolder, List<String> path, String createdByEmail) {
         if (path.size() == 1) {
             return sourceFolder
@@ -606,4 +616,11 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         }
 
     }
+
+    NhsDDDataSet getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.dataSets.values().find {
+            it.catalogueItem.id == catalogueItemId
+        }
+    }
+
 }

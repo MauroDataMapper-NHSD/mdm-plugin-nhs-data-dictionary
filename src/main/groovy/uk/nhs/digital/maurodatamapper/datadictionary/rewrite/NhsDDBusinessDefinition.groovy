@@ -18,6 +18,12 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
     }
 
     @Override
+    String getStereotypeForPreview() {
+        "businessDefinition"
+    }
+
+
+    @Override
     String calculateShortDescription() {
         String shortDescription
         if (isPreparatory()) {
@@ -56,5 +62,9 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
     @Override
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
+    }
+
+    String getMauroPath() {
+        return "tm:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}|te:${name}"
     }
 }

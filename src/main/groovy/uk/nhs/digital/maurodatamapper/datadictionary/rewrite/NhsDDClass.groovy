@@ -13,6 +13,12 @@ class NhsDDClass implements NhsDataDictionaryComponent {
         "Class"
     }
 
+    @Override
+    String getStereotypeForPreview() {
+        "class"
+    }
+
+
     List<NhsDDCode> codes = []
 
     List<NhsDDClass> extendsClasses = []
@@ -84,4 +90,11 @@ class NhsDDClass implements NhsDataDictionaryComponent {
         keyAttributes + otherAttributes
     }
 
+    String getMauroPath() {
+        if(isRetired()) {
+            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${name}"
+        } else {
+            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:${name}"
+        }
+    }
 }

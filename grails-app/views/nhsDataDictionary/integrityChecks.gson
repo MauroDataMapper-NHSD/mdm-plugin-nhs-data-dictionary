@@ -4,4 +4,4 @@ model {
     Iterable<IntegrityCheck> integrityChecks
 }
 
-json g.render(integrityChecks)
+json tmpl.'/integrityCheck/integrityCheck'(integrityChecks)

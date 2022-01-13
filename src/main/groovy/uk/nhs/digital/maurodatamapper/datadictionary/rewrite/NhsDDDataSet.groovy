@@ -2,6 +2,8 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import groovy.util.logging.Slf4j
 import groovy.util.slurpersupport.GPathResult
+import org.apache.commons.lang3.StringUtils
+import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Slf4j
@@ -12,8 +14,13 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         "Data Set"
     }
 
+    @Override
+    String getStereotypeForPreview() {
+        "dataSet"
+    }
+
+
     List<String> path
-    String overview
     GPathResult definitionAsXml
 
     boolean isCDS
@@ -25,7 +32,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
         NhsDDWebPage explanatoryWebPage = dataDictionary.webPagesByUin[xml.explanatoryPage.text()]
         if(explanatoryWebPage) {
-            overview = explanatoryWebPage.definition
+            definition = explanatoryWebPage.definition
         } else {
             if(isRetired()) {
                 log.info("Cannot find explanatory page for dataset: {}", name)
@@ -33,6 +40,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
                 log.warn("Cannot find explanatory page for dataset: {}", name)
             }
         }
+        path = getPath()
         definitionAsXml = xml.definition
     }
 
@@ -48,7 +56,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
 
             try {
                 GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + overview + "</xml>")
+                xml = Html.xmlSlurper.parseText("<xml>" + definition + "</xml>")
                 String allParagraphs = ""
                 xml.p.each { paragraph ->
                     allParagraphs += paragraph.text()
@@ -66,7 +74,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
                     allParagraphs = allParagraphs.substring(allParagraphs.indexOf(".") + 1)
                 }
             } catch (Exception e) {
-                log.error("Couldn't parse: " + overview)
+                log.error("Couldn't parse: " + definition)
                 shortDescription = name
             }
         }
@@ -79,5 +87,31 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
     String getXmlNodeName() {
         "DDDataSet"
     }
+
+    List<String> getPath() {
+        List<String> path = []
+        try {
+            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Messages", ".txaClass20"))
+        } catch (Exception e) {
+            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Web_Site_Content", ".txaClass20"))
+        }
+        path.removeAll {it.equalsIgnoreCase("Data_Sets")}
+        path.removeAll {it.equalsIgnoreCase("Content")}
+
+        if (isRetired()) {
+            path.add(0, "Retired")
+        }
+        path = path.collect {DDHelperFunctions.tidyLabel(it)}
+        return path
+    }
+
+
+    String getMauroPath() {
+        String mauroPath = StringUtils.join(path.collect{"fo:${it}"}, "|")
+
+        mauroPath += "dm:${name}"
+
+    }
+
 
 }

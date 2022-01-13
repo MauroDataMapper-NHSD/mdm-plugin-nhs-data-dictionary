@@ -9,6 +9,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -17,38 +18,19 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 class SupportingInformationService extends DataDictionaryComponentService<Term, NhsDDSupportingInformation> {
 
     @Override
-    def show(String branch, String id) {
-        Term supportingInformation = termService.get(id)
-
-        String description = convertLinksInDescription(branch, supportingInformation.description)
-        String shortDesc = replaceLinksInShortDescription(getShortDescription(supportingInformation, null))
-        def result = [
-                catalogueId: supportingInformation.id.toString(),
-                name: supportingInformation.code,
-                stereotype: "supportingInformation",
-                shortDescription: shortDesc,
-                description: description,
-                alsoKnownAs: getAliases(supportingInformation)
-        ]
-        return result
+    NhsDDSupportingInformation show(UUID versionedFolderId, String id) {
+        Term supportingInformationTerm = termService.get(id)
+        NhsDDSupportingInformation supportingInformation = getNhsDataDictionaryComponentFromCatalogueItem(supportingInformationTerm, null)
+        return supportingInformation
     }
 
     @Override
     Set<Term> getAll(UUID versionedFolderId, boolean includeRetired = false) {
-
         Terminology supInfTerminology = nhsDataDictionaryService.getSupportingDefinitionTerminology(versionedFolderId)
-
         List<Term> terms = termService.findAllByTerminologyId(supInfTerminology.id)
-
         terms.findAll {term ->
             includeRetired || !catalogueItemIsRetired(term)
         }
-
-    }
-
-    @Override
-    Term getItem(UUID id) {
-        termService.get(id)
     }
 
     @Override
@@ -105,8 +87,13 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
         } else {
             GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???
         }
-
-
     }
+
+    NhsDDSupportingInformation getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.supportingInformation.values().find {
+            it.catalogueItem.id == catalogueItemId
+        }
+    }
+
 
 }

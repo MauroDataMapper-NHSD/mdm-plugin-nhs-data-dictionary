@@ -139,6 +139,7 @@ class NhsDataDictionaryService {
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
         addXmlSchemaConstraintsToDictionary(xmlSchemaConstraintsTerminology, dataDictionary)
         log.debug('Data Dictionary built in {}', Utils.timeTaken(totalStart))
+
         return dataDictionary
     }
 
@@ -187,6 +188,7 @@ class NhsDataDictionaryService {
         DataClass classesClass = coreModel.dataClasses.find {it.label == "Classes"}
         DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
         List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
+        classClasses.removeAll {it.label == "Retired"}
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
 
 /*       classClasses.each {dataClass ->
@@ -278,7 +280,7 @@ class NhsDataDictionaryService {
         List<StereotypedCatalogueItem> allItems = []
 
         allItems.addAll(dataSetService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "dataModel")
+            new StereotypedCatalogueItem(it, "dataSet")
         })
         allItems.addAll(classService.index(versionedFolderId, includeRetired).collect {
             new StereotypedCatalogueItem(it, "class")
@@ -298,7 +300,6 @@ class NhsDataDictionaryService {
         allItems.addAll(xmlSchemaConstraintService.index(versionedFolderId, includeRetired).collect {
             new StereotypedCatalogueItem(it, "xmlSchemaConstraint")
         })
-        //        System.err.println(allItems.sort {it.key.label})
         return allItems.sort()
     }
 
@@ -379,7 +380,7 @@ class NhsDataDictionaryService {
 
     VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion) {
 
-        NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate)
+        NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo)
 
         log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)
         long startTime = System.currentTimeMillis()
@@ -414,21 +415,6 @@ class NhsDataDictionaryService {
                           createdBy: currentUser.emailAddress,
                           authority: authorityService.defaultAuthority,
                           type: DataModelType.DATA_STANDARD)
-        /*
-        if (prevDictionaryVersion) {
-            DataModel prevCore = folderService.findAllModelsInFolder(prevDictionaryVersion).find {
-                it.label == NhsDataDictionary.CORE_MODEL_NAME
-            }
-            coreDataModel.addToVersionLinks(
-                linkType: VersionLinkType.NEW_MODEL_VERSION_OF,
-                createdBy: currentUser.emailAddress,
-                targetModel: prevCore
-            )
-        }
-        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
-        nhsDataDictionary.currentUser = currentUser
-        nhsDataDictionary.coreDataModel = coreDataModel
-        */
 
         endTime = System.currentTimeMillis()
         log.info('{} model built in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))

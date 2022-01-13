@@ -7,6 +7,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceTypeService
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -16,6 +17,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.DDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassLink
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
@@ -29,28 +31,35 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     ReferenceTypeService referenceTypeService
 
     @Override
-    def show(String branch, String id) {
+    NhsDDClass show(UUID versionedFolderId, String id) {
+        DataClass classDataClass = dataClassService.get(id)
+        NhsDDClass dataClass = getNhsDataDictionaryComponentFromCatalogueItem(classDataClass, null)
+        return dataClass
+    }
+    /*
+    @Override
+    def show(UUID versionedFolderId, String id) {
         DataClass dataClass = dataClassService.get(id)
 
         String description = convertLinksInDescription(branch, dataClass.description)
         DataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(branch)
         String shortDesc = replaceLinksInShortDescription(getShortDescription(dataClass, dataDictionary))
         def result = [
-                catalogueId     : dataClass.id.toString(),
-                name            : dataClass.label,
-                stereotype      : "class",
-                shortDescription: shortDesc,
-                description     : description,
-                alsoKnownAs     : getAliases(dataClass)
+            catalogueId     : dataClass.id.toString(),
+            name            : dataClass.label,
+            stereotype      : "class",
+            shortDescription: shortDesc,
+            description     : description,
+            alsoKnownAs     : getAliases(dataClass)
         ]
 
         List<Map> attributes = []
         Collection<DataElement> basicElements = dataClass.dataElements.
-                findAll { !(it.dataType instanceof ReferenceType) }
+            findAll { !(it.dataType instanceof ReferenceType) }
 
         basicElements.sort { a, b ->
             DDHelperFunctions.getMetadataValue(a, "isUnique") <=> DDHelperFunctions.getMetadataValue(b, "isUnique") ?:
-                    b.label <=> a.label
+            b.label <=> a.label
         }.reverse().each { de ->
 
             String uin = DDHelperFunctions.getMetadataValue(de, "uin")
@@ -78,103 +87,103 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         List<Map> keyRows = []
         List<Map> otherRows = []
         dataClass.dataElements.
-                findAll { it.dataType instanceof ReferenceType }.
-                findAll {
-                    (DDHelperFunctions.getMetadataValue(it, "direction") == "supplier" &&
-                            DDHelperFunctions.getMetadataValue(it, "partOfClientKey") == "true") ||
-                            (DDHelperFunctions.getMetadataValue(it, "direction") == "client" &&
-                                    DDHelperFunctions.getMetadataValue(it, "partOfSupplierKey") == "true")
-                }.
-                each { dataElement ->
-                    DDClass targetClass = dataDictionary.classes.values().find {
-                        it.uin == DDHelperFunctions.getMetadataValue(dataElement, "clientUin")
-                    }
-                    String relationshipLabel = dataElement.label
-                    int bracketLocation = relationshipLabel.indexOf("(")
-                    if (bracketLocation >= 0) {
-                        relationshipLabel = relationshipLabel.substring(0, bracketLocation)
-                    }
-                    keyRows.add([
-                            key         : "Key",
-                            relationship: ClassLink.getCardinalityText(DDHelperFunctions.getMetadataValue(dataElement, "clientCardinality"),
-                                    relationshipLabel),
-                            catalogueId : targetClass.catalogueItem.id.toString(),
-                            name        : targetClass.name,
-                            stereotype  : "class"
-                    ])
+            findAll { it.dataType instanceof ReferenceType }.
+            findAll {
+                (DDHelperFunctions.getMetadataValue(it, "direction") == "supplier" &&
+                 DDHelperFunctions.getMetadataValue(it, "partOfClientKey") == "true") ||
+                (DDHelperFunctions.getMetadataValue(it, "direction") == "client" &&
+                 DDHelperFunctions.getMetadataValue(it, "partOfSupplierKey") == "true")
+            }.
+            each { dataElement ->
+                DDClass targetClass = dataDictionary.classes.values().find {
+                    it.uin == DDHelperFunctions.getMetadataValue(dataElement, "clientUin")
                 }
+                String relationshipLabel = dataElement.label
+                int bracketLocation = relationshipLabel.indexOf("(")
+                if (bracketLocation >= 0) {
+                    relationshipLabel = relationshipLabel.substring(0, bracketLocation)
+                }
+                keyRows.add([
+                    key         : "Key",
+                    relationship: ClassLink.getCardinalityText(DDHelperFunctions.getMetadataValue(dataElement, "clientCardinality"),
+                                                               relationshipLabel),
+                    catalogueId : targetClass.catalogueItem.id.toString(),
+                    name        : targetClass.name,
+                    stereotype  : "class"
+                ])
+            }
         dataClass.dataElements.
-                findAll { it.dataType instanceof ReferenceType }.
-                findAll {
-                    !(DDHelperFunctions.getMetadataValue(it, "direction") == "supplier" &&
-                            DDHelperFunctions.getMetadataValue(it, "partOfClientKey") == "true") &&
-                            !(DDHelperFunctions.getMetadataValue(it, "direction") == "client" &&
-                                    DDHelperFunctions.getMetadataValue(it, "partOfSupplierKey") == "true")
+            findAll { it.dataType instanceof ReferenceType }.
+            findAll {
+                !(DDHelperFunctions.getMetadataValue(it, "direction") == "supplier" &&
+                  DDHelperFunctions.getMetadataValue(it, "partOfClientKey") == "true") &&
+                !(DDHelperFunctions.getMetadataValue(it, "direction") == "client" &&
+                  DDHelperFunctions.getMetadataValue(it, "partOfSupplierKey") == "true")
 
-                }.
-                each { dataElement ->
-                    DDClass targetClass = dataDictionary.classes.values().find {
-                        (DDHelperFunctions.getMetadataValue(dataElement, "direction") == "supplier" &&
-                                it.uin == DDHelperFunctions.getMetadataValue(dataElement, "clientUin")) ||
-                                (DDHelperFunctions.getMetadataValue(dataElement, "direction") == "client" &&
-                                        it.uin == DDHelperFunctions.getMetadataValue(dataElement, "supplierUin"))
-                    }
-                    String relationshipLabel = dataElement.label
-                    int bracketLocation = relationshipLabel.indexOf("(")
-                    if (bracketLocation >= 0) {
-                        relationshipLabel = relationshipLabel.substring(0, bracketLocation)
-                    }
-                    otherRows.add([
-                            relationSupplierExclusivity: DDHelperFunctions.getMetadataValue(dataElement, "relationSupplierExclusivity"),
-                            relationClientExclusivity  : DDHelperFunctions.getMetadataValue(dataElement, "relationClientExclusivity"),
-                            relationship               : ClassLink.getCardinalityText(DDHelperFunctions.getMetadataValue(dataElement, "clientCardinality"),
-                                    relationshipLabel),
-                            catalogueId                : targetClass.catalogueItem.id.toString(),
-                            name                       : targetClass.name,
-                            stereotype                 : "class"
-
-                    ])
+            }.
+            each { dataElement ->
+                DDClass targetClass = dataDictionary.classes.values().find {
+                    (DDHelperFunctions.getMetadataValue(dataElement, "direction") == "supplier" &&
+                     it.uin == DDHelperFunctions.getMetadataValue(dataElement, "clientUin")) ||
+                    (DDHelperFunctions.getMetadataValue(dataElement, "direction") == "client" &&
+                     it.uin == DDHelperFunctions.getMetadataValue(dataElement, "supplierUin"))
                 }
-                keyRows.sort { it.name }.each { row ->
-                    relationships.add(row)
+                String relationshipLabel = dataElement.label
+                int bracketLocation = relationshipLabel.indexOf("(")
+                if (bracketLocation >= 0) {
+                    relationshipLabel = relationshipLabel.substring(0, bracketLocation)
                 }
-                otherRows.sort { a, b ->
-                    a.relationSupplierExclusivity <=> b.relationSupplierExclusivity ?:
-                            a.relationClientExclusivity <=> b.relationClientExclusivity ?:
-                                    b.name <=> a.name
-                }.reverse().each { row ->
-                    if (!relationships.contains(row)) {
-                        relationships.add(row)
-                        String relationSupplierExclusivity = row.relationSupplierExclusivity
-                        if (relationSupplierExclusivity && relationSupplierExclusivity != "") {
-                            otherRows.findAll { it.relationSupplierExclusivity == relationSupplierExclusivity && it != row }.
-                                    sort { it.name }.
-                                    each { linkedRow ->
-                                        relationships.add(linkedRow)
-                                        //linkedRow.stEntries.remove(0)
-                                        //linkedRow.stEntries.value = ""
-                                        linkedRow.key = "or " + linkedRow.relationClientExclusivity
-                                        //linkedRow.stEntries[0].value = ""
+                otherRows.add([
+                    relationSupplierExclusivity: DDHelperFunctions.getMetadataValue(dataElement, "relationSupplierExclusivity"),
+                    relationClientExclusivity  : DDHelperFunctions.getMetadataValue(dataElement, "relationClientExclusivity"),
+                    relationship               : ClassLink.getCardinalityText(DDHelperFunctions.getMetadataValue(dataElement, "clientCardinality"),
+                                                                              relationshipLabel),
+                    catalogueId                : targetClass.catalogueItem.id.toString(),
+                    name                       : targetClass.name,
+                    stereotype                 : "class"
 
-                                    }
+                ])
+            }
+        keyRows.sort { it.name }.each { row ->
+            relationships.add(row)
+        }
+        otherRows.sort { a, b ->
+            a.relationSupplierExclusivity <=> b.relationSupplierExclusivity ?:
+            a.relationClientExclusivity <=> b.relationClientExclusivity ?:
+            b.name <=> a.name
+        }.reverse().each { row ->
+            if (!relationships.contains(row)) {
+                relationships.add(row)
+                String relationSupplierExclusivity = row.relationSupplierExclusivity
+                if (relationSupplierExclusivity && relationSupplierExclusivity != "") {
+                    otherRows.findAll { it.relationSupplierExclusivity == relationSupplierExclusivity && it != row }.
+                        sort { it.name }.
+                        each { linkedRow ->
+                            relationships.add(linkedRow)
+                            //linkedRow.stEntries.remove(0)
+                            //linkedRow.stEntries.value = ""
+                            linkedRow.key = "or " + linkedRow.relationClientExclusivity
+                            //linkedRow.stEntries[0].value = ""
 
                         }
-                        String relationClientExclusivity = row.relationClientExclusivity
-                        if (relationClientExclusivity && relationClientExclusivity != "") {
-                            otherRows.findAll { it.relationClientExclusivity == relationClientExclusivity && it != row }.
-                                    sort { it.name }.
-                                    each { linkedRow ->
-                                        relationships.add(linkedRow)
-                                        //linkedRow.stEntries.remove(0)
-                                        //linkedRow.stEntries.value = ""
-                                        linkedRow.key = "or " + linkedRow.relationClientExclusivity
-                                        //linkedRow.stEntries[0].value = ""
 
-                                    }
+                }
+                String relationClientExclusivity = row.relationClientExclusivity
+                if (relationClientExclusivity && relationClientExclusivity != "") {
+                    otherRows.findAll { it.relationClientExclusivity == relationClientExclusivity && it != row }.
+                        sort { it.name }.
+                        each { linkedRow ->
+                            relationships.add(linkedRow)
+                            //linkedRow.stEntries.remove(0)
+                            //linkedRow.stEntries.value = ""
+                            linkedRow.key = "or " + linkedRow.relationClientExclusivity
+                            //linkedRow.stEntries[0].value = ""
 
                         }
-                    }
+
                 }
+            }
+        }
         relationships.each { row ->
             if (row.relationSupplierExclusivity != "Key") {
                 row.relationSupplierExclusivity = ""
@@ -183,7 +192,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         result["relationships"] = relationships
         return result
     }
-
+*/
     @Override
     Set<DataClass> getAll(UUID versionedFolderId, boolean includeRetired = false) {
         DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
@@ -201,11 +210,6 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             dataClass.label != "Retired" && (
                 includeRetired || !catalogueItemIsRetired(dataClass))
         }
-    }
-
-    @Override
-    DataClass getItem(UUID id) {
-        dataClassService.get(id)
     }
 
     @Override
@@ -381,6 +385,12 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             }
         }
         return clazz
+    }
+
+    NhsDDClass getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.classes.values().find {
+            it.catalogueItem.id == catalogueItemId
+        }
     }
 
 }

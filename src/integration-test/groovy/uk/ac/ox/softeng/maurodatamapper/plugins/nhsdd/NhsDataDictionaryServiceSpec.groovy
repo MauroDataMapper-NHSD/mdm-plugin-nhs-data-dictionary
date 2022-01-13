@@ -286,6 +286,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         if (mergeDiff.numberOfDiffs != 144) {
             writeMergeDiffOut(mergeDiff)
         }
+        writeMergeDiffOut(mergeDiff)
         mergeDiff.numberOfDiffs == 144
     }
 

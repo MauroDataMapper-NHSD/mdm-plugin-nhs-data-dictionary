@@ -16,9 +16,16 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
         "Attribute"
     }
 
+    @Override
+    String getStereotypeForPreview() {
+        "attribute"
+    }
+
     List<NhsDDCode> codes = []
 
     String codesVersion
+
+    Set<NhsDDElement> instantiatedByElements = [] as Set
 
     @Override
     String calculateShortDescription() {
@@ -59,6 +66,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
                 code.retiredDate = concept.property.find {it.code."@value" == "Retired Date"}?.valueDateTime?."@value"?.text()
                 code.webOrder = concept.property.find {it.code."@value" == "Web Order"}?.valueInteger?."@value"?.text()
                 code.webPresentation = concept.property.find {it.code."@value" == "Web Presentation"}?.valueString?."@value"?.text()
+                code.isDefault = (code.webOrder == null || code.webOrder == "0")
                 codes.add(code)
             }
         }
@@ -68,5 +76,21 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     @Override
     String getXmlNodeName() {
         "DDAttribute"
+    }
+
+    String getFormatLengthHtml() {
+        if (otherProperties["formatLink"]) {
+            return """<a href='${otherProperties["formatLink"]}'>${otherProperties["formatLength"]}</a>"""
+        } else if (otherProperties["formatLength"]) {
+            return otherProperties["formatLength"]
+        } else return ""
+    }
+
+    String getMauroPath() {
+        if(isRetired()) {
+            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|dc:Retired|de:${name}"
+        } else {
+            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|de:${name}"
+        }
     }
 }

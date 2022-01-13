@@ -4,6 +4,7 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -23,6 +24,9 @@ import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -33,7 +37,15 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     AttributeService attributeService
 
     @Override
-    def show(String branch, String id) {
+    NhsDDElement show(UUID versionedFolderId, String id) {
+        DataElement elementElement = dataElementService.get(id)
+        NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, new NhsDataDictionary())
+        element.instantiatesAttributes.addAll (attributeService.getAllForElement(versionedFolderId, element))
+        return element
+    }
+
+/*    @Override
+    def show(UUID versionedFolderId, String id) {
         DataElement dataElement = dataElementService.get(id)
 
         String description = convertLinksInDescription(branch, dataElement.description)
@@ -119,7 +131,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         }
         return result
     }
-
+*/
     @Override
     Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
 
@@ -139,10 +151,39 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
 
     }
 
-    @Override
-    DataElement getItem(UUID id) {
-        dataElementService.get(id)
+    Set<NhsDDElement> getAllForAttribute(UUID versionedFolderId, NhsDDAttribute nhsDDAttribute) {
+        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}
+        List<DataElement> dataElements = DataElement.by().inList('dataClass.id', elementsClass.id).list()
+        dataElements.findAll {dataElement ->
+            attributeListIncludesName(dataElement, nhsDDAttribute.name)
+        }.collect {
+            getNhsDataDictionaryComponentFromCatalogueItem(it, new NhsDataDictionary())
+        }
     }
+
+    boolean attributeListIncludesName(CatalogueItem catalogueItem, String name) {
+        List<String> linkedAttributeList = getLinkedAttributesFromMetadata(catalogueItem)
+        if(!linkedAttributeList) {
+            return false
+        }
+        return linkedAttributeList.contains(name)
+    }
+
+    List<String> getLinkedAttributesFromMetadata(CatalogueItem catalogueItem) {
+        List<Metadata> allRelevantMetadata = Metadata
+            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
+            .eq('key', "linkedAttributes")
+            .list()
+        if(allRelevantMetadata) {
+            String stringList = allRelevantMetadata.first().value
+            return StringUtils.split(stringList,';')
+        } else {
+            return []
+        }
+
+    }
+
 
     @Override
     String getMetadataNamespace() {
@@ -156,13 +197,22 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         String linkedAttributeMetadata = element.otherProperties["linkedAttributes"]
         if(linkedAttributeMetadata) {
             String[] linkedAttributeNames = StringUtils.split(linkedAttributeMetadata,';')
-
-            element.instantiatesAttributes.addAll(
-                linkedAttributeNames.collect {
-                    dataDictionary.attributes[it]
+            linkedAttributeNames.each {
+                NhsDDAttribute linkedAttribute = dataDictionary.attributes[it]
+                if(linkedAttribute) {
+                    element.instantiatesAttributes.add(linkedAttribute)
                 }
-            )
+            }
         }
+        if (catalogueItem.dataType instanceof ModelDataType) {
+            List<Term> terms = termService.findAllByCodeSetId(((ModelDataType) catalogueItem.dataType).modelResourceId)
+            List<NhsDDCode> codes = getCodesForTerms(terms)
+            codes.each {code ->
+                code.owningElement = element
+                element.codes.add(code)
+            }
+        }
+
         return element
     }
 
@@ -305,6 +355,12 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
             dataDictionary.elementsByUrl[element.otherProperties["ddUrl"]] = elementDataElement
         }
 
+    }
+
+    NhsDDElement getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.elements.values().find {
+            it.catalogueItem.id == catalogueItemId
+        }
     }
 
 }
