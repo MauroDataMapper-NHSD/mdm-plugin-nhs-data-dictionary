@@ -16,6 +16,13 @@ class NhsDDWebPage implements NhsDataDictionaryComponent {
         "webPage"
     }
 
+    @Override
+    boolean isValidXmlNode(def xmlNode) {
+        return !xmlNode."base-uri".text().contains("Supporting_Definitions") &&
+               !xmlNode."base-uri".text().contains("Supporting_Information") &&
+               !xmlNode."base-uri".text().contains("CDS_Supporting_Information")
+    }
+
 
     @Override
     String calculateShortDescription() {

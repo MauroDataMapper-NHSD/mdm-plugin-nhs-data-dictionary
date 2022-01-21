@@ -46,6 +46,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
                 shortDescription = name
             }
         }
+        shortDescription.replaceAll("\\w+", " ")
         otherProperties["shortDescription"] = shortDescription
     }
 

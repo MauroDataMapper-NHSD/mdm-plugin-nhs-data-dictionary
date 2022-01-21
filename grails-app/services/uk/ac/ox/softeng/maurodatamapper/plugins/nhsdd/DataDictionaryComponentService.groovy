@@ -360,21 +360,27 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         return allRelevantMetadata.any{md -> md.value == "true"}
     }
 
-    List<NhsDDCode> getCodesForTerms(List<Term> terms) {
+    List<NhsDDCode> getCodesForTerms(List<Term> terms, NhsDataDictionary nhsDataDictionary) {
         List<NhsDDCode> codes = []
         List<Metadata> allRelevantMetadata = Metadata
             .byMultiFacetAwareItemIdInList(terms.collect {it.id})
             .inList('key', ['publishDate', 'webOrder', 'webPresentation', 'isDefault'])
             .list()
         codes.addAll(terms.collect {term ->
-            new NhsDDCode().tap {
-                code = term.code
-                definition = term.definition
-                publishDate = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'publishDate'}?.value
-                webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
-                webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
-                isDefault = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isDefault'}?.value)
+            NhsDDCode nhsDDCode = nhsDataDictionary.codesByCatalogueId[term.id]
+            if(!nhsDDCode) {
+                nhsDDCode = new NhsDDCode().tap {
+                    code = term.code
+                    definition = term.definition
+                    publishDate = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'publishDate'}?.value
+                    webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
+                    webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
+                    isDefault = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isDefault'}?.value)
+                    catalogueItem = term
+                }
+                nhsDataDictionary.codesByCatalogueId[term.id] = nhsDDCode
             }
+            return nhsDDCode
         })
         return codes
     }

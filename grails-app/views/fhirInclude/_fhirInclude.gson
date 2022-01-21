@@ -1,0 +1,15 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirConcept
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirInclude
+
+model {
+    FhirInclude fhirInclude
+}
+
+json {
+    system fhirInclude.system
+    version fhirInclude.version
+    concept (fhirInclude.concepts) { FhirConcept concept ->
+        code concept.code
+        display concept.display
+    }
+}

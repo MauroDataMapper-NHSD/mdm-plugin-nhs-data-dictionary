@@ -1,0 +1,18 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirProperty
+
+model {
+    FhirProperty fhirProperty
+}
+
+json {
+    code fhirProperty.code
+    if(fhirProperty.valueString) {
+        valueString fhirProperty.valueString
+    }
+    if(fhirProperty.valueCode) {
+        valueCode fhirProperty.valueCode
+    }
+    if(fhirProperty.valueDateTime) {
+        valueDateTime fhirProperty.valueDateTime
+    }
+}

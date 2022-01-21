@@ -1,0 +1,10 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirCodeSystem
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirResource
+
+model {
+    FhirResource fhirResource
+}
+
+if(fhirResource instanceof FhirCodeSystem) {
+    json tmpl.('/fhirCodeSystem/fhirCodeSystem') fhirResource
+}

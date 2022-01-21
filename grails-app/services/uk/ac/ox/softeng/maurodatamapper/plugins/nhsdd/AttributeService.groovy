@@ -82,7 +82,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
         nhsDataDictionaryComponentFromItem(catalogueItem, attribute)
         if (catalogueItem.dataType instanceof ModelDataType) {
             List<Term> terms = termService.findAllByTerminologyId(((ModelDataType) catalogueItem.dataType).modelResourceId)
-            List<NhsDDCode> codes = getCodesForTerms(terms)
+            List<NhsDDCode> codes = getCodesForTerms(terms, dataDictionary)
             codes.each {code ->
                 code.owningAttribute = attribute
                 attribute.codes.add(code)

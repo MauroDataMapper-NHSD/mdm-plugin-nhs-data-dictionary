@@ -1,0 +1,26 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirEntry
+
+model {
+    FhirEntry fhirEntry
+}
+
+List<LinkedHashMap<String, Object>> parameterMap = [
+    [
+        "name"      : "Resource",
+        "resource"  : fhirEntry.resource
+    ]
+]
+
+json {
+     request {
+         method fhirEntry.requestMethod
+         url fhirEntry.requestUrl
+     }
+     resource {
+         resourceType fhirEntry.resourceType
+         parameter (parameterMap) {Map map ->
+             name map.name
+             resource g.render(map.resource)
+         }
+     }
+}

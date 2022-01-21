@@ -17,7 +17,8 @@ class AllItemsHaveAlias implements IntegrityCheck {
 
         errors = dataDictionary.getAllComponents().findAll {component ->
             !component.isRetired() &&
-            component.hasNoAliases()
+            (component.hasNoAliases() &&
+             (!component.otherProperties["noAliasesRequired"] || component.otherProperties["noAliasesRequired"] != "true"))
         }
         return errors
     }

@@ -29,19 +29,19 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     }
 
     def changePaper() {
-        User currentUser = getCurrentUser()
-        nhsDataDictionaryService.changePaper(currentUser, params.sourceId, params.targetId)
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        nhsDataDictionaryService.changePaper(versionedFolderId)
         respond([])
     }
 
     def codeSystemValidateBundle() {
-        User currentUser = getCurrentUser()
-        respond nhsDataDictionaryService.codeSystemValidationBundle(currentUser, params.releaseDate)
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond nhsDataDictionaryService.codeSystemValidationBundle(versionedFolderId)
     }
 
     def valueSetValidateBundle() {
-        User currentUser = getCurrentUser()
-        respond nhsDataDictionaryService.valueSetValidationBundle(currentUser, params.releaseDate)
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond nhsDataDictionaryService.valueSetValidationBundle(versionedFolderId)
     }
 
     def branches() {

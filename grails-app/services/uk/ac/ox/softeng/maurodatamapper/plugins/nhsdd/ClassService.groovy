@@ -355,21 +355,25 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     }
 
     void addMetadataForLink(NhsDDClassLink classLink, DataElement dataElement, String currentUserEmailAddress) {
-        addToMetadata(dataElement, "uin", classLink.uin, currentUserEmailAddress)
-        addToMetadata(dataElement, "metaclass", classLink.metaclass, currentUserEmailAddress)
-        addToMetadata(dataElement, "clientRole", classLink.clientRole, currentUserEmailAddress)
-        addToMetadata(dataElement, "supplierRole", classLink.supplierRole, currentUserEmailAddress)
-        addToMetadata(dataElement, "clientCardinality", classLink.clientCardinality, currentUserEmailAddress)
-        addToMetadata(dataElement, "supplierCardinality", classLink.supplierCardinality, currentUserEmailAddress)
-        addToMetadata(dataElement, "name", classLink.name, currentUserEmailAddress)
-        addToMetadata(dataElement, "partOfClientKey", classLink.partOfClientKey, currentUserEmailAddress)
-        addToMetadata(dataElement, "partOfSupplierKey", classLink.partOfSupplierKey, currentUserEmailAddress)
-        addToMetadata(dataElement, "supplierUin", classLink.supplierUin, currentUserEmailAddress)
-        addToMetadata(dataElement, "clientUin", classLink.clientUin, currentUserEmailAddress)
-        addToMetadata(dataElement, "relationSupplierExclusivity", classLink.relationSupplierExclusivity, currentUserEmailAddress)
-        addToMetadata(dataElement, "relationClientExclusivity", classLink.relationClientExclusivity, currentUserEmailAddress)
-        addToMetadata(dataElement, "direction", classLink.direction, currentUserEmailAddress)
-
+        Map<String, String> metadata = [
+            "uin": classLink.uin,
+            "metaclass": classLink.metaclass,
+            "clientRole": classLink.clientRole,
+            "supplierRole": classLink.supplierRole,
+            "clientCardinality": classLink.clientCardinality,
+            "supplierCardinality": classLink.supplierCardinality,
+            "name": classLink.name,
+            "partOfClientKey": classLink.partOfClientKey,
+            "partOfSupplierKey": classLink.partOfSupplierKey,
+            "supplierUin": classLink.supplierUin,
+            "clientUin": classLink.clientUin,
+            "relationSupplierExclusivity": classLink.relationSupplierExclusivity,
+            "relationClientExclusivity": classLink.relationClientExclusivity,
+            "direction": classLink.direction
+        ]
+        metadata.each {key, value ->
+            addToMetadata(dataElement, key, value, currentUserEmailAddress)
+        }
     }
 
     NhsDDClass classFromDataClass(DataClass dc, NhsDataDictionary dataDictionary) {

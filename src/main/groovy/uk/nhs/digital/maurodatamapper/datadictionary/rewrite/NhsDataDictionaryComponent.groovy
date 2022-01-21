@@ -36,6 +36,14 @@ trait NhsDataDictionaryComponent {
         otherProperties["uin"]
     }
 
+    String getShortDescription() {
+        otherProperties["shortDescription"]
+    }
+
+    String getTitleCaseName() {
+        otherProperties["titleCaseName"]
+    }
+
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         if(xml.name.text()) {

@@ -1,0 +1,10 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
+
+model {
+    FhirBundle fhirBundle
+}
+json {
+    resourceType "Bundle"
+    type fhirBundle.type
+    entry g.render (fhirBundle.entries)
+}

@@ -1,0 +1,7 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
+
+model {
+    FhirBundle fhirBundle
+}
+
+json tmpl.'/fhirBundle/fhirBundle'(fhirBundle)
