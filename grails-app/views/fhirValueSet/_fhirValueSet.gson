@@ -1,0 +1,81 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirValueSet
+
+model {
+    FhirValueSet fhirValueSet
+}
+
+List<LinkedHashMap<String, String>> defaultSecurity = [
+    [
+        "system"    : "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
+        "code"      : "DDT.read"
+    ],
+    [
+        "system"    : "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
+        "code"      : "DDT.write"
+    ]
+]
+
+List<LinkedHashMap<String, String>> identifiers = [
+    [
+        system  : fhirValueSet.identifierSystem,
+        value   : fhirValueSet.identifierValue
+    ]
+]
+
+List<LinkedHashMap<String, String>> defaultTelecom = [
+    [
+        "system"    : "email",
+        "value"     : "information.standards@nhs.net"
+    ],
+    [
+        "system"    : "url",
+        "value"     : "https://datadictionary.nhs.uk/"
+    ]
+]
+
+List<LinkedHashMap<String, Object>> defaultContact = [
+    [
+        "name"      : "NHS Digital Data Model and Dictionary Service",
+        "telecom"   : defaultTelecom
+    ]
+]
+
+json {
+    resourceType "ValueSet"
+    id fhirValueSet.id
+    meta {
+        security (defaultSecurity) { Map map ->
+            system map.system
+            code map.code
+        }
+        versionId fhirValueSet.version
+    }
+    language "en-GB"
+    url fhirValueSet.url
+    identifier (identifiers) { Map map ->
+        system map.system
+        value map.value
+    }
+    version fhirValueSet.version
+    name fhirValueSet.name
+    title fhirValueSet.title
+    status fhirValueSet.status
+    experimental fhirValueSet.experimental
+    date fhirValueSet.date
+    publisher "NHS Digital"
+    contact (defaultContact) {Map contactMap ->
+        name contactMap.name
+        telecom (contactMap.telecom) { Map telecomMap ->
+            system telecomMap.system
+            value telecomMap.value
+        }
+    }
+    description fhirValueSet.description
+    copyright "Copyright © NHS Digital"
+    immutable "true"
+    compose {
+        include tmpl.'/fhirInclude/fhirInclude'(fhirValueSet.includes)
+    }
+
+}
+

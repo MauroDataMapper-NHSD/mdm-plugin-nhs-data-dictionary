@@ -6,7 +6,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
-import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
@@ -18,6 +17,12 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
+import uk.ac.ox.softeng.maurodatamapper.dita.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.DitaMap
+import uk.ac.ox.softeng.maurodatamapper.dita.KeyDef
+import uk.ac.ox.softeng.maurodatamapper.dita.Title
+import uk.ac.ox.softeng.maurodatamapper.dita.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
@@ -33,15 +38,22 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 import grails.gorm.DetachedCriteria
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import org.apache.tools.ant.taskdefs.Javadoc
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirCodeSystem
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirEntry
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirValueSet
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllClassesHaveRelationships
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveAlias
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveShortDescription
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AttributesLinkedToAClass
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.BrokenLinks
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsHaveAnOverview
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsIncludePreparatoryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
@@ -99,9 +111,11 @@ class NhsDataDictionaryService {
             AttributesLinkedToAClass,
             ElementsLinkedToAnAttribute,
             DataSetsHaveAnOverview,
+            DataSetsIncludePreparatoryItem,
             AllItemsHaveShortDescription,
             AllItemsHaveAlias,
-            ReusedItemNames
+            ReusedItemNames,
+            BrokenLinks
         ]
 
         List<IntegrityCheck> integrityChecks = integrityCheckClasses.collect {checkClass ->
@@ -492,220 +506,39 @@ class NhsDataDictionaryService {
         }
     }
 
-    def codeSystemValidationBundle(User currentUser, String releaseDate) {
-        String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
-        Folder folder = folderService.findByPath(dictionaryFolderName + "/Attribute Terminologies")
-        Folder coreFolder = folder.parentFolder
-        List entries = []
-        DataModel coreDataModel = dataModelService.findByLabel("Data Dictionary Core")
-        folder.childFolders.sort {it.label}.eachWithIndex {subFolder, idx1 ->
-            folderService.findAllModelsInFolder(subFolder).eachWithIndex {model, idx2 ->
-                // Assume a Terminology
-                Terminology terminology = (Terminology) model
-
-                DataType linkedAttributeType = coreDataModel.dataTypes.find {
-                    it instanceof ModelDataType && ((ModelDataType) it).modelResourceId == terminology.id
-                }
-                DataElement linkedAttribute = linkedAttributeType.dataElements.first()
-
-                Map<CodeSet, ModelDataType> codeSetDataTypeMap = [:]
-                coreDataModel.dataTypes.findAll {dataType ->
-                    dataType instanceof ModelDataType && ((ModelDataType) dataType).modelResourceDomainType == "CodeSet"
-                }.each {dataType ->
-                    CodeSet codeSet = codeSetService.get(((ModelDataType) dataType).modelResourceId)
-                    codeSetDataTypeMap[codeSet] = (ModelDataType) dataType
-                }
-
-                List concepts = []
-                terminology.terms.each {term ->
-                    Metadata retiredMetadata = term.metadata.find {it.namespace == "uk.nhs.datadictionary.term" && it.key == "isRetired"}
-                    boolean isRetired = (!retiredMetadata || retiredMetadata.value == "true")
-                    Metadata defaultMetadata = term.metadata.find {it.namespace == "uk.nhs.datadictionary.term" && it.key == "isDefault"}
-                    boolean isDefault = (!defaultMetadata || defaultMetadata.value == "true")
-                    String retiredDate = term.metadata.find {it.namespace == "uk.nhs.datadictionary.term" && it.key == "retiredDate"}?.value
-                    Map concept = [
-                        code      : term.code,
-                        display   : term.definition,
-                        definition: term.definition,
-                        property  : [
-                            [
-                                code         : "Publish Date",
-                                valueDateTime: Instant.now().toString()
-                            ],
-                            [
-                                code     : "status",
-                                valueCode: isRetired ? "retired" : "active"
-                            ],
-                        ]
-                    ]
-                    if (linkedAttribute && !isDefault) {
-                        concept.property << [
-                            code       : "Data Attribute",
-                            valueString: linkedAttribute.label
-                        ]
-                    }
-                    if (retiredDate) {
-                        concept.property << [
-                            code         : "Retired Date",
-                            valueDateTime: retiredDate
-                        ]
-                    }
-                    codeSetDataTypeMap.entrySet().each {entry ->
-                        CodeSet codeSet = entry.key
-                        ModelDataType dataType = entry.value
-                        if (codeSet.terms.contains(term)) {
-                            dataType.dataElements.each {dataElement ->
-                                concept.property << [
-                                    code       : "Data Element",
-                                    valueString: dataElement.label
-                                ]
-                            }
-                        }
-                    }
-
-                    concepts << concept
-
-                }
-                String id = terminology.label.toLowerCase().replace(" ", "_")
-                String version = terminology.metadata.find {it.key == "version"}?.value
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                String versionId = LocalDate.now().format(formatter)
-                Map resource = [
-                    resourceType    : "CodeSystem",
-                    id              : "NHS-Data_Dictionary-CS-" + terminology.label.toLowerCase().replace(" ", "-") + "-" + version,
-                    meta            : [
-                        security : [
-                            [
-                                system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                code  : "DDT.read"
-                            ],
-                            [
-                                system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                code  : "DDT.write"
-                            ]
-                        ],
-                        versionId: versionId
-                    ],
-                    language        : "en-GB",
-                    url             : "https://private.datadictionary.nhs.uk/code_system/union/${id}",
-                    identifier      : [
-                        [
-                            system: "https://datadictionary.nhs.uk/V3",
-                            value : "https://datadictionary.nhs.uk/data_dictionary/attributes/${id}"
-                        ]
-                    ],
-                    version         : version,
-                    name            : terminology.label.toUpperCase().replaceAll("[^A-Za-z0-9]", "_"),
-                    title           : terminology.label,
-                    status          : "active",
-                    experimental    : "false",
-                    date            : Instant.now().toString(),
-                    publisher       : "NHS Digital",
-                    contact         : [
-                        [
-                            name   : "NHS Digital Data Model and Dictionary Service",
-                            telecom: [
-                                [
-                                    system: "email",
-                                    value : "information.standards@nhs.net"
-                                ], [
-                                    system: "url",
-                                    value : "https://datadictionary.nhs.uk/"
-                                ]
-                            ]
-                        ]
-                    ],
-                    description     : linkedAttribute.description,
-                    copyright       : "Copyright © NHS Digital",
-                    caseSensitive   : "false",
-                    hierarchyMeaning: "is-a",
-                    compositional   : "false",
-                    versionNeeded   : "false",
-                    content         : "complete",
-                    filter          : [
-                        [
-                            code       : "Data Element",
-                            description: "Filter to identify which Data Elements a concept relates to",
-                            operator   : ["in", "=", "exists", "not-in"],
-                            value      : "Data Element"
-                        ],
-                        [
-                            code       : "Data Attribute",
-                            description: "Filter to identify which Data Attribute a concept relates to",
-                            operator   : ["in", "=", "exists", "not-in"],
-                            value      : "Data Attribute"
-                        ],
-                        [
-                            code       : "Publish Date",
-                            description: "Filter to enable filtering by Publish date/s",
-                            operator   : ["in", "=", "exists", "not-in"],
-                            value      : "Publish Date"
-                        ],
-                        [
-                            code       : "Retired Date",
-                            description: "Filter to enable filtering by date of retirement",
-                            operator   : ["in", "=", "exists", "not-in"],
-                            value      : "Retired Date"
-                        ],
-                        [
-                            code       : "status",
-                            description: "Filter to identify status of a concept",
-                            operator   : ["in", "=", "not-in"],
-                            value      : "status"
-                        ]
-                    ],
-                    property        : [
-                        [
-                            code       : "Data Element",
-                            description: "The Data Element that the concept relates to",
-                            type       : "string"
-                        ],
-                        [
-                            code       : "Data Attribute",
-                            description: "The Data Attribute that the concept relates to",
-                            type       : "string"
-                        ],
-                        [
-                            code       : "Publish Date",
-                            description: "The date on which the concept was first published and/or updated",
-                            type       : "dateTime"
-                        ],
-                        [
-                            code       : "Retired Date",
-                            description: "The date from which the concept was published as retired",
-                            type       : "dateTime"
-                        ],
-                        [
-                            code       : "status",
-                            description: "The status of the concept can be one of: draft | active | retired | unknown",
-                            uri        : "http://hl7.org/fhir/concept-properties#status",
-                            type       : "code"
-                        ],
-                    ],
-                    count           : concepts.size(),
-                    concept         : concepts
-                ]
-                Map entry = [//fullUrl: "CodeSystem/\$validate",
-                             request : [
-                                 method: "POST",
-                                 url   : "CodeSystem/\$validate"
-                             ],
-                             resource: [
-                                 resourceType: "Parameters",
-                                 parameter   : [
-                                     [name    : "Resource",
-                                      resource: resource]
-                                 ]
-                             ]
-                ]
-                entries << entry
+    FhirBundle codeSystemValidationBundle(UUID versionedFolderId) {
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        String publishDate = Instant.now().toString()
+        List<FhirEntry> entries = dataDictionary.attributes.values()
+            .findAll { attribute ->
+                !attribute.isRetired() &&
+                    attribute.codes.size() > 0
             }
-        }
-        return [resourceType: "Bundle", type: "transaction", entry: entries]
+            .sort { it.name }
+            .collect {attribute ->
+                new FhirEntry( requestUrl: 'CodeSystem/$validate',
+                               resource: FhirCodeSystem.fromDDAttribute(attribute, "1.0.0", publishDate))
+            }
+
+        return new FhirBundle(type: "transaction", entries: entries)
     }
 
-    def valueSetValidationBundle(User currentUser, String releaseDate) {
-        String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
+    FhirBundle valueSetValidationBundle(UUID versionedFolderId) {
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        String publishDate = Instant.now().toString()
+        List<FhirEntry> entries = dataDictionary.elements.values()
+            .findAll { element ->
+                !element.isRetired() &&
+                    element.codes.size() > 0
+            }
+            .sort { it.name }
+            .collect { element ->
+                new FhirEntry( requestUrl: 'ValueSet/$validate',
+                               resource: FhirValueSet.fromDDElement(element, "1.0.0", publishDate))
+            }
+        return new FhirBundle(type: "transaction", entries: entries)
+
+        /*        String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
         Folder folder = folderService.findByPath(dictionaryFolderName + "/Data Element CodeSets")
         Folder coreFolder = folder.parentFolder
         List entries = []
@@ -821,12 +654,90 @@ class NhsDataDictionaryService {
             }
         }
         return [resourceType: "Bundle", type: "transaction", entry: entries]
+
+ */
     }
 
 
-    def changePaper(User currentUser, String sourceId, String targetId) {
-        VersionedFolder sourceVF = versionedFolderService.get(sourceId)
-        VersionedFolder targetVF = versionedFolderService.get(targetId)
+    def changePaper(UUID versionedFolderId) {
+
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+
+        String outputPath = "/Users/james/Desktop/"
+
+        DitaMap ditaMap = new DitaMap(title: "Change Request")
+
+        Topic backgroundTopic = new Topic(id: "background", title: new Title("Background"))
+
+
+
+        Map<String, String> properties = [
+            "Reference": "1828",
+            "Version No": "1.0",
+            "Subject": "NHS England and NHS Improvement",
+            "Effective Date": "Immediate",
+            "Reason For Change": "Change to Definitions",
+            "Publication Date": "3rd January 2021",
+            "Background": backgroundText,
+            "Sponsor": "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"
+        ]
+
+        def backgroundContent = { dl {
+            properties.each { key, value ->
+                dlentry {
+                    dt key
+                    dd value
+                }
+            }
+        } }
+
+        // backgroundContent.append("<dlentry><dt>${key}</dt><dd>${value}</dd></dlentry>")
+
+        backgroundTopic.body = new Body(backgroundContent)
+
+        Topic summaryOfChangesTopic = new Topic(id: "summary", title: new Title("Summary of Changes"))
+
+        Topic changesTopic = new Topic(id: "changes", title: new Title("Changes"), body: new Body("<p>Changes</p>"))
+
+        ditaMap.addTopicRef(backgroundTopic)
+        ditaMap.addTopicRef(summaryOfChangesTopic)
+
+        Closure summaryContent = {}
+
+        dataDictionary.getAllComponents().sort{it.name}.eachWithIndex { component, index ->
+            if(index % 100 == 0) {
+                String topicId = "Change-" + component.name.replaceAll("[^a-zA-Z0-9]","-")
+
+                summaryContent >>= {
+                    strow {
+                        stentry {
+                            xref ("keyref": topicId, component.name)
+                        }
+                        stentry "Changed Description"
+                    }
+                }
+
+                Topic subTopic = new Topic(id: topicId, title: new Title(component.name))
+                subTopic.body = new Body(uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html.tidyAndClean("<p>${component.definition}</p>").toString())
+                changesTopic.subTopics.add(subTopic)
+                SpaceSeparatedStringList keys = new SpaceSeparatedStringList()
+                keys.add(topicId)
+                ditaMap.keyDefs.add(new KeyDef(keys: keys, href:"changes.dita"))
+            }
+        }
+
+        ditaMap.addTopicRef(changesTopic)
+        summaryOfChangesTopic.body = new Body({
+                                                  simpletable {
+                                                      owner.with summaryContent
+                                                  } })
+
+        ditaMap.outputAsFile(new File(outputPath + "changePaper.ditamap"))
+
+
+
+//        VersionedFolder sourceVF = versionedFolderService.get(sourceId)
+//        VersionedFolder targetVF = versionedFolderService.get(targetId)
 
         /*        sourceVF.addToMetadata(new Metadata(key: "type", value: "Data Dictionary Change Notice"))
                 sourceVF.addToMetadata(new Metadata(key: "reference", value: "1828"))
@@ -846,27 +757,25 @@ class NhsDataDictionaryService {
                 sourceVF.save()
         */
 
-        ObjectDiff od = versionedFolderService.getDiffForVersionedFolders(sourceVF, targetVF)
-        log.debug(od)
+//        ObjectDiff od = versionedFolderService.getDiffForVersionedFolders(sourceVF, targetVF)
+//        log.debug(od)
 
-        String outputPath = "/Users/james/git/mauro/plugins/mdm-plugin-nhs-data-dictionary/src/main/resources/changePaperOutput"
 
-        File outputDir = new File(outputPath)
 
-        File newFile = new File(outputDir, "test.dita")
-        newFile.createNewFile()
+//        File outputDir = new File(outputPath)
+
+//        File newFile = new File(outputDir, "test.dita")
+//        newFile.createNewFile()
     }
 
-    static String backgroundText = "            <p>NHS England and NHS Improvement have worked together since 1 April 2019 and are now known as a " +
-                                   "single organisation.</p>\n" +
-                                   "            <p>The NHS England and NHS Improvement websites have now merged; therefore changes are required to " +
-                                   "the NHS Data Model and Dictionary to support the change.</p>\n" +
-                                   "            <p>This Data Dictionary Change Notice (DDCN):</p>\n" +
-                                   "            <ul>\n" +
-                                   "                <li>Updates the NHS England NHS Business Definition to create a single definition for NHS " +
-                                   "England and NHS Improvement</li>\n" +
-                                   "                <li>Retires the NHS Improvement NHS Business Definition</li>\n" +
-                                   "                <li>Updates all items that reference NHS England and NHS Improvement to reflect the change" +
-                                   ".</li>\n" +
-                                   "            </ul>"
+    static def backgroundText = {
+        p "NHS England and NHS Improvement have worked together since 1 April 2019 and are now known as a single organisation."
+        p "The NHS England and NHS Improvement websites have now merged; therefore changes are required to the NHS Data Model and Dictionary to support the change"
+        p "This Data Dictionary Change Notice (DDCN):"
+        ul {
+            li "Updates the NHS England NHS Business Definition to create a single definition for NHS England and NHS Improvement"
+            li "Retires the NHS Improvement NHS Business Definition"
+            li "Updates all items that reference NHS England and NHS Improvement to reflect the change"
+        }
+    }
 }

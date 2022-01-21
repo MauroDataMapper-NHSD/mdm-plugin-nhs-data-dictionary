@@ -1,0 +1,159 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirCodeSystem
+
+model {
+    FhirCodeSystem fhirCodeSystem
+}
+
+List<LinkedHashMap<String, String>> defaultSecurity = [
+    [
+        "system"    : "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
+        "code"      : "DDT.read"
+    ],
+    [
+        "system"    : "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
+        "code"      : "DDT.write"
+    ]
+]
+
+List<LinkedHashMap<String, String>> defaultTelecom = [
+    [
+        "system"    : "email",
+        "value"     : "information.standards@nhs.net"
+    ],
+    [
+        "system"    : "url",
+        "value"     : "https://datadictionary.nhs.uk/"
+    ]
+]
+
+List<LinkedHashMap<String, Object>> defaultFilters = [
+    [
+        "code"        : "Data Element",
+        "description" : "Filter to identify which Data Elements a concept relates to",
+        "operator"    : [ "in", "=", "exists", "not-in" ],
+        "value"       : "Data Element"
+    ],
+    [
+        "code"        : "Data Attribute",
+        "description" : "Filter to identify which Data Attribute a concept relates to",
+        "operator"    : [ "in", "=", "exists", "not-in" ],
+        "value"       : "Data Attribute"
+    ],
+    [
+        "code"        : "Publish Date",
+        "description" : "Filter to enable filtering by Publish date/s",
+        "operator"    : [ "in", "=", "exists", "not-in" ],
+        "value"       : "Publish Date"
+    ],
+    [
+        "code"        : "Retired Date",
+        "description" : "Filter to enable filtering by date of retirement",
+        "operator"    : [ "in", "=", "exists", "not-in" ],
+        "value"       : "Retired Date"
+    ],
+    [
+        "code"        : "status",
+        "description" : "Filter to identify status of a concept",
+        "operator"    : [ "in", "=", "not-in" ],
+        "value"       : "status"
+    ]
+]
+
+List<LinkedHashMap<String, String>> defaultProperties = [
+    [
+        "code"          : "Data Element",
+        "description"   : "The Data Element that the concept relates to",
+        "type"          : "string"
+    ],
+    [
+        "code"          : "Data Attribute",
+        "description"   : "The Data Attribute that the concept relates to",
+        "type"          : "string"
+    ],
+    [
+        "code"          : "Publish Date",
+        "description"   : "The date on which the concept was first published and/or updated",
+        "type"          : "dateTime"
+    ],
+    [
+        "code"          : "Retired Date",
+        "description"   : "The date from which the concept was published as retired",
+        "type"          : "dateTime"
+    ],
+    [
+        "code"          : "status",
+        "description"   : "The status of the concept can be one of: draft | active | retired | unknown",
+        "uri"           : "http://hl7.org/fhir/concept-properties#status",
+        "type"          : "code"
+    ]
+]
+
+List<LinkedHashMap<String, String>> identifiers = [
+    [
+        system  : fhirCodeSystem.identifierSystem,
+        value   : fhirCodeSystem.identifierValue
+    ]
+]
+
+List<LinkedHashMap<String, Object>> defaultContact = [
+    [
+        "name"      : "NHS Digital Data Model and Dictionary Service",
+        "telecom"   : defaultTelecom
+    ]
+]
+
+json {
+    resourceType "CodeSystem"
+    id fhirCodeSystem.id
+    meta {
+        security (defaultSecurity) { Map map ->
+            system map.system
+            code map.code
+        }
+        versionId fhirCodeSystem.version
+    }
+    language  "en-GB"
+    url fhirCodeSystem.url
+    identifier (identifiers) { Map map ->
+        system map.system
+        value map.value
+    }
+    version fhirCodeSystem.version
+    name fhirCodeSystem.name
+    title fhirCodeSystem.title
+    status fhirCodeSystem.status
+    experimental fhirCodeSystem.experimental
+    date fhirCodeSystem.date
+    publisher "NHS Digital"
+    contact (defaultContact) {Map contactMap ->
+        name contactMap.name
+        telecom (contactMap.telecom) { Map telecomMap ->
+            system telecomMap.system
+            value telecomMap.value
+        }
+    }
+    description fhirCodeSystem.description
+    copyright "Copyright © NHS Digital"
+    caseSensitive "false"
+    hierarchyMeaning "is-a"
+    compositional "false"
+    versionNeeded "false"
+    content "complete"
+    filter (defaultFilters) { Map map ->
+        code map.code
+        description map.description
+        operator map.operator
+        value map.value
+    }
+    property (defaultProperties) { Map map ->
+        code map.code
+        description map.description
+        if(map.uri) {
+            uri map.uri
+        }
+        type map.type
+    }
+    count fhirCodeSystem.concepts.size()
+    concept tmpl.'/fhirConcept/fhirConcept'(fhirCodeSystem.concepts)
+}
+

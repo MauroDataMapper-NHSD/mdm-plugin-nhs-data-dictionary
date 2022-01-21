@@ -206,13 +206,12 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         }
         if (catalogueItem.dataType instanceof ModelDataType) {
             List<Term> terms = termService.findAllByCodeSetId(((ModelDataType) catalogueItem.dataType).modelResourceId)
-            List<NhsDDCode> codes = getCodesForTerms(terms)
+            List<NhsDDCode> codes = getCodesForTerms(terms, dataDictionary)
             codes.each {code ->
-                code.owningElement = element
+                code.usedByElements.add(element)
                 element.codes.add(code)
             }
         }
-
         return element
     }
 

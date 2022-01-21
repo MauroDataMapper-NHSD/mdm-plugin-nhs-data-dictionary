@@ -1,5 +1,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+
 class NhsDDCode {
 
     String code
@@ -10,7 +12,9 @@ class NhsDDCode {
     Boolean isDefault
 
     NhsDDAttribute owningAttribute
-    NhsDDElement owningElement
+    List<NhsDDElement> usedByElements = []
+
+    Term catalogueItem
 
     boolean isRetired
     String retiredDate
@@ -31,7 +35,7 @@ class NhsDDCode {
     }
 
     NhsDDCode(NhsDDElement owningElement) {
-        this.owningElement = owningElement
+        this.usedByElements.add(owningElement)
     }
 
     NhsDDCode() {

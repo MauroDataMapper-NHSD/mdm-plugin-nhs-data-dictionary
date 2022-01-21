@@ -42,6 +42,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         }
         path = getPath()
         definitionAsXml = xml.definition
+        otherProperties["approvingOrganisation"] = "Data Alliance Partnership Board (DAPB)"
     }
 
     @Override

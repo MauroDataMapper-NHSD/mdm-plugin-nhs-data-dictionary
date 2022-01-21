@@ -1,5 +1,6 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
@@ -14,7 +15,6 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -55,6 +55,8 @@ class NhsDataDictionary {
 
     // TODO:  Need to refactor this out sometime
     Map<String, DataElement> elementsByUrl = [:]
+
+    Map<UUID, NhsDDCode> codesByCatalogueId = [:]
 
     String folderName = FOLDER_NAME
 
@@ -142,7 +144,7 @@ class NhsDataDictionary {
                     if(matchedUrl) {
                         String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
                         newDefinition = newDefinition.replace(matcher.group(0), replacement)
-                        log.trace("Replacing: " + matcher.group(0) + " with " + replacement)
+                        log.info("Replacing: " + matcher.group(0) + " with " + replacement)
                     } else {
                         List<String> existingUnmatched = unmatchedUrls[component.name]
                         if(existingUnmatched) {
@@ -156,8 +158,8 @@ class NhsDataDictionary {
             }
             component.definition = newDefinition
         }
-        log.debug("Unmatched Urls: ")
-        log.debug(unmatchedUrls.toString())
+        log.info("Unmatched Urls: ")
+        log.info(unmatchedUrls.toString())
 
     }
 
@@ -168,7 +170,7 @@ class NhsDataDictionary {
 
         // These fields are not part of the original ingest from xml but calculated subsequently.
         // Another approach would be to enumerate all the profile definitions from this plugin and list all their keys
-        allKeys.addAll(["shortDescription","overview","linkedAttributes"])
+        allKeys.addAll(["shortDescription","overview","linkedAttributes","noAliasesRequired","approvingOrganisation"])
         return allKeys
     }
 

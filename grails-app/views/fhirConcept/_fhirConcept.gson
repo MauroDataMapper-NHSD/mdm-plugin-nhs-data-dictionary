@@ -1,0 +1,23 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirConcept
+
+model {
+    FhirConcept fhirConcept
+}
+
+List<LinkedHashMap<String, String>> properties = [
+    [
+        "code"          : "Publish Date",
+        "valueDateTime" : fhirConcept.publishDate
+    ],
+    [
+        "code"          : "status",
+        "valueCode"     : fhirConcept.status
+    ]
+]
+
+json {
+    code        fhirConcept.code
+    display     fhirConcept.display
+    definition  fhirConcept.definition
+    property    tmpl.'/fhirProperty/fhirProperty'(fhirConcept.properties)
+}
