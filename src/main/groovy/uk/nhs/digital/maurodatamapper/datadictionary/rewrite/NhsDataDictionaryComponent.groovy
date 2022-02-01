@@ -60,6 +60,7 @@ trait NhsDataDictionaryComponent {
         }*/
 
         definition = (DDHelperFunctions.parseHtml(xml.definition)).replace("\u00a0", " ")
+        definition = definition.replaceAll("\\s+", " ")
 
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
             String xmlValue = xml[entry.value][0].text()

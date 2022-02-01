@@ -5,16 +5,16 @@ import uk.ac.ox.softeng.maurodatamapper.profile.provider.JsonProfileProviderServ
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class DDChangeNoticeProfileProviderService extends JsonProfileProviderService {
+class DDWorkItemProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getMetadataNamespace() {
-        'uk.nhs.datadictionary.changeNotice'
+        'uk.nhs.datadictionary.workItem'
     }
 
     @Override
     String getDisplayName() {
-        'NHS Data Dictionary - Change Notice'
+        'NHS Data Dictionary - Work Item'
     }
 
     @Override
@@ -24,7 +24,7 @@ class DDChangeNoticeProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getJsonResourceFile() {
-        return 'changeNoticeProfile.json'
+        return 'workItemProfile.json'
     }
 
     @Override

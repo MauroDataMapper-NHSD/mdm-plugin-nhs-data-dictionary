@@ -16,6 +16,7 @@ class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
     @Override
     String calculateShortDescription() {
         String shortDescription = name
+        //shortDescription = shortDescription.replaceAll("\\w+", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }
