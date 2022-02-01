@@ -5,6 +5,8 @@ model {
     FhirResource fhirResource
 }
 
-if(fhirResource instanceof FhirCodeSystem) {
-    json tmpl.('/fhirCodeSystem/fhirCodeSystem') fhirResource
+json {
+    if(fhirResource instanceof FhirCodeSystem) {
+        tmpl.('/fhirCodeSystem/fhirCodeSystem') fhirResource
+    }
 }

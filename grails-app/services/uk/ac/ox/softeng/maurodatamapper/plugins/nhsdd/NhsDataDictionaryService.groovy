@@ -17,11 +17,12 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
-import uk.ac.ox.softeng.maurodatamapper.dita.Body
-import uk.ac.ox.softeng.maurodatamapper.dita.DitaMap
-import uk.ac.ox.softeng.maurodatamapper.dita.KeyDef
-import uk.ac.ox.softeng.maurodatamapper.dita.Title
-import uk.ac.ox.softeng.maurodatamapper.dita.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.DitaMap
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.KeyDef
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.Title
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
@@ -57,6 +58,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Dat
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaperUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.time.Instant
@@ -537,125 +539,6 @@ class NhsDataDictionaryService {
                                resource: FhirValueSet.fromDDElement(element, "1.0.0", publishDate))
             }
         return new FhirBundle(type: "transaction", entries: entries)
-
-        /*        String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
-        Folder folder = folderService.findByPath(dictionaryFolderName + "/Data Element CodeSets")
-        Folder coreFolder = folder.parentFolder
-        List entries = []
-        DataModel coreDataModel = dataModelService.findByLabel("Data Dictionary Core")
-        folder.childFolders.sort {it.label}.eachWithIndex {subFolder, idx1 ->
-            folderService.findAllModelsInFolder(subFolder).eachWithIndex {model, idx2 ->
-                // Assume a Terminology
-                CodeSet codeSet = (CodeSet) model
-
-                DataType linkedElementType = coreDataModel.dataTypes.find {
-                    it instanceof ModelDataType && ((ModelDataType) it).modelResourceId == codeSet.id
-                }
-                DataElement linkedElement = linkedElementType.dataElements.first()
-
-                Map<Terminology, List<Term>> terminologyListMap = [:]
-                codeSet.terms.each {term ->
-                    Terminology terminology = term.terminology
-                    if (terminologyListMap[terminology]) {
-                        terminologyListMap[terminology] << term
-                    } else {
-                        terminologyListMap[terminology] = [term]
-                    }
-                }
-                List includes = []
-                terminologyListMap.entrySet().each {entry ->
-                    Terminology terminology = entry.key
-                    String terminologyId = terminology.label.toLowerCase().replace(" ", "_")
-                    String version = terminology.metadata.find {it.key == "version"}?.value
-                    List<Term> terms = entry.value
-                    def concept = []
-                    terms.each {term ->
-                        concept << [
-                            code   : term.code,
-                            display: term.definition
-                        ]
-                    }
-                    includes << [
-                        system : "https://private.datadictionary.nhs.uk/code_system/union/${terminologyId}",
-                        version: version,
-                        concept: concept
-                    ]
-                }
-                String id = codeSet.label.toLowerCase().replace(" ", "_")
-                String version = codeSet.metadata.find {it.key == "version"}?.value
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                String versionId = LocalDate.now().format(formatter)
-                Map resource = [
-                    resourceType: "ValueSet",
-                    id          : "NHS-Data_Dictionary-VS-" + codeSet.label.toLowerCase().replace(" ", "-") + "-" + version,
-                    meta        : [
-                        security : [
-                            [
-                                system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                code  : "DDT.read"
-                            ],
-                            [
-                                system: "http://ontoserver.csiro.au/CodeSystem/ontoserver-permissions",
-                                code  : "DDT.write"
-                            ]
-                        ],
-                        versionId: versionId
-                    ],
-                    language    : "en-GB",
-                    url         : "https://private.datadictionary.nhs.uk/valueSet/${id}",
-                    identifier  : [
-                        [
-                            system: "https://datadictionary.nhs.uk/V3",
-                            value : "https://datadictionary.nhs.uk/data_dictionary/data_field_notes/${id}"
-                        ]
-                    ],
-                    version     : version,
-                    name        : codeSet.label.toUpperCase().replaceAll("[^A-Za-z0-9]", "_"),
-                    title       : codeSet.label,
-                    status      : "active",
-                    experimental: "false",
-                    date        : Instant.now().toString(),
-                    publisher   : "NHS Digital",
-                    contact     : [
-                        [
-                            name   : "NHS Digital Data Model and Dictionary Service",
-                            telecom: [
-                                [
-                                    system: "email",
-                                    value : "information.standards@nhs.net"
-                                ], [
-                                    system: "url",
-                                    value : "https://datadictionary.nhs.uk/"
-                                ]
-                            ]
-                        ]
-                    ],
-                    description : linkedElement.description,
-                    copyright   : "Copyright © NHS Digital",
-                    immutable   : "true",
-                    compose     : [
-                        include: includes
-                    ]
-                ]
-                Map entry = [//fullUrl: "CodeSystem/\$validate",
-                             request : [
-                                 method: "POST",
-                                 url   : "ValueSet/\$validate"
-                             ],
-                             resource: [
-                                 resourceType: "Parameters",
-                                 parameter   : [
-                                     [name    : "Resource",
-                                      resource: resource]
-                                 ]
-                             ]
-                ]
-                entries << entry
-            }
-        }
-        return [resourceType: "Bundle", type: "transaction", entry: entries]
-
- */
     }
 
 
@@ -663,119 +546,10 @@ class NhsDataDictionaryService {
 
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
-        String outputPath = "/Users/james/Desktop/"
+        String outputPath = "/Users/james/Desktop/ditaTest/"
 
-        DitaMap ditaMap = new DitaMap(title: "Change Request")
+        ChangePaperUtility.generateChangePaper(dataDictionary, outputPath)
 
-        Topic backgroundTopic = new Topic(id: "background", title: new Title("Background"))
-
-
-
-        Map<String, String> properties = [
-            "Reference": "1828",
-            "Version No": "1.0",
-            "Subject": "NHS England and NHS Improvement",
-            "Effective Date": "Immediate",
-            "Reason For Change": "Change to Definitions",
-            "Publication Date": "3rd January 2021",
-            "Background": backgroundText,
-            "Sponsor": "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"
-        ]
-
-        def backgroundContent = { dl {
-            properties.each { key, value ->
-                dlentry {
-                    dt key
-                    dd value
-                }
-            }
-        } }
-
-        // backgroundContent.append("<dlentry><dt>${key}</dt><dd>${value}</dd></dlentry>")
-
-        backgroundTopic.body = new Body(backgroundContent)
-
-        Topic summaryOfChangesTopic = new Topic(id: "summary", title: new Title("Summary of Changes"))
-
-        Topic changesTopic = new Topic(id: "changes", title: new Title("Changes"), body: new Body("<p>Changes</p>"))
-
-        ditaMap.addTopicRef(backgroundTopic)
-        ditaMap.addTopicRef(summaryOfChangesTopic)
-
-        Closure summaryContent = {}
-
-        dataDictionary.getAllComponents().sort{it.name}.eachWithIndex { component, index ->
-            if(index % 100 == 0) {
-                String topicId = "Change-" + component.name.replaceAll("[^a-zA-Z0-9]","-")
-
-                summaryContent >>= {
-                    strow {
-                        stentry {
-                            xref ("keyref": topicId, component.name)
-                        }
-                        stentry "Changed Description"
-                    }
-                }
-
-                Topic subTopic = new Topic(id: topicId, title: new Title(component.name))
-                subTopic.body = new Body(uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html.tidyAndClean("<p>${component.definition}</p>").toString())
-                changesTopic.subTopics.add(subTopic)
-                SpaceSeparatedStringList keys = new SpaceSeparatedStringList()
-                keys.add(topicId)
-                ditaMap.keyDefs.add(new KeyDef(keys: keys, href:"changes.dita"))
-            }
-        }
-
-        ditaMap.addTopicRef(changesTopic)
-        summaryOfChangesTopic.body = new Body({
-                                                  simpletable {
-                                                      owner.with summaryContent
-                                                  } })
-
-        ditaMap.outputAsFile(new File(outputPath + "changePaper.ditamap"))
-
-
-
-//        VersionedFolder sourceVF = versionedFolderService.get(sourceId)
-//        VersionedFolder targetVF = versionedFolderService.get(targetId)
-
-        /*        sourceVF.addToMetadata(new Metadata(key: "type", value: "Data Dictionary Change Notice"))
-                sourceVF.addToMetadata(new Metadata(key: "reference", value: "1828"))
-                sourceVF.addToMetadata(new Metadata(key: "versionNo", value: "1.0"))
-                sourceVF.addToMetadata(new Metadata(key: "subject", value: "NHS England and NHS Improvement"))
-                sourceVF.addToMetadata(new Metadata(key: "effectiveDate", value: "Immediate"))
-                sourceVF.addToMetadata(new Metadata(key: "reasonForChange", value: "Change to Definitions"))
-                sourceVF.addToMetadata(new Metadata(key: "publicationDate", value: "3rd June 2021"))
-                sourceVF.addToMetadata(new Metadata(key: "backgroundText", value: backgroundText))
-                sourceVF.addToMetadata(new Metadata(key: "sponsor", value: "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"))
-
-                sourceVF.metadata.each {md ->
-                    md.namespace = "uk.nhs.datadictionary.changeNotice"
-                    md.createdBy = currentUser.emailAddress
-                }
-
-                sourceVF.save()
-        */
-
-//        ObjectDiff od = versionedFolderService.getDiffForVersionedFolders(sourceVF, targetVF)
-//        log.debug(od)
-
-
-
-//        File outputDir = new File(outputPath)
-
-//        File newFile = new File(outputDir, "test.dita")
-//        newFile.createNewFile()
     }
 
-    static def backgroundText = {
-        p "NHS England and NHS Improvement have worked together since 1 April 2019 and are now known as a single organisation."
-        p "The NHS England and NHS Improvement websites have now merged; therefore changes are required to the NHS Data Model and Dictionary to support the change"
-        p "This Data Dictionary Change Notice (DDCN):"
-        ul {
-            li "Updates the NHS England NHS Business Definition to create a single definition for NHS England and NHS Improvement"
-            li "Retires the NHS Improvement NHS Business Definition"
-            li "Updates all items that reference NHS England and NHS Improvement to reflect the change"
-        }
-    }
 }
