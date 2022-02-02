@@ -22,6 +22,6 @@ dependencies {
     runtimeOnly group: 'org.postgresql', name: 'postgresql'
 
     // Needed for xml minification only
-    integrationTestRuntimeOnly 'org.dom4j:dom4j:2.1.3'
-    integrationTestRuntimeOnly 'jaxen:jaxen:1.2.0'
+    integrationTestImplementation 'org.dom4j:dom4j:2.1.3'
+    integrationTestImplementation 'jaxen:jaxen:1.2.0'
 }
