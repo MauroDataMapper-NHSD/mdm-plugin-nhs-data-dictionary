@@ -6,20 +6,20 @@ dependencies {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
-    compile group: 'uk.ac.ox.softeng.maurodatamapper', name: 'dita-dsl', version: '1.0.0-SNAPSHOT'
+    implementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'dita-dsl', version: '1.0.0-SNAPSHOT'
 
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
-    compile group: 'commons-io', name: 'commons-io', version: '2.6'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 
-    compile group: 'net.sf.jtidy', name: 'jtidy', version: 'r938'
+    implementation group: 'net.sf.jtidy', name: 'jtidy', version: 'r938'
 
     implementation 'pull-parser:pull-parser:2.1.10'
 
     // Postgres database
-    runtime group: 'org.flywaydb', name: 'flyway-core'
-    runtime "org.hibernate:hibernate-jcache"
-    runtime group: 'org.ehcache', name: 'ehcache'
-    runtime group: 'org.postgresql', name: 'postgresql'
+    runtimeOnly group: 'org.flywaydb', name: 'flyway-core'
+    runtimeOnly "org.hibernate:hibernate-jcache"
+    runtimeOnly group: 'org.ehcache', name: 'ehcache'
+    runtimeOnly group: 'org.postgresql', name: 'postgresql'
 
     // Needed for xml minification only
     integrationTestRuntimeOnly 'org.dom4j:dom4j:2.1.3'

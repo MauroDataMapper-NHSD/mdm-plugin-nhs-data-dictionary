@@ -3,10 +3,6 @@ database:
     port: 5432
     name: maurodatamapper
 ---
-apiUser:
-    username: admin@maurodatamapper.com
-    password: password
----
 #Default for plugins/applications
 ---
 maurodatamapper:
@@ -111,7 +107,7 @@ grails:
     cors:
         enabled: true
         # The following are the defaults
-        allowedOrigins: [ '*' ]
+        allowedOriginPatterns: [ '*' ]
         allowedMethods: [ 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD' ]
         allowedHeaders: [ 'origin', 'content-type', 'accept', 'authorization', 'pragma', 'cache-control' ]
         #exposedHeaders: null
@@ -136,10 +132,7 @@ hibernate:
             provider: org.ehcache.jsr107.EhcacheCachingProvider
             missing_cache_strategy: create
     search:
-        backend:
-            directory:
-                root: '/tmp/lucene/plugin/nhsdd'
-
+        backend.directory.root: 'build/lucene'
 ---
 dataSource:
     pooled: true
@@ -171,4 +164,8 @@ environments:
             password: MauroDataMapper1234
             dbCreate: none
             url: 'jdbc:postgresql://${database.host}:${database.port}/${database.name}'
+grails:
+    plugins:
+        hibernatesearch:
+            rebuildIndexOnStart: false
 ---
