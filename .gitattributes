@@ -10,7 +10,8 @@
 *.html          text
 *.java          text
 *.js            text
-*.json filter=lfs diff=lfs merge=lfs -text
+*.json          text
+**/integration-test/resources/*.json filter=lfs diff=lfs merge=lfs -text
 *.jsp           text
 *.jspf          text
 *.properties    text
