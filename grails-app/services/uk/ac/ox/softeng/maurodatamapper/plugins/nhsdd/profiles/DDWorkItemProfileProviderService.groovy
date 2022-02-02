@@ -32,6 +32,4 @@ class DDWorkItemProfileProviderService extends JsonProfileProviderService {
         return ['VersionedFolder']
     }
 
-
-
 }
