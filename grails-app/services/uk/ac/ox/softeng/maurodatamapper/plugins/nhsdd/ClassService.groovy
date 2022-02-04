@@ -233,17 +233,19 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         coreDataModel.addToDataClasses(retiredDataClass)
         parentDataClass.addToDataClasses(retiredDataClass)
 
-        Map<String, DataClass> classesByName = [:]
-        Map<String, DataClass> classesByUin = [:]
+        TreeMap<String, DataClass> classesByName = new TreeMap<>()
+        TreeMap<String, DataClass> classesByUin = new TreeMap<>()
         dataDictionary.classes.each {name, clazz ->
-            if(!classesByName[name] || !clazz.isRetired()) {
+            if (!classesByName[name] || !clazz.isRetired()) {
                 DataClass dataClass = new DataClass(
                     label: name,
                     description: clazz.definition,
                     createdBy: currentUserEmailAddress,
                     parentDataClass: parentDataClass
                 )
-                if(clazz.isRetired()) {
+
+                // TODO unnecessary as the or statement above excludes all non-retired DCs
+                if (clazz.isRetired()) {
                     retiredDataClass.addToDataClasses(dataClass)
                 } else {
                     parentDataClass.addToDataClasses(dataClass)
@@ -252,7 +254,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
 
                 // Now link the attributes from the properties
 
-                clazz.allAttributes().each { attribute ->
+                clazz.allAttributes().each {attribute ->
                     DataElement attributeElement = attributeElementsByName[attribute.name]
                     if(attributeElement) {
                         attributeElement.addToImportingDataClasses(dataClass)
@@ -273,7 +275,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         }
 
         // Now link the references
-        Map<String, ReferenceType> classReferenceTypesByName = [:]
+        TreeMap<String, ReferenceType> classReferenceTypesByName = new TreeMap<>()
         dataDictionary.classes.each {name, clazz ->
             clazz.classLinks.each {classLink ->
                 if (classLink.metaclass == "KernelAssociation20") {

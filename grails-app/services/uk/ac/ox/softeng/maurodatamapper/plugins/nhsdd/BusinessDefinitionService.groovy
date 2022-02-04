@@ -54,7 +54,7 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
             createdBy: currentUserEmailAddress,
             authority: authorityService.defaultAuthority)
 
-        Map<String, Term> allTerms = [:]
+        TreeMap<String, Term> allTerms = new TreeMap<>()
         dataDictionary.businessDefinitions.each {name, businessDefinition ->
 
             // Either this is the first time we've seen a term...
@@ -82,7 +82,7 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
             terminology.addToTerms(term)
         }
 
-        if (terminology.validate()) {
+        if (terminologyService.validate(terminology)) {
             terminology = terminologyService.saveModelWithContent(terminology)
         } else {
             GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???

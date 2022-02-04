@@ -1,17 +1,8 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
-import uk.ac.ox.softeng.maurodatamapper.version.Version
-import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -82,11 +73,11 @@ class NhsDataDictionary {
             webPages.values()
     }
 
-    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo) {
+    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null) {
         return new NhsDataDictionary().tap {
             log.info('Building new NHS Data Dictionary from XML')
             long startTime = System.currentTimeMillis()
-            if(releaseDate) {
+            if (releaseDate) {
                 folderName = "${FOLDER_NAME} (${releaseDate})"
             }
 
@@ -144,7 +135,7 @@ class NhsDataDictionary {
                     if(matchedUrl) {
                         String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
                         newDefinition = newDefinition.replace(matcher.group(0), replacement)
-                        log.info("Replacing: " + matcher.group(0) + " with " + replacement)
+                        log.trace("Replacing: " + matcher.group(0) + " with " + replacement)
                     } else {
                         List<String> existingUnmatched = unmatchedUrls[component.name]
                         if(existingUnmatched) {
@@ -158,9 +149,7 @@ class NhsDataDictionary {
             }
             component.definition = newDefinition
         }
-        log.info("Unmatched Urls: ")
-        log.info(unmatchedUrls.toString())
-
+        log.warn("Unmatched Urls: {}", unmatchedUrls.size())
     }
 
 

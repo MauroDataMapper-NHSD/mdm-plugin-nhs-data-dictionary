@@ -95,6 +95,13 @@ root(INFO, ['STDOUT', 'FILE'])
 
 
 logger('uk.ac.ox.softeng', DEBUG)
+
+// Minimise logging, makes it a little faster
+logger 'uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService', INFO
+logger 'uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService', INFO
+logger 'uk.ac.ox.softeng.maurodatamapper.terminology.DataModelService', INFO
+
+
 logger('db.migration', DEBUG)
 
 logger('org.springframework.jdbc.core.JdbcTemplate', DEBUG)

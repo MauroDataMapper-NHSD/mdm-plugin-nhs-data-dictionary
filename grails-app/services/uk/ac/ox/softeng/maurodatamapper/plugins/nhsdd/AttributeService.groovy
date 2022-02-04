@@ -165,9 +165,9 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                     terminology.addToTerms(term)
 
                 }
-                if (terminology.validate()) {
+                if (terminologyService.validate(terminology)) {
                     terminology = terminologyService.saveModelWithContent(terminology)
-                    terminology.terms.size() // Required to reload the terms back into the session
+                    //                    terminology.terms.size() // Required to reload the terms back into the session
                     attributeTerminologiesByName[name] = terminology
                 } else {
                     GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???
@@ -200,6 +200,11 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 allAttributesClass.addToDataElements(attributeDataElement)
             }
             attributeElementsByName[name] = attributeDataElement
+
+            // Reload all terms into the session
+            attributeTerminologiesByName.each {k, v ->
+                v.terms.size()
+            }
         }
     }
 
