@@ -55,7 +55,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
             createdBy: currentUserEmailAddress,
             authority: authorityService.defaultAuthority)
 
-        Map<String, Term> allTerms = [:]
+        TreeMap<String, Term> allTerms = new TreeMap<>()
         dataDictionary.xmlSchemaConstraints.each {name, xmlSchemaConstraint ->
 
             // Either this is the first time we've seen a term...
@@ -83,7 +83,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
             terminology.addToTerms(term)
         }
 
-        if (terminology.validate()) {
+        if (terminologyService.validate(terminology)) {
             terminology = terminologyService.saveModelWithContent(terminology)
         } else {
             GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???

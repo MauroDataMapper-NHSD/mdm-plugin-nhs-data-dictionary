@@ -420,23 +420,38 @@ class NhsDataDictionaryService {
         endTime = System.currentTimeMillis()
         log.info('{} model built in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
 
-        Map<String, Terminology> attributeTerminologiesByName = [:]
-        Map<String, DataElement> attributeElementsByName = [:]
-
-
-        attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeElementsByName)
-        elementService.persistElements(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
-        classService.persistClasses(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
-        businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
-        supportingInformationService.persistSupportingInformation(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
-        xmlSchemaConstraintService.persistXmlSchemaConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        TreeMap<String, Terminology> attributeTerminologiesByName = new TreeMap<>()
+        TreeMap<String, DataElement> attributeElementsByName = new TreeMap<>()
 
         startTime = System.currentTimeMillis()
-        // Validation takes 2-6 mins which is annoying for testing
-        log.trace('Validating {} model', NhsDataDictionary.CORE_MODEL_NAME)
+        attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeElementsByName)
+        log.info('AttributeService persisted in {}', Utils.timeTaken(startTime))
+
+        startTime = System.currentTimeMillis()
+        elementService.persistElements(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
+        log.info('ElementService persisted in {}', Utils.timeTaken(startTime))
+
+        startTime = System.currentTimeMillis()
+        classService.persistClasses(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
+        log.info('ClassService persisted in {}', Utils.timeTaken(startTime))
+
+        startTime = System.currentTimeMillis()
+        businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        log.info('BusinessDefinitionService persisted in {}', Utils.timeTaken(startTime))
+
+        startTime = System.currentTimeMillis()
+        supportingInformationService.persistSupportingInformation(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        log.info('SupportingInformationService persisted in {}', Utils.timeTaken(startTime))
+
+        startTime = System.currentTimeMillis()
+        xmlSchemaConstraintService.persistXmlSchemaConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        log.info('XmlSchemaConstraintService persisted in {}', Utils.timeTaken(startTime))
+
+        startTime = System.currentTimeMillis()
+        log.debug('Validating [{}] model', NhsDataDictionary.CORE_MODEL_NAME)
         dataModelService.validate(coreDataModel)
         endTime = System.currentTimeMillis()
-        log.info('Validate {} model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+        log.info('Validate [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
         startTime = endTime
         if (coreDataModel.hasErrors()) {
             throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
@@ -444,7 +459,7 @@ class NhsDataDictionaryService {
 
         dataModelService.saveModelWithContent(coreDataModel)
         endTime = System.currentTimeMillis()
-        log.info('Saved {} model complete in ', Utils.getTimeString(endTime - startTime))
+        log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
 
         startTime = System.currentTimeMillis()
         dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser)

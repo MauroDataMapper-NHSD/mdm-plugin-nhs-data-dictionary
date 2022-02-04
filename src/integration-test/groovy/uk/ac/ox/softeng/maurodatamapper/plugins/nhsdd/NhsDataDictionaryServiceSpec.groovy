@@ -6,6 +6,8 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
+import uk.ac.ox.softeng.maurodatamapper.core.facet.BreadcrumbTree
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.gorm.constraint.callable.VersionAwareConstraints
 import uk.ac.ox.softeng.maurodatamapper.core.model.Model
 import uk.ac.ox.softeng.maurodatamapper.core.model.ModelItem
@@ -518,6 +520,14 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     }
 
     void checkNovember2021(VersionedFolder nhsdd, boolean finalised, int totalFolders = 0, int totalTerminologies = 0, int totalCodeSets = 0, int dataModels = 0) {
+
+        assertTrue 'All MD have ids', Metadata.list().every {it.multiFacetAwareItemId}
+        assertTrue 'All BT have ids', BreadcrumbTree.list().every {it.domainId}
+        assertTrue 'All BT have correct treestring', BreadcrumbTree.list().every {
+            it.checkTree()
+            !it.isDirty('treeString')
+        }
+
         assertEquals 'NHSDD Folder finalisation', finalised, nhsdd.finalised
 
         if (totalFolders) {
