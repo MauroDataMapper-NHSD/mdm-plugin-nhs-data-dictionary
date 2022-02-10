@@ -99,8 +99,9 @@ logger('uk.ac.ox.softeng', DEBUG)
 // Minimise logging, makes it a little faster
 logger 'uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService', INFO
 logger 'uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService', INFO
-logger 'uk.ac.ox.softeng.maurodatamapper.terminology.DataModelService', INFO
-
+logger 'uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService', INFO
+logger 'uk.ac.ox.softeng.maurodatamapper.core.facet.BreadcrumbTreeService', INFO
+logger 'uk.ac.ox.softeng.maurodatamapper.core.model.ModelService', INFO
 
 logger('db.migration', DEBUG)
 
