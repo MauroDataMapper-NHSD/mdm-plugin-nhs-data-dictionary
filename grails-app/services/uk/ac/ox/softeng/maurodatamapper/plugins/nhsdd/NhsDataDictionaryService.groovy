@@ -28,7 +28,6 @@ import grails.gorm.DetachedCriteria
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
-import uk.nhs.digital.maurodatamapper.datadictionary.GenerateDita
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
@@ -468,6 +467,7 @@ class NhsDataDictionaryService {
             throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
         }
 
+        // TODO uncomment once ollie's pushed the work
         //dataModelService.saveModelWithContent(coreDataModel, 1000)
         dataModelService.saveModelWithContent(coreDataModel)
         endTime = System.currentTimeMillis()
@@ -475,7 +475,7 @@ class NhsDataDictionaryService {
 
         startTime = System.currentTimeMillis()
         dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser)
-        log.info('{} persist complete in {}', dataSetService.getClass().getCanonicalName(), Utils.timeTaken(startTime))
+        log.info('DataSetService persist complete in {}', Utils.timeTaken(startTime))
 
         // If any changes remain on the dictionary folder then save them
         if (dictionaryFolder.isDirty()) {

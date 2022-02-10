@@ -1,6 +1,5 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
@@ -15,6 +14,8 @@ import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.merge.ObjectPatchDat
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.path.PathNode
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
@@ -24,14 +25,17 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermRelationshipType
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.term.TermRelationship
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Rollback
 import grails.plugin.json.view.JsonViewTemplateEngine
 import grails.testing.mixin.integration.Integration
-import grails.testing.spock.OnceBefore
 import grails.util.BuildSettings
 import grails.views.WritableScriptTemplate
 import grails.web.databinding.DataBindingUtils
@@ -40,7 +44,6 @@ import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlSlurper
 import org.springframework.beans.factory.annotation.Autowired
-import spock.lang.PendingFeature
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
@@ -100,8 +103,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     @Shared
     User user
 
-    @OnceBefore
-    void setupResourcesPath() {
+    void setupSpec() {
         resourcesPath = Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources')
         user = UnloggedUser.instance
     }
@@ -294,7 +296,6 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         mergeDiff.numberOfDiffs == 144
     }
 
-    @PendingFeature(reason = 'Need MDTs to be mergeable')
     void 'M01 : Merge Nov 2021 patches into Sept 2021 ingest'() {
         /*
         Sept2021 (1.0.0) -> Sept2021 (september_2021) // branch of the original
@@ -520,14 +521,43 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         }
     }
 
-    void checkNovember2021(VersionedFolder nhsdd, boolean finalised, int totalFolders = 0, int totalTerminologies = 0, int totalCodeSets = 0, int dataModels = 0) {
+    void checkPaths(List<MdmDomain> mdmDomains) {
+        mdmDomains.each {
+            uk.ac.ox.softeng.maurodatamapper.path.Path uncheckedPath = it.getUncheckedPath()
+            uk.ac.ox.softeng.maurodatamapper.path.Path checkedPath = it.getPath()
+            assertEquals('Checked path matches unchecked path', uncheckedPath, checkedPath)
+        }
+    }
 
+    void checkNovember2021(VersionedFolder nhsddToTest, boolean finalised, int totalFolders = 0, int totalTerminologies = 0, int totalCodeSets = 0, int dataModels = 0) {
+
+        // Clear out the whole session to ensure absolutely no corruption of unsaved or unflushed data
+        sessionFactory.currentSession.clear()
+
+        // Check the stored content matches up with what we expect for facets, paths and BTs
         assertTrue 'All MD have ids', Metadata.list().every {it.multiFacetAwareItemId}
         assertTrue 'All BT have ids', BreadcrumbTree.list().every {it.domainId}
-        assertTrue 'All BT have correct treestring', BreadcrumbTree.list().every {
+        BreadcrumbTree.list().each {
+            String uncheckedTreeString = it.treeString
             it.checkTree()
+            if (it.isDirty('treeString')) log.warn('[{}] does not match [{}]', uncheckedTreeString, it.treeString)
+        }
+        assertTrue 'All BT have correct treestring', BreadcrumbTree.list().every {
             !it.isDirty('treeString')
         }
+
+        checkPaths(Folder.list())
+        checkPaths(Terminology.list())
+        checkPaths(CodeSet.list())
+        checkPaths(DataModel.list())
+        checkPaths(Term.list())
+        checkPaths(DataClass.list())
+        checkPaths(DataElement.list())
+        checkPaths(DataType.list())
+        checkPaths(TermRelationshipType.list())
+        checkPaths(TermRelationship.list())
+
+        VersionedFolder nhsdd = versionedFolderService.get(nhsddToTest.id)
 
         assertEquals 'NHSDD Folder finalisation', finalised, nhsdd.finalised
 
