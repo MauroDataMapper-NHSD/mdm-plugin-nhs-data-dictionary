@@ -5,39 +5,39 @@ model {
 }
 
 json {
-    Attributes {
-        Total nhsDataDictionary.attributes.size()
-        Preparatory nhsDataDictionary.attributes.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.attributes.values().count {it.isRetired()}
+    'Attributes' {
+        'Total' nhsDataDictionary.attributes.size()
+        'Preparatory' nhsDataDictionary.attributes.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.attributes.values().count {it.isRetired()}
     }
     'Data Field Notes' {
-        Total nhsDataDictionary.elements.size()
-        Preparatory nhsDataDictionary.elements.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.elements.values().count {it.isRetired()}
+        'Total' nhsDataDictionary.elements.size()
+        'Preparatory' nhsDataDictionary.elements.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.elements.values().count {it.isRetired()}
     }
-    Classes {
-        Total nhsDataDictionary.classes.size()
-        Preparatory nhsDataDictionary.classes.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.classes.values().count {it.isRetired()}
+    'Classes' {
+        'Total' nhsDataDictionary.classes.size()
+        'Preparatory' nhsDataDictionary.classes.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.classes.values().count {it.isRetired()}
     }
     'Data Sets' {
-        Total nhsDataDictionary.dataSets.size()
-        Preparatory nhsDataDictionary.dataSets.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.dataSets.values().count {it.isRetired()}
+        'Total' nhsDataDictionary.dataSets.size()
+        'Preparatory' nhsDataDictionary.dataSets.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.dataSets.values().count {it.isRetired()}
     }
     'Business Definitions' {
-        Total nhsDataDictionary.businessDefinitions.size()
-        Preparatory nhsDataDictionary.businessDefinitions.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.businessDefinitions.values().count {it.isRetired()}
+        'Total' nhsDataDictionary.businessDefinitions.size()
+        'Preparatory' nhsDataDictionary.businessDefinitions.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.businessDefinitions.values().count {it.isRetired()}
     }
     'Supporting Information' {
-        Total nhsDataDictionary.supportingInformation.size()
-        Preparatory nhsDataDictionary.supportingInformation.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.supportingInformation.values().count {it.isRetired()}
+        'Total' nhsDataDictionary.supportingInformation.size()
+        'Preparatory' nhsDataDictionary.supportingInformation.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.supportingInformation.values().count {it.isRetired()}
     }
     'XML Schema Constraints' {
-        Total nhsDataDictionary.xmlSchemaConstraints.size()
-        Preparatory nhsDataDictionary.xmlSchemaConstraints.values().count {it.isPreparatory()}
-        Retired nhsDataDictionary.xmlSchemaConstraints.values().count {it.isRetired()}
+        'Total' nhsDataDictionary.xmlSchemaConstraints.size()
+        'Preparatory' nhsDataDictionary.xmlSchemaConstraints.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.xmlSchemaConstraints.values().count {it.isRetired()}
     }
 }

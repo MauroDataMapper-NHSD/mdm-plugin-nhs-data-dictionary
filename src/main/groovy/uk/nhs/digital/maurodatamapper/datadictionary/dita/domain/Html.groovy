@@ -1,8 +1,9 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.dita.domain
 
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
-import groovy.util.slurpersupport.Node
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.Node
 import groovy.xml.MarkupBuilder
 import groovy.xml.XmlUtil
 import org.w3c.tidy.Tidy
@@ -43,7 +44,7 @@ class Html extends BodyElement{
         tidy.setQuoteNbsp(false)
 
     }
-    static XmlSlurper xmlSlurper = XmlSlurper.newInstance()
+    static XmlSlurper xmlSlurper = new XmlSlurper()
 
     static XmlParser xmlParser = XmlParser.newInstance()
 

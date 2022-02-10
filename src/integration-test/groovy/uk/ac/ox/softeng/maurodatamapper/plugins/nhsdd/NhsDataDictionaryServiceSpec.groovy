@@ -38,6 +38,7 @@ import grails.web.databinding.DataBindingUtils
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
+import groovy.xml.XmlSlurper
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.PendingFeature
 import spock.lang.Shared

@@ -5,7 +5,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Slf4j
@@ -30,7 +30,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     @Override
     String calculateShortDescription() {
         String shortDescription
-        if(isPreparatory()) {
+        if (isPreparatory()) {
             shortDescription = "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
@@ -42,6 +42,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
                 }
                 shortDescription = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
             } catch (Exception e) {
+                e.printStackTrace()
                 log.error("Couldn't parse: " + definition)
                 shortDescription = name
             }
@@ -54,7 +55,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
 
-        if(xml."code-system".size() > 0) {
+        if (xml."code-system".size() > 0) {
             codesVersion = xml."code-system"[0].Bundle.entry.resource.CodeSystem.version."@value".text()
             xml."code-system"[0].Bundle.entry.resource.CodeSystem.concept.each {concept ->
                 NhsDDCode code = new NhsDDCode(this)
@@ -88,10 +89,11 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     }
 
     String getMauroPath() {
-        if(isRetired()) {
+        if (isRetired()) {
             "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|dc:Retired|de:${name}"
         } else {
             return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|de:${name}"
         }
     }
+
 }

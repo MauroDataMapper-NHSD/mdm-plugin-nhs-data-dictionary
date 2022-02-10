@@ -46,6 +46,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Ele
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaperUtility
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.time.Instant
@@ -306,7 +307,17 @@ class NhsDataDictionaryService {
 
 
     File publishDita(UUID versionedFolderId) {
-        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+
+
+        //NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        NhsDataDictionary dataDictionary = new NhsDataDictionary()
+        String outputPath = "/Users/james/Desktop/ditaTest/"
+
+        WebsiteUtility.generateWebsite(dataDictionary, outputPath)
+        return null
+
+
+/*        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         File tempDir = File.createTempDir()
         log.debug(tempDir.path)
@@ -332,7 +343,7 @@ class NhsDataDictionaryService {
         fos.close();
 
         return new File(tempDir2.path + "/ditaCompressed.zip")
-
+*/
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
@@ -457,7 +468,8 @@ class NhsDataDictionaryService {
             throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
         }
 
-        dataModelService.saveModelWithContent(coreDataModel, 1000)
+        //dataModelService.saveModelWithContent(coreDataModel, 1000)
+        dataModelService.saveModelWithContent(coreDataModel)
         endTime = System.currentTimeMillis()
         log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
 

@@ -34,6 +34,6 @@ class MinifyXml {
 
     static void main(String[] args) {
 
-        minify('/Users/oliverfreeman/Downloads', 'output8_sept_2021.xml', 'September_2021')
+        //minify('/Users/oliverfreeman/Downloads', 'output8_sept_2021.xml', 'September_2021')
     }
 }

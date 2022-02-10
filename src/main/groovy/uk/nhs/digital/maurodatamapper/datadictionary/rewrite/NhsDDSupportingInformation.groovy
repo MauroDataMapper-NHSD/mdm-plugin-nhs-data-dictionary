@@ -1,7 +1,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
@@ -34,6 +34,7 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent {
                 }
                 shortDescription = firstParagraph.substring(0, firstParagraph.indexOf(". ") + 1)
             } catch (Exception e) {
+                e.printStackTrace()
                 log.error("Couldn't parse: " + definition)
                 shortDescription = name
             }

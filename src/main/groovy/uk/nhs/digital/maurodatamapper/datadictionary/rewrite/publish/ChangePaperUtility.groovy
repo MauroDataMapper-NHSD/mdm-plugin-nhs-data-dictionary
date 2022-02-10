@@ -1,15 +1,23 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
+import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.Title
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+
+import java.util.regex.Matcher
 
 @Slf4j
 class ChangePaperUtility {
 
 
     static void generateChangePaper(NhsDataDictionary dataDictionary, String outputPath) {
-/*
+
         DitaProject ditaProject = new DitaProject().tap {
             title = "Example Change Paper"
             filename = "changePaper"
@@ -25,14 +33,19 @@ class ChangePaperUtility {
 
         Closure summaryContent = {}
 
-        Map<String, String> pathLookup = dataDictionary.getAllComponents().collectEntries{ it ->
-            [it.getMauroPath(), it.otherProperties["ddUrl"]]
+        Map<String, String> pathLookup = [:]
+
+        dataDictionary.getAllComponents().each { it ->
+            ditaProject.addExternalKey(it.getDitaKey(), it.otherProperties["ddUrl"])
+            pathLookup[it.getMauroPath()] = it.getDitaKey()
         }
+
+
         //System.err.println(pathLookup)
 
         dataDictionary.getAllComponents().sort{it.name}.eachWithIndex { component, index ->
             if(index % 100 == 0) {
-                String topicId = "Change-" + component.name.replaceAll("[^a-zA-Z0-9]","-")
+                String topicId = component.getDitaKey()
 
                 summaryContent >>= {
                     strow {
@@ -43,7 +56,7 @@ class ChangePaperUtility {
                     }
                 }
 
-                Topic subTopic = new Topic(id: topicId, title: new Title(component.name))
+                Topic subTopic = new Topic(id: topicId, title: new Title(component.name), toc: Toc.NO)
 
                 String definition = component.definition
                 if(definition) {
@@ -51,14 +64,12 @@ class ChangePaperUtility {
                     while(matcher.find()) {
                         String matchedUrl = pathLookup[matcher.group(1)]
                         if(matchedUrl) {
-                            String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
+                            String replacement = "<xref keyref=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</xref>"
                             definition = definition.replace(matcher.group(0), replacement)
-                            System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
+                            // System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
                         }
                     }
                 }
-
-
 
 
                 subTopic.body = new Body(uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html.tidyAndClean("<p>${definition}</p>").toString())
@@ -76,11 +87,11 @@ class ChangePaperUtility {
                                             } })
         ditaProject.writeToDirectory(outputPath)
 
- */
+
     }
 
     static def createBackgroundTopic() {
-        /*
+
         Topic backgroundTopic = new Topic(id: "background", title: new Title("Background"))
 
         Map<String, String> properties = [
@@ -106,7 +117,7 @@ class ChangePaperUtility {
         backgroundTopic.body = new Body(backgroundContent)
         return backgroundTopic
 
-         */
+
     }
 
 

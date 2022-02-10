@@ -66,15 +66,14 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     }
 
     def publishDita() {
-
-        log.debug(params.branchName)
-
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
 
+        nhsDataDictionaryService.publishDita(versionedFolderId)
 
-        File file = nhsDataDictionaryService.publishDita(versionedFolderId)
+//        File file = nhsDataDictionaryService.publishDita(versionedFolderId)
+//        render(file: file, fileName: "DataDictionaryDita.zip", contentType: "application/zip")
 
-        render(file: file, fileName: "DataDictionaryDita.zip", contentType: "application/zip")
+        respond ([])
     }
 
 }

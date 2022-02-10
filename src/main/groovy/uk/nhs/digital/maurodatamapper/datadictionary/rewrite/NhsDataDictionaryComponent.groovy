@@ -59,7 +59,13 @@ trait NhsDataDictionaryComponent {
             this.name = xml."class".websitePageHeading.text()
         }*/
 
-        definition = (DDHelperFunctions.parseHtml(xml.definition)).replace("\u00a0", " ")
+        String cleanedDefinition = xml.definition.text().
+            replace("&amp;", "&").
+            replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;\$1" ).
+            replace("<", "&lt;").
+            replace(">", "&gt;").
+            replace("\u00a0", " ")
+        definition = DDHelperFunctions.parseHtml(cleanedDefinition)
         definition = definition.replaceAll("\\s+", " ")
 
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
@@ -105,7 +111,15 @@ trait NhsDataDictionaryComponent {
         ]
     }
 
+    String getNameWithoutNonAlphaNumerics() {
+        name.replaceAll("[^A-Za-z0-9 ]", "").replace(" ", "_")
+    }
+
     abstract String getMauroPath()
+    String getDitaKey() {
+        getStereotype().replace(" ", "") + "_" + getNameWithoutNonAlphaNumerics()
+    }
+
 
 
 }
