@@ -1,10 +1,23 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.MarkupBuilder
+import groovy.xml.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.ColSpec
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Entry
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.TBody
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.TGroup
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.THead
+import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Table
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent {
@@ -111,6 +124,69 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         String mauroPath = StringUtils.join(path.collect{"fo:${it}"}, "|")
 
         mauroPath += "dm:${name}"
+
+    }
+
+    String getStructureAsHtml() {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+        if(name.startsWith("CDS")) {
+            outputAsCdsHtml(markupBuilder)
+        } else {
+            outputAsHtml(markupBuilder)
+        }
+
+        return stringWriter.toString().replaceAll(">\\s+<", "><").trim()
+    }
+
+    void outputAsHtml(MarkupBuilder markupBuilder) {
+        ((DataModel) catalogueItem).dataClasses.each {dataClass ->
+            outputClassAsHtml(dataClass, markupBuilder)
+        }
+    }
+
+    void outputAsCdsHtml(MarkupBuilder markupBuilder) {
+        dataSetClasses.each {dataSetClass ->
+            dataSetClass.outputAsCdsHtml(markupBuilder)
+        }
+    }
+
+    void outputClassAsHtml(DataClass dataClass, MarkupBuilder markupBuilder) {
+        if (DataSetParser.isChoice(dataClass) && dataClass.label.startsWith("Choice")) {
+            markupBuilder.b "One of the following options must be used:"
+            dataClass.dataClasses.
+                sort {it.metadata.find {md -> md.key == "Web Order"}.value }.
+                eachWithIndex{DataClass childDataClass, int idx ->
+                    if (idx != 0) {
+                        markupBuilder.b "Or"
+                    }
+                    outputClassAsHtml(childDataClass, markupBuilder)
+                }
+        } else {
+
+            markupBuilder.table (class:"simpletable table table-striped table-sm") {
+                tr {
+                    th (colspan: 2, class: "thead-light") {
+                        b dataClass.label
+                        if(dataClass.description) {
+                            p dataClass.description
+                        }
+                    }
+                }
+                if(dataClass.importedDataElements) {
+                    markupBuilder.tr {
+                        td (width: "20%") { p "Mandation" }
+                        td (width: "80%") { p "Data Elements" }
+                    }
+                }
+                dataClass.importedDataElements.each {dataElement ->
+                    markupBuilder.tr {
+                        td ""
+                        td dataElement.label
+                    }
+                }
+            }
+        }
 
     }
 

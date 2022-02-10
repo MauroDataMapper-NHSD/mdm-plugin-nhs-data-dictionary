@@ -7,7 +7,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 
 import groovy.util.logging.Slf4j
-import groovy.util.slurpersupport.GPathResult
+import groovy.xml.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Paragraph
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.STEntry
