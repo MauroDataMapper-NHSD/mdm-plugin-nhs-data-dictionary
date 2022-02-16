@@ -36,30 +36,30 @@ class WebsiteUtility {
     }
 
 
-    try {
-        // source & destination directories
-        Path src = Paths.get("dir");
-        Path dest = Paths.get("dir-new");
-
-        // create stream for `src`
-        Stream<Path> files = Files.walk(src);
-
-        // copy all files and folders from `src` to `dest`
-        files.forEach(file -> {
-            try {
-                Files.copy(file, dest.resolve(src.relativize(file)),
-                           StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        // close the stream
-        files.close();
-
-    } catch (IOException ex) {
-        ex.printStackTrace();
-    }
+    //    try {
+    //        // source & destination directories
+    //        Path src = Paths.get("dir");
+    //        Path dest = Paths.get("dir-new");
+    //
+    //        // create stream for `src`
+    //        Stream<Path> files = Files.walk(src);
+    //
+    //        // copy all files and folders from `src` to `dest`
+    //        files.forEach(file -> {
+    //            try {
+    //                Files.copy(file, dest.resolve(src.relativize(file)),
+    //                           StandardCopyOption.REPLACE_EXISTING);
+    //            } catch (IOException e) {
+    //                e.printStackTrace();
+    //            }
+    //        });
+    //
+    //        // close the stream
+    //        files.close();
+    //
+    //    } catch (IOException ex) {
+    //        ex.printStackTrace();
+    //    }
 
 
 }
