@@ -10,11 +10,11 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
+import groovy.xml.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 class DataSetParser {
@@ -653,8 +653,7 @@ class DataSetParser {
                 // This should be a String...
                 currentValues.add(td.children()[i].children()[0])
             } else {
-                log.error("Unknown node!!\n{}",
-                          td.children()[i])
+                log.error("Unknown node!!\n{}", td.children()[i])
             }
         }
         allValues.add(currentValues)

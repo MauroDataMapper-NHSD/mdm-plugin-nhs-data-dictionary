@@ -34,8 +34,7 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent {
                 }
                 shortDescription = firstParagraph.substring(0, firstParagraph.indexOf(". ") + 1)
             } catch (Exception e) {
-                e.printStackTrace()
-                log.error("Couldn't parse: " + definition)
+                log.error("Couldn't parse the definition for $name because ${e.message}")
                 shortDescription = name
             }
         }
