@@ -467,9 +467,7 @@ class NhsDataDictionaryService {
             throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
         }
 
-        // TODO uncomment once ollie's pushed the work
-        //dataModelService.saveModelWithContent(coreDataModel, 1000)
-        dataModelService.saveModelWithContent(coreDataModel)
+        dataModelService.saveModelWithContent(coreDataModel, 1000)
         endTime = System.currentTimeMillis()
         log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
 
