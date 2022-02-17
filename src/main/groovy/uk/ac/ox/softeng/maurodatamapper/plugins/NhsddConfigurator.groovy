@@ -7,7 +7,7 @@ import static ch.qos.logback.classic.Level.INFO
 /**
  * @since 16/02/2022
  */
-class NhsdConfigurator extends MdmConfigurator {
+class NhsddConfigurator extends MdmConfigurator {
 
     @Override
     void configureLogLevels() {
