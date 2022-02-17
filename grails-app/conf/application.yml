@@ -121,6 +121,11 @@ grails:
             autoNewLine: false
 ---
 hibernate:
+    order_inserts: true
+    order_updates: true
+    jdbc:
+        batch_size: 50
+        batch_versioned_data: true
     cache:
         queries: false
         use_second_level_cache: true

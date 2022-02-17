@@ -25,54 +25,61 @@ class UrlMappings {
     static mappings = {
         // provide plugin url mappings here
 
-        post "/api/nhsdd/ingest" (controller: 'NhsDataDictionary', action: 'ingest')
+        group '/api', {
+            group '/nhsdd', {
+                post "/ingest"(controller: 'NhsDataDictionary', action: 'ingest')
 
-        get "/api/nhsdd/branches" (controller: 'NhsDataDictionary', action: 'branches')
+                group '/testing', {
+                    post "/buildTestData"(controller: 'testing', action: 'buildTestData')
+                    post "/branchTestData"(controller: 'testing', action: 'branchTestData')
+                }
 
-        group "/api/nhsdd/$versionedFolderId", {
+                get "/branches"(controller: 'NhsDataDictionary', action: 'branches')
 
-            get '/statistics' (controller: 'NhsDataDictionary', action: 'statistics')
-            get '/integrityChecks' (controller: 'NhsDataDictionary', action: 'integrityChecks')
+                group "/$versionedFolderId", {
 
-            group '/publish', {
+                    get '/statistics'(controller: 'NhsDataDictionary', action: 'statistics')
+                    get '/integrityChecks'(controller: 'NhsDataDictionary', action: 'integrityChecks')
 
-                get '/dita' (controller: 'NhsDataDictionary', action: 'publishDita')
+                    group '/publish', {
 
-                get '/changePaper' (controller: 'NhsDataDictionary', action: 'changePaper')
+                        get '/dita'(controller: 'NhsDataDictionary', action: 'publishDita')
 
-                // More endpoints to control publication to OntoServer
-                get '/codeSystem/validateBundle' (controller: 'NhsDataDictionary', action: 'codeSystemValidateBundle')
-                get '/valueSet/validateBundle' (controller: 'NhsDataDictionary', action: 'valueSetValidateBundle')
+                        get '/changePaper'(controller: 'NhsDataDictionary', action: 'changePaper')
+
+                        // More endpoints to control publication to OntoServer
+                        get '/codeSystem/validateBundle'(controller: 'NhsDataDictionary', action: 'codeSystemValidateBundle')
+                        get '/valueSet/validateBundle'(controller: 'NhsDataDictionary', action: 'valueSetValidateBundle')
+                    }
+
+                    group '/preview', {
+
+                        get '/allItemsIndex'(controller: 'NhsDataDictionary', action: 'allItemsIndex')
+
+                        '/businessDefinitions'(resources: 'businessDefinition', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'businessDefinition', action: 'whereUsed')
+                        }
+                        '/elements'(resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'element', action: 'whereUsed')
+                        }
+                        '/attributes'(resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'attribute', action: 'whereUsed')
+                        }
+                        '/classes'(resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'class', action: 'whereUsed')
+                        }
+                        '/dataSets'(resources: 'dataSet', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'dataSet', action: 'whereUsed')
+                        }
+                        '/supportingInformation'(resources: 'supportingInformation', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'supportingInformation', action: 'whereUsed')
+                        }
+                        '/xmlSchemaConstraints'(resources: 'xmlSchemaConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'xmlSchemaConstraint', action: 'whereUsed')
+                        }
+                    }
+                }
             }
-
-            group '/preview', {
-
-                get '/allItemsIndex' (controller: 'NhsDataDictionary', action: 'allItemsIndex')
-
-                '/businessDefinitions' (resources: 'businessDefinition', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'businessDefinition', action: 'whereUsed')
-                }
-                '/elements' (resources: 'element', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'element', action: 'whereUsed')
-                }
-                '/attributes' (resources: 'attribute', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'attribute', action: 'whereUsed')
-                }
-                '/classes' (resources: 'class', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'class', action: 'whereUsed')
-                }
-                '/dataSets' (resources: 'dataSet', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'dataSet', action: 'whereUsed')
-                }
-                '/supportingInformation' (resources: 'supportingInformation', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'supportingInformation', action: 'whereUsed')
-                }
-                '/xmlSchemaConstraints' (resources: 'xmlSchemaConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                    "/whereUsed" (controller: 'xmlSchemaConstraint', action: 'whereUsed')
-                }
-            }
-
-
         }
     }
 }

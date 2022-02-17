@@ -96,6 +96,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     DataModelService dataModelService
     VersionedFolderService versionedFolderService
     FolderService folderService
+    TestingService testingService
 
     @Autowired
     JsonViewTemplateEngine templateEngine
@@ -154,14 +155,14 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         // This is to test that ingesting again doesnt error and also to test the batch deletion code
         given:
         setupData()
-        cleanIngest('november2021.xml', 'November 2021')
+        testingService.cleanIngest(user, 'november2021.xml', 'November 2021')
         def xml = loadXml('november2021.xml')
         assert xml
 
         when: 'ingest again'
         log.info('---------- 2nd Ingest --------')
         // Delete old folder complete in 21 secs 547 ms with the batching
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null)
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null, true)
 
         then:
         noExceptionThrown()
@@ -189,7 +190,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         given:
         setupData()
         //        UUID releaseId = VersionedFolder.by().id().get()
-        UUID releaseId = cleanIngest('november2021.xml', 'November 2021', true, true)
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', true, true)
         VersionedFolder release = versionedFolderService.get(releaseId)
 
         when:
@@ -232,10 +233,10 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'MD01 : Merge Diff Nov 2021 ingest and branch'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021')
         VersionedFolder release = versionedFolderService.get(releaseId)
-        UUID mainBranchId = createBranch(release, VersionAwareConstraints.DEFAULT_BRANCH_NAME)
-        UUID testBranchId = createBranch(release, 'test')
+        UUID mainBranchId = testingService.createBranch(user, release, VersionAwareConstraints.DEFAULT_BRANCH_NAME)
+        UUID testBranchId = testingService.createBranch(user, release, 'test')
         VersionedFolder main = versionedFolderService.get(mainBranchId)
         VersionedFolder test = versionedFolderService.get(testBranchId)
 
@@ -257,22 +258,16 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
          */
         given:
         setupData()
-        // Ingest, finalise september
-        UUID releaseId = cleanIngest('september2021.xml', 'September 2021')
-        // Ingest november
-        UUID novBranchId = cleanIngest('november2021.xml', 'November 2021', false)
-        // Change the folder name and link to the sept release
-        VersionedFolder release = versionedFolderService.get(releaseId)
-        VersionedFolder novBranch = versionedFolderService.get(novBranchId)
-        novBranch.label = 'NHS Data Dictionary (September 2021)'
-        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(novBranch, release, UnloggedUser.instance)
-        versionedFolderService.save(novBranch, validate: false, flush: true)
-        sessionFactory.currentSession.flush()
-        sessionFactory.currentSession.clear()
+        // Ingest initial models and configure
+        def ids = testingService.buildTestData(user)
+        String releaseId = ids.v1
+        String novBranchId = ids.v2
+
         // Create a september branch
-        release = versionedFolderService.get(releaseId)
-        UUID septBranchId = createBranch(release, 'september_2021')
-        novBranch = versionedFolderService.get(novBranchId)
+        ids = testingService.branchTestData(user, releaseId)
+        String septBranchId = ids.v2
+
+        VersionedFolder novBranch = versionedFolderService.get(novBranchId)
         VersionedFolder septBranch = versionedFolderService.get(septBranchId)
 
 
@@ -304,23 +299,18 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
          */
         given:
         setupData()
-        // Ingest, finalise september
-        UUID releaseId = cleanIngest('september2021.xml', 'September 2021')
-        // Ingest november
-        UUID novBranchId = cleanIngest('november2021.xml', 'November 2021', false)
-        // Change the folder name and link to the sept release
-        VersionedFolder release = versionedFolderService.get(releaseId)
-        VersionedFolder novBranch = versionedFolderService.get(novBranchId)
-        novBranch.label = 'NHS Data Dictionary (September 2021)'
-        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(novBranch, release, UnloggedUser.instance)
-        versionedFolderService.save(novBranch, validate: false, flush: true)
-        sessionFactory.currentSession.flush()
-        sessionFactory.currentSession.clear()
+        // Ingest initial models and configure
+        def ids = testingService.buildTestData(user)
+        String releaseId = ids.v1
+        String novBranchId = ids.v2
+
         // Create a september branch
-        release = versionedFolderService.get(releaseId)
-        UUID septBranchId = createBranch(release, 'september_2021')
-        novBranch = versionedFolderService.get(novBranchId)
+        ids = testingService.branchTestData(user, releaseId)
+        String septBranchId = ids.v2
+
+        VersionedFolder novBranch = versionedFolderService.get(novBranchId)
         VersionedFolder septBranch = versionedFolderService.get(septBranchId)
+
         ObjectPatchData objectPatchData = new ObjectPatchData()
         String patchJson = new String(loadTestFile('mergePatches.json'))
         DataBindingUtils.bindObjectToInstance(objectPatchData, new JsonSlurper().parseText(patchJson))
@@ -340,7 +330,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'S01 : Obtain statistics for November 2021'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml', 'November 2021', false)
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', false)
         //        UUID releaseId = VersionedFolder.by().id().get()
 
         when:
@@ -365,7 +355,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'IN01 : Run integrity checks for November 2021'() {
         given:
         setupData()
-        UUID releaseId = cleanIngest('november2021.xml', 'November 2021')
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021')
         //        UUID releaseId = VersionedFolder.by().id().get()
 
         when:
@@ -383,28 +373,6 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         String actual = renderMergeDiffAsJson(mergeDiff)
         writeFile('mergeDiff.json', actual)
 
-    }
-
-    UUID cleanIngest(String name, String releaseDate, boolean finalised = true, boolean deletePrevious = false) {
-        def xml = loadXml(name)
-        assert xml
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null, deletePrevious)
-        sessionFactory.currentSession.flush()
-        sessionFactory.currentSession.clear()
-        dd.id
-    }
-
-    UUID createBranch(VersionedFolder release, String branchName) {
-        log.info('---------- Starting {} branch ----------', branchName)
-        VersionedFolder branch = versionedFolderService.createNewBranchModelVersion(branchName,
-                                                                                    release, user, true,
-                                                                                    PublicAccessSecurityPolicyManager.instance as UserSecurityPolicyManager)
-        VersionedFolder validated = folderService.validate(branch) as VersionedFolder
-        assert !validated.hasErrors()
-        VersionedFolder saved = versionedFolderService.save(validated, validate: false, flush: true)
-        sessionFactory.currentSession.flush()
-        sessionFactory.currentSession.clear()
-        saved.id
     }
 
     void outputChildFolderContents(Folder parentFolder, String variableName) {
