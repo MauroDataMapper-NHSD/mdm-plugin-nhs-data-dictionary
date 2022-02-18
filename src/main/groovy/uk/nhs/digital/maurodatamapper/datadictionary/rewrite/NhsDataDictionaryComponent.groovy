@@ -59,7 +59,7 @@ trait NhsDataDictionaryComponent {
             this.name = xml."class".websitePageHeading.text()
         }*/
 
-        String cleanedDefinition = xml.definition.text().
+/*        String cleanedDefinition = xml.definition.text().
             replace("&amp;", "&").
             replaceAll( "&([^;]+(?!(?:\\w|;)))", "&amp;\$1" ).
             replace("<", "&lt;").
@@ -67,6 +67,8 @@ trait NhsDataDictionaryComponent {
             replace("\u00a0", " ")
         definition = DDHelperFunctions.parseHtml(cleanedDefinition)
         definition = definition.replaceAll("\\s+", " ")
+*/
+        definition = (DDHelperFunctions.parseHtml(xml.definition)).replace("\u00a0", " ")
 
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
             String xmlValue = xml[entry.value][0].text()

@@ -21,7 +21,7 @@ class BrokenLinks implements IntegrityCheck {
         Map<String, List<NhsDataDictionaryComponent>> linkComponentMap = [:]
         List<NhsDataDictionaryComponent> errorComponents = []
         dataDictionary.allComponents.
-            findAll {!it.isRetired() }.
+            findAll {!it.isRetired() && it.definition }.
             each {component ->
                 Matcher matcher = pattern.matcher(component.definition)
                 while(matcher.find()) {

@@ -41,7 +41,9 @@ class UrlMappings {
                     get '/statistics'(controller: 'NhsDataDictionary', action: 'statistics')
                     get '/integrityChecks'(controller: 'NhsDataDictionary', action: 'integrityChecks')
 
-                    group '/publish', {
+            get '/diff' (controller: 'NhsDataDictionary', action: 'diff')
+
+            group '/publish', {
 
                         get '/dita'(controller: 'NhsDataDictionary', action: 'publishDita')
 
