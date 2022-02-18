@@ -32,6 +32,7 @@ class UrlMappings {
                 group '/testing', {
                     post "/buildTestData"(controller: 'testing', action: 'buildTestData')
                     post "/branchTestData"(controller: 'testing', action: 'branchTestData')
+                    get '/diff'(controller: 'testing', action: 'diff')
                 }
 
                 get "/branches"(controller: 'NhsDataDictionary', action: 'branches')
@@ -41,9 +42,8 @@ class UrlMappings {
                     get '/statistics'(controller: 'NhsDataDictionary', action: 'statistics')
                     get '/integrityChecks'(controller: 'NhsDataDictionary', action: 'integrityChecks')
 
-            get '/diff' (controller: 'NhsDataDictionary', action: 'diff')
 
-            group '/publish', {
+                    group '/publish', {
 
                         get '/dita'(controller: 'NhsDataDictionary', action: 'publishDita')
 

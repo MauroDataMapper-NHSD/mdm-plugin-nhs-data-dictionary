@@ -3,10 +3,12 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.security.basic.PublicAccessSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.security.basic.UnloggedUser
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Transactional
 import grails.util.BuildSettings
@@ -91,5 +93,24 @@ class TestingService {
         sessionFactory.currentSession.clear()
         log.info('---------- Finished {} branch ----------', branchName)
         saved.id
+    }
+
+
+    def diff(UUID versionedFolderId) {
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+
+        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+
+        // Load the things into memory
+        //NhsDataDictionary thisDataDictionary = buildDataDictionary(versionedFolderId)
+        //NhsDataDictionary previousDataDictionary = buildDataDictionary(versionedFolderId)
+        //ObjectDiff objectDiff = versionedFolderService.getDiffForVersionedFolders(thisDictionary, previousVersion)
+
+        log.info('---------- Starting merge diff ----------')
+        long start = System.currentTimeMillis()
+        MergeDiff<VersionedFolder> objectDiff = versionedFolderService.getMergeDiffForVersionedFolders(thisDictionary, previousVersion)
+        log.info('Merge Diff took {}', Utils.timeTaken(start))
+
+        return objectDiff
     }
 }
