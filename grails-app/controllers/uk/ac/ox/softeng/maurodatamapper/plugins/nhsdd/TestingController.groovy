@@ -24,4 +24,11 @@ class TestingController implements ResourcelessMdmController {
         respond(ids)
     }
 
+
+    def diff() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond(testingService.diff(versionedFolderId))
+
+    }
+
 }
