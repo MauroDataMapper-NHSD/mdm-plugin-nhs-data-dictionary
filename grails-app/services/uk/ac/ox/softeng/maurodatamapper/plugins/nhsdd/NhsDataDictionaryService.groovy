@@ -6,6 +6,8 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
+import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -568,4 +570,22 @@ class NhsDataDictionaryService {
     }
 
 
+
+    def diff(UUID versionedFolderId) {
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+
+        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+
+        // Load the things into memory
+        //NhsDataDictionary thisDataDictionary = buildDataDictionary(versionedFolderId)
+        //NhsDataDictionary previousDataDictionary = buildDataDictionary(versionedFolderId)
+        //ObjectDiff objectDiff = versionedFolderService.getDiffForVersionedFolders(thisDictionary, previousVersion)
+
+        log.info('---------- Starting merge diff ----------')
+        long start = System.currentTimeMillis()
+        MergeDiff<VersionedFolder> objectDiff = versionedFolderService.getMergeDiffForVersionedFolders(thisDictionary, previousVersion)
+        log.info('Merge Diff took {}', Utils.timeTaken(start))
+
+        return objectDiff
+    }
 }

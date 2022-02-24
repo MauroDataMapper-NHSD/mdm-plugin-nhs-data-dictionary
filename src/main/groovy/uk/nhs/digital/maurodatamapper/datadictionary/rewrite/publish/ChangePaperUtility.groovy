@@ -2,6 +2,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.ShortDesc
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.Title
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
@@ -102,14 +103,25 @@ class ChangePaperUtility {
             "Sponsor": "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"
         ]
 
-        def backgroundContent = { dl {
-            properties.each { key, value ->
-                dlentry {
-                    dt key
-                    dd value
+        def backgroundContent = {
+            dl {
+                properties.each { key, value ->
+                    dlentry {
+                        dt key
+                        dd value
+                    }
                 }
             }
-        } }
+            p  {
+                "Note: New text is shown with a "
+                span (class: "new", "blue background")
+                ". Deleted text is "
+                span (class: "deleted", "crossed out")
+                ". Retired text is shown "
+                span (class: "retired", "in grey")
+                "."
+            }
+        }
 
         backgroundTopic.body = new Body(backgroundContent)
         return backgroundTopic
@@ -125,13 +137,14 @@ class ChangePaperUtility {
 
 
     static def backgroundText = {
-        p "NHS England and NHS Improvement have worked together since 1 April 2019 and are now known as a single organisation."
-        p "The NHS England and NHS Improvement websites have now merged; therefore changes are required to the NHS Data Model and Dictionary to support the change"
-        p "This Data Dictionary Change Notice (DDCN):"
-        ul {
-            li "Updates the NHS England NHS Business Definition to create a single definition for NHS England and NHS Improvement"
-            li "Retires the NHS Improvement NHS Business Definition"
-            li "Updates all items that reference NHS England and NHS Improvement to reflect the change"
+        p "This Change Request adds the ???? Data Set and supporting definitions to the NHS Data Model and Dictionary to support the Information Standard."
+        p "A short demonstration is available which describes \"How to Read an NHS Data Model and Dictionary Change Request\", in an easy to " +
+          "understand screen capture including a voice over and readable captions. This demonstration can be viewed at: https://datadictionary.nhs" +
+          ".uk/elearning/change_request/index.html."
+        p {
+            "Note: if the web page does not open, please copy the link and paste into the web browser. A guide to how to use the demonstration can " +
+            "be found at: "
+            a (href: "https://datadictionary.nhs.uk/help/demonstrations.html", "Demonstrations")
         }
     }
 
@@ -197,9 +210,17 @@ class ChangePaperUtility {
 
     static Topic generateChangeTopic(Change change, Map<String, String> pathLookup, String stereotype ) {
         Topic subTopic = new Topic(id: change.newItem.getDitaKey(), title: new Title(change.newItem.name), toc: Toc.NO)
-        String definition = replaceLinksInDescription(change.newItem.definition, pathLookup)
-        subTopic.body = new Body(Html.tidyAndClean("<p>Change to ${stereotype}: ${change.changeText(stereotype)}</p>\n" +
-                                                   "<p>${definition}</p>").toString())
+        String newDefinition = replaceLinksInDescription(change.newItem.definition, pathLookup)
+
+        subTopic.shortDesc = new ShortDesc("Change to ${stereotype}: ${change.changeText(stereotype)}".toString())
+        if(change.changeType == "Description") {
+            String oldDefinition = replaceLinksInDescription(change.oldItem.definition, pathLookup)
+            subTopic.body = new Body("<div outputclass=\"deleted\">${Html.tidyAndClean(oldDefinition)}</div>".toString() +
+                                                       "<div outputclass=\"new\">${Html.tidyAndClean(newDefinition)}</div>".toString())
+        } else {
+            subTopic.body = new Body("<div>${Html.tidyAndClean(newDefinition)}</div>".toString())
+        }
+
         return subTopic
 
     }

@@ -46,7 +46,7 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
                 }
             } catch (Exception e) {
                 log.error("Couldn't parse: " + definition)
-                shortDescription = code
+                shortDescription = name
             }
         }
         //shortDescription = shortDescription.replaceAll("\\s+", " ")
