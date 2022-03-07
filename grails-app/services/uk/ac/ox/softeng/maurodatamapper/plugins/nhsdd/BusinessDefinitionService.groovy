@@ -42,6 +42,7 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
     NhsDDBusinessDefinition getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDBusinessDefinition businessDefinition = new NhsDDBusinessDefinition()
         nhsDataDictionaryComponentFromItem(catalogueItem, businessDefinition)
+        businessDefinition.dataDictionary = dataDictionary
         return businessDefinition
     }
 

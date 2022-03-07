@@ -383,4 +383,10 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         })
         return codes
     }
+
+    NhsDataDictionary newDataDictionary() {
+        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
+        nhsDataDictionaryService.setTemplateText(nhsDataDictionary)
+        return nhsDataDictionary
+    }
 }

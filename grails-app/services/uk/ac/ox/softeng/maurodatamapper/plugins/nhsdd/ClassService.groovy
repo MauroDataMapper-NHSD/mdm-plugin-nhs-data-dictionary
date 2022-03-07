@@ -213,6 +213,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDClass clazz = new NhsDDClass()
         nhsDataDictionaryComponentFromItem(catalogueItem, clazz)
+        clazz.dataDictionary = dataDictionary
         return clazz
     }
 
