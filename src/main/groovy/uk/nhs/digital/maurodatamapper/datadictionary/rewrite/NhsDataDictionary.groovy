@@ -30,6 +30,9 @@ class NhsDataDictionary {
 
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 
+    String retiredItemText = ""
+    String preparatoryItemText = ""
+
 
     Map<String, NhsDDAttribute> attributes = [:]
     Map<String, NhsDDElement> elements = [:]

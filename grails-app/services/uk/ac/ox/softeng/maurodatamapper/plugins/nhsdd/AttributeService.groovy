@@ -30,7 +30,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     @Override
     NhsDDAttribute show(UUID versionedFolderId, String id) {
         DataElement attributeElement = dataElementService.get(id)
-        NhsDDAttribute attribute = getNhsDataDictionaryComponentFromCatalogueItem(attributeElement, new NhsDataDictionary())
+        NhsDDAttribute attribute = getNhsDataDictionaryComponentFromCatalogueItem(attributeElement, newDataDictionary())
         attribute.instantiatedByElements.addAll (elementService.getAllForAttribute(versionedFolderId, attribute))
         return attribute
     }
@@ -43,7 +43,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
         linkedAttributeList.collect {elementName ->
             dataElements.find {it.label == elementName}
         }.collect {
-            getNhsDataDictionaryComponentFromCatalogueItem(it, new NhsDataDictionary())
+            getNhsDataDictionaryComponentFromCatalogueItem(it, newDataDictionary())
         }
 
     }
@@ -85,6 +85,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 attribute.codes.add(code)
             }
         }
+        attribute.dataDictionary = dataDictionary
         return attribute
 
     }

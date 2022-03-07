@@ -104,6 +104,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDDataSet dataSet = new NhsDDDataSet()
         nhsDataDictionaryComponentFromItem(catalogueItem, dataSet)
+        dataSet.dataDictionary = dataDictionary
         return dataSet
     }
 

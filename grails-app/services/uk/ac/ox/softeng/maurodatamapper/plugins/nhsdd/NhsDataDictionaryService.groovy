@@ -1,6 +1,8 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
+import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiProperty
+import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiPropertyService
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
@@ -58,6 +60,17 @@ import java.util.zip.ZipOutputStream
 @Transactional
 class NhsDataDictionaryService {
 
+    static final Map<String, String> KNOWN_KEYS = [
+        'retired.template': '<p>This item has been retired from the NHS Data Model and Dictionary.</p>' +
+                           '<p>Access to the last live version of this item can be obtained by emailing <a href=\"information.standards@nhs' +
+                           '.net\">information.standards@nhs.net</a> with "NHS Data Model and Dictionary - Archive Request" in the email subject ' +
+                            'line.</p>',
+        'preparatory.template': '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>']
+
+    static final String NHSDD_PROPERTY_CATEGORY = 'NHS Data Dictionary'
+
+
+
     TerminologyService terminologyService
     DataModelService dataModelService
     FolderService folderService
@@ -82,6 +95,9 @@ class NhsDataDictionaryService {
     def branches(UserSecurityPolicyManager userSecurityPolicyManager) {
         List<VersionedFolder> versionedFolders = VersionedFolder.findAll().findAll {
             it.label.startsWith("NHS Data Dictionary")
+        }
+        if(versionedFolders.size() == 0) {
+            return []
         }
 
         VersionedFolder oldestAncestor = versionedFolderService.findOldestAncestor(versionedFolders[0])
@@ -120,7 +136,7 @@ class NhsDataDictionaryService {
 
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
         long totalStart = System.currentTimeMillis()
-        NhsDataDictionary dataDictionary = new NhsDataDictionary()
+        NhsDataDictionary dataDictionary = newDataDictionary()
 
         VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
 
@@ -311,7 +327,7 @@ class NhsDataDictionaryService {
 
 
         //NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
-        NhsDataDictionary dataDictionary = new NhsDataDictionary()
+        NhsDataDictionary dataDictionary = newDataDictionary()
         String outputPath = "/Users/james/Desktop/ditaTest/"
 
         WebsiteUtility.generateWebsite(dataDictionary, outputPath)
@@ -587,5 +603,22 @@ class NhsDataDictionaryService {
         log.info('Merge Diff took {}', Utils.timeTaken(start))
 
         return objectDiff
+    }
+
+    void setTemplateText(NhsDataDictionary dataDictionary) {
+        ApiProperty.findAllByCategory(NHSDD_PROPERTY_CATEGORY).each {apiProperty ->
+            if(apiProperty.key == "retired.template") {
+                dataDictionary.retiredItemText = apiProperty.value
+            }
+            if(apiProperty.key == "preparatory.template") {
+                dataDictionary.preparatoryItemText = apiProperty.value
+            }
+        }
+        if(!dataDictionary.preparatoryItemText) {
+            dataDictionary.preparatoryItemText = KNOWN_KEYS["preparatory.template"]
+        }
+        if(!dataDictionary.retiredItemText) {
+            dataDictionary.preparatoryItemText = KNOWN_KEYS["retired.template"]
+        }
     }
 }

@@ -39,6 +39,7 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
     NhsDDSupportingInformation getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDSupportingInformation supportingInformation = new NhsDDSupportingInformation()
         nhsDataDictionaryComponentFromItem(catalogueItem, supportingInformation)
+        supportingInformation.dataDictionary = dataDictionary
         return supportingInformation
     }
 

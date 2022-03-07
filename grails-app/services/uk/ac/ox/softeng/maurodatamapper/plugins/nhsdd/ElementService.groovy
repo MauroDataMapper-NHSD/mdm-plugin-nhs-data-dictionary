@@ -37,7 +37,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     @Override
     NhsDDElement show(UUID versionedFolderId, String id) {
         DataElement elementElement = dataElementService.get(id)
-        NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, new NhsDataDictionary())
+        NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, newDataDictionary())
         element.instantiatesAttributes.addAll(attributeService.getAllForElement(versionedFolderId, element))
         return element
     }
@@ -157,7 +157,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         dataElements.findAll {dataElement ->
             attributeListIncludesName(dataElement, nhsDDAttribute.name)
         }.collect {
-            getNhsDataDictionaryComponentFromCatalogueItem(it, new NhsDataDictionary())
+            getNhsDataDictionaryComponentFromCatalogueItem(it, newDataDictionary())
         }
     }
 
@@ -211,6 +211,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
                 element.codes.add(code)
             }
         }
+        element.dataDictionary = dataDictionary
         return element
     }
 

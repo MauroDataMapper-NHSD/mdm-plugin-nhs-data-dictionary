@@ -11,6 +11,8 @@ trait NhsDataDictionaryComponent {
     abstract String getStereotype()
     abstract String getStereotypeForPreview()
 
+    NhsDataDictionary dataDictionary
+
     CatalogueItem catalogueItem
     String catalogueItemModelId
     String catalogueItemParentId
@@ -49,7 +51,7 @@ trait NhsDataDictionaryComponent {
         if(xml.name.text()) {
             this.name = xml.name.text().replace("_", " ")
         } else { // This should only apply for XmlSchemaConstraints
-            this.name = xml."class".name.text()
+            this.name = xml."class".name.text().replace("_", " ")
         }
 
         /*  We're doing capitalised items now
@@ -120,6 +122,16 @@ trait NhsDataDictionaryComponent {
     abstract String getMauroPath()
     String getDitaKey() {
         getStereotype().replace(" ", "") + "_" + getNameWithoutNonAlphaNumerics()
+    }
+
+    String getDescription() {
+        if(dataDictionary && isRetired()) {
+            return dataDictionary.retiredItemText
+        } else if(dataDictionary && isPreparatory()) {
+            return dataDictionary.preparatoryItemText
+        } else {
+            return definition
+        }
     }
 
 
