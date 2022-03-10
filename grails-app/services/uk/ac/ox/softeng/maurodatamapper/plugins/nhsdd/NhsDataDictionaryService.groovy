@@ -62,7 +62,7 @@ class NhsDataDictionaryService {
 
     static final Map<String, String> KNOWN_KEYS = [
         'retired.template': '<p>This item has been retired from the NHS Data Model and Dictionary.</p>' +
-                           '<p>Access to the last live version of this item can be obtained by emailing <a href=\"information.standards@nhs' +
+                           '<p>Access to the last live version of this item can be obtained by emailing <a href=\"mailto:information.standards@nhs' +
                            '.net\">information.standards@nhs.net</a> with "NHS Data Model and Dictionary - Archive Request" in the email subject ' +
                             'line.</p>',
         'preparatory.template': '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>']
