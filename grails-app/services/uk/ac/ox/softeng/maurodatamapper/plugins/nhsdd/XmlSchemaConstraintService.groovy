@@ -18,6 +18,7 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
     NhsDDXMLSchemaConstraint show(UUID versionedFolderId, String id) {
         Term xmlSchemaConstraintTerm = termService.get(id)
         NhsDDXMLSchemaConstraint xmlSchemaConstraint = getNhsDataDictionaryComponentFromCatalogueItem(xmlSchemaConstraintTerm, null)
+        xmlSchemaConstraint.definition = convertLinksInDescription(versionedFolderId, xmlSchemaConstraint.getDescription())
         return xmlSchemaConstraint
     }
 

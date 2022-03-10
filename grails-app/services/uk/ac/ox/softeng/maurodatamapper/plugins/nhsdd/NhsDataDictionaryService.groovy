@@ -295,29 +295,31 @@ class NhsDataDictionaryService {
         return attributeElements
     }
 
-    List<StereotypedCatalogueItem> allItemsIndex(UUID versionedFolderId, boolean includeRetired = true) {
+    List<StereotypedCatalogueItem> allItemsIndex(UUID versionedFolderId) {
+        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+
         List<StereotypedCatalogueItem> allItems = []
 
-        allItems.addAll(dataSetService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "dataSet")
+        allItems.addAll(dataDictionary.dataSets.values().collect {
+            new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(classService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "class")
+        allItems.addAll(dataDictionary.classes.values().collect {
+            new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(elementService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "element")
+        allItems.addAll(dataDictionary.elements.values().collect {
+            new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(attributeService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "attribute")
+        allItems.addAll(dataDictionary.attributes.values().collect {
+            new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(businessDefinitionService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "businessDefinition")
+        allItems.addAll(dataDictionary.businessDefinitions.values().collect {
+            new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(supportingInformationService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "supportingInformation")
+        allItems.addAll(dataDictionary.supportingInformation.values().collect {
+            new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(xmlSchemaConstraintService.index(versionedFolderId, includeRetired).collect {
-            new StereotypedCatalogueItem(it, "xmlSchemaConstraint")
+        allItems.addAll(dataDictionary.xmlSchemaConstraints.values().collect {
+            new StereotypedCatalogueItem(it)
         })
         return allItems.sort()
     }
@@ -603,6 +605,12 @@ class NhsDataDictionaryService {
         log.info('Merge Diff took {}', Utils.timeTaken(start))
 
         return objectDiff
+    }
+
+    NhsDataDictionary newDataDictionary() {
+        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
+        setTemplateText(nhsDataDictionary)
+        return nhsDataDictionary
     }
 
     void setTemplateText(NhsDataDictionary dataDictionary) {

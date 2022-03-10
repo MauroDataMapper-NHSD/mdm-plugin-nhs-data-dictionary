@@ -8,4 +8,5 @@ json {
     catalogueId stereotypedCatalogueItem.id
     name stereotypedCatalogueItem.label
     stereotype stereotypedCatalogueItem.stereotype
+    isRetired stereotypedCatalogueItem.isRetired
 }

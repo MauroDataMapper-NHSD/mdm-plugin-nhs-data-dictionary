@@ -135,5 +135,14 @@ trait NhsDataDictionaryComponent {
     }
 
 
+    String getNameWithRetired() {
+        if(isRetired()) {
+            return this.name + " (Retired)"
+        } else {
+            return this.name
+        }
+    }
+
+
 
 }

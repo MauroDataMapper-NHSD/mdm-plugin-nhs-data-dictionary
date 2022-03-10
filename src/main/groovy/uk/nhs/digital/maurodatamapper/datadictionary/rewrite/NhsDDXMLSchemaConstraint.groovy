@@ -32,7 +32,7 @@ class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
     }
 
     String getMauroPath() {
-        return "tm:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}|te:${name}"
+        return "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${name}"
     }
 
 }

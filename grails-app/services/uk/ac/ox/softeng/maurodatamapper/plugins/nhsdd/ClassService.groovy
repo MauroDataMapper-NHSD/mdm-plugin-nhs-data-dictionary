@@ -26,6 +26,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     NhsDDClass show(UUID versionedFolderId, String id) {
         DataClass classDataClass = dataClassService.get(id)
         NhsDDClass dataClass = getNhsDataDictionaryComponentFromCatalogueItem(classDataClass, null)
+        dataClass.definition = convertLinksInDescription(versionedFolderId, dataClass.getDescription())
         return dataClass
     }
     /*

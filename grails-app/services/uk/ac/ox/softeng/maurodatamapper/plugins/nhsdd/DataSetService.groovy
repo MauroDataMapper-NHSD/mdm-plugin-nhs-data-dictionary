@@ -37,6 +37,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     NhsDDDataSet show(UUID versionedFolderId, String id) {
         DataModel dataModel = dataModelService.get(id)
         NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, null)
+        dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
         return dataSet
     }
 
