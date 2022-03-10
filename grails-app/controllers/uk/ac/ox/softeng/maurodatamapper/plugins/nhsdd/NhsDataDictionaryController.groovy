@@ -1,6 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
@@ -23,9 +24,10 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         }
         def xml = xmlSlurper.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
-        nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params.folderVersionNo, params.prevVersion)
+        VersionedFolder newVersionedFolder = nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params
+            .folderVersionNo, params.prevVersion)
 
-        respond([])
+        respond([newVersionedFolder.id.toString()])
 
     }
 
@@ -61,8 +63,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     }
 
     def allItemsIndex() {
-        respond nhsDataDictionaryService.allItemsIndex(
-            UUID.fromString(params.versionedFolderId), params.boolean('includeRetired') ?: true)
+        respond nhsDataDictionaryService.allItemsIndex(UUID.fromString(params.versionedFolderId))
     }
 
     def publishDita() {

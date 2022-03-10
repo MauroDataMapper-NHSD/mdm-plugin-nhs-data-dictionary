@@ -7,9 +7,9 @@ model {
 
 json {
         catalogueId nhsDataDictionaryComponent.catalogueItem.id.toString()
-        name        nhsDataDictionaryComponent.name
+        name        nhsDataDictionaryComponent.getNameWithRetired()
         stereotype  stereotype
         shortDescription nhsDataDictionaryComponent.otherProperties["shortDescription"]
-        description nhsDataDictionaryComponent.getDescription()
+        description nhsDataDictionaryComponent.definition
         alsoKnownAs nhsDataDictionaryComponent.getAliases()
 }

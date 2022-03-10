@@ -87,20 +87,24 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
             collect {new StereotypedCatalogueItem(it)}
     }
 
-    static Pattern pattern = Pattern.compile("\\[([^\\]]*)\\]\\(([^\\)]*)\\)")
+    //static Pattern pattern = Pattern.compile("\\[([^\\]]*)\\]\\(([^\\)]*)\\)")
+    static Pattern pattern = Pattern.compile("<a[\\s]*href=\"([^\"]*)\"[\\s]*>([^<]*)</a>")
 
-    String convertLinksInDescription(String branch, String description) {
+
+    String convertLinksInDescription(UUID branchId, String description) {
 
         String newDescription = description
+        log.debug(newDescription)
         Matcher matcher = pattern.matcher(description)
         while (matcher.find()) {
-            String[] path = matcher.group(2).split("\\|")
+            String[] path = matcher.group(1).split("\\|")
             CatalogueItem foundCatalogueItem = getByPath(path)
             if (foundCatalogueItem) {
                 String stereotype = getStereotypeByPath(path)
                 String catalogueId = foundCatalogueItem.id.toString()
                 String cssClass = stereotype
-                String replacementLink = """<a class="${cssClass}" href="#/preview/${branch}/${stereotype}/${catalogueId}">${matcher.group(1)}</a>"""
+                String replacementLink = """<a class="${cssClass}" href="#/preview/${branchId.toString()}/${stereotype}/${catalogueId}">${matcher
+                    .group(2)}</a>"""
                 newDescription = newDescription.replace(matcher.group(0), replacementLink)
             }
         }
@@ -182,6 +186,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
             return dm
         }
         log.debug("Cannot find by path!")
+        log.debug(path.toString())
         log.debug(path[1])
 
         return null
@@ -384,9 +389,4 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         return codes
     }
 
-    NhsDataDictionary newDataDictionary() {
-        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
-        nhsDataDictionaryService.setTemplateText(nhsDataDictionary)
-        return nhsDataDictionary
-    }
 }

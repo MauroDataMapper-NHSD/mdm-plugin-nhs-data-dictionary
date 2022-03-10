@@ -65,6 +65,6 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
     }
 
     String getMauroPath() {
-        return "tm:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}|te:${name}"
+        return "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}|tm:${name}"
     }
 }
