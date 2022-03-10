@@ -97,15 +97,28 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         log.debug(newDescription)
         Matcher matcher = pattern.matcher(description)
         while (matcher.find()) {
-            String[] path = matcher.group(1).split("\\|")
-            CatalogueItem foundCatalogueItem = getByPath(path)
-            if (foundCatalogueItem) {
-                String stereotype = getStereotypeByPath(path)
-                String catalogueId = foundCatalogueItem.id.toString()
-                String cssClass = stereotype
-                String replacementLink = """<a class="${cssClass}" href="#/preview/${branchId.toString()}/${stereotype}/${catalogueId}">${matcher
-                    .group(2)}</a>"""
-                newDescription = newDescription.replace(matcher.group(0), replacementLink)
+            if(matcher.group(1).startsWith('http') ||
+               matcher.group(1).startsWith('mailto')
+            ) {
+                // ignore
+            } else {
+                try {
+                    String[] path = matcher.group(1).split("\\|")
+                    CatalogueItem foundCatalogueItem = getByPath(path)
+                    if (foundCatalogueItem) {
+                        String stereotype = getStereotypeByPath(path)
+                        String catalogueId = foundCatalogueItem.id.toString()
+                        String cssClass = stereotype
+                        String replacementLink = """<a class="${cssClass}" href="#/preview/${branchId.toString()}/${stereotype}/${catalogueId}">${
+                            matcher
+                                .group(2)}</a>"""
+                        newDescription = newDescription.replace(matcher.group(0), replacementLink)
+                    }
+                } catch(Exception e) {
+                    log.debug(e.message)
+                    log.debug(description)
+                }
+
             }
         }
         return newDescription?.trim() ?: null
