@@ -35,7 +35,7 @@ class TestingService {
     @Autowired
     SessionFactory sessionFactory
 
-    def buildTestData(User user) {
+    Map<String, String> buildTestData(User user) {
         // Ingest, finalise september
         UUID releaseId = cleanIngest(user, 'september2021.xml', 'September 2021')
         // Ingest november
@@ -48,16 +48,19 @@ class TestingService {
         versionedFolderService.save(novBranch, validate: false, flush: true)
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
-        new Tuple2(releaseId.toString(), novBranchId.toString())
+
+        [releaseId  : releaseId.toString(),
+         novBranchId: novBranchId.toString()]
     }
 
-    def branchTestData(User user, String releaseId) {
+    Map<String, String> branchTestData(User user, String releaseId) {
         // Create a september branch
         VersionedFolder release = versionedFolderService.get(releaseId)
         UUID septBranchId = createBranch(user, release, 'september_2021')
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
-        new Tuple2(releaseId, septBranchId.toString())
+        [releaseId  : releaseId.toString(),
+         novBranchId: septBranchId.toString()]
 
     }
 
