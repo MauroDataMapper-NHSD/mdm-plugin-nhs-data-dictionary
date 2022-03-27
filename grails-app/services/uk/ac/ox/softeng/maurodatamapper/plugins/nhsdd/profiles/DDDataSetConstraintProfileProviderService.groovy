@@ -15,23 +15,40 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  */
-package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
+package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles
 
+import uk.ac.ox.softeng.maurodatamapper.profile.provider.JsonProfileProviderService
 
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import groovy.util.logging.Slf4j
 
-class XmlSchemaConstraintController extends DataDictionaryComponentController<Term> {
-    static responseFormats = ['json', 'xml']
+@Slf4j
+class DDDataSetConstraintProfileProviderService extends JsonProfileProviderService {
 
     @Override
-    String getParameterIdKey() {
-        "xmlSchemaConstraintId"
+    String getMetadataNamespace() {
+        'uk.nhs.datadictionary.Data set constraint'
+    }
+
+    @Override
+    String getDisplayName() {
+        'NHS Data Dictionary - Data set Constraint'
+    }
+
+    @Override
+    String getVersion() {
+        '1.0.0'
+    }
+
+    @Override
+    String getJsonResourceFile() {
+        return 'dataSetConstraintProfile.json'
+    }
+
+    @Override
+    List<String> profileApplicableForDomains() {
+        return ['Term']
     }
 
 
 
-    @Override
-    DataDictionaryComponentService getService() {
-        return xmlSchemaConstraintService
-    }
 }

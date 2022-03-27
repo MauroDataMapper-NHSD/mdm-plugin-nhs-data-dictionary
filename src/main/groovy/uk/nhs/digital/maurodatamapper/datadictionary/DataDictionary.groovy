@@ -49,7 +49,7 @@ class DataDictionary {
     Map<String, DDWebPage> webPages = [:]
     Map<String, DDBusinessDefinition> businessDefinitions = [:]
     Map<String, DDSupportingDefinition> supportingInformation = [:]
-    Map<String, DDXmlSchemaConstraint> xmlSchemaConstraints = [:]
+    Map<String, DDDataSetConstraint> dataSetConstraints = [:]
 
     Map<String, DataType> dataTypes = [:]
 
@@ -58,7 +58,7 @@ class DataDictionary {
     UUID coreDataModelId
     UUID businessDefinitionsTerminologyId
     UUID supportingDefinitionsTerminologyId
-    UUID xmlSchemaConstraintsTerminologyId
+    UUID dataSetConstraintsTerminologyId
     UUID webPagesTerminologyId
 
     Map<String, String> urlMap = [:]
@@ -141,8 +141,8 @@ class DataDictionary {
     }
 
 
-    Terminology buildXmlSchemaConstraintsTerminology() {
-        Terminology xmlSchemaConstraintsTerminology = new Terminology(label: XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
+    Terminology buildDataSetConstraintsTerminology() {
+        Terminology dataSetConstraintsTerminology = new Terminology(label: DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
         TermRelationshipType broaderThan = new TermRelationshipType(
                 label: 'broaderThan',
                 description: 'Broader Than',
@@ -155,18 +155,18 @@ class DataDictionary {
                 displayLabel: 'Narrower Than',
                 childRelationship: true
         )
-        xmlSchemaConstraintsTerminology.addToTermRelationshipTypes(broaderThan)
-        xmlSchemaConstraintsTerminology.addToTermRelationshipTypes(narrowerThan)
+        dataSetConstraintsTerminology.addToTermRelationshipTypes(broaderThan)
+        dataSetConstraintsTerminology.addToTermRelationshipTypes(narrowerThan)
 
-        xmlSchemaConstraints.values().each { xmlSchemaConstraint ->
+        dataSetConstraints.values().each { dataSetConstraint ->
 
-            Term thisTerm = (Term) xmlSchemaConstraint.toCatalogueItem()
+            Term thisTerm = (Term) dataSetConstraint.toCatalogueItem()
             thisTerm.depth = 1
-            thisTerm.terminology = xmlSchemaConstraintsTerminology
-            xmlSchemaConstraintsTerminology.addToTerms(thisTerm)
+            thisTerm.terminology = dataSetConstraintsTerminology
+            dataSetConstraintsTerminology.addToTerms(thisTerm)
 
         }
-        return xmlSchemaConstraintsTerminology
+        return dataSetConstraintsTerminology
 
     }
 
@@ -271,7 +271,7 @@ class DataDictionary {
 
         returnValues.addAll(businessDefinitions.values())
         returnValues.addAll(supportingInformation.values())
-        returnValues.addAll(xmlSchemaConstraints.values())
+        returnValues.addAll(dataSetConstraints.values())
 
         return returnValues
     }

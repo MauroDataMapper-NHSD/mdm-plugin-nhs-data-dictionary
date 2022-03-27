@@ -22,7 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Topic
 
-class DDXmlSchemaConstraint extends DataDictionaryComponent<Term> {
+class DDDataSetConstraint extends DataDictionaryComponent<Term> {
 
     @Override
     void fromXml(Object xml) {
@@ -129,12 +129,12 @@ class DDXmlSchemaConstraint extends DataDictionaryComponent<Term> {
 
     @Override
     String getDitaKey() {
-        return "xml_schema_constraint_" + DDHelperFunctions.makeValidDitaName(name)
+        return "data_set_constraint_" + DDHelperFunctions.makeValidDitaName(name)
     }
 
     @Override
     String getOutputClassForLink() {
-        String outputClass = "xmlSchemaConstraint"
+        String outputClass = "dataSetConstraint"
         if(stringValues["isRetired"] == "true") {
             outputClass += " retired"
         }
@@ -144,22 +144,22 @@ class DDXmlSchemaConstraint extends DataDictionaryComponent<Term> {
 
     @Override
     String getOutputClassForTable() {
-        return "XML Schema Constraint"
+        return "Data Set Constraint"
     }
 
     @Override
     String getTypeText() {
-        return "XML schema constraint"
+        return "Data Set constraint"
     }
 
     @Override
     String getTypeTitle() {
-        return "XML Schema Constraint"
+        return "Data Set Constraint"
     }
 
     @Override
     String getInternalLink() {
-        return "](te:${DataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${titleCaseName})"
+        return "](te:${DataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${titleCaseName})"
     }
 
 

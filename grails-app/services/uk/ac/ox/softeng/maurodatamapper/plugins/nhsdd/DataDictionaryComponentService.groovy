@@ -167,8 +167,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
                 return t
             }
         }
-        if (path[0] == "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME)
+        if (path[0] == "te:${NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}") {
+            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
             if (t) {
@@ -199,8 +199,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
                     return de2
                 }
             }
-            if (path[1] == "dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME)
+            if (path[1] == "dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}") {
+                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME)
                 if (path[2] == "dc:Retired") {
                     DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
                     DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
@@ -229,8 +229,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         if (path[0] == "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "supportingInformation"
         }
-        if (path[0] == "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}") {
-            return "xmlSchemaConstraint"
+        if (path[0] == "te:${NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}") {
+            return "dataSetConstraint"
         }
         if (path[0] == "dm:${NhsDataDictionary.CORE_MODEL_NAME}") {
             if (path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
@@ -239,7 +239,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
             if (path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
                 return "attribute"
             }
-            if (path[1] == "dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}") {
+            if (path[1] == "dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}") {
                 return "element"
             }
         }

@@ -18,11 +18,14 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.DitaMap
 
 import net.lingala.zip4j.ZipFile
+import org.apache.commons.io.FileUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
@@ -32,24 +35,42 @@ class WebsiteUtility {
 
     static void generateWebsite(NhsDataDictionary dataDictionary, String outputPath) {
 
+
+
         DitaProject ditaProject = new DitaProject().tap {
-            title = "NHS Data Dictionary"
-            filename = "changePaper"
+            title = "Data Sets"
+            filename = "data_sets"
+        }
+        DitaMap ditaMap = new DitaMap().tap {
+            it.title("Data Sets")
         }
 
-        //ditaProject.writeToDirectory(outputPath)
+        overwriteGithubDir(outputPath)
 
+    }
+
+    static void overwriteGithubDir(String outputPath){
+
+        // Create a temporary directory for the downloaded zip
+        Path tempPath = Files.createTempDirectory("ditaGeneration")
+        String sourceFile = tempPath.toString() + "/github_download.zip"
+
+        // Get the zip file and save it into the directory
         InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
-        String sourceFile = outputPath + "/github_download.zip"
         Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
+
+
+
+        // Extract the necessary contents and copy them to the right place
         ZipFile zipFile = new ZipFile(sourceFile)
         zipFile.extractFile("DataDictionaryPublication-master/Website/", outputPath)
-
         Files.list(new File(outputPath + "/DataDictionaryPublication-master/Website/").toPath()).forEach {path ->
-            Files.move(path, new File(outputPath).toPath(), StandardCopyOption.REPLACE_EXISTING)
+            FileUtils.moveToDirectory(path.toFile(), new File(outputPath), false)
         }
 
+        // tidy up
         Files.delete(new File(sourceFile).toPath())
+        Files.delete(new File(outputPath + "/DataDictionaryPublication-master/").toPath())
     }
 
 

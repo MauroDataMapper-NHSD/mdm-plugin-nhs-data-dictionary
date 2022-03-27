@@ -117,9 +117,9 @@ class NhsDDElement implements NhsDataDictionaryComponent {
 
     String getMauroPath() {
         if(isRetired()) {
-            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}|dc:Retired|de:${name}"
+            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
         } else {
-            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}|de:${name}"
+            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
         }
     }
 

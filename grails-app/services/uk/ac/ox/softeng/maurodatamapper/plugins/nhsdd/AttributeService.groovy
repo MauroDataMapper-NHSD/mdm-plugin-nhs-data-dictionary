@@ -160,7 +160,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                     label: name,
                     folder: subFolder,
                     createdBy: currentUserEmailAddress,
-                    authority: authorityService.defaultAuthority)
+                    authority: authorityService.defaultAuthority,
+                    branchName: dataDictionary.branchName)
                 terminology.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.terminology", key: "version", value: attribute.codesVersion))
 
                 attribute.codes.each {code ->

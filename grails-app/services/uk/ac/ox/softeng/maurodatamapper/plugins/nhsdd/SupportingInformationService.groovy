@@ -68,7 +68,8 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
             label: NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME,
             folder: dictionaryFolder,
             createdBy: currentUserEmailAddress,
-            authority: authorityService.defaultAuthority)
+            authority: authorityService.defaultAuthority,
+            branchName: dataDictionary.branchName)
 
         TreeMap<String, Term> allTerms = new TreeMap<>()
         dataDictionary.supportingInformation.each {name, supportingInformation ->

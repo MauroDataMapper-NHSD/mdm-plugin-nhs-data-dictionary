@@ -71,7 +71,8 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
             label: NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME,
             folder: dictionaryFolder,
             createdBy: currentUserEmailAddress,
-            authority: authorityService.defaultAuthority)
+            authority: authorityService.defaultAuthority,
+            branchName: dataDictionary.branchName)
 
         TreeMap<String, Term> allTerms = new TreeMap<>()
         dataDictionary.businessDefinitions.each {name, businessDefinition ->

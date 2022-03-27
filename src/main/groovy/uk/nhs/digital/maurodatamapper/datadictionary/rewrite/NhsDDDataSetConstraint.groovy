@@ -17,16 +17,16 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
+class NhsDDDataSetConstraint implements NhsDataDictionaryComponent {
 
     @Override
     String getStereotype() {
-        "XML Schema Constraint"
+        "Data Set Constraint"
     }
 
     @Override
     String getStereotypeForPreview() {
-        "xmlSchemaConstraint"
+        "dataSetConstraint"
     }
 
 
@@ -49,7 +49,7 @@ class NhsDDXMLSchemaConstraint implements NhsDataDictionaryComponent {
     }
 
     String getMauroPath() {
-        return "te:${NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${name}"
+        return "te:${NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${name}"
     }
 
 }

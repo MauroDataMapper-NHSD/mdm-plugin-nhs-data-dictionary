@@ -37,18 +37,20 @@ class NhsDataDictionary {
     static final String FOLDER_NAME = "NHS Data Dictionary"
     static final String CORE_MODEL_NAME = "NHS Data Dictionary - Core"
     static final String ATTRIBUTES_CLASS_NAME = "Attributes"
-    static final String DATA_FIELD_NOTES_CLASS_NAME = "Data Field Notes"
+    static final String DATA_ELEMENTS_CLASS_NAME = "Data Elements"
     static final String DATA_CLASSES_CLASS_NAME = "Classes"
     static final String DATA_SETS_FOLDER_NAME = "Data Sets"
     static final String BUSINESS_DEFINITIONS_TERMINOLOGY_NAME = "NHS Business Definitions"
     static final String SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME = "Supporting Information"
-    static final String XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME = "XML Schema Constraints"
+    static final String DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME = "Data Set Constraints"
     static final String WEB_PAGES_TERMINOLOGY_NAME = "Web Pages"
 
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 
     String retiredItemText = ""
     String preparatoryItemText = ""
+
+    Map<String, String> workItemDetails = [:]
 
 
     Map<String, NhsDDAttribute> attributes = [:]
@@ -57,7 +59,7 @@ class NhsDataDictionary {
     Map<String, NhsDDDataSet> dataSets = [:]
     Map<String, NhsDDBusinessDefinition> businessDefinitions = [:]
     Map<String, NhsDDSupportingInformation> supportingInformation = [:]
-    Map<String, NhsDDXMLSchemaConstraint> xmlSchemaConstraints = [:]
+    Map<String, NhsDDDataSetConstraint> dataSetConstraints = [:]
     Map<String, NhsDDWebPage> webPages = [:]
 
     Map<String, NhsDDAttribute> attributesByUin = [:]
@@ -71,6 +73,8 @@ class NhsDataDictionary {
 
     String folderName = FOLDER_NAME
 
+    String branchName = "main"
+
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
         "NhsDDAttribute": attributes,
         "NhsDDElement": elements,
@@ -79,7 +83,7 @@ class NhsDataDictionary {
         "NhsDDDataSet": dataSets,
         "NhsDDBusinessDefinition": businessDefinitions,
         "NhsDDSupportingInformation": supportingInformation,
-        "NhsDDXMLSchemaConstraint": xmlSchemaConstraints,
+        "NhsDDDataSetConstraint": dataSetConstraints,
     ]
 
     List<NhsDataDictionaryComponent> getAllComponents() {
@@ -89,7 +93,7 @@ class NhsDataDictionary {
             dataSets.values() +
             businessDefinitions.values() +
             supportingInformation.values() +
-            xmlSchemaConstraints.values() +
+            dataSetConstraints.values() +
             webPages.values()
     }
 

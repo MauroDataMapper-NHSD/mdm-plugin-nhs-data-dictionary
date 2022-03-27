@@ -26,6 +26,8 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlSlurper
 
+import java.nio.file.Files
+
 @Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {
 
@@ -42,7 +44,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         def xml = xmlSlurper.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
         VersionedFolder newVersionedFolder = nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params
-            .folderVersionNo, params.prevVersion)
+            .folderVersionNo, params.prevVersion, params.branchName)
 
         respond([newVersionedFolder.id.toString()])
 
@@ -50,8 +52,10 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def changePaper() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        nhsDataDictionaryService.changePaper(versionedFolderId)
-        respond([])
+        File file = nhsDataDictionaryService.changePaper(versionedFolderId, params.boolean('test')?:false)
+
+        header 'Access-Control-Expose-Headers', 'Content-Disposition'
+        render(file: file, fileName: file.name, contentType: "application/zip")
     }
 
     def codeSystemValidateBundle() {
@@ -91,6 +95,8 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         //        File file = nhsDataDictionaryService.publishDita(versionedFolderId)
         //        render(file: file, fileName: "DataDictionaryDita.zip", contentType: "application/zip")
 
+        header 'Access-Control-Expose-Headers', 'Content-Disposition'
+        //render(file: Files.createTempFile("June2021"), fileName: "June2021.zip", contentType: "application/zip")
         respond([])
     }
 }

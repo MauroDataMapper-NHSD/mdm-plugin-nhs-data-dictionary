@@ -3,6 +3,7 @@ buildscript {
         mavenLocal()
         maven {url "https://jenkins.cs.ox.ac.uk/artifactory/plugins-snapshot"}
         maven {url "https://jenkins.cs.ox.ac.uk/artifactory/plugins-release"}
+        maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot-local"}
         maven {url "https://repo.grails.org/grails/core"}
 
     }
