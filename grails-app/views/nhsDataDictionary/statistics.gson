@@ -38,6 +38,6 @@ json {
     'Data Set Constraints' {
         'Total' nhsDataDictionary.dataSetConstraints.size()
         'Preparatory' nhsDataDictionary.dataSetConstraints.values().count {it.isPreparatory()}
-        'Retired' nhsDataDictionary.dataSetonstraints.values().count {it.isRetired()}
+        'Retired' nhsDataDictionary.dataSetConstraints.values().count {it.isRetired()}
     }
 }

@@ -489,8 +489,7 @@ class DDElement extends DataDictionaryComponent<DataElement> {
     @Override
     String getInternalLink() {
         if(isRetired) {
-            return "](dm:${DataDictionary.CORE_MODEL_NAME}|dc:${DataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${DDHelperFunctions.tidyLabel
-                (name)})"
+            return "](dm:${DataDictionary.CORE_MODEL_NAME}|dc:${DataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${DDHelperFunctions.tidyLabel(name)})"
         } else {
             return "](dm:${DataDictionary.CORE_MODEL_NAME}|dc:${DataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${DDHelperFunctions.tidyLabel(name)})"
         }
