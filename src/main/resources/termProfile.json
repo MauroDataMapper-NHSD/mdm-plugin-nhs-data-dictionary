@@ -1,3 +1,56 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:310711c3d3bfc58c4253b6d0c8e4e557f00ab994d75fc975a0157cd6ea771f61
-size 1538
+[
+  {
+    "sectionName": "Basic Properties",
+    "sectionDescription": "Basic Properties",
+    "fields": [
+      {
+        "fieldName": "Is retired",
+        "metadataPropertyName": "isRetired",
+        "description": "Whether this term has been retired or not",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      },
+      {
+        "fieldName": "Retired date",
+        "metadataPropertyName": "retiredDate",
+        "description": "The date on which this term was retired",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Publish date",
+        "metadataPropertyName": "publishDate",
+        "description": "The date when this code was first published",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Web Order",
+        "metadataPropertyName": "webOrder",
+        "description": "The order that this term should appear in on the website (this field can be ignored when terms should appear in alphabetical order",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "int"
+      },
+      {
+        "fieldName": "Is Default Code",
+        "metadataPropertyName": "isDefault",
+        "description": "Whether this term represents a default code that is not part of the attribute",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      },
+      {
+        "fieldName": "Web Presentation",
+        "metadataPropertyName": "webPresentation",
+        "description": "Any special html presentation that should appear for this term instead of simply its definition",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  }
+]
