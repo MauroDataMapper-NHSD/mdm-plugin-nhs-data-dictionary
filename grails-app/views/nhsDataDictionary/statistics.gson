@@ -25,7 +25,7 @@ json {
         'Preparatory' nhsDataDictionary.dataSets.values().count {it.isPreparatory()}
         'Retired' nhsDataDictionary.dataSets.values().count {it.isRetired()}
     }
-    'Business Definitions' {
+    'NHS Business Definitions' {
         'Total' nhsDataDictionary.businessDefinitions.size()
         'Preparatory' nhsDataDictionary.businessDefinitions.values().count {it.isPreparatory()}
         'Retired' nhsDataDictionary.businessDefinitions.values().count {it.isRetired()}
@@ -35,9 +35,9 @@ json {
         'Preparatory' nhsDataDictionary.supportingInformation.values().count {it.isPreparatory()}
         'Retired' nhsDataDictionary.supportingInformation.values().count {it.isRetired()}
     }
-    'XML Schema Constraints' {
-        'Total' nhsDataDictionary.xmlSchemaConstraints.size()
-        'Preparatory' nhsDataDictionary.xmlSchemaConstraints.values().count {it.isPreparatory()}
-        'Retired' nhsDataDictionary.xmlSchemaConstraints.values().count {it.isRetired()}
+    'Data Set Constraints' {
+        'Total' nhsDataDictionary.dataSetConstraints.size()
+        'Preparatory' nhsDataDictionary.dataSetConstraints.values().count {it.isPreparatory()}
+        'Retired' nhsDataDictionary.dataSetonstraints.values().count {it.isRetired()}
     }
 }

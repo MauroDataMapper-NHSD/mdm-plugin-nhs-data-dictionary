@@ -29,7 +29,7 @@ abstract class DataDictionaryComponentController<T extends CatalogueItem> {
     AttributeService attributeService
     BusinessDefinitionService businessDefinitionService
     SupportingInformationService supportingInformationService
-    XmlSchemaConstraintService xmlSchemaConstraintService
+    DataSetConstraintService dataSetConstraintService
 
     NhsDataDictionaryService nhsDataDictionaryService
 

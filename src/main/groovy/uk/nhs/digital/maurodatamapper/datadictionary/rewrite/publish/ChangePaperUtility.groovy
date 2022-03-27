@@ -26,11 +26,15 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
+import net.lingala.zip4j.ZipFile
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.text.SimpleDateFormat
 import java.util.regex.Matcher
 
 @Slf4j
@@ -59,13 +63,15 @@ class ChangePaperUtility {
 
 
 
-    static void generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, String outputPath) {
+    static File generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, Path outputPath) {
+
+        Map<String, String> backgroundDetails = getBackgroundDetails(thisDataDictionary)
 
         DitaProject ditaProject = new DitaProject().tap {
-            title = "Example Change Paper"
-            filename = "changePaper"
+            title = backgroundDetails['Subject']
+            filename = 'changePaper'
         }
-        ditaProject.addTopic("", createBackgroundTopic())
+        ditaProject.addTopic("", createBackgroundTopic(backgroundDetails))
         // ditaProject.addTopic("", createSummaryTopic(dataDictionary))
 
         Topic summaryOfChangesTopic = new Topic(id: "summary", title: new Title("Summary of Changes"))
@@ -84,7 +90,7 @@ class ChangePaperUtility {
         }
 
         summaryContent >>= generateChanges(thisDataDictionary.businessDefinitions, previousDataDictionary.businessDefinitions,
-                                         "Business Definition", changesTopic, pathLookup)
+                                         "NHS Business Definition", changesTopic, pathLookup)
         summaryContent >>= generateChanges(thisDataDictionary.supportingInformation, previousDataDictionary.supportingInformation,
                                          "Supporting Information", changesTopic, pathLookup)
         summaryContent >>= generateChanges(thisDataDictionary.attributes, previousDataDictionary.attributes,
@@ -95,48 +101,69 @@ class ChangePaperUtility {
                                          "Class", changesTopic, pathLookup)
         summaryContent >>= generateChanges(thisDataDictionary.dataSets, previousDataDictionary.dataSets,
                                          "Data Set", changesTopic, pathLookup)
-        summaryContent >>= generateChanges(thisDataDictionary.xmlSchemaConstraints, previousDataDictionary.xmlSchemaConstraints,
-                                         "XMl Schema Constraint", changesTopic, pathLookup)
+        summaryContent >>= generateChanges(thisDataDictionary.dataSetConstraints, previousDataDictionary.dataSetConstraints,
+                                         "Data Set Constraint", changesTopic, pathLookup)
 
 
 
         summaryOfChangesTopic.body = new Body(summaryContent)
-        ditaProject.writeToDirectory(outputPath)
+        String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
+        ditaProject.writeToDirectory(ditaOutputDirectory)
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
+        String date = simpleDateFormat.format(new Date())
+
+        String filename = backgroundDetails['Reference'] + '-' + date + ".zip"
+
+        ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
+        zipFile.addFolder(new File(ditaOutputDirectory))
+
+        return zipFile.getFile()
 
     }
 
-    static def createBackgroundTopic() {
+
+    static Map<String, String> getBackgroundDetails(NhsDataDictionary nhsDataDictionary) {
+        Map<String, String> response = [:]
+
+        response['Reference'] = nhsDataDictionary.workItemDetails['reference'] ?: 'CRXXXX'
+        response['Type'] = nhsDataDictionary.workItemDetails['type'] ?: 'Change Request'
+        response['Version no.'] = nhsDataDictionary.workItemDetails['versionNo'] ?: '1.0'
+        response['Subject'] = nhsDataDictionary.workItemDetails['subject'] ?: 'NHS England and NHS Improvement'
+        response['Effective date'] = nhsDataDictionary.workItemDetails['effectiveDate'] ?: 'Immediate'
+        response['Reason for change'] = nhsDataDictionary.workItemDetails['reasonForChange'] ?: 'Change to definitions'
+        response['Publication Date'] = new Date().toString()
+        response['Background'] = nhsDataDictionary.workItemDetails['backgroundText'] ?: backgroundText.toString()
+        response['Sponsor'] = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS Digital'
+
+        return response
+    }
+
+
+    static def createBackgroundTopic(Map<String, String> backgroundProperties) {
 
         Topic backgroundTopic = new Topic(id: "background", title: new Title("Background"))
 
-        Map<String, String> properties = [
-            "Reference": "1828",
-            "Version No": "1.0",
-            "Subject": "NHS England and NHS Improvement",
-            "Effective Date": "Immediate",
-            "Reason For Change": "Change to Definitions",
-            "Publication Date": "3rd January 2021",
-            "Background": backgroundText,
-            "Sponsor": "Nicholas Oughtibridge, Head of Clinical Data Architecture, NHS Digital"
-        ]
-
         def backgroundContent = {
             dl {
-                properties.each { key, value ->
+                backgroundProperties.each { key, value ->
                     dlentry {
                         dt key
-                        dd value
+                        dd {
+                            mkp.yieldUnescaped Html.tidyAndClean(value).toString()
+
+                        }
                     }
                 }
             }
-            p  {
-                "Note: New text is shown with a "
-                span (class: "new", "blue background")
-                ". Deleted text is "
-                span (class: "deleted", "crossed out")
-                ". Retired text is shown "
-                span (class: "retired", "in grey")
-                "."
+            p {
+                mkp.yield "Note: New text is shown with a "
+                b(outputclass: "new", "blue background")
+                mkp.yield ". Deleted text is "
+                b(outputclass: "deleted", "crossed out")
+                mkp.yield ". Retired text is shown "
+                b(outputclass: "retired", "in grey")
+                mkp.yield "."
             }
         }
 
@@ -235,7 +262,11 @@ class ChangePaperUtility {
             subTopic.body = new Body("<div outputclass=\"deleted\">${Html.tidyAndClean(oldDefinition)}</div>".toString() +
                                                        "<div outputclass=\"new\">${Html.tidyAndClean(newDefinition)}</div>".toString())
         } else {
-            subTopic.body = new Body("<div>${Html.tidyAndClean(newDefinition)}</div>".toString())
+            if(newDefinition) {
+                subTopic.body = new Body("<div>${Html.tidyAndClean(newDefinition)}</div>".toString())
+            } else {
+                subTopic.body = new Body("<p><em>No description</em></p>")
+            }
         }
 
         return subTopic
@@ -256,6 +287,10 @@ class ChangePaperUtility {
             return generateSummaryContent(changes, stereotype)
         }
         return {}
+    }
+
+    static String unescape(String input) {
+        return input.replace('&lt;', '<').replace('&gt;', '>')
     }
 
 

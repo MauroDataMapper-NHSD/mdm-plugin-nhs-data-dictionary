@@ -70,7 +70,7 @@
         "maxMultiplicity": 1,
         "minMultiplicity": 1,
         "dataType": "text",
-        "defaultValue": "<p>This Change Request adds the ???? Data Set and supporting definitions to the NHS Data Model and Dictionary to support the Information Standard.</p><p>A short demonstration is available which describes \"How to Read an NHS Data Model and Dictionary Change Request\", in an easy to understand screen capture including a voice over and readable captions. This demonstration can be viewed at: <a href=\"https://datadictionary.nhs.uk/elearning/change_request/index.html\">https://datadictionary.nhs.uk/elearning/change_request/index.html</a></p>.<p>Note: if the web page does not open, please copy the link and paste into the web browser. A guide to how to use the demonstration can be found at: <a href=\"https://datadictionary.nhs.uk/help/demonstrations.html\">Demonstrations</a>.</p>"
+        "defaultValue": "<p>This Change Request adds the ???? Data Set and supporting definitions to the NHS Data Model and Dictionary to support the Information Standard.</p><p>A short demonstration is available which describes \"How to Read an NHS Data Model and Dictionary Change Request\", in an easy to understand screen capture including a voice over and readable captions. This demonstration can be viewed at: <a href=\"https://datadictionary.nhs.uk/elearning/change_request/index.html\">https://datadictionary.nhs.uk/elearning/change_request/index.html</a>.</p><p>Note: if the web page does not open, please copy the link and paste into the web browser. A guide to how to use the demonstration can be found at: <a href=\"https://datadictionary.nhs.uk/help/demonstrations.html\">Demonstrations</a>.</p>"
       }
     ]
   },
@@ -99,7 +99,7 @@
         "maxMultiplicity": 1,
         "minMultiplicity": 1,
         "dataType": "text",
-        "defaultValue": "<p>For enquiries about this Change Request, please email <a href=\"mailto:information.standards@nhs.net\">information.standards@nhs.net</a></p>,"
+        "defaultValue": "<p>For enquiries about this Change Request, please email <a href=\"mailto:information.standards@nhs.net\">information.standards@nhs.net</a>.</p>"
       }
     ]
   }

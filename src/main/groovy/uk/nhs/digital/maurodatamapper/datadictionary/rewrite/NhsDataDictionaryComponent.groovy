@@ -35,7 +35,7 @@ trait NhsDataDictionaryComponent {
     String catalogueItemParentId
 
     String name
-    String definition
+    String definition = ""
 
     Map<String, String> otherProperties = [:]
 
@@ -67,14 +67,14 @@ trait NhsDataDictionaryComponent {
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         if(xml.name.text()) {
             this.name = xml.name.text().replace("_", " ")
-        } else { // This should only apply for XmlSchemaConstraints
+        } else { // This should only apply for dataSetConstraints
             this.name = xml."class".name.text().replace("_", " ")
         }
 
         /*  We're doing capitalised items now
         if(xml.TitleCaseName.text()) {
             this.name = xml.TitleCaseName[0].text()
-        } else { // This should only apply for XmlSchemaConstraints
+        } else { // This should only apply for dataSetConstraints
             this.name = xml."class".websitePageHeading.text()
         }*/
 

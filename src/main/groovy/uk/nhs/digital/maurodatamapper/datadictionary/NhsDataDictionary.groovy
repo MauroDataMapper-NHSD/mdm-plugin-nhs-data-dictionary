@@ -50,7 +50,7 @@ class NhsDataDictionary {
 
     Map<String, Term> businessDefinitionsByName = [:]
     Map<String, Term> supportingInformationByName = [:]
-    Map<String, Term> xmlSchemaConstraintsByName = [:]
+    Map<String, Term> dataSetConstraintsByName = [:]
 
 
     static XmlParser xmlParser = XmlParser.newInstance()

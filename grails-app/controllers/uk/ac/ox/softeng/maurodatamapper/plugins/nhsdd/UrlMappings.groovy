@@ -76,8 +76,8 @@ class UrlMappings {
                         '/supportingInformation'(resources: 'supportingInformation', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
                             "/whereUsed"(controller: 'supportingInformation', action: 'whereUsed')
                         }
-                        '/xmlSchemaConstraints'(resources: 'xmlSchemaConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
-                            "/whereUsed"(controller: 'xmlSchemaConstraint', action: 'whereUsed')
+                        '/dataSetConstraints'(resources: 'dataSetConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'dataSetConstraint', action: 'whereUsed')
                         }
                     }
                 }

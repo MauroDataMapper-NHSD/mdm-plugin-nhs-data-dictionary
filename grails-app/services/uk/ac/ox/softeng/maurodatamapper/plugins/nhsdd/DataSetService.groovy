@@ -580,7 +580,8 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             createdBy: currentUser.emailAddress,
             type: DataModelType.DATA_STANDARD,
             authority: authorityService.defaultAuthority,
-            folder: folder
+            folder: folder,
+            branchName: nhsDataDictionary.branchName
         )
 
         if (dataSet.name.startsWith("CDS")) {

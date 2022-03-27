@@ -153,7 +153,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
 
         DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
 
         List<UUID> classIds = [elementsClass.id]
         if (includeRetired) {
@@ -170,7 +170,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
 
     Set<NhsDDElement> getAllForAttribute(UUID versionedFolderId, NhsDDAttribute nhsDDAttribute) {
         DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
         List<DataElement> dataElements = DataElement.by().inList('dataClass.id', elementsClass.id).list()
         dataElements.findAll {dataElement ->
             attributeListIncludesName(dataElement, nhsDDAttribute.name)
@@ -283,7 +283,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         }
         folderService.save(dataElementCodeSetsFolder)
 
-        DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME, createdBy:
+        DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME, createdBy:
             currentUserEmailAddress)
 
         DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
@@ -316,7 +316,8 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
                     label: name,
                     folder: subFolder,
                     createdBy: currentUserEmailAddress,
-                    authority: authorityService.defaultAuthority)
+                    authority: authorityService.defaultAuthority,
+                    branchName: dataDictionary.branchName)
                 codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: element.codeSetVersion))
 
 

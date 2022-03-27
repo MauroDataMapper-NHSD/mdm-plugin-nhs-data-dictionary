@@ -151,7 +151,7 @@ class GenerateDita {
             map.refs.add(mapRef)
         }
         if (!options || options.processNhsBusinessDefinitions) {
-            log.info "Generating business definitions..."
+            log.info "Generating NHS business definitions..."
             generateBusinessDefinitions(keyMap)
             MapRef mapRef = new MapRef(href: "nhs_business_definitions.ditamap", toc: false)
             map.refs.add(mapRef)
@@ -167,12 +167,12 @@ class GenerateDita {
             MapRef indexMapRef = new MapRef(href: "supporting_information-index.ditamap")
             map.refs.add(indexMapRef)
         }
-        if (!options || options.processXmlSchemaConstraints) {
-            log.info "Generating xml schema constraints..."
-            generateXmlSchemaConstraints(keyMap)
-            MapRef mapRef = new MapRef(href: "xml_schema_constraints.ditamap", toc: false)
+        if (!options || options.processDataSetConstraints) {
+            log.info "Generating data set constraints..."
+            generateDatasConstraints(keyMap)
+            MapRef mapRef = new MapRef(href: "data_set_constraints.ditamap", toc: false)
             map.refs.add(mapRef)
-            //MapRef indexMapRef = new MapRef(href: "xml_schema_constraints-index.ditamap")
+            //MapRef indexMapRef = new MapRef(href: "data_set_constraints-index.ditamap")
             //map.refs.add(indexMapRef)
 
         }
@@ -230,10 +230,10 @@ class GenerateDita {
 
     }
 
-    void generateXmlSchemaConstraints(Map keyMap) {
+    void generateDataSetConstraints(Map keyMap) {
 
-        writeToTree("XML Schema Constraints", dataDictionary.xmlSchemaConstraints.values(), keyMap, false)
-        //generateIndex(dataDictionary.xmlSchemaConstraints.values(), "xml_schema_constraints", "XML Schema Constraints")
+        writeToTree("Data set constraints", dataDictionary.dataSetConstraints.values(), keyMap, false)
+        //generateIndex(dataDictionary.dataSetConstraints.values(), "data_set_constraints", "Data Set Constraints")
 
     }
 
@@ -253,7 +253,7 @@ class GenerateDita {
         allComponents.addAll(dataDictionary.dataSets.values())
         allComponents.addAll(dataDictionary.businessDefinitions.values())
         allComponents.addAll(dataDictionary.supportingInformation.values())
-        allComponents.addAll(dataDictionary.xmlSchemaConstraints.values())
+        allComponents.addAll(dataDictionary.dataSetConstraints.values())
         allComponents.addAll(dataDictionary.webPages.values())
 
         allComponents.each { component ->
@@ -327,7 +327,7 @@ class GenerateDita {
         allItems.addAll(dataDictionary.elements.values())
         allItems.addAll(dataDictionary.businessDefinitions.values())
         allItems.addAll(dataDictionary.supportingInformation.values())
-        allItems.addAll(dataDictionary.xmlSchemaConstraints.values())
+        allItems.addAll(dataDictionary.dataSetConstraints.values())
 
         HashMap<Character, List<DataDictionaryComponent>> itemPages = [:]
         allItems.sort {it.name.toLowerCase()}.each {item ->

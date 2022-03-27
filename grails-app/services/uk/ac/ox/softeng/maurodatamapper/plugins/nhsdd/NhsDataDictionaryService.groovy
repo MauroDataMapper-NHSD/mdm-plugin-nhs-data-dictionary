@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -32,6 +33,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles.DDWorkItemProfileProviderService
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
@@ -66,6 +68,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaper
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.Instant
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -99,7 +104,9 @@ class NhsDataDictionaryService {
 
     BusinessDefinitionService businessDefinitionService
     SupportingInformationService supportingInformationService
-    XmlSchemaConstraintService xmlSchemaConstraintService
+    DataSetConstraintService dataSetConstraintService
+
+    DDWorkItemProfileProviderService ddWorkItemProfileProviderService
 
     AuthorityService authorityService
     CodeSetService codeSetService
@@ -153,12 +160,13 @@ class NhsDataDictionaryService {
         NhsDataDictionary dataDictionary = newDataDictionary()
 
         VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
+        buildWorkItemDetails(thisVersionedFolder, dataDictionary)
 
         List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
 
         Terminology busDefTerminology = terminologies.find {it.label == NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}
         Terminology supDefTerminology = terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
-        Terminology xmlSchemaConstraintsTerminology = terminologies.find {it.label == NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}
+        Terminology dataSetConstraintsTerminology = terminologies.find {it.label == NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}
 
         Folder dataSetsFolder = thisVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
@@ -170,7 +178,7 @@ class NhsDataDictionaryService {
         addDataSetsToDictionary(dataSetsFolder, dataDictionary)
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
-        addXmlSchemaConstraintsToDictionary(xmlSchemaConstraintsTerminology, dataDictionary)
+        addDataSetConstraintsToDictionary(dataSetConstraintsTerminology, dataDictionary)
         log.debug('Data Dictionary built in {}', Utils.timeTaken(totalStart))
 
         return dataDictionary
@@ -186,9 +194,9 @@ class NhsDataDictionaryService {
         terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
     }
 
-    Terminology getXmlSchemaConstraintTerminology(UUID versionedFolderId) {
+    Terminology getDataSetConstraintTerminology(UUID versionedFolderId) {
         List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
-        terminologies.find {it.label == NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME}
+        terminologies.find {it.label == NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}
     }
 
     DataModel getCoreModel(UUID versionedFolderId) {
@@ -202,7 +210,7 @@ class NhsDataDictionaryService {
     }
 
     void addAttributesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
-        DataClass attributesClass = coreModel.dataClasses.find {it.label == "Attributes"}
+        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
         DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
         List<DataElement> attributeElements = DataElement.by().inList('dataClass.id', [attributesClass.id, retiredAttributesClass.id]).list()
 
@@ -210,7 +218,7 @@ class NhsDataDictionaryService {
     }
 
     void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == "Data Field Notes"}
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
         DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
         List<DataElement> elementElements = DataElement.by().inList('dataClass.id', [elementsClass.id, retiredElementsClass.id]).list()
 
@@ -218,7 +226,7 @@ class NhsDataDictionaryService {
     }
 
     void addClassesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
-        DataClass classesClass = coreModel.dataClasses.find {it.label == "Classes"}
+        DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
         DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
         List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
         classClasses.removeAll {it.label == "Retired"}
@@ -260,9 +268,10 @@ class NhsDataDictionaryService {
         dataDictionary.supportingInformation = supportingInformationService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(supDefsTerminology.id), dataDictionary)
     }
 
-    void addXmlSchemaConstraintsToDictionary(Terminology xmlSchemaConstraintsTerminology, NhsDataDictionary dataDictionary) {
-        dataDictionary.xmlSchemaConstraints =
-            xmlSchemaConstraintService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(xmlSchemaConstraintsTerminology.id), dataDictionary)
+    void addDataSetConstraintsToDictionary(Terminology dataSetConstraintsTerminology, NhsDataDictionary dataDictionary) {
+        dataDictionary.dataSetConstraints =
+            dataSetConstraintService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(dataSetConstraintsTerminology.id),
+                                                                  dataDictionary)
     }
 
     Set<DataClass> getDataClasses(includeRetired = false) {
@@ -281,10 +290,10 @@ class NhsDataDictionaryService {
 
     }
 
-    Set<DataElement> getDataFieldNotes(includeRetired = false) {
+    Set<DataElement> getDataElements(includeRetired = false) {
         DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_FIELD_NOTES_CLASS_NAME}
+        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
 
         Set<DataElement> elementElements = []
         elementElements.addAll(elementsClass.dataElements)
@@ -332,7 +341,7 @@ class NhsDataDictionaryService {
         allItems.addAll(dataDictionary.supportingInformation.values().collect {
             new StereotypedCatalogueItem(it)
         })
-        allItems.addAll(dataDictionary.xmlSchemaConstraints.values().collect {
+        allItems.addAll(dataDictionary.dataSetConstraints.values().collect {
             new StereotypedCatalogueItem(it)
         })
         return allItems.sort()
@@ -423,10 +432,12 @@ class NhsDataDictionaryService {
     }
 
 
-    VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion, boolean deletePrevious = false) {
+    VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion,
+                           String branchName = "main", boolean deletePrevious = false) {
 
         NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo)
 
+        nhsDataDictionary.branchName = branchName?:"main"
         log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)
         long startTime = System.currentTimeMillis()
         long originalStartTime = startTime
@@ -439,7 +450,8 @@ class NhsDataDictionaryService {
             startTime = endTime
         }
 
-        VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName, createdBy: currentUser.emailAddress)
+        VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
+                                                               createdBy: currentUser.emailAddress, branchName: nhsDataDictionary.branchName)
 
         if (!folderService.validate(dictionaryFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', dictionaryFolder.errors)
@@ -459,7 +471,8 @@ class NhsDataDictionaryService {
                           folder: dictionaryFolder,
                           createdBy: currentUser.emailAddress,
                           authority: authorityService.defaultAuthority,
-                          type: DataModelType.DATA_STANDARD)
+                          type: DataModelType.DATA_STANDARD,
+                          branchName: nhsDataDictionary.branchName)
 
         endTime = System.currentTimeMillis()
         log.info('{} model built in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
@@ -488,8 +501,8 @@ class NhsDataDictionaryService {
         log.info('SupportingInformationService persisted in {}', Utils.timeTaken(startTime))
 
         startTime = System.currentTimeMillis()
-        xmlSchemaConstraintService.persistXmlSchemaConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
-        log.info('XmlSchemaConstraintService persisted in {}', Utils.timeTaken(startTime))
+        dataSetConstraintService.persistDataSetConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+        log.info('DataSetConstraintService persisted in {}', Utils.timeTaken(startTime))
 
         startTime = System.currentTimeMillis()
         log.debug('Validating [{}] model', NhsDataDictionary.CORE_MODEL_NAME)
@@ -586,7 +599,7 @@ class NhsDataDictionaryService {
     }
 
 
-    def changePaper(UUID versionedFolderId) {
+    File changePaper(UUID versionedFolderId, boolean isTest = false) {
 
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
@@ -594,11 +607,11 @@ class NhsDataDictionaryService {
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 
-
-        String outputPath = "/Users/james/Desktop/ditaTest/"
-
-        ChangePaperUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
-
+        Path outputPath = Paths.get("/Users/james/Desktop/ditaTest/")
+        if(!isTest) {
+            outputPath = Files.createTempDirectory('changePaper')
+        }
+        return ChangePaperUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
     }
 
     NhsDataDictionary newDataDictionary() {
@@ -622,5 +635,14 @@ class NhsDataDictionaryService {
         if(!dataDictionary.retiredItemText) {
             dataDictionary.preparatoryItemText = KNOWN_KEYS["retired.template"]
         }
+    }
+
+    void buildWorkItemDetails(VersionedFolder thisVersionedFolder, NhsDataDictionary dataDictionary) {
+        dataDictionary.workItemDetails =
+            thisVersionedFolder.metadata.findAll {md ->
+                md.namespace == 'uk.nhs.datadictionary.workItem' // ddWorkItemProfileProviderService.metadataNamespace
+            }.collectEntries {md ->
+                [md.key, md.value]
+            }
     }
 }

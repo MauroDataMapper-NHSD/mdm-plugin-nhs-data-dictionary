@@ -6,4 +6,4 @@ model {
     Iterable<Term> termList
 }
 
-json g.render(termList.collect {new StereotypedCatalogueItem(it, "xmlSchemaConstraint")})
+json g.render(termList.collect {new StereotypedCatalogueItem(it, "dataSetConstraint")})

@@ -131,12 +131,12 @@
   },
   {
     "sectionName": "Governance",
-    "sectionDescription": "Fields relating to the governance or approval of datasets",
+    "sectionDescription": "Fields relating to the governance or approval of data sets",
     "fields": [
       {
         "fieldName": "Approving Organisation",
         "metadataPropertyName": "approvingOrganisation",
-        "description": "The organisation responsible for approving the definition of this dataset",
+        "description": "The organisation responsible for approving the definition of this data set",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "enumeration",

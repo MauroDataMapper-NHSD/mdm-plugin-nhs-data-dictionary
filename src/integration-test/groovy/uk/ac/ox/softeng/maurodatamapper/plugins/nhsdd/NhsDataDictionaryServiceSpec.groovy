@@ -148,7 +148,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         assertEquals dataDictionary.dataSets.size(), 261
         assertEquals dataDictionary.businessDefinitions.size(), 1230
         assertEquals dataDictionary.supportingInformation.size(), 152
-        assertEquals dataDictionary.xmlSchemaConstraints.size(), 33
+        assertEquals dataDictionary.dataSetConstraints.size(), 33
 
     }
 
@@ -361,12 +361,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         stats
         log.info('{}', JsonOutput.prettyPrint(statsJson))
         checkStatsMapEntry(stats, 'Attributes', 2528, 0, 1194)
-        checkStatsMapEntry(stats, 'Data Field Notes', 4916, 8, 2202)
+        checkStatsMapEntry(stats, 'Data Elements', 4916, 8, 2202)
         checkStatsMapEntry(stats, 'Classes', 363, 0, 138)
         checkStatsMapEntry(stats, 'Data Sets', 261, 0, 136)
-        checkStatsMapEntry(stats, 'Business Definitions', 1230, 1, 388)
+        checkStatsMapEntry(stats, 'NHS Business Definitions', 1230, 1, 388)
         checkStatsMapEntry(stats, 'Supporting Information', 152, 0, 24)
-        checkStatsMapEntry(stats, 'XML Schema Constraints', 33, 0, 5)
+        checkStatsMapEntry(stats, 'Data Set Constraints', 33, 0, 5)
     }
 
     void 'IN01 : Run integrity checks for November 2021'() {

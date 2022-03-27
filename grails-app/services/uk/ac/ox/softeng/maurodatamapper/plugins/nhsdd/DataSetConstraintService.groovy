@@ -24,27 +24,27 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDXMLSchemaConstraint
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetConstraint
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 @Transactional
-class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, NhsDDXMLSchemaConstraint> {
+class DataSetConstraintService extends DataDictionaryComponentService<Term, NhsDDDataSetConstraint> {
 
     @Override
-    NhsDDXMLSchemaConstraint show(UUID versionedFolderId, String id) {
-        Term xmlSchemaConstraintTerm = termService.get(id)
-        NhsDDXMLSchemaConstraint xmlSchemaConstraint = getNhsDataDictionaryComponentFromCatalogueItem(xmlSchemaConstraintTerm, null)
-        xmlSchemaConstraint.definition = convertLinksInDescription(versionedFolderId, xmlSchemaConstraint.getDescription())
-        return xmlSchemaConstraint
+    NhsDDDataSetConstraint show(UUID versionedFolderId, String id) {
+        Term dataSetConstraintTerm = termService.get(id)
+        NhsDDDataSetConstraint dataSetConstraint = getNhsDataDictionaryComponentFromCatalogueItem(dataSetConstraintTerm, null)
+        dataSetConstraint.definition = convertLinksInDescription(versionedFolderId, dataSetConstraint.getDescription())
+        return dataSetConstraint
     }
 
     @Override
     Set<Term> getAll(UUID versionedFolderId, boolean includeRetired = false) {
 
-        Terminology xmlSchemaConstraintTerminology = nhsDataDictionaryService.getXmlSchemaConstraintTerminology(versionedFolderId)
+        Terminology dataSetConstraintTerminology = nhsDataDictionaryService.getDataSetConstraintTerminology(versionedFolderId)
 
-        List<Term> terms = termService.findAllByTerminologyId(xmlSchemaConstraintTerminology.id)
+        List<Term> terms = termService.findAllByTerminologyId(dataSetConstraintTerminology.id)
 
         terms.findAll {term ->
             includeRetired || !catalogueItemIsRetired(term)
@@ -54,33 +54,34 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
 
     @Override
     String getMetadataNamespace() {
-        NhsDataDictionary.METADATA_NAMESPACE + ".XML schema constraint"
+        NhsDataDictionary.METADATA_NAMESPACE + ".Data set constraint"
     }
 
     @Override
-    NhsDDXMLSchemaConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
-        NhsDDXMLSchemaConstraint xMLSchemaConstraint = new NhsDDXMLSchemaConstraint()
-        nhsDataDictionaryComponentFromItem(catalogueItem, xMLSchemaConstraint)
-        xMLSchemaConstraint.dataDictionary = dataDictionary
-        return xMLSchemaConstraint
+    NhsDDDataSetConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
+        NhsDDDataSetConstraint dataSetConstraint = new NhsDDDataSetConstraint()
+        nhsDataDictionaryComponentFromItem(catalogueItem, dataSetConstraint)
+        dataSetConstraint.dataDictionary = dataDictionary
+        return dataSetConstraint
     }
 
-    void persistXmlSchemaConstraints(NhsDataDictionary dataDictionary,
+    void persistDataSetConstraints(NhsDataDictionary dataDictionary,
                                      VersionedFolder dictionaryFolder, String currentUserEmailAddress) {
 
         Terminology terminology = new Terminology(
-            label: NhsDataDictionary.XML_SCHEMA_CONSTRAINTS_TERMINOLOGY_NAME,
+            label: NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME,
             folder: dictionaryFolder,
             createdBy: currentUserEmailAddress,
-            authority: authorityService.defaultAuthority)
+            authority: authorityService.defaultAuthority,
+            branchName: dataDictionary.branchName)
 
         TreeMap<String, Term> allTerms = new TreeMap<>()
-        dataDictionary.xmlSchemaConstraints.each {name, xmlSchemaConstraint ->
+        dataDictionary.dataSetConstraints.each {name, dataSetConstraint ->
 
             // Either this is the first time we've seen a term...
             // .. or if we've already got one, we'll overwrite it with this one
             // (if this one isn't retired)
-            if(!allTerms[name] || !xmlSchemaConstraint.isRetired()) {
+            if(!allTerms[name] || !dataSetConstraint.isRetired()) {
 
                 Term term = new Term(
                     code: name,
@@ -88,12 +89,12 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
                     definition: name,
                     // Leave Url blank for now
                     // url: businessDefinition.otherProperties["ddUrl"].replaceAll(" ", "%20"),
-                    description: xmlSchemaConstraint.definition,
+                    description: dataSetConstraint.definition,
                     createdBy: currentUserEmailAddress,
                     depth: 1,
                     terminology: terminology)
 
-                addMetadataFromComponent(term, xmlSchemaConstraint, currentUserEmailAddress)
+                addMetadataFromComponent(term, dataSetConstraint, currentUserEmailAddress)
 
                 allTerms[name] = term
             }
@@ -110,8 +111,8 @@ class XmlSchemaConstraintService extends DataDictionaryComponentService<Term, Nh
 
     }
 
-    NhsDDXMLSchemaConstraint getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
-        nhsDataDictionary.xmlSchemaConstraints.values().find {
+    NhsDDDataSetConstraint getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
+        nhsDataDictionary.dataSetConstraints.values().find {
             it.catalogueItem.id == catalogueItemId
         }
     }

@@ -31,7 +31,7 @@ trait DataDictionaryOptions {
 
     abstract boolean getProcessSupportingDefinitions()
 
-    abstract boolean getProcessXmlSchemaConstraints()
+    abstract boolean getProcessDataSetConstraints()
 
     abstract boolean getProcessWebPages()
 
