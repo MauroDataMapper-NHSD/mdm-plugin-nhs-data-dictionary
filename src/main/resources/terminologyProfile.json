@@ -7,8 +7,8 @@
         "fieldName": "Version",
         "metadataPropertyName": "version",
         "description": "",
-        "maxMultiplicity": 1,
         "minMultiplicity": 0,
+        "maxMultiplicity": 1,
         "dataType": "string"
       }
     ]
