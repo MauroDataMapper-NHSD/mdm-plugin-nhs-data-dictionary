@@ -54,9 +54,9 @@ class TestingService {
 
     Map<String, String> buildTestData(User user) {
         // Ingest, finalise september
-        UUID releaseId = cleanIngest(user, 'september2021.xml', 'September 2021')
+        UUID releaseId = cleanIngest(user, 'september2021.xml', 'September 2021', 'main')
         // Ingest november
-        UUID novBranchId = cleanIngest(user, 'november2021.xml', 'November 2021', false)
+        UUID novBranchId = cleanIngest(user, 'november2021.xml', 'November 2021', 'main', false)
         // Change the folder name and link to the sept release
         VersionedFolder release = versionedFolderService.get(releaseId)
         VersionedFolder novBranch = versionedFolderService.get(novBranchId)
@@ -76,16 +76,16 @@ class TestingService {
         UUID septBranchId = createBranch(user, release, 'september_2021')
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
-        [releaseId  : releaseId.toString(),
-         novBranchId: septBranchId.toString()]
+        [releaseId   : releaseId.toString(),
+         septBranchId: septBranchId.toString()]
 
     }
 
-    UUID cleanIngest(User user, String name, String releaseDate, boolean finalised = true, boolean deletePrevious = false) {
+    UUID cleanIngest(User user, String name, String releaseDate, String branchName, boolean finalised = true, boolean deletePrevious = false) {
         log.info('---------- Ingesting {} ----------', name)
         def xml = loadXml(name)
         assert xml
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null, deletePrevious)
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null, branchName, deletePrevious)
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
         log.info('---------- Finished Ingesting {} ----------', name)
