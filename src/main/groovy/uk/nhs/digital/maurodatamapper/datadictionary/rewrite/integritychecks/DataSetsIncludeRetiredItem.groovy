@@ -17,40 +17,28 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks
 
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
-class AllClassesHaveRelationships implements IntegrityCheck {
+class DataSetsIncludeRetiredItem implements IntegrityCheck {
 
-    String name = "Class Relationships Defined"
+    String name = "Datasets that include retired items"
 
-    String description = "Check that all live classes have relationships to other classes defined"
+    String description = "Check that a dataset doesn't include any retired data elements in its definition"
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.classes.values().findAll{ddClass ->
-            !ddClass.isRetired() && !classHasRelationships(ddClass) }
+        //List<NhsDataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPreparatory()}
+
+        errors = dataDictionary.dataSets.values().findAll {component ->
+            ((DataModel)component.catalogueItem).allDataElements.find {dataElement ->
+                dataDictionary.elementsByCatalogueId[dataElement.id].isRetired()
+            }
+        }
         return errors
     }
-
-    boolean classHasRelationships(NhsDDClass ddClass) {
-        if( ddClass.classRelationships.size() > 0) {
-            return true
-        } else {
-            boolean found = false
-            ddClass.extendsClasses.each {extendedClass ->
-                if(classHasRelationships(extendedClass)) {
-                    found = true
-                }
-            }
-            return found
-        }
-    }
-
 
 }
