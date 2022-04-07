@@ -17,40 +17,25 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks
 
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
-class AllClassesHaveRelationships implements IntegrityCheck {
+class ClassLinkedToRetiredAttribute implements IntegrityCheck {
 
-    String name = "Class Relationships Defined"
+    String name = "Classes Linked to Retired Attributes"
 
-    String description = "Check that all live classes have relationships to other classes defined"
+    String description = "Check that all live classes do not contain attributes that are retired"
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
 
         errors = dataDictionary.classes.values().findAll{ddClass ->
-            !ddClass.isRetired() && !classHasRelationships(ddClass) }
+            !ddClass.isRetired() &&
+            ddClass.allAttributes().findAll {it.isRetired()}.size() > 0
+        }
         return errors
     }
-
-    boolean classHasRelationships(NhsDDClass ddClass) {
-        if( ddClass.classRelationships.size() > 0) {
-            return true
-        } else {
-            boolean found = false
-            ddClass.extendsClasses.each {extendedClass ->
-                if(classHasRelationships(extendedClass)) {
-                    found = true
-                }
-            }
-            return found
-        }
-    }
-
 
 }

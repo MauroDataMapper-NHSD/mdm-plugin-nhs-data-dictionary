@@ -61,7 +61,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Att
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.BrokenLinks
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsHaveAnOverview
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsIncludePreparatoryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsIncludeRetiredItem
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ClassLinkedToRetiredAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaperUtility
@@ -134,10 +136,12 @@ class NhsDataDictionaryService {
 
         List<Class<IntegrityCheck>> integrityCheckClasses = [
             AllClassesHaveRelationships,
+            ClassLinkedToRetiredAttribute,
             AttributesLinkedToAClass,
             ElementsLinkedToAnAttribute,
             DataSetsHaveAnOverview,
             DataSetsIncludePreparatoryItem,
+            DataSetsIncludeRetiredItem,
             AllItemsHaveShortDescription,
             AllItemsHaveAlias,
             ReusedItemNames,
@@ -223,6 +227,9 @@ class NhsDataDictionaryService {
         List<DataElement> elementElements = DataElement.by().inList('dataClass.id', [elementsClass.id, retiredElementsClass.id]).list()
 
         dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements, dataDictionary)
+        dataDictionary.elements.values().each { ddElement ->
+            dataDictionary.elementsByCatalogueId[ddElement.catalogueItem.id] = ddElement
+        }
     }
 
     void addClassesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
@@ -231,7 +238,9 @@ class NhsDataDictionaryService {
         List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
         classClasses.removeAll {it.label == "Retired"}
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
-
+        dataDictionary.classes.values().each { ddClass ->
+            dataDictionary.classesByCatalogueId[ddClass.catalogueItem.id] = ddClass
+        }
 /*       classClasses.each {dataClass ->
             //DDClass ddClass = new DDClass()
             //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
@@ -250,6 +259,9 @@ class NhsDataDictionaryService {
                         relationshipDescription: dataElement.label
                     ))
                 }
+            }
+            ((DataClass)dataClass.catalogueItem).getExtendedDataClasses().each { extendedDataClass ->
+                dataClass.extendsClasses.add(dataDictionary.classesByCatalogueId[extendedDataClass.id])
             }
         }
 
