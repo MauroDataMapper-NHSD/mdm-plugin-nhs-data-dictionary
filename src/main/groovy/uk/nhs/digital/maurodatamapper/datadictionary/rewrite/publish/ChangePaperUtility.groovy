@@ -42,6 +42,7 @@ class ChangePaperUtility {
 
     static class Change {
         String changeType
+        String stereotype
         NhsDataDictionaryComponent oldItem
         NhsDataDictionaryComponent newItem
         Change() { }
@@ -57,6 +58,22 @@ class ChangePaperUtility {
                 return "Changed description"
             }
         }
+
+    }
+
+    List<Change> calculateChanges(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary) {
+        List<Change> changes = []
+        changes.addAll(compareMaps(thisDataDictionary.businessDefinitions, previousDataDictionary.businessDefinitions, "NHS Business Definition"))
+        changes.addAll(compareMaps(thisDataDictionary.supportingInformation, previousDataDictionary.supportingInformation, "Supporting Information"))
+        changes.addAll(compareMaps(thisDataDictionary.attributes, previousDataDictionary.attributes, "Attribute"))
+        changes.addAll(compareMaps(thisDataDictionary.elements, previousDataDictionary.elements, "Data Element"))
+        changes.addAll(compareMaps(thisDataDictionary.classes, previousDataDictionary.classes, "Class"))
+        changes.addAll(compareMaps(thisDataDictionary.dataSets, previousDataDictionary.dataSets, "Data Set"))
+        changes.addAll(compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary.dataSetConstraints, "Data Set Constraint"))
+
+
+        return changes
+
 
     }
 
@@ -80,7 +97,7 @@ class ChangePaperUtility {
         ditaProject.addTopic("", summaryOfChangesTopic)
         ditaProject.addTopic("", changesTopic)
 
-        Closure summaryContent = {}
+        Closure summaryContent = genera
 
         Map<String, String> pathLookup = [:]
 
@@ -88,6 +105,9 @@ class ChangePaperUtility {
             ditaProject.addExternalKey(it.getDitaKey(), it.otherProperties["ddUrl"])
             pathLookup[it.getMauroPath()] = it.getDitaKey()
         }
+
+
+
 
         summaryContent >>= generateChanges(thisDataDictionary.businessDefinitions, previousDataDictionary.businessDefinitions,
                                          "NHS Business Definition", changesTopic, pathLookup)
@@ -207,25 +227,28 @@ class ChangePaperUtility {
         return definition
     }
 
-    static List<Change> compareMaps(Map<String, NhsDataDictionaryComponent> newList, Map<String, NhsDataDictionaryComponent> oldList) {
+    static List<Change> compareMaps(Map<String, NhsDataDictionaryComponent> newList, Map<String, NhsDataDictionaryComponent> oldList, String stereotype) {
         List<Change> changes = []
         newList.sort{ it.key }.each {name, component ->
             NhsDataDictionaryComponent previousComponent = oldList[name]
             if (!previousComponent) {
                 changes += new Change(
                     changeType: "New",
+                    stereotype: stereotype,
                     oldItem: null,
                     newItem: component
                 )
             } else if(component.isRetired() && !previousComponent.isRetired()) {
                 changes += new Change(
                     changeType: "Retired",
+                    stereotype: stereotype,
                     oldItem: previousComponent,
                     newItem: component
                 )
             } else if (component.definition != previousComponent.definition) {
                 changes += new Change(
                     changeType: "Description",
+                    stereotype: stereotype,
                     oldItem: previousComponent,
                     newItem: component
                 )
@@ -252,11 +275,11 @@ class ChangePaperUtility {
         }
     }
 
-    static Topic generateChangeTopic(Change change, Map<String, String> pathLookup, String stereotype ) {
+    static Topic generateChangeTopic(Change change, Map<String, String> pathLookup) {
         Topic subTopic = new Topic(id: change.newItem.getDitaKey(), title: new Title(change.newItem.name), toc: Toc.NO)
         String newDefinition = replaceLinksInDescription(change.newItem.definition, pathLookup)
 
-        subTopic.shortDesc = new ShortDesc("Change to ${stereotype}: ${change.changeText(stereotype)}".toString())
+        subTopic.shortDesc = new ShortDesc("Change to ${change.stereotype}: ${change.changeText(change.stereotype)}".toString())
         if(change.changeType == "Description") {
             String oldDefinition = replaceLinksInDescription(change.oldItem.definition, pathLookup)
             subTopic.body = new Body("<div outputclass=\"deleted\">${Html.tidyAndClean(oldDefinition)}</div>".toString() +
@@ -273,21 +296,46 @@ class ChangePaperUtility {
 
     }
 
-    static Closure generateChanges(Map<String, NhsDataDictionaryComponent> newMap,
-                                Map<String, NhsDataDictionaryComponent> oldMap,
-                                String stereotype,
+    static Closure generateChangeTopics(List<Change> changes,
                                 Topic changesTopic,
                                 Map<String, String> pathLookup) {
-        List<Change> changes = compareMaps(newMap, oldMap)
 
         if(changes && changes.size() != 0) {
             changes.each {change ->
-                changesTopic.subTopics.add(generateChangeTopic(change, pathLookup, stereotype))
+                changesTopic.subTopics.add(generateChangeTopic(change, pathLookup))
             }
-            return generateSummaryContent(changes, stereotype)
         }
         return {}
     }
+
+    static Closure generateSummaryTopic(List<Change> changes) {
+        Map<String, List<Change>> stereotypedChanges = [:]
+
+        changes.each { change ->
+            List<Change> changesForStereotype = stereotypedChanges[change.stereotype]
+            if(!changesForStereotype) {
+                changesForStereotype = [change]
+                stereotypedChanges[change.stereotype] = changesForStereotype
+
+            } else {
+                changesForStereotype.add(change)
+            }
+        }
+
+        Closure summaryTopic = {}
+
+        stereotypedChanges.each { stereotype, changesForStereotype ->
+            summaryTopic >>= generateSummaryContent(changesForStereotype, stereotype)
+        }
+
+        return summaryTopic
+
+
+
+
+    }
+
+
 
     static String unescape(String input) {
         return input.replace('&lt;', '<').replace('&gt;', '>')
