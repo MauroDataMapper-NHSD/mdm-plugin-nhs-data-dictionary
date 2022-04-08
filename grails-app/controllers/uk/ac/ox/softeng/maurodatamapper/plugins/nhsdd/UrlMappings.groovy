@@ -56,6 +56,8 @@ class UrlMappings {
 
                     group '/preview', {
 
+                        get '/changePaper'(controller: 'NhsDataDictionary', action: 'previewChangePaper')
+
                         get '/allItemsIndex'(controller: 'NhsDataDictionary', action: 'allItemsIndex')
 
                         '/businessDefinitions'(resources: 'businessDefinition', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {

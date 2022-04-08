@@ -50,6 +50,11 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     }
 
+    def previewChangePaper() {
+
+
+    }
+
     def changePaper() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
         File file = nhsDataDictionaryService.changePaper(versionedFolderId, params.boolean('test')?:false)
