@@ -68,7 +68,6 @@ class NhsDDClass implements NhsDataDictionaryComponent {
                 shortDescription = name
             }
         }
-        otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }
 
