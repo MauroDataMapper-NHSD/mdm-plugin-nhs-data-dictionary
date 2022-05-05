@@ -153,6 +153,48 @@ class WebsiteUtility {
         }
     }
 
+    static Topic getFlatIndexTopic(Map<String, NhsDataDictionaryComponent> componentMap, String indexPrefix, String indexTopicTitle) {
+
+        Topic.build(
+            id: "${indexPrefix}.index"
+        ) {
+            title indexTopicTitle
+            titlealts {
+                searchtitle "All Items: ${indexTopicTitle}"
+            }
+            List<String> alphabet = ['0-9']
+            alphabet.addAll('a'..'z')
+
+            alphabet.each {alphIndex ->
+                List<NhsDataDictionaryComponent> indexMap = componentMap.findAll {name, component ->
+                    !component.isRetired() &&
+                    ((alphIndex == '0-9' && Character.isDigit(name.charAt(0))) ||
+                     name.toLowerCase().startsWith(alphIndex))
+                }.values().sort {it.name}
+
+                if(indexMap) {
+                    topic (id: "${indexPrefix}.index.${alphIndex}"){
+                        title alphIndex.toUpperCase()
+                        body {
+                            simpletable(relColWidth: ["10*"], outputClass: "table table-striped table-sm") {
+                                stHead(outputClass: "thead-light") {
+                                    stentry "Item Name"
+                                }
+                                indexMap.each {component ->
+                                    strow {
+                                        stentry {
+                                            xRef component.calculateXRef()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     static void generateIndexTopics(NhsDataDictionary dataDictionary, DitaProject2 ditaProject, PublishOptions publishOptions) {
 
         if(publishOptions.isPublishAttributes()) {

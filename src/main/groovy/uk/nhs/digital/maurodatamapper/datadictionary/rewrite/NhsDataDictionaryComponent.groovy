@@ -17,7 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import groovy.xml.slurpersupport.GPathResult
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
@@ -35,6 +34,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper
 import java.util.regex.Matcher
 
 trait NhsDataDictionaryComponent {
+
+    // For parsing short descriptions
+    static XmlSlurper xmlSlurper = new XmlSlurper()
 
     abstract String getStereotype()
     abstract String getStereotypeForPreview()

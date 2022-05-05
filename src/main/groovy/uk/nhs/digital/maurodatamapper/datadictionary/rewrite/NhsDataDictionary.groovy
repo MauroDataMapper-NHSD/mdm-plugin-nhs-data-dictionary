@@ -132,12 +132,6 @@ class NhsDataDictionary {
         indexMap
     }
 
-
-
-
-
-
-
     Map<String, NhsDataDictionaryComponent> internalLinks = [:]
 
     void buildInternalLinks() {
@@ -147,7 +141,7 @@ class NhsDataDictionary {
     }
 
 
-    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null, PublishOptions publishOptions) {
+    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null) {
         return new NhsDataDictionary().tap {
             log.info('Building new NHS Data Dictionary from XML')
             long startTime = System.currentTimeMillis()
