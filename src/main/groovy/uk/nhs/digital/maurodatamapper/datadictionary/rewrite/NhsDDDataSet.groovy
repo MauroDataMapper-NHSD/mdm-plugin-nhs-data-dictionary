@@ -19,22 +19,13 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import groovy.xml.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.ColSpec
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Entry
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.TBody
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.TGroup
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.THead
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Table
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent {
@@ -87,7 +78,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
 
             try {
                 GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + definition + "</xml>")
+                xml = xmlSlurper.parseText("<xml>" + definition + "</xml>")
                 String allParagraphs = ""
                 xml.p.each { paragraph ->
                     allParagraphs += paragraph.text()

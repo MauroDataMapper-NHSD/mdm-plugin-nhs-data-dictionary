@@ -1,0 +1,19 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaper
+
+model {
+    ChangePaper changePaper
+}
+json {
+
+    reference changePaper.reference
+    type changePaper.type
+    versionNo changePaper.versionNo
+    subject changePaper.subject
+    effectiveDate changePaper.effectiveDate
+    reasonForChange changePaper.reasonForChange
+    publicationDate changePaper.publicationDate
+    background changePaper.background
+    sponsor changePaper.sponsor
+
+    changes g.render (changePaper.stereotypedChanges.findAll { it.changedItems })
+}

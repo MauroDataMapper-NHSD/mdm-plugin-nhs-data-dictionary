@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -31,6 +32,8 @@ import java.util.regex.Pattern
 @Transactional
 class NhsDataDictionary {
 
+
+    static final String WEBSITE_URL = "https://www.datadictionary.nhs.uk/"
 
     static final String METADATA_NAMESPACE = "uk.nhs.datadictionary"
 
@@ -98,6 +101,15 @@ class NhsDataDictionary {
             dataSetConstraints.values() +
             webPages.values()
     }
+
+    Map<String, NhsDataDictionaryComponent> internalLinks = [:]
+
+    void buildInternalLinks() {
+        allComponents.each {eachComponent ->
+            internalLinks[eachComponent.getMauroPath()] = eachComponent
+        }
+    }
+
 
     static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null) {
         return new NhsDataDictionary().tap {
@@ -188,6 +200,23 @@ class NhsDataDictionary {
         allKeys.addAll(["shortDescription","overview","linkedAttributes","noAliasesRequired","approvingOrganisation"])
         return allKeys
     }
+
+    static Map<String, String> aliasFields = [
+        "aliasAlsoKnownAs": "Also known as",
+        "aliasFormerly": "Formerly",
+        "aliasFullName": "Full name",
+        "aliasIndexName": "Index name",
+        "aliasODSXMLSchema": "ODS XML Schema",
+        "aliasOid": "Object Identifier",
+        "aliasPlural": "Plural",
+        "aliasPossessive": "Possessive",
+        "aliasReportHeading": "Report heading",
+        "aliasSchema": "Schema",
+        "aliasShortName": "Short name",
+        "aliasSnomedCTRefsetId": "SNOMED CT Refset Id",
+        "aliasSnomedCTRefsetName": "SNOMED CT Refset Name"
+    ]
+
 
     static final Map<String, String> METADATA_FIELD_MAPPING = [
         // Aliases

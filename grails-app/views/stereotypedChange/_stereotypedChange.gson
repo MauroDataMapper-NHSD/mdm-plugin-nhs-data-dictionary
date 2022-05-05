@@ -1,0 +1,11 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.StereotypedChange
+
+model {
+    StereotypedChange stereotypedChange
+}
+json {
+
+    stereotype stereotypedChange.stereotypeName
+    changedItems g.render (stereotypedChange.changedItems)
+
+}

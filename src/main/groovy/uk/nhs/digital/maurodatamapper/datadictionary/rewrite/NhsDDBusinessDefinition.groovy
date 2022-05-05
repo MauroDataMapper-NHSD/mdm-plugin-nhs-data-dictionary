@@ -17,14 +17,10 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
-import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
 @Slf4j
 class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
@@ -48,7 +44,7 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
         } else {
             try {
                 GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(definition.toString()) + "</xml>")
+                xml = xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(definition.toString()) + "</xml>")
                 String firstParagraph = xml.p[0].text()
                 if (xml.p.size() == 0) {
                     firstParagraph = xml.text()
