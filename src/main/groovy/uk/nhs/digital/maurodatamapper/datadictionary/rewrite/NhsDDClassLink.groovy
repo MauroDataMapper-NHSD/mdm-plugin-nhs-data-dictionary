@@ -17,11 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-
 class NhsDDClassLink {
 
     String uin

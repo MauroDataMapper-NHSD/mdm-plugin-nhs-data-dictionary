@@ -17,13 +17,19 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
 
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
+import groovy.xml.MarkupBuilder
+import groovy.xml.XmlSlurper
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.Change
 
 trait NhsDataDictionaryComponent {
+
+    // For parsing short descriptions
+    static XmlSlurper xmlSlurper = new XmlSlurper()
 
     abstract String getStereotype()
     abstract String getStereotypeForPreview()
@@ -39,6 +45,7 @@ trait NhsDataDictionaryComponent {
 
     Map<String, String> otherProperties = [:]
 
+    HashSet<NhsDataDictionaryComponent> whereUsed = []
 
     abstract String calculateShortDescription()
 
@@ -112,12 +119,10 @@ trait NhsDataDictionaryComponent {
 
     Map<String, String> getAliases() {
         Map<String, String> aliases = [:]
-        Set<String> aliasFields = NhsDataDictionary.getAllMetadataKeys().findAll {it.startsWith("alias")}
-
-        aliasFields.each {aliasField ->
-            String aliasValue = otherProperties[aliasField]
+        NhsDataDictionary.aliasFields.each {aliasKey, aliasValue ->
+            String alias = otherProperties[aliasValue]
             if(aliasValue) {
-                aliases[aliasField] = aliasValue
+                aliases[aliasKey] = alias
             }
         }
         return aliases
@@ -137,6 +142,7 @@ trait NhsDataDictionaryComponent {
     }
 
     abstract String getMauroPath()
+
     String getDitaKey() {
         getStereotype().replace(" ", "") + "_" + getNameWithoutNonAlphaNumerics()
     }
@@ -160,6 +166,86 @@ trait NhsDataDictionaryComponent {
         }
     }
 
+    String getDataDictionaryUrl() {
+        return """${NhsDataDictionary.WEBSITE_URL}/${getStereotypeForPreview()}/${getNameWithoutNonAlphaNumerics()}.html"""
+    }
 
+    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
+
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+
+        List<Change> changeList = []
+        if (!previousComponent) {
+            markupBuilder.div {
+                div (class: "new") {
+                    mkp.yieldUnescaped(this.description)
+                }
+            }
+
+            changeList += new Change(
+                changeType: "New",
+                stereotype: stereotype,
+                oldItem: null,
+                newItem: this,
+                htmlDetail: stringWriter.toString(),
+                ditaDetail: Div.build(outputClass: "new") {
+                    div HtmlHelper.replaceHtmlWithDita(this.description)
+                }
+            )
+        } else if(isRetired() && !previousComponent.isRetired()) {
+
+            markupBuilder.div {
+                div (class: "old") {
+                    mkp.yieldUnescaped(previousComponent.description)
+                }
+                div (class: "new") {
+                    mkp.yieldUnescaped(this.description)
+                }
+            }
+
+            changeList += new Change(
+                changeType: "Retired",
+                stereotype: stereotype,
+                oldItem: previousComponent,
+                newItem: this,
+                htmlDetail: stringWriter.toString(),
+                ditaDetail: Div.build {
+                    div (outputClass: "old") {
+                        div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                    }
+                    div (outputClass: "new") {
+                        div HtmlHelper.replaceHtmlWithDita(this.description)
+                    }
+                }
+            )
+        } else if (definition != previousComponent.definition) {
+            markupBuilder.div {
+                div (class: "old") {
+                    mkp.yieldUnescaped(previousComponent.description)
+                }
+                div (class: "new") {
+                    mkp.yieldUnescaped(this.description)
+                }
+            }
+            changeList += new Change(
+                changeType: "Updated description",
+                stereotype: stereotype,
+                oldItem: previousComponent,
+                newItem: this,
+                htmlDetail: stringWriter.toString(),
+                ditaDetail: Div.build {
+                    div (outputClass: "old") {
+                        div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                    }
+                    div (outputClass: "new") {
+                        div HtmlHelper.replaceHtmlWithDita(this.description)
+                    }
+                }
+            )
+        }
+        return changeList
+    }
 
 }

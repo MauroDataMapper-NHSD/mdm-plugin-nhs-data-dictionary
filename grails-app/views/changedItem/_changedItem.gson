@@ -1,0 +1,11 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangedItem
+
+model {
+    ChangedItem changedItem
+}
+json {
+
+    name changedItem.dictionaryComponent.name
+    changes g.render (changedItem.changes)
+
+}

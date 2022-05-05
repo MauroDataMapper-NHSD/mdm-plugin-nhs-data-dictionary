@@ -37,9 +37,9 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
-import uk.nhs.digital.maurodatamapper.datadictionary.DDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement

@@ -17,7 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
 class NhsDDWebPage implements NhsDataDictionaryComponent {
 

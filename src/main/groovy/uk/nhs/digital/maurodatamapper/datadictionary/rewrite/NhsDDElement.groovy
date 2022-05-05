@@ -20,7 +20,6 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
 
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent {
@@ -51,7 +50,7 @@ class NhsDDElement implements NhsDataDictionaryComponent {
         } else {
             try {
                 GPathResult xml
-                xml = Html.xmlSlurper.parseText("<xml>" + definition + "</xml>")
+                xml = xmlSlurper.parseText("<xml>" + definition + "</xml>")
                 String firstParagraph = xml.p[0].text()
                 if (xml.p.size() == 0) {
                     firstParagraph = xml.text()

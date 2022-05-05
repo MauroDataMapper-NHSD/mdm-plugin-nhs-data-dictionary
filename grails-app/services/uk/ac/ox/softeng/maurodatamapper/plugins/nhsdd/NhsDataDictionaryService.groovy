@@ -66,8 +66,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Ele
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ClassLinkedToRetiredAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaperUtility
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaperPdfUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaper
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.nio.file.Files
@@ -183,6 +184,9 @@ class NhsDataDictionaryService {
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
         addDataSetConstraintsToDictionary(dataSetConstraintsTerminology, dataDictionary)
+
+        dataDictionary.buildInternalLinks()
+
         log.debug('Data Dictionary built in {}', Utils.timeTaken(totalStart))
 
         return dataDictionary
@@ -370,34 +374,6 @@ class NhsDataDictionaryService {
         WebsiteUtility.generateWebsite(dataDictionary, outputPath)
         return null
 
-
-/*        NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
-
-        File tempDir = File.createTempDir()
-        log.debug(tempDir.path)
-        GenerateDita generateDita = new GenerateDita(dataDictionary, tempDir.path)
-        dataDictionary.elements.values().each {ddElement ->
-            ddElement.calculateFormatLinkMatchedItem(dataDictionary)
-        }
-        //generateDita.cleanSourceTarget(options.ditaOutputDir)
-        generateDita.generateInput()
-
-        File outputFile = new File(tempDir.path + "/" + "map.ditamap")
-
-        File tempDir2 = File.createTempDir()
-        log.debug(tempDir2.path)
-
-        FileOutputStream fos = new FileOutputStream(tempDir2.path + "/ditaCompressed.zip");
-        ZipOutputStream zipOut = new ZipOutputStream(fos);
-        File fileToZip = new File(tempDir.path);
-
-        zipFile(fileToZip, fileToZip.getName(), zipOut);
-
-        zipOut.close();
-        fos.close();
-
-        return new File(tempDir2.path + "/ditaCompressed.zip")
-*/
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
@@ -610,6 +586,16 @@ class NhsDataDictionaryService {
         return new FhirBundle(type: "transaction", entries: entries)
     }
 
+    ChangePaper previewChangePaper(UUID versionedFolderId) {
+
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+
+        NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
+        NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
+
+        return new ChangePaper(thisDataDictionary, previousDataDictionary)
+    }
 
     File changePaper(UUID versionedFolderId, boolean isTest = false) {
 
@@ -623,7 +609,7 @@ class NhsDataDictionaryService {
         if(!isTest) {
             outputPath = Files.createTempDirectory('changePaper')
         }
-        return ChangePaperUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
+        return ChangePaperPdfUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
     }
 
     NhsDataDictionary newDataDictionary() {

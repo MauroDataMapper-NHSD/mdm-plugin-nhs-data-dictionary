@@ -29,8 +29,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlUtil
 import groovy.xml.slurpersupport.GPathResult
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
@@ -636,7 +635,7 @@ class DataSetParser {
         td.depthFirst().findAll {n ->
             n instanceof Node && (n.name() == "strong" || n.name() == "em" || n.name() == "p")
         }.each {
-            n -> Html.removeNodeKeepChildren(n)
+            //n -> HtmlHelper.removeNodeKeepChildren(n)
         }
 
 

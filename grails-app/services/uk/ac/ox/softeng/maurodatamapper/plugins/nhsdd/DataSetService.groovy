@@ -32,13 +32,12 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import uk.nhs.digital.maurodatamapper.datadictionary.DDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.DDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.calstable.Row
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
@@ -468,7 +467,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             String uin = DDHelperFunctions.getMetadataValue(child, "uin")
             if (uin) {
                 DDElement ddElement = dataDictionary.elements[uin]
-                Row elementRow = new Row(entries: [])
+                //Row elementRow = new Row(entries: [])
                 if (ddElement) {
                     result.append "<tr>"
                     result.append "<td style='text-align: center'>${DataSetParser.getMRO(child)}</td>"
@@ -491,7 +490,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             }
         } else if (child instanceof DataClass) {
             if (DataSetParser.isChoice(child) && child.label.startsWith("Choice")) {
-                Row elementRow = new Row(entries: [])
+                //Row elementRow = new Row(entries: [])
                 String mro = ""
                 String groupRepeats = ""
                 String xRefs = ""

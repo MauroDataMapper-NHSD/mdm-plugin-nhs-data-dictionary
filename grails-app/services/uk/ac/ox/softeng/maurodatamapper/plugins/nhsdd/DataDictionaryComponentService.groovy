@@ -39,7 +39,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import uk.nhs.digital.maurodatamapper.datadictionary.DataDictionaryComponent
+
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
@@ -77,8 +77,8 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
 
     Map<String, String> getAliases(T catalogueItem) {
         Map<String, String> aliases = [:]
-        DataDictionaryComponent.aliasFields.each {aliasField ->
-
+        catalogueItem.aliases
+        NhsDataDictionary.aliasFields.each {aliasField ->
             Metadata foundMd = catalogueItem.metadata.find {it.namespace == getMetadataNamespace() && it.key == aliasField.key}
             if (foundMd) {
                 aliases[aliasField.value] = foundMd.value
