@@ -66,6 +66,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Ele
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ClassLinkedToRetiredAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaperPdfUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaper
@@ -91,6 +92,7 @@ class NhsDataDictionaryService {
 
     static final String NHSDD_PROPERTY_CATEGORY = 'NHS Data Dictionary'
 
+    static final String TEST_OUTPUT_PATH = "/Users/james/Desktop/ditaTest/"
 
 
     TerminologyService terminologyService
@@ -363,19 +365,6 @@ class NhsDataDictionaryService {
         return allItems.sort()
     }
 
-
-    File publishDita(UUID versionedFolderId) {
-
-
-        //NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
-        NhsDataDictionary dataDictionary = newDataDictionary()
-        String outputPath = "/Users/james/Desktop/ditaTest/"
-
-        WebsiteUtility.generateWebsite(dataDictionary, outputPath)
-        return null
-
-    }
-
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
         if (fileToZip.isHidden()) {
             return;
@@ -597,7 +586,7 @@ class NhsDataDictionaryService {
         return new ChangePaper(thisDataDictionary, previousDataDictionary)
     }
 
-    File changePaper(UUID versionedFolderId, boolean isTest = false) {
+    File generateChangePaper(UUID versionedFolderId, boolean isTest = false) {
 
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
@@ -605,12 +594,22 @@ class NhsDataDictionaryService {
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 
-        Path outputPath = Paths.get("/Users/james/Desktop/ditaTest/")
+        Path outputPath = Paths.get(TEST_OUTPUT_PATH)
         if(!isTest) {
             outputPath = Files.createTempDirectory('changePaper')
         }
         return ChangePaperPdfUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
     }
+
+    File generateWebsite(UUID versionedFolderId, PublishOptions publishOptions) {
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+        NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
+
+        Path outputPath = Files.createTempDirectory('website')
+
+        return WebsiteUtility.generateWebsite(thisDataDictionary, outputPath, publishOptions)
+    }
+
 
     NhsDataDictionary newDataDictionary() {
         NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()

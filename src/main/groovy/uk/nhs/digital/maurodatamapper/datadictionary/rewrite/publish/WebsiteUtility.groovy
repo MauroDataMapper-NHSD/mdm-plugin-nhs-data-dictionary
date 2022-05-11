@@ -17,36 +17,72 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
-import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.DitaMap
+
+import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject2
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 
 import net.lingala.zip4j.ZipFile
 import org.apache.commons.io.FileUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.text.SimpleDateFormat
 
 class WebsiteUtility {
 
     static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
 
-    static void generateWebsite(NhsDataDictionary dataDictionary, String outputPath) {
+    static File generateWebsite(NhsDataDictionary dataDictionary, Path outputPath, PublishOptions publishOptions) {
+
+        DitaProject2 ditaProject = new DitaProject2("NHS Data Model and Dictionary","nhs_data_dictionary")
 
 
+        generateIndexTopics(dataDictionary, ditaProject, publishOptions)
 
-        DitaProject ditaProject = new DitaProject().tap {
-            title = "Data Sets"
-            filename = "data_sets"
+        Map<String, NhsDataDictionaryComponent> pathLookup = [:]
+        dataDictionary.getAllComponents().each { it ->
+            ditaProject.addExternalKey(it.getDitaKey(), it.otherProperties["ddUrl"])
+            pathLookup[it.getMauroPath()] = it
         }
-        DitaMap ditaMap = new DitaMap().tap {
-            it.title("Data Sets")
+
+
+        dataDictionary.allComponents.each {component ->
+            component.definition = component.replaceLinksInDescription(pathLookup)
+
+
         }
 
-        overwriteGithubDir(outputPath)
+        ditaProject.addMapToMainMap('', 'classes', 'Classes', Toc.NO)
 
+        dataDictionary.allComponents.
+            sort {it.name }.
+            each {component ->
+                if(publishOptions.isPublishableComponent(component)) {
+                    String path = "${component.stereotypeForPreview}/${component.ditaKey}"
+                    ditaProject.addTopicToMapById(path, component.generateTopic(pathLookup), 'classes', Toc.NO)
+                }
+        }
+
+        String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
+        ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
+
+        //overwriteGithubDir(ditaOutputDirectory)
+
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
+        String date = simpleDateFormat.format(new Date())
+
+        String filename = dataDictionary.branchName + '-' + date + ".zip"
+
+        ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
+        zipFile.addFolder(new File(ditaOutputDirectory))
+
+        return zipFile.getFile()
     }
 
     static void overwriteGithubDir(String outputPath){
@@ -64,40 +100,82 @@ class WebsiteUtility {
         // Extract the necessary contents and copy them to the right place
         ZipFile zipFile = new ZipFile(sourceFile)
         zipFile.extractFile("DataDictionaryPublication-master/Website/", outputPath)
-        Files.list(new File(outputPath + "/DataDictionaryPublication-master/Website/").toPath()).forEach {path ->
-            FileUtils.moveToDirectory(path.toFile(), new File(outputPath), false)
-        }
+        FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-master/Website/"), new File(outputPath))
 
         // tidy up
         Files.delete(new File(sourceFile).toPath())
-        Files.delete(new File(outputPath + "/DataDictionaryPublication-master/").toPath())
+        FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-master/"))
+    }
+
+    static Topic getFlatIndexTopic(Map<String, NhsDataDictionaryComponent> componentMap, String indexPrefix, String indexTopicTitle) {
+
+        Topic.build(
+            id: "${indexPrefix}.index"
+        ) {
+            title indexTopicTitle
+            titlealts {
+                searchtitle "All Items: ${indexTopicTitle}"
+            }
+            List<String> alphabet = ['0-9']
+            alphabet.addAll('a'..'z')
+
+            alphabet.each {alphIndex ->
+                List<NhsDataDictionaryComponent> indexMap = componentMap.findAll {name, component ->
+                    !component.isRetired() &&
+                    ((alphIndex == '0-9' && Character.isDigit(name.charAt(0))) ||
+                     name.toLowerCase().startsWith(alphIndex))
+                }.values().sort {it.name}
+
+                if(indexMap) {
+                    topic (id: "${indexPrefix}.index.${alphIndex}"){
+                        title alphIndex.toUpperCase()
+                        body {
+                            simpletable(relColWidth: ["10*"], outputClass: "table table-striped table-sm") {
+                                stHead(outputClass: "thead-light") {
+                                    stentry "Item Name"
+                                }
+                                indexMap.each {component ->
+                                    strow {
+                                        stentry {
+                                            xRef component.calculateXRef()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
-    //    try {
-    //        // source & destination directories
-    //        Path src = Paths.get("dir");
-    //        Path dest = Paths.get("dir-new");
-    //
-    //        // create stream for `src`
-    //        Stream<Path> files = Files.walk(src);
-    //
-    //        // copy all files and folders from `src` to `dest`
-    //        files.forEach(file -> {
-    //            try {
-    //                Files.copy(file, dest.resolve(src.relativize(file)),
-    //                           StandardCopyOption.REPLACE_EXISTING);
-    //            } catch (IOException e) {
-    //                e.printStackTrace();
-    //            }
-    //        });
-    //
-    //        // close the stream
-    //        files.close();
-    //
-    //    } catch (IOException ex) {
-    //        ex.printStackTrace();
-    //    }
+    static void generateIndexTopics(NhsDataDictionary dataDictionary, DitaProject2 ditaProject, PublishOptions publishOptions) {
 
+        if(publishOptions.isPublishAttributes()) {
+            Topic attributesIndexTopic = getFlatIndexTopic(dataDictionary.attributes, "attributes", "Attributes")
+            ditaProject.addTopicToMainMap("", attributesIndexTopic, Toc.YES)
+        }
+        if(publishOptions.isPublishElements()) {
+            Topic elementsIndexTopic = getFlatIndexTopic(dataDictionary.elements, "elements", "Data Elements")
+            ditaProject.addTopicToMainMap("", elementsIndexTopic, Toc.YES)
+        }
+        if(publishOptions.isPublishClasses()) {
+            Topic classesIndexTopic = getFlatIndexTopic(dataDictionary.classes, "classes", "Classes")
+            ditaProject.addTopicToMainMap("", classesIndexTopic, Toc.YES)
+        }
+        if(publishOptions.isPublishBusinessDefinitions()) {
+            Topic nhsBusinessDefinitionsIndexTopic = getFlatIndexTopic(dataDictionary.businessDefinitions,
+                                                                   "nhsBusinessDefinitions", "NHS Business Definitions")
+            ditaProject.addTopicToMainMap("", nhsBusinessDefinitionsIndexTopic, Toc.YES)
+
+        }
+        if(publishOptions.isPublishSupportingInformation()) {
+            Topic supportingInformationIndexTopic = getFlatIndexTopic(dataDictionary.supportingInformation,
+                                                                  "supportingInformation", "Supporting Information")
+            ditaProject.addTopicToMainMap("", supportingInformationIndexTopic, Toc.YES)
+        }
+
+    }
 
 }

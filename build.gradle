@@ -103,7 +103,7 @@ bootRun {
         '-Dspring.output.ansi.enabled=always',
         '-noverify',
         '-XX:TieredStopAtLevel=1',
-        '-Xmx8192m')
+        '-Xmx18192m')
     sourceResources sourceSets.main
 
     System.properties.each {prop ->
@@ -127,7 +127,7 @@ grails {
 
 integrationTest {
     jvmArgs(
-        '-Xmx8192m'
+        '-Xmx18192m'
     )
 }
 

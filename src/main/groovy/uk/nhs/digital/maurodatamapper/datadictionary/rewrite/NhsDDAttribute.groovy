@@ -17,6 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
@@ -60,6 +63,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
                 shortDescription = name
             }
         }
+        shortDescription = shortDescription.replace("_", " ")
         //shortDescription = shortDescription.replaceAll("\\s+", " ")
         otherProperties["shortDescription"] = shortDescription
     }
@@ -108,5 +112,48 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
             return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|de:${name}"
         }
     }
+
+    @Override
+    List<Topic> getWebsiteTopics(Map<String, NhsDataDictionaryComponent>pathLookup) {
+        List<Topic> topics = []
+        topics.add(descriptionTopic(pathLookup))
+        if(!isPreparatory() && this.codes) {
+            topics.add(getNationalCodesTopic())
+        }
+        if(whereUsed) {
+            topics.add(whereUsedTopic())
+        }
+        if(getAliases()) {
+            topics.add(aliasesTopic())
+        }
+        return topics
+    }
+
+    Topic getNationalCodesTopic() {
+        Topic.build (id: getDitaKey() + "_nationalCodes") {
+            title "National Codes"
+            body {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"]), outputClass: "table table-striped table-sm") {
+                    stHead (outputClass: "thead-light") {
+                        stentry "Code"
+                        stentry "Description"
+                    }
+                    codes.each {code ->
+                        strow {
+                            stentry code.code
+                            stentry {
+                                div HtmlHelper.replaceHtmlWithDita(code.definition)
+                            }
+
+                        }
+                    }
+
+                }
+            }
+        }
+
+
+    }
+
 
 }

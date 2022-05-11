@@ -70,6 +70,7 @@ class NhsDDElement implements NhsDataDictionaryComponent {
                 shortDescription = name
             }
         }
+        shortDescription = shortDescription.replace("_", " ")
         //shortDescription = shortDescription.replaceAll("\\s+", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription

@@ -25,8 +25,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.User
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlSlurper
-
-import java.nio.file.Files
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 
 @Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {
@@ -55,24 +54,6 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         respond nhsDataDictionaryService.previewChangePaper(versionedFolderId)
     }
 
-    def changePaper() {
-        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        File file = nhsDataDictionaryService.changePaper(versionedFolderId, params.boolean('test')?:false)
-
-        header 'Access-Control-Expose-Headers', 'Content-Disposition'
-        render(file: file, fileName: file.name, contentType: "application/zip")
-    }
-
-    def codeSystemValidateBundle() {
-        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        respond nhsDataDictionaryService.codeSystemValidationBundle(versionedFolderId)
-    }
-
-    def valueSetValidateBundle() {
-        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        respond nhsDataDictionaryService.valueSetValidationBundle(versionedFolderId)
-    }
-
     def branches() {
         respond nhsDataDictionaryService.branches(currentUserSecurityPolicyManager)
     }
@@ -92,16 +73,36 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         respond nhsDataDictionaryService.allItemsIndex(UUID.fromString(params.versionedFolderId))
     }
 
-    def publishDita() {
+
+    // Publication endpoints - generate documents
+
+    def generateWebsite() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
 
-        nhsDataDictionaryService.publishDita(versionedFolderId)
+        PublishOptions publishOptions = PublishOptions.fromParameters(params)
+        File file = nhsDataDictionaryService.generateWebsite(versionedFolderId, publishOptions)
+        header 'Access-Control-Expose-Headers', 'Content-Disposition'
+        render(file: file, fileName: file.name, contentType: "application/zip")
+    }
 
-        //        File file = nhsDataDictionaryService.publishDita(versionedFolderId)
-        //        render(file: file, fileName: "DataDictionaryDita.zip", contentType: "application/zip")
+
+    def generateChangePaper() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        File file = nhsDataDictionaryService.generateChangePaper(versionedFolderId, params.boolean('test')?: false)
 
         header 'Access-Control-Expose-Headers', 'Content-Disposition'
-        //render(file: Files.createTempFile("June2021"), fileName: "June2021.zip", contentType: "application/zip")
-        respond([])
+        render(file: file, fileName: file.name, contentType: "application/zip")
     }
+
+    def codeSystemValidateBundle() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond nhsDataDictionaryService.codeSystemValidationBundle(versionedFolderId)
+    }
+
+    def valueSetValidateBundle() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond nhsDataDictionaryService.valueSetValidationBundle(versionedFolderId)
+    }
+
+
 }
