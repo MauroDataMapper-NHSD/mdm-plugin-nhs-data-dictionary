@@ -29,6 +29,7 @@ import net.lingala.zip4j.ZipFile
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.regex.Matcher
 
@@ -77,7 +78,7 @@ class ChangePaperPdfUtility {
         ditaProject.addTopic("", changesTopic, Toc.YES)
 
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
-        ditaProject.writeToDirectory(ditaOutputDirectory)
+        ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
         String date = simpleDateFormat.format(new Date())

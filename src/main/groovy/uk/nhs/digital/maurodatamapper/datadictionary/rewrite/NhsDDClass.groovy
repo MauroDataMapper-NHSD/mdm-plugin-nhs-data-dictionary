@@ -73,6 +73,7 @@ class NhsDDClass implements NhsDataDictionaryComponent {
             }
         }
         //shortDescription = shortDescription.replaceAll("\\s+", " ")
+        shortDescription = shortDescription.replace("_", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }

@@ -45,9 +45,9 @@ class UrlMappings {
 
                     group '/publish', {
 
-                        get '/dita'(controller: 'NhsDataDictionary', action: 'publishDita')
+                        get '/website'(controller: 'NhsDataDictionary', action: 'generateWebsite')
 
-                        get '/changePaper'(controller: 'NhsDataDictionary', action: 'changePaper')
+                        get '/changePaper'(controller: 'NhsDataDictionary', action: 'generateChangePaper')
 
                         // More endpoints to control publication to OntoServer
                         get '/codeSystem/validateBundle'(controller: 'NhsDataDictionary', action: 'codeSystemValidateBundle')
