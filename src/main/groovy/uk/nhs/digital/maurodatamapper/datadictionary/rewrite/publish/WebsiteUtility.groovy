@@ -19,6 +19,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
 
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject2
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 
@@ -35,6 +36,16 @@ import java.text.SimpleDateFormat
 
 class WebsiteUtility {
 
+    static final List<String> allStereotypes = [
+            'attribute',
+            'businessDefinition',
+            'class',
+            'dataSet',
+            'dataSetConstraint',
+            'element',
+            'supportingInformation'
+    ]
+
     static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
 
     static File generateWebsite(NhsDataDictionary dataDictionary, Path outputPath, PublishOptions publishOptions) {
@@ -43,28 +54,32 @@ class WebsiteUtility {
 
 
         generateIndexTopics(dataDictionary, ditaProject, publishOptions)
+        generateAllItemsIndex(dataDictionary, ditaProject, publishOptions)
 
         Map<String, NhsDataDictionaryComponent> pathLookup = [:]
-        dataDictionary.getAllComponents().each { it ->
-            ditaProject.addExternalKey(it.getDitaKey(), it.otherProperties["ddUrl"])
-            pathLookup[it.getMauroPath()] = it
+
+        dataDictionary.getAllComponents().each { component ->
+            ditaProject.addExternalKey(component.getDitaKey(), component.otherProperties["ddUrl"])
+            pathLookup[component.getMauroPath()] = component
         }
 
 
         dataDictionary.allComponents.each {component ->
-            component.definition = component.replaceLinksInDescription(pathLookup)
+            component.replaceLinksInDefinition(pathLookup)
+        }
 
+        allStereotypes.each {stereotype ->
+            ditaProject.addMapToMainMap('', stereotype, stereotype, Toc.NO)
 
         }
 
-        ditaProject.addMapToMainMap('', 'classes', 'Classes', Toc.NO)
 
         dataDictionary.allComponents.
             sort {it.name }.
             each {component ->
                 if(publishOptions.isPublishableComponent(component)) {
-                    String path = "${component.stereotypeForPreview}/${component.ditaKey}"
-                    ditaProject.addTopicToMapById(path, component.generateTopic(pathLookup), 'classes', Toc.NO)
+                    String path = "${component.stereotypeForPreview}/${component.nameWithoutNonAlphaNumerics.substring(0,1)}/${component.getNameWithoutNonAlphaNumerics()}"
+                    ditaProject.addTopicToMapById(path, component.generateTopic(pathLookup), component.stereotypeForPreview, Toc.NO)
                 }
         }
 
@@ -176,6 +191,24 @@ class WebsiteUtility {
             ditaProject.addTopicToMainMap("", supportingInformationIndexTopic, Toc.YES)
         }
 
+    }
+
+    static void generateAllItemsIndex(NhsDataDictionary dataDictionary, DitaProject2 ditaProject, PublishOptions publishOptions) {
+        DitaMap allItemsIndexMap = DitaMap.build(id: "allItemsIndex") {
+            title "All Items Index"
+        }
+
+        ditaProject.addMapToMainMap("", allItemsIndexMap, Toc.YES)
+
+        List<String> alphabet = ['0-9']
+        alphabet.addAll('a'..'z')
+
+        alphabet.each {alphIndex ->
+            Topic indexPage = Topic.build (id: "allItemsIndex${alphIndex}") {
+                title "All Items Index: ${alphIndex}"
+            }
+            ditaProject.addTopicToMapById("", indexPage, "allItemsIndex", Toc.YES)
+        }
     }
 
 }

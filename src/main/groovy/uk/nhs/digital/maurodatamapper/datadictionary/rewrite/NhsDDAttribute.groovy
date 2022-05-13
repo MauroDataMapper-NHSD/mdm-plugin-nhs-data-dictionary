@@ -114,6 +114,15 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     }
 
     @Override
+    void replaceLinksInDefinition(Map<String, NhsDataDictionaryComponent> pathLookup) {
+        NhsDataDictionaryComponent.super.replaceLinksInDefinition(pathLookup)
+        codes.each { code ->
+            code.definition = replaceLinksInString(code.definition, pathLookup)
+        }
+    }
+
+
+    @Override
     List<Topic> getWebsiteTopics(Map<String, NhsDataDictionaryComponent>pathLookup) {
         List<Topic> topics = []
         topics.add(descriptionTopic(pathLookup))
@@ -144,15 +153,11 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
                             stentry {
                                 div HtmlHelper.replaceHtmlWithDita(code.definition)
                             }
-
                         }
                     }
-
                 }
             }
         }
-
-
     }
 
 

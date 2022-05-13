@@ -285,7 +285,7 @@ trait NhsDataDictionaryComponent {
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {
-                div HtmlHelper.replaceHtmlWithDita(replaceLinksInDescription(pathLookup))
+                div HtmlHelper.replaceHtmlWithDita(definition)
             }
         }
     }
@@ -354,26 +354,29 @@ trait NhsDataDictionaryComponent {
         return outputClass
     }
 
+    void replaceLinksInDefinition(Map<String, NhsDataDictionaryComponent> pathLookup) {
+        if(definition) {
+            definition = replaceLinksInString(description, pathLookup)
+        }
+    }
 
-    String replaceLinksInDescription(Map<String, NhsDataDictionaryComponent> pathLookup) {
-        if(description) {
-            String newDescription = description
-            Matcher matcher = NhsDataDictionary.pattern.matcher(newDescription)
+    String replaceLinksInString(String source, Map<String, NhsDataDictionaryComponent> pathLookup) {
+        if(source) {
+            Matcher matcher = NhsDataDictionary.pattern.matcher(source)
             while(matcher.find()) {
                 NhsDataDictionaryComponent component = pathLookup[matcher.group(1)]
                 if(component) {
                     String text = matcher.group(2).replaceAll("_"," ")
                     String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
-                    newDescription = newDescription.replace(matcher.group(0), replacement)
+                    source = source.replace(matcher.group(0), replacement)
                     // System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
                     if(this != component) {
                         component.whereUsed.add(this)
                     }
                 }
             }
-            return newDescription
         }
-        return description
+        return source
     }
 
 
