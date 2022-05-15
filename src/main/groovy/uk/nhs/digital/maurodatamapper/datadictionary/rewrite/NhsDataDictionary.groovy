@@ -102,6 +102,38 @@ class NhsDataDictionary {
             webPages.values()
     }
 
+    Map<String, List<NhsDataDictionaryComponent>> allComponentsByIndex() {
+        componentsByIndex(getAllComponents())
+    }
+
+    Map<String, List<NhsDataDictionaryComponent>> componentsByIndex(Collection<NhsDataDictionaryComponent> components) {
+
+        Map<String, List<NhsDataDictionaryComponent>> indexMap = [:]
+
+        List<String> alphabet = ['0-9']
+        alphabet.addAll('a'..'z')
+
+        alphabet.each {alphIndex ->
+            List<NhsDataDictionaryComponent> componentsByIndex = components.findAll {component ->
+                !component.isRetired() &&
+                ((alphIndex == '0-9' && Character.isDigit(component.name.charAt(0))) ||
+                 component.name.toLowerCase().startsWith(alphIndex))
+            }.sort {it.name}
+
+            if(componentsByIndex.size() > 0) {
+                indexMap[alphIndex.toUpperCase()] = componentsByIndex
+            }
+        }
+
+        indexMap
+    }
+
+
+
+
+
+
+
     Map<String, NhsDataDictionaryComponent> internalLinks = [:]
 
     void buildInternalLinks() {
