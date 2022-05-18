@@ -92,21 +92,22 @@ class NhsDataDictionary {
     ]
 
     List<NhsDataDictionaryComponent> getAllComponents() {
-        attributes.values() +
+        (attributes.values() +
             elements.values() +
             classes.values() +
             dataSets.values() +
             businessDefinitions.values() +
             supportingInformation.values() +
             dataSetConstraints.values() +
-            webPages.values()
+            webPages.values()) as List
     }
 
-    Map<String, List<NhsDataDictionaryComponent>> allComponentsByIndex() {
-        componentsByIndex(getAllComponents())
+    Map<String, List<NhsDataDictionaryComponent>> allComponentsByIndex(boolean includeRetired = false) {
+        componentsByIndex(getAllComponents(), includeRetired)
     }
 
-    Map<String, List<NhsDataDictionaryComponent>> componentsByIndex(Collection<NhsDataDictionaryComponent> components) {
+    Map<String, List<NhsDataDictionaryComponent>> componentsByIndex(Collection<NhsDataDictionaryComponent> components,
+                                                                    boolean includeRetired = false) {
 
         Map<String, List<NhsDataDictionaryComponent>> indexMap = [:]
 
@@ -115,7 +116,7 @@ class NhsDataDictionary {
 
         alphabet.each {alphIndex ->
             List<NhsDataDictionaryComponent> componentsByIndex = components.findAll {component ->
-                !component.isRetired() &&
+                (includeRetired || !component.isRetired()) &&
                 ((alphIndex == '0-9' && Character.isDigit(component.name.charAt(0))) ||
                  component.name.toLowerCase().startsWith(alphIndex))
             }.sort {it.name}
