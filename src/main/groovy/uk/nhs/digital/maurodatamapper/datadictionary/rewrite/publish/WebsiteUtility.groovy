@@ -48,7 +48,9 @@ class WebsiteUtility {
             'Supporting Information': 'supportingInformation'
     ]
 
-    static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
+    static final String GITHUB_BRANCH_URL = "https://github.com/jamesrwelch/DataDictionaryPublication/archive/refs/heads/master.zip"
+    static final Boolean TEST_GITHUB = true
+    static final String TEST_GITHUB_DIR = "/Users/james/git/nhsd/james-fork/DataDictionaryPublication/Website"
 
     static File generateWebsite(NhsDataDictionary dataDictionary, Path outputPath, PublishOptions publishOptions) {
 
@@ -87,7 +89,8 @@ class WebsiteUtility {
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
-        //overwriteGithubDir(ditaOutputDirectory)
+        //System.err.println(ditaOutputDirectory)
+        overwriteGithubDir(ditaOutputDirectory)
 
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
@@ -103,24 +106,27 @@ class WebsiteUtility {
 
     static void overwriteGithubDir(String outputPath){
 
-        // Create a temporary directory for the downloaded zip
-        Path tempPath = Files.createTempDirectory("ditaGeneration")
-        String sourceFile = tempPath.toString() + "/github_download.zip"
+        if(TEST_GITHUB) {
+            FileUtils.copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
+        } else {
+            // Create a temporary directory for the downloaded zip
+            Path tempPath = Files.createTempDirectory("ditaGeneration")
+            String sourceFile = tempPath.toString() + "/github_download.zip"
 
-        // Get the zip file and save it into the directory
-        InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
-        Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
+            // Get the zip file and save it into the directory
+            InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
+            Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
 
 
+            // Extract the necessary contents and copy them to the right place
+            ZipFile zipFile = new ZipFile(sourceFile)
+            zipFile.extractFile("DataDictionaryPublication-master/Website/", outputPath)
+            FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-master/Website/"), new File(outputPath))
 
-        // Extract the necessary contents and copy them to the right place
-        ZipFile zipFile = new ZipFile(sourceFile)
-        zipFile.extractFile("DataDictionaryPublication-master/Website/", outputPath)
-        FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-master/Website/"), new File(outputPath))
-
-        // tidy up
-        Files.delete(new File(sourceFile).toPath())
-        FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-master/"))
+            // tidy up
+            Files.delete(new File(sourceFile).toPath())
+            FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-master/"))
+        }
     }
 
     static Topic getFlatIndexTopic(Map<String, List<NhsDataDictionaryComponent>> componentMap, String indexPrefix, String indexTopicTitle) {
@@ -158,28 +164,30 @@ class WebsiteUtility {
     static void generateIndexTopics(NhsDataDictionary dataDictionary, DitaProject2 ditaProject, PublishOptions publishOptions) {
 
         if(publishOptions.isPublishAttributes()) {
-            Topic attributesIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.attributes.values()),
+            Topic attributesIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.attributes.values(), false),
                                                            "attributes", "Attributes Index")
             ditaProject.addTopicToMainMap("", attributesIndexTopic, Toc.YES)
         }
         if(publishOptions.isPublishElements()) {
-            Topic elementsIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.elements.values()),
+            Topic elementsIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.elements.values(), false),
                                                          "elements", "Data Elements Index")
             ditaProject.addTopicToMainMap("", elementsIndexTopic, Toc.YES)
         }
         if(publishOptions.isPublishClasses()) {
-            Topic classesIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.classes.values()),
+            Topic classesIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.classes.values(), false),
                                                         "classes", "Classes Index")
             ditaProject.addTopicToMainMap("", classesIndexTopic, Toc.YES)
         }
         if(publishOptions.isPublishBusinessDefinitions()) {
-            Topic nhsBusinessDefinitionsIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.businessDefinitions.values()),
+            Topic nhsBusinessDefinitionsIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.businessDefinitions.values()
+                                                                                                        , false),
                                                                    "nhsBusinessDefinitions", "NHS Business Definitions Index")
             ditaProject.addTopicToMainMap("", nhsBusinessDefinitionsIndexTopic, Toc.YES)
 
         }
         if(publishOptions.isPublishSupportingInformation()) {
-            Topic supportingInformationIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.supportingInformation.values()),
+            Topic supportingInformationIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.supportingInformation.values
+                                                                                                       (), false),
                                                                   "supportingInformation", "Supporting Information Index")
             ditaProject.addTopicToMainMap("", supportingInformationIndexTopic, Toc.YES)
         }
@@ -195,7 +203,7 @@ class WebsiteUtility {
 */
         List<TopicRef> topicRefs = []
 
-        dataDictionary.allComponentsByIndex().each {alphaIndex, components ->
+        dataDictionary.allComponentsByIndex(true).each {alphaIndex, components ->
             Topic indexPage = Topic.build (id: "allItemsIndex-${alphaIndex}") {
                 title "${alphaIndex}"
                 body {
