@@ -17,6 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
+
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
@@ -113,6 +116,79 @@ class NhsDDClass implements NhsDataDictionaryComponent {
             "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${name}"
         } else {
             return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:${name}"
+        }
+    }
+
+    @Override
+    List<Topic> getWebsiteTopics() {
+        List<Topic> topics = []
+        topics.add(descriptionTopic())
+        if(allAttributes()) {
+            topics.add(classLinksTopic())
+        }
+        if(classRelationships) {
+            topics.add(classRelationshipsTopic())
+        }
+        if(whereUsed) {
+            topics.add(whereUsedTopic())
+        }
+        if(getAliases()) {
+            topics.add(aliasesTopic())
+        }
+        return topics
+    }
+
+    Topic classLinksTopic() {
+        Topic.build (id: getDitaKey() + "_attributes") {
+            title "Attributes"
+            body {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "9*"]), outputClass: "table table-striped table-sm") {
+                    stHead (outputClass: "thead-light") {
+                        stentry "Key"
+                        stentry "Attribute Name"
+                    }
+                    keyAttributes.sort {it.name.toLowerCase()}.each {attribute ->
+                        strow {
+                            stentry 'Key'
+                            stentry {
+                                xRef attribute.calculateXRef()
+                            }
+                        }
+                    }
+                    otherAttributes.sort {it.name.toLowerCase()}.each {attribute ->
+                        strow {
+                            stentry ''
+                            stentry {
+                                xRef attribute.calculateXRef()
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+    Topic classRelationshipsTopic() {
+        Topic.build(id: getDitaKey() + "_relationships") {
+            title "Relationships"
+            body {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "5*", "5*"]), outputClass: "table table-striped table-sm") {
+                    stHead(outputClass: "thead-light") {
+                        stentry "Key"
+                        stentry "Relationship"
+                        stentry "Class"
+                    }
+                    classRelationships.sort {it.targetClass.name.toLowerCase()}.each {relationship ->
+                        strow {
+                            stentry relationship.isKey?'Key':''
+                            stentry relationship.relationshipDescription
+                            stentry {
+                                xRef relationship.targetClass.calculateXRef()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

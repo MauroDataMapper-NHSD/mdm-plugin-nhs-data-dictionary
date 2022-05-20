@@ -256,9 +256,9 @@ trait NhsDataDictionaryComponent {
         return changeList
     }
 
-    List<Topic> getWebsiteTopics(Map<String, NhsDataDictionaryComponent>pathLookup) {
+    List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
-        topics.add(descriptionTopic(pathLookup))
+        topics.add(descriptionTopic())
         if(whereUsed) {
             topics.add(whereUsedTopic())
         }
@@ -268,20 +268,20 @@ trait NhsDataDictionaryComponent {
         return topics
     }
 
-    Topic generateTopic(Map<String, NhsDataDictionaryComponent> pathLookup) {
+    Topic generateTopic() {
         Topic.build(
             id: getDitaKey()
         ) {
             title getNameWithRetired()
             shortdesc getShortDescription()
-            getWebsiteTopics(pathLookup).each {
+            getWebsiteTopics().each {
                 topic it
             }
 
         }
     }
 
-    Topic descriptionTopic(Map<String, NhsDataDictionaryComponent> pathLookup) {
+    Topic descriptionTopic() {
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {

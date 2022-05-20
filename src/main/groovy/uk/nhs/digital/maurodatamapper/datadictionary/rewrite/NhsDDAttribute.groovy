@@ -123,9 +123,9 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
 
 
     @Override
-    List<Topic> getWebsiteTopics(Map<String, NhsDataDictionaryComponent>pathLookup) {
+    List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
-        topics.add(descriptionTopic(pathLookup))
+        topics.add(descriptionTopic())
         if(!isPreparatory() && this.codes) {
             topics.add(getNationalCodesTopic())
         }

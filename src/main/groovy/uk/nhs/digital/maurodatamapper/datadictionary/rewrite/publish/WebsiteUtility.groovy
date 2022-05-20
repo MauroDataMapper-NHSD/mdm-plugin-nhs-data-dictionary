@@ -27,6 +27,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 
 import net.lingala.zip4j.ZipFile
 import org.apache.commons.io.FileUtils
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
@@ -82,7 +83,7 @@ class WebsiteUtility {
             each {component ->
                 if(publishOptions.isPublishableComponent(component)) {
                     String path = "${component.stereotypeForPreview}/${component.nameWithoutNonAlphaNumerics.substring(0,1)}/${component.getNameWithoutNonAlphaNumerics()}"
-                    ditaProject.addTopicToMapById(path, component.generateTopic(pathLookup), component.stereotypeForPreview, Toc.NO)
+                    ditaProject.addTopicToMapById(path, component.generateTopic(), component.stereotypeForPreview, Toc.NO)
                 }
         }
 
@@ -129,28 +130,20 @@ class WebsiteUtility {
         }
     }
 
-    static Topic getFlatIndexTopic(Map<String, List<NhsDataDictionaryComponent>> componentMap, String indexPrefix, String indexTopicTitle) {
+    static List<Topic> getFlatIndexTopics(Map<String, List<NhsDataDictionaryComponent>> componentMap, String indexPrefix, String indexTopicTitle) {
 
-        Topic.build(
-            id: "${indexPrefix}.index"
-        ) {
-            title indexTopicTitle
-            titlealts {
-                searchtitle "All Items: ${indexTopicTitle}"
-            }
-            componentMap.each {alphaIndex, componentList ->
-                topic (id: "${indexPrefix}.index.${alphaIndex}"){
-                    title alphaIndex.toUpperCase()
-                    body {
-                        simpletable(relColWidth: ["10*"], outputClass: "table table-striped table-sm") {
-                            stHead(outputClass: "thead-light") {
-                                stentry "Item Name"
-                            }
-                            componentList.each {component ->
-                                strow {
-                                    stentry {
-                                        xRef component.calculateXRef()
-                                    }
+        return componentMap.collect {alphaIndex, componentList ->
+            Topic.build (id: "${indexPrefix}.index.${alphaIndex}"){
+                title alphaIndex.toUpperCase()
+                body {
+                    simpletable(relColWidth: ["10*"], outputClass: "table table-striped table-sm") {
+                        stHead(outputClass: "thead-light") {
+                            stentry "Item Name"
+                        }
+                        componentList.each {component ->
+                            strow {
+                                stentry {
+                                    xRef component.calculateXRef()
                                 }
                             }
                         }
@@ -160,51 +153,33 @@ class WebsiteUtility {
         }
     }
 
-
     static void generateIndexTopics(NhsDataDictionary dataDictionary, DitaProject2 ditaProject, PublishOptions publishOptions) {
 
         if(publishOptions.isPublishAttributes()) {
-            Topic attributesIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.attributes.values(), false),
-                                                           "attributes", "Attributes Index")
-            ditaProject.addTopicToMainMap("", attributesIndexTopic, Toc.YES)
+            generateIndexMap(ditaProject, "attributes", "Attributes", dataDictionary, dataDictionary.attributes.values())
         }
         if(publishOptions.isPublishElements()) {
-            Topic elementsIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.elements.values(), false),
-                                                         "elements", "Data Elements Index")
-            ditaProject.addTopicToMainMap("", elementsIndexTopic, Toc.YES)
+            generateIndexMap(ditaProject, "elements", "Elements", dataDictionary, dataDictionary.elements.values())
+
         }
         if(publishOptions.isPublishClasses()) {
-            Topic classesIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.classes.values(), false),
-                                                        "classes", "Classes Index")
-            ditaProject.addTopicToMainMap("", classesIndexTopic, Toc.YES)
+            generateIndexMap(ditaProject, "classes", "Classes", dataDictionary, dataDictionary.classes.values())
         }
         if(publishOptions.isPublishBusinessDefinitions()) {
-            Topic nhsBusinessDefinitionsIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.businessDefinitions.values()
-                                                                                                        , false),
-                                                                   "nhsBusinessDefinitions", "NHS Business Definitions Index")
-            ditaProject.addTopicToMainMap("", nhsBusinessDefinitionsIndexTopic, Toc.YES)
+            generateIndexMap(ditaProject, "nhsBusinessDefinitions", "NHS Business Definitions", dataDictionary, dataDictionary.businessDefinitions.values())
 
         }
         if(publishOptions.isPublishSupportingInformation()) {
-            Topic supportingInformationIndexTopic = getFlatIndexTopic(dataDictionary.componentsByIndex(dataDictionary.supportingInformation.values
-                                                                                                       (), false),
-                                                                  "supportingInformation", "Supporting Information Index")
-            ditaProject.addTopicToMainMap("", supportingInformationIndexTopic, Toc.YES)
+            generateIndexMap(ditaProject, "supportingInformation", "Supporting Information", dataDictionary, dataDictionary.supportingInformation.values())
         }
-
     }
 
     static void generateAllItemsIndex(NhsDataDictionary dataDictionary, DitaProject2 ditaProject, PublishOptions publishOptions) {
-/*        DitaMap allItemsIndexMap = DitaMap.build(id: "allItemsIndex") {
-            title "All Items Index"
-        }
 
-        ditaProject.addMapToMainMap("", allItemsIndexMap, Toc.YES)
-*/
-        List<TopicRef> topicRefs = []
+        TopicRef indexTopicRef = TopicRef.build(href: "../topics/allItems/allItems.index.overview.dita")
 
         dataDictionary.allComponentsByIndex(true).each {alphaIndex, components ->
-            Topic indexPage = Topic.build (id: "allItemsIndex-${alphaIndex}") {
+            Topic indexPage = Topic.build (id: "allItems.index.${alphaIndex}") {
                 title "${alphaIndex}"
                 body {
                     simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-striped table-sm") {
@@ -223,28 +198,40 @@ class WebsiteUtility {
                     }
                 }
             }
-            topicRefs.add(TopicRef.build(href: "topics/allItemsIndex-${alphaIndex}.dita"))
-            ditaProject.addTopic("", indexPage)
+            indexTopicRef.topicRef(TopicRef.build(href: "../topics/allItems/allItems.index.${alphaIndex}.dita"))
+            ditaProject.addTopic("allItems", indexPage)
         }
 
-        TopicRef indexTopicRef = TopicRef.build(keys: ['allItemsIndexDescription'],
-                                                href:'topics/allItemsIndexDescription.dita',
-                                                toc: Toc.YES,
-                                                chunk: ['by-topic'],
-                                                linking: Linking.NORMAL) {
-            topicRefs.each {
-                topicRef it
-            }
-        }
-        Topic indexDescriptionTopic = Topic.build(id:'allItemsIndexDescription') {
+
+
+        DitaMap indexMap = DitaMap.build(id: 'allItems.index', toc: Toc.YES, chunk: ["by-document"]) {
             title "All Items Index"
-            body {
-                p "This is just a holding page and should be overridden before publication"
-            }
+            topicRef indexTopicRef
         }
-        ditaProject.addTopic('', indexDescriptionTopic)
+        ditaProject.addMapToMainMap("", indexMap, Toc.YES)
 
-        ditaProject.addTopicRefToMainMap(indexTopicRef)
+    }
+
+    static void generateIndexMap(DitaProject2 ditaProject,
+                     String lowercaseStereotype, String stereotype, NhsDataDictionary dataDictionary,
+                     Collection<NhsDataDictionaryComponent> components) {
+        DitaMap indexMap = DitaMap.build(id: "${lowercaseStereotype}.index") {
+            title stereotype
+        }
+        TopicRef topicRef = TopicRef.build(href: "../topics/${lowercaseStereotype}/${lowercaseStereotype}.index.overview.dita",
+                                           chunk: ["to-content"],
+                                           linking: Linking.NORMAL)
+
+
+        List<Topic> indexTopics = getFlatIndexTopics(dataDictionary.componentsByIndex(components, false),
+                                                            lowercaseStereotype, stereotype)
+
+        indexTopics.each {topic ->
+            ditaProject.addTopic(lowercaseStereotype, topic)
+            topicRef.topicRef(href:"../topics/${lowercaseStereotype}/${topic.id}.dita", linking: Linking.NORMAL)
+        }
+        indexMap.topicRef(topicRef)
+        ditaProject.addMapToMainMap("", indexMap, Toc.YES)
     }
 
 }
