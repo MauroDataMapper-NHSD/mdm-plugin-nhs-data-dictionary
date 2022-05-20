@@ -225,6 +225,9 @@ class NhsDataDictionaryService {
         List<DataElement> attributeElements = DataElement.by().inList('dataClass.id', [attributesClass.id, retiredAttributesClass.id]).list()
 
         dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements, dataDictionary)
+        dataDictionary.attributes.values().each { ddAttribute ->
+            dataDictionary.attributesByCatalogueId[ddAttribute.catalogueItem.id] = ddAttribute
+        }
     }
 
     void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
@@ -260,14 +263,21 @@ class NhsDataDictionaryService {
             ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
                 if(dataElement.dataType instanceof ReferenceType) {
                     DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
+
                     dataClass.classRelationships.add(new NhsDDClassRelationship(
-                        targetClass: dataDictionary.classes[referencedClass.label],
-                        relationshipDescription: dataElement.label
-                    ))
+                        targetClass: dataDictionary.classes[referencedClass.label]
+                    ).tap {
+                        setDescription(dataElement)
+                    })
                 }
             }
             ((DataClass)dataClass.catalogueItem).getExtendedDataClasses().each { extendedDataClass ->
                 dataClass.extendsClasses.add(dataDictionary.classesByCatalogueId[extendedDataClass.id])
+            }
+
+            // TODO:  Sort key and non-key attributes here...
+            ((DataClass)dataClass.catalogueItem).getImportedDataElements().each { importedDataElement ->
+                dataClass.otherAttributes.add(dataDictionary.attributesByCatalogueId[importedDataElement.id])
             }
         }
 

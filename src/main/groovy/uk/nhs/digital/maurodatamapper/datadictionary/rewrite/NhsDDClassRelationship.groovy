@@ -17,13 +17,33 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+
 class NhsDDClassRelationship {
 
     String relationshipDescription
     NhsDDClass targetClass
     boolean isKey
 
+    void setDescription(DataElement dataElement) {
 
+        String role = dataElement.label.replaceAll("\\(\\d\\)", "")
+        Integer minMultiplicity = dataElement.minMultiplicity
+        Integer maxMultiplicity = dataElement.maxMultiplicity
+
+        String mayMust = "must be "
+
+        if(minMultiplicity == 0) {
+            mayMust = "may be "
+        }
+        String cardinality = " one or more"
+
+        if(maxMultiplicity == 1) {
+            role = role + " one and only one"
+        }
+        relationshipDescription = mayMust + role + cardinality
+
+    }
 
 
 

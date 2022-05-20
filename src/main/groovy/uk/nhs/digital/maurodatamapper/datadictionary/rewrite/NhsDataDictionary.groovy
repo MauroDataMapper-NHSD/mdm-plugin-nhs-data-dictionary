@@ -75,6 +75,7 @@ class NhsDataDictionary {
     Map<UUID, NhsDDCode> codesByCatalogueId = [:]
     Map<UUID, NhsDDClass> classesByCatalogueId = [:]
     Map<UUID, NhsDDElement> elementsByCatalogueId = [:]
+    Map<UUID, NhsDDAttribute> attributesByCatalogueId = [:]
 
     String folderName = FOLDER_NAME
 
