@@ -17,6 +17,10 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 class NhsDDCode {
@@ -59,5 +63,34 @@ class NhsDDCode {
 
     }
 
+    Strow toDitaTableRow() {
+        Strow.build(outputClass: isRetired ? "retired" : "") {
+            stentry code
+            stentry {
+                if(webPresentation) {
+                    div HtmlHelper.replaceHtmlWithDita(webPresentation)
+                } else {
+                    txt definition
+                }
+            }
+        }
+    }
+
+    static getCodesTopic(String topicId, String topicTitle, List<NhsDDCode> orderedCodes) {
+        Topic.build (id: topicId) {
+            title topicTitle
+            body {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"]), outputClass: "table table-sm") {
+                    stHead (outputClass: "thead-light") {
+                        stentry "Code"
+                        stentry "Description"
+                    }
+                    orderedCodes.each {code ->
+                        strow code.toDitaTableRow()
+                    }
+                }
+            }
+        }
+    }
 
 }

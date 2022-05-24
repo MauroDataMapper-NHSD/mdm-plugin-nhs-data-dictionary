@@ -49,7 +49,7 @@
         "description": "Any special html presentation that should appear for this term instead of simply its definition",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "text"
       }
     ]
   }

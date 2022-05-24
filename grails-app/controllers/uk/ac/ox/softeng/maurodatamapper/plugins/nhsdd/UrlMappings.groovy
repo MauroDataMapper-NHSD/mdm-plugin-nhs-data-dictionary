@@ -49,6 +49,8 @@ class UrlMappings {
 
                         get '/changePaper'(controller: 'NhsDataDictionary', action: 'generateChangePaper')
 
+                        get '/shortDescriptions'(controller: 'NhsDataDictionary', action: 'shortDescriptions')
+
                         // More endpoints to control publication to OntoServer
                         get '/codeSystem/validateBundle'(controller: 'NhsDataDictionary', action: 'codeSystemValidateBundle')
                         get '/valueSet/validateBundle'(controller: 'NhsDataDictionary', action: 'valueSetValidateBundle')

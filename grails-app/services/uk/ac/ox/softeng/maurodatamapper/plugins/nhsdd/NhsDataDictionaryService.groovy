@@ -420,7 +420,7 @@ class NhsDataDictionaryService {
 
 
     VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion,
-                           String branchName = "main", boolean deletePrevious = false) {
+                           String branchName = "main", PublishOptions publishOptions, boolean deletePrevious = false) {
 
         NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo)
 
@@ -467,48 +467,63 @@ class NhsDataDictionaryService {
         TreeMap<String, Terminology> attributeTerminologiesByName = new TreeMap<>()
         TreeMap<String, DataElement> attributeElementsByName = new TreeMap<>()
 
-        startTime = System.currentTimeMillis()
-        attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeElementsByName)
-        log.info('AttributeService persisted in {}', Utils.timeTaken(startTime))
-
-        startTime = System.currentTimeMillis()
-        elementService.persistElements(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
-        log.info('ElementService persisted in {}', Utils.timeTaken(startTime))
-
-        startTime = System.currentTimeMillis()
-        classService.persistClasses(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
-        log.info('ClassService persisted in {}', Utils.timeTaken(startTime))
-
-        startTime = System.currentTimeMillis()
-        businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
-        log.info('BusinessDefinitionService persisted in {}', Utils.timeTaken(startTime))
-
-        startTime = System.currentTimeMillis()
-        supportingInformationService.persistSupportingInformation(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
-        log.info('SupportingInformationService persisted in {}', Utils.timeTaken(startTime))
-
-        startTime = System.currentTimeMillis()
-        dataSetConstraintService.persistDataSetConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
-        log.info('DataSetConstraintService persisted in {}', Utils.timeTaken(startTime))
-
-        startTime = System.currentTimeMillis()
-        log.debug('Validating [{}] model', NhsDataDictionary.CORE_MODEL_NAME)
-        dataModelService.validate(coreDataModel)
-        endTime = System.currentTimeMillis()
-        log.info('Validate [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
-        startTime = endTime
-        if (coreDataModel.hasErrors()) {
-            throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
+        if(publishOptions.publishAttributes) {
+            startTime = System.currentTimeMillis()
+            attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeElementsByName)
+            log.info('AttributeService persisted in {}', Utils.timeTaken(startTime))
         }
 
-        dataModelService.saveModelWithContent(coreDataModel, 1000)
-        endTime = System.currentTimeMillis()
-        log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+        if(publishOptions.publishElements) {
+            startTime = System.currentTimeMillis()
+            elementService.persistElements(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
+            log.info('ElementService persisted in {}', Utils.timeTaken(startTime))
+        }
 
-        startTime = System.currentTimeMillis()
-        dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser)
-        log.info('DataSetService persist complete in {}', Utils.timeTaken(startTime))
+        if(publishOptions.publishClasses) {
+            startTime = System.currentTimeMillis()
+            classService.persistClasses(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
+            log.info('ClassService persisted in {}', Utils.timeTaken(startTime))
+        }
 
+        if(publishOptions.publishBusinessDefinitions) {
+            startTime = System.currentTimeMillis()
+            businessDefinitionService.persistBusinessDefinitions(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+            log.info('BusinessDefinitionService persisted in {}', Utils.timeTaken(startTime))
+        }
+
+        if(publishOptions.publishSupportingInformation) {
+            startTime = System.currentTimeMillis()
+            supportingInformationService.persistSupportingInformation(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+            log.info('SupportingInformationService persisted in {}', Utils.timeTaken(startTime))
+        }
+
+        if(publishOptions.publishDataSetConstraints) {
+            startTime = System.currentTimeMillis()
+            dataSetConstraintService.persistDataSetConstraints(nhsDataDictionary, dictionaryFolder, currentUser.emailAddress)
+            log.info('DataSetConstraintService persisted in {}', Utils.timeTaken(startTime))
+        }
+
+        if(publishOptions.publishAttributes || publishOptions.publishElements || publishOptions.publishClasses) {
+            startTime = System.currentTimeMillis()
+            log.debug('Validating [{}] model', NhsDataDictionary.CORE_MODEL_NAME)
+            dataModelService.validate(coreDataModel)
+            endTime = System.currentTimeMillis()
+            log.info('Validate [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+            startTime = endTime
+            if (coreDataModel.hasErrors()) {
+                throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
+            }
+
+            dataModelService.saveModelWithContent(coreDataModel, 1000)
+            endTime = System.currentTimeMillis()
+            log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+        }
+
+        if(publishOptions.publishDataSets) {
+            startTime = System.currentTimeMillis()
+            dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser)
+            log.info('DataSetService persist complete in {}', Utils.timeTaken(startTime))
+        }
         // If any changes remain on the dictionary folder then save them
         if (dictionaryFolder.isDirty()) {
             log.debug('Validate and save {}', dictionaryFolderName)
@@ -618,6 +633,17 @@ class NhsDataDictionaryService {
         Path outputPath = Files.createTempDirectory('website')
 
         return WebsiteUtility.generateWebsite(thisDataDictionary, outputPath, publishOptions)
+    }
+
+    def shortDescriptions(UUID versionedFolderId) {
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+        NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
+
+        List<String> response = []
+        thisDataDictionary.getAllComponents().sort { it.name}.each { component ->
+            response.add(""" \"${component.getStereotype()}\", \"${component.getNameWithRetired()}\", \"${component.getShortDescription()}\" """)
+        }
+        return response
     }
 
 

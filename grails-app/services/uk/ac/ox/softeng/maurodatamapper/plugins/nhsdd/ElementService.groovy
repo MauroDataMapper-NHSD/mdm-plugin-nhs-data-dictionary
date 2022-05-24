@@ -218,6 +218,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
                 NhsDDAttribute linkedAttribute = dataDictionary.attributes[it]
                 if (linkedAttribute) {
                     element.instantiatesAttributes.add(linkedAttribute)
+                    linkedAttribute.instantiatedByElements.add(element)
                 }
             }
         }

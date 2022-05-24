@@ -142,7 +142,7 @@ class NhsDDClass implements NhsDataDictionaryComponent {
         Topic.build (id: getDitaKey() + "_attributes") {
             title "Attributes"
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "9*"]), outputClass: "table table-striped table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "9*"]), outputClass: "table table-sm") {
                     stHead (outputClass: "thead-light") {
                         stentry "Key"
                         stentry "Attribute Name"
@@ -172,7 +172,7 @@ class NhsDDClass implements NhsDataDictionaryComponent {
         Topic.build(id: getDitaKey() + "_relationships") {
             title "Relationships"
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "5*", "5*"]), outputClass: "table table-striped table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "5*", "5*"]), outputClass: "table table-sm") {
                     stHead(outputClass: "thead-light") {
                         stentry "Key"
                         stentry "Relationship"
