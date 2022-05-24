@@ -136,7 +136,7 @@ class WebsiteUtility {
             Topic.build (id: "${indexPrefix}.index.${alphaIndex}"){
                 title alphaIndex.toUpperCase()
                 body {
-                    simpletable(relColWidth: ["10*"], outputClass: "table table-striped table-sm") {
+                    simpletable(relColWidth: ["10*"], outputClass: "table table-sm") {
                         stHead(outputClass: "thead-light") {
                             stentry "Item Name"
                         }
@@ -182,7 +182,7 @@ class WebsiteUtility {
             Topic indexPage = Topic.build (id: "allItems.index.${alphaIndex}") {
                 title "${alphaIndex}"
                 body {
-                    simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-striped table-sm") {
+                    simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-sm") {
                         stHead(outputClass: "thead-light") {
                             stentry "Item Name"
                             stentry "Item Type"

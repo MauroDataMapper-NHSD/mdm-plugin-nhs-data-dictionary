@@ -259,11 +259,11 @@ trait NhsDataDictionaryComponent {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
-        }
         if(getAliases()) {
             topics.add(aliasesTopic())
+        }
+        if(whereUsed) {
+            topics.add(whereUsedTopic())
         }
         return topics
     }
@@ -294,7 +294,7 @@ trait NhsDataDictionaryComponent {
         Topic.build (id: getDitaKey() + "_whereUsed") {
             title "Where Used"
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["3*","7*"]), outputClass: "table table-striped table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["3*","7*"]), outputClass: "table table-sm") {
                     stHead (outputClass: "thead-light") {
                         stentry "Type"
                         stentry "Link"
@@ -318,7 +318,7 @@ trait NhsDataDictionaryComponent {
             title "Also Known As"
             body {
                 p "This ${getStereotype()} is also known by these names:"
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"]), outputClass: "table table-striped table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"]), outputClass: "table table-sm") {
                     stHead (outputClass: "thead-light") {
                         stentry "Context"
                         stentry "Alias"

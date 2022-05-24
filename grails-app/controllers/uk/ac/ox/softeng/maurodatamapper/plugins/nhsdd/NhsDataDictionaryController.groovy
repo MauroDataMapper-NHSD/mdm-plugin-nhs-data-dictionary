@@ -42,8 +42,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         }
         def xml = xmlSlurper.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
+        PublishOptions publishOptions = PublishOptions.fromParameters(params)
         VersionedFolder newVersionedFolder = nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params
-            .folderVersionNo, params.prevVersion, params.branchName)
+            .folderVersionNo, params.prevVersion, params.branchName, publishOptions, params.boolean('deletePrevious')?:false)
 
         respond([newVersionedFolder.id.toString()])
 
@@ -102,6 +103,11 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     def valueSetValidateBundle() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
         respond nhsDataDictionaryService.valueSetValidationBundle(versionedFolderId)
+    }
+
+    def shortDescriptions() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond nhsDataDictionaryService.shortDescriptions(versionedFolderId)
     }
 
 

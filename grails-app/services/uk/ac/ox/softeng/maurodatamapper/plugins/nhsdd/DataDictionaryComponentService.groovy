@@ -398,7 +398,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         List<NhsDDCode> codes = []
         List<Metadata> allRelevantMetadata = Metadata
             .byMultiFacetAwareItemIdInList(terms.collect {it.id})
-            .inList('key', ['publishDate', 'webOrder', 'webPresentation', 'isDefault'])
+            .inList('key', ['publishDate', 'webOrder', 'webPresentation', 'isDefault', 'isRetired'])
             .list()
         codes.addAll(terms.collect {term ->
             NhsDDCode nhsDDCode = nhsDataDictionary.codesByCatalogueId[term.id]
@@ -410,6 +410,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
                     webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
                     webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
                     isDefault = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isDefault'}?.value)
+                    isRetired = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isRetired'}?.value)
                     catalogueItem = term
                 }
                 nhsDataDictionary.codesByCatalogueId[term.id] = nhsDDCode

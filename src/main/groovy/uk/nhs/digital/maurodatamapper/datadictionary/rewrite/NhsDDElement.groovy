@@ -17,6 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Format
 
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
@@ -37,6 +40,8 @@ class NhsDDElement implements NhsDataDictionaryComponent {
 
 
     List<NhsDDCode> codes = []
+
+    XRef formatLinkXref
 
     String codeSetVersion
 
@@ -120,6 +125,107 @@ class NhsDDElement implements NhsDataDictionaryComponent {
             "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
         } else {
             return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
+        }
+    }
+
+    boolean hasNationalCodes() {
+        this.codes.find { !it.isDefault}
+    }
+
+    boolean hasDefaultCodes() {
+        this.codes.find { it.isDefault }
+    }
+
+    @Override
+    void replaceLinksInDefinition(Map<String, NhsDataDictionaryComponent> pathLookup) {
+        NhsDataDictionaryComponent.super.replaceLinksInDefinition(pathLookup)
+        codes.each { code ->
+            code.webPresentation = replaceLinksInString(code.webPresentation, pathLookup)
+        }
+        if(otherProperties["formatLink"] && pathLookup[otherProperties["formatLink"]]) {
+            formatLinkXref = pathLookup[otherProperties["formatLink"]].calculateXRef()
+        }
+    }
+
+
+    @Override
+    List<Topic> getWebsiteTopics() {
+        List<Topic> topics = []
+        topics.add(descriptionTopic())
+
+        if(otherProperties["formatLength"] || otherProperties["formatLink"]) {
+            topics.add(getFormatLengthTopic())
+        }
+        if(!isPreparatory() && hasNationalCodes()) {
+            topics.add(getNationalCodesTopic())
+        }
+        if(!isPreparatory() && hasDefaultCodes()) {
+            topics.add(getDefaultCodesTopic())
+        }
+        if(getAliases()) {
+            topics.add(aliasesTopic())
+        }
+        if(whereUsed) {
+            topics.add(whereUsedTopic())
+        }
+        if(instantiatesAttributes) {
+            topics.add(getAttributesTopic())
+        }
+        return topics
+    }
+
+    Topic getFormatLengthTopic() {
+        Topic.build (id: getDitaKey() + "_formatLength") {
+            title "Format / Length"
+            body {
+                if(formatLinkXref) {
+                    p {
+                        txt "See "
+                        xRef formatLinkXref
+                    }
+                } else {
+                    p otherProperties["formatLength"]
+                }
+            }
+        }
+    }
+
+    Topic getNationalCodesTopic() {
+        List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }.sort {it.code}
+        if(codes.find{it.webOrder }) {
+            orderedCodes = orderedCodes.sort {it.webOrder}
+        }
+        String topicTitle = "National Codes"
+        if(instantiatesAttributes) {
+            if(orderedCodes.size() < instantiatesAttributes[0].codes.findAll { !it.isDefault }.size()) {
+                topicTitle = "Permitted National Codes"
+            }
+        }
+
+        NhsDDCode.getCodesTopic(getDitaKey() + "_nationalCodes", topicTitle, orderedCodes)
+    }
+
+    Topic getDefaultCodesTopic() {
+        List<NhsDDCode> orderedCodes = codes.findAll { it.isDefault }.sort {it.code}
+        if(orderedCodes.find{it.webOrder }) {
+            orderedCodes = orderedCodes.sort {it.webOrder}
+        }
+        NhsDDCode.getCodesTopic(getDitaKey() + "_defaultCodes", "Default Codes", orderedCodes)
+    }
+
+
+    Topic getAttributesTopic() {
+        Topic.build (id: getDitaKey() + "_attributes") {
+            title "Attribute"
+            body {
+                ul {
+                    instantiatesAttributes.each { NhsDDAttribute attribute ->
+                        li {
+                            xRef (attribute.calculateXRef())
+                        }
+                    }
+                }
+            }
         }
     }
 

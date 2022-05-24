@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
 @Slf4j
 class NhsDDAttribute implements NhsDataDictionaryComponent {
@@ -84,7 +85,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
                 code.isRetired = concept.property.find {it.code."@value" == "Status"}?.valueString?."@value"?.text() == "retired"
                 code.retiredDate = concept.property.find {it.code."@value" == "Retired Date"}?.valueDateTime?."@value"?.text()
                 code.webOrder = concept.property.find {it.code."@value" == "Web Order"}?.valueInteger?."@value"?.text()
-                code.webPresentation = concept.property.find {it.code."@value" == "Web Presentation"}?.valueString?."@value"?.text()
+                code.webPresentation = unquoteString(concept.property.find {it.code."@value" == "Web Presentation"}?.valueString?."@value"?.text())
                 code.isDefault = (code.webOrder == null || code.webOrder == "0")
                 codes.add(code)
             }
@@ -96,6 +97,15 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     String getXmlNodeName() {
         "DDAttribute"
     }
+
+    static String unquoteString(String input) {
+        input.
+            replaceAll("&quot;", "\"").
+            replaceAll("&gt;", ">").
+            replaceAll("&lt;", "<").
+            replaceAll("&apos;", "'")
+    }
+
 
     String getFormatLengthHtml() {
         if (otherProperties["formatLink"]) {
@@ -117,7 +127,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
     void replaceLinksInDefinition(Map<String, NhsDataDictionaryComponent> pathLookup) {
         NhsDataDictionaryComponent.super.replaceLinksInDefinition(pathLookup)
         codes.each { code ->
-            code.definition = replaceLinksInString(code.definition, pathLookup)
+            code.webPresentation = replaceLinksInString(code.webPresentation, pathLookup)
         }
     }
 
@@ -129,30 +139,34 @@ class NhsDDAttribute implements NhsDataDictionaryComponent {
         if(!isPreparatory() && this.codes) {
             topics.add(getNationalCodesTopic())
         }
+        if(getAliases()) {
+            topics.add(aliasesTopic())
+        }
         if(whereUsed) {
             topics.add(whereUsedTopic())
         }
-        if(getAliases()) {
-            topics.add(aliasesTopic())
+        if(instantiatedByElements) {
+            topics.add(getDataElementsTopic())
         }
         return topics
     }
 
     Topic getNationalCodesTopic() {
-        Topic.build (id: getDitaKey() + "_nationalCodes") {
-            title "National Codes"
+        List<NhsDDCode> orderedCodes = codes.sort {it.code}
+        if(codes.find{it.webOrder }) {
+            orderedCodes = codes.sort {it.webOrder}
+        }
+        NhsDDCode.getCodesTopic(getDitaKey() + "_nationalCodes", "National Codes", orderedCodes)
+    }
+
+    Topic getDataElementsTopic() {
+        Topic.build (id: getDitaKey() + "_dataElements") {
+            title "Data Elements"
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"]), outputClass: "table table-striped table-sm") {
-                    stHead (outputClass: "thead-light") {
-                        stentry "Code"
-                        stentry "Description"
-                    }
-                    codes.each {code ->
-                        strow {
-                            stentry code.code
-                            stentry {
-                                div HtmlHelper.replaceHtmlWithDita(code.definition)
-                            }
+                ul {
+                    instantiatedByElements.each { NhsDDElement element ->
+                        li {
+                            xRef (element.calculateXRef())
                         }
                     }
                 }

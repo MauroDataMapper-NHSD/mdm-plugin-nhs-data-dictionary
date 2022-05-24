@@ -199,29 +199,48 @@ class NhsDataDictionary {
         }
         Map<String, List<String>> unmatchedUrls = [:]
         getAllComponents().each {component ->
-            String newDefinition = component.definition
-            if(component.definition) {
-                Matcher matcher = pattern.matcher(newDefinition)
-                while(matcher.find()) {
-                    String matchedUrl = replacements[matcher.group(1)]
-                    if(matchedUrl) {
-                        String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
-                        newDefinition = newDefinition.replace(matcher.group(0), replacement)
-                        log.trace("Replacing: " + matcher.group(0) + " with " + replacement)
-                    } else {
-                        List<String> existingUnmatched = unmatchedUrls[component.name]
-                        if(existingUnmatched) {
-                            existingUnmatched.add(matcher.group(0))
-                        } else {
-                            unmatchedUrls[component.name] = [matcher.group(0)]
-                        }
+            component.definition = replaceUrls(component.definition, replacements, unmatchedUrls, component.name)
+            if(component instanceof NhsDDElement) {
+                ((NhsDDElement)component).codes.each {code ->
+                    if(code.webPresentation) {
+                        code.webPresentation = replaceUrls(code.webPresentation, replacements, unmatchedUrls, component.name)
                     }
-
+                }
+                String formatLink = ((NhsDDElement)component).otherProperties["formatLink"]
+                if(formatLink && replacements[formatLink]) {
+                    ((NhsDDElement)component).otherProperties["formatLink"] = replacements[formatLink]
                 }
             }
-            component.definition = newDefinition
+            if(component instanceof NhsDDAttribute) {
+                ((NhsDDAttribute)component).codes.each {code ->
+                    code.webPresentation = replaceUrls(code.webPresentation, replacements, unmatchedUrls, component.name)
+                }
+            }
         }
         log.warn("Unmatched Urls: {}", unmatchedUrls.size())
+    }
+
+    static String replaceUrls(String input, Map<String, String> replacements, Map<String, List<String>> unmatchedUrls, String componentName) {
+        if(input) {
+            Matcher matcher = pattern.matcher(input)
+            while(matcher.find()) {
+                String matchedUrl = replacements[matcher.group(1)]
+                if(matchedUrl) {
+                    String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
+                    input = input.replace(matcher.group(0), replacement)
+                    log.trace("Replacing: " + matcher.group(0) + " with " + replacement)
+                } else {
+                    List<String> existingUnmatched = unmatchedUrls[componentName]
+                    if(existingUnmatched) {
+                        existingUnmatched.add(matcher.group(0))
+                    } else {
+                        unmatchedUrls[componentName] = [matcher.group(0)]
+                    }
+                }
+
+            }
+        }
+        return input
     }
 
 

@@ -173,7 +173,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
                 }
         } else {
 
-            markupBuilder.table (class:"simpletable table table-striped table-sm") {
+            markupBuilder.table (class:"simpletable table table-sm") {
                 tr {
                     th (colspan: 2, class: "thead-light") {
                         b dataClass.label
