@@ -18,7 +18,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.DitaMap
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 
 import net.lingala.zip4j.ZipFile
 import org.apache.commons.io.FileUtils
