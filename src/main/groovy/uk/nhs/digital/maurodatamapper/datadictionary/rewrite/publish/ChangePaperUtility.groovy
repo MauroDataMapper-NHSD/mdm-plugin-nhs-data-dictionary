@@ -18,21 +18,17 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Body
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.ShortDesc
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Title
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Title
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import net.lingala.zip4j.ZipFile
 import uk.nhs.digital.maurodatamapper.datadictionary.dita.domain.Html
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.regex.Matcher
@@ -97,7 +93,7 @@ class ChangePaperUtility {
         ditaProject.addTopic("", summaryOfChangesTopic)
         ditaProject.addTopic("", changesTopic)
 
-        Closure summaryContent = genera
+        Closure summaryContent
 
         Map<String, String> pathLookup = [:]
 
@@ -279,7 +275,7 @@ class ChangePaperUtility {
         Topic subTopic = new Topic(id: change.newItem.getDitaKey(), title: new Title(change.newItem.name), toc: Toc.NO)
         String newDefinition = replaceLinksInDescription(change.newItem.definition, pathLookup)
 
-        subTopic.shortDesc = new ShortDesc("Change to ${change.stereotype}: ${change.changeText(change.stereotype)}".toString())
+        //    subTopic.shortDesc = new ShortDesc("Change to ${change.stereotype}: ${change.changeText(change.stereotype)}".toString())
         if(change.changeType == "Description") {
             String oldDefinition = replaceLinksInDescription(change.oldItem.definition, pathLookup)
             subTopic.body = new Body("<div outputclass=\"deleted\">${Html.tidyAndClean(oldDefinition)}</div>".toString() +
