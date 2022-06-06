@@ -17,6 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import groovy.xml.slurpersupport.GPathResult
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
@@ -34,9 +35,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper
 import java.util.regex.Matcher
 
 trait NhsDataDictionaryComponent {
-
-    // For parsing short descriptions
-    static XmlSlurper xmlSlurper = new XmlSlurper()
 
     abstract String getStereotype()
     abstract String getStereotypeForPreview()
@@ -378,6 +376,55 @@ trait NhsDataDictionaryComponent {
         }
         return source
     }
+
+
+
+    static List<String> calculateSentences(String html) {
+        Node xml = HtmlHelper.tidyAndConvertToNode(html)
+        if(xml.children().find { childNode ->
+            childNode instanceof String || childNode.name().toString().toLowerCase() == 'a' // An indicator that there are no paragraphs
+        }) {
+            return xml.text().split("\\.")
+        }
+
+        List<String> response = []
+        xml.children().each { childNode ->
+            if(childNode instanceof String) {
+                response.add((String) childNode)
+            } else {
+                switch (childNode.name().toString().toLowerCase()) {
+                    case 'table':
+                    case 'img':
+                        break
+                    case 'p':
+                    case 'div':
+                    case 'span':
+                    default:
+                        response.addAll(childNode.text().split("\\."))
+                }
+            }
+        }
+        return response
+    }
+
+    String getFirstSentence(String html = this.definition) {
+        getSentence(html, 0)
+    }
+
+    String getSentence(String html = this.definition, int i) {
+        String sentence = calculateSentences(html)[i]
+        return tidyShortDescription(sentence) + "."
+    }
+
+    String tidyShortDescription(String sentence) {
+        if(!sentence) {
+            return null
+        }
+        String response = sentence.replace("_", " ")
+        response = response.replaceAll("\\s+", " ")
+        return response
+    }
+
 
 
 }

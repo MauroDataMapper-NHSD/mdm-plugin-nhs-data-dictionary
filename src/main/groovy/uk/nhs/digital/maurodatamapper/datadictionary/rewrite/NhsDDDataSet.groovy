@@ -24,6 +24,7 @@ import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import groovy.xml.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
+import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 
@@ -74,34 +75,28 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         } else {
 
             List<String> aliases = [name]
-            aliases.addAll(otherProperties.findAll{key, value -> key.startsWith("alias")}.collect {it.value})
+            aliases.addAll(getAliases().values())
 
             try {
-                GPathResult xml
-                xml = xmlSlurper.parseText("<xml>" + definition + "</xml>")
-                String allParagraphs = ""
-                xml.p.each { paragraph ->
-                    allParagraphs += paragraph.text()
-                }
-                String nextSentence = ""
-                while (!aliases.find { it -> nextSentence.contains(it) } && allParagraphs.contains(".")) {
-                    nextSentence = allParagraphs.substring(0, allParagraphs.indexOf(".") + 1)
-                    if (aliases.find { it -> nextSentence.contains(it) }) {
-                        if(nextSentence.startsWith("Introduction")) {
-                            nextSentence = nextSentence.replaceFirst("Introduction", "")
+
+                List<String> allSentences = calculateSentences(definition)
+
+                if(isRetired()) {
+                    shortDescription = allSentences[0]
+                } else {
+                    shortDescription = allSentences.find {sentence ->
+                        aliases.find {alias ->
+                            sentence.contains(alias)
                         }
-                        shortDescription = nextSentence
-                        break
                     }
-                    allParagraphs = allParagraphs.substring(allParagraphs.indexOf(".") + 1)
                 }
+
             } catch (Exception e) {
+                e.printStackTrace()
                 log.error("Couldn't parse: " + definition)
                 shortDescription = name
             }
         }
-        shortDescription = shortDescription.replace("_", " ")
-        //shortDescription = shortDescription.replaceAll("\\s+", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }

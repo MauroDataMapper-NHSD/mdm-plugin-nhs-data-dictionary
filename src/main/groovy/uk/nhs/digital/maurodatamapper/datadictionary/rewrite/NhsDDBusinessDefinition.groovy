@@ -43,16 +43,9 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
             shortDescription = "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
-                GPathResult xml
-                xml = xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(definition.toString()) + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
+                String firstSentence = getFirstSentence()
                 if (firstSentence.toLowerCase().contains("is a")) {
-                    String secondParagraph = xml.p[1].text()
-                    String secondSentence = secondParagraph.substring(0, secondParagraph.indexOf(".") + 1)
+                    String secondSentence = getSentence(1)
                     shortDescription = secondSentence
                 } else {
                     shortDescription = firstSentence
@@ -62,8 +55,6 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
                 shortDescription = name
             }
         }
-        shortDescription = shortDescription.replace("_", " ")
-        //shortDescription = shortDescription.replaceAll("\\s+", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }

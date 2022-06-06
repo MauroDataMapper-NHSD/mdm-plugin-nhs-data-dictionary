@@ -49,34 +49,23 @@ class NhsDDElement implements NhsDataDictionaryComponent {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription
+        String shortDescription = name
         if(isPreparatory()) {
             shortDescription = "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
-                GPathResult xml
-                xml = xmlSlurper.parseText("<xml>" + definition + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
+                String firstSentence = getFirstSentence()
+                if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && instantiatesAttributes.size() == 1) {
+                    shortDescription = instantiatesAttributes[0].otherProperties["shortDescription"]
+                } else if(firstSentence) {
+                    shortDescription = firstSentence
                 }
-                String firstSentence = firstParagraph.substring(0, firstParagraph.indexOf(".") + 1)
-                if (firstSentence.toLowerCase().contains("is the same as")) {
-                    if (instantiatesAttributes.size() == 1) {
-                        firstSentence = instantiatesAttributes[0].otherProperties["shortDescription"]
-                    } else {
-                        firstSentence = name
-                    }
-                }
-                shortDescription = firstSentence
             } catch (Exception e) {
                 e.printStackTrace()
                 log.error("Couldn't parse: ${definition}")
                 shortDescription = name
             }
         }
-        shortDescription = shortDescription.replace("_", " ")
-        //shortDescription = shortDescription.replaceAll("\\s+", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }
