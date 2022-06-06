@@ -42,20 +42,12 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent {
             shortDescription = "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
-                GPathResult xml
-                xml = xmlSlurper.parseText("<xml>" + DDHelperFunctions.parseHtml(definition) + "</xml>")
-                String firstParagraph = xml.p[0].text()
-                if (xml.p.size() == 0) {
-                    firstParagraph = xml.text()
-                }
-                shortDescription = firstParagraph.substring(0, firstParagraph.indexOf(". ") + 1)
+                shortDescription = getFirstSentence()
             } catch (Exception e) {
                 log.error("Couldn't parse the definition for $name because ${e.message}")
                 shortDescription = name
             }
         }
-        shortDescription = shortDescription.replace("_", " ")
-        //shortDescription = shortDescription.replaceAll("\\s+", " ")
         otherProperties["shortDescription"] = shortDescription
         return shortDescription
     }

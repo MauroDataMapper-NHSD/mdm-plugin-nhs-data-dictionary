@@ -17,6 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class NhsDDDataSetConstraint implements NhsDataDictionaryComponent {
 
     @Override
@@ -32,11 +35,20 @@ class NhsDDDataSetConstraint implements NhsDataDictionaryComponent {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription = name
-        shortDescription = shortDescription.replace("_", " ")
-        //shortDescription = shortDescription.replaceAll("\\w+", " ")
+        String shortDescription
+        if (isPreparatory()) {
+            shortDescription = "This item is being used for development purposes and has not yet been approved."
+        } else {
+            try {
+                shortDescription = getFirstSentence()
+            } catch (Exception e) {
+                e.printStackTrace()
+                log.error("Couldn't parse: " + definition)
+                shortDescription = name
+            }
+        }
         otherProperties["shortDescription"] = shortDescription
-        return shortDescription
+
     }
 
     @Override

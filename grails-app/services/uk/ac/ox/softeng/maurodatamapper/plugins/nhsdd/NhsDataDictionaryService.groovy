@@ -641,7 +641,7 @@ class NhsDataDictionaryService {
 
         List<String> response = []
         thisDataDictionary.getAllComponents().sort { it.name}.each { component ->
-            response.add(""" \"${component.getStereotype()}\", \"${component.getNameWithRetired()}\", \"${component.getShortDescription()}\" """)
+            response.add(""" "${component.getStereotype()}", "${component.getNameWithRetired()}", "${component.calculateShortDescription()}" """)
         }
         return response
     }
