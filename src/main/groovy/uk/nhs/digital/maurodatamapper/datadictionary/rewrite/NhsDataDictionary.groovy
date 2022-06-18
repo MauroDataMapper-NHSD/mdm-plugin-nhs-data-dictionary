@@ -60,6 +60,7 @@ class NhsDataDictionary {
     Map<String, NhsDDElement> elements = [:]
     Map<String, NhsDDClass> classes = [:]
     Map<String, NhsDDDataSet> dataSets = [:]
+    Map<String, NhsDDDataSetFolder> dataSetFolders = [:]
     Map<String, NhsDDBusinessDefinition> businessDefinitions = [:]
     Map<String, NhsDDSupportingInformation> supportingInformation = [:]
     Map<String, NhsDDDataSetConstraint> dataSetConstraints = [:]
@@ -170,11 +171,55 @@ class NhsDataDictionary {
                     }
                 }
             }
+            processDataSetFolders()
             processClassLinks()
             processLinksFromXml()
             long endTime = System.currentTimeMillis()
             log.info("Data Dictionary build from XML complete in ${Utils.getTimeString(endTime - startTime)}")
         }
+    }
+
+    Map<String, String> introductionPageMap = [
+            "PLICS": "PLICS Data Set Overview",
+            "COSDS": "Cancer Outcomes and Services Data Set Introduction",
+            "EPMA": "EPMA Data Set Overviews"
+    ]
+
+    void processDataSetFolders() {
+        Set<List<String>> paths = []
+        dataSets.values().each {dataSet ->
+            List<String> newWebPath = []
+            newWebPath.addAll(dataSet.getWebPath())
+            newWebPath.removeLast()
+            paths.add(newWebPath)
+        }
+        paths.each {path ->
+            NhsDDDataSetFolder dataSetFolder = new NhsDDDataSetFolder()
+            dataSetFolder.name = path.last()
+            dataSetFolder.folderPath.addAll(path)
+            if(path.contains("Retired")) {
+                dataSetFolder.otherProperties["isRetired"] = "true"
+            } else {
+                dataSetFolder.otherProperties["isRetired"] = "false"
+            }
+
+            String introductionPageName = introductionPageMap[dataSetFolder.name]
+            if(!introductionPageName) {
+                introductionPageName = dataSetFolder.name + " Introduction"
+            }
+            NhsDDWebPage introductoryWebPage = webPages[introductionPageName]
+            if(!introductoryWebPage && !dataSetFolder.isRetired()) {
+                log.error("Cannot find introductory web page: ${dataSetFolder.name}")
+            } else {
+                if(introductoryWebPage) {
+                    log.error("Introduction page found: " + introductoryWebPage.name)
+                    dataSetFolder.otherProperties = introductoryWebPage.otherProperties
+                    dataSetFolder.definition = introductoryWebPage.definition
+                }
+            }
+            dataSetFolders[dataSetFolder.name] = dataSetFolder
+        }
+
     }
 
     void processClassLinks() {

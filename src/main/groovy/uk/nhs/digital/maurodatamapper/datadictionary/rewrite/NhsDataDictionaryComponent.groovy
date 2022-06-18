@@ -425,6 +425,23 @@ trait NhsDataDictionaryComponent {
         return response
     }
 
+    List<String> getWebPath() {
+        List<String> path = []
+        try {
+            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Messages", ".txaClass20"))
+        } catch (Exception e) {
+            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Web_Site_Content", ".txaClass20"))
+        }
+        path.removeAll {it.equalsIgnoreCase("Data_Sets")}
+        path.removeAll {it.equalsIgnoreCase("Content")}
+
+        if (isRetired()) {
+            path.add(0, "Retired")
+        }
+        path = path.collect {DDHelperFunctions.tidyLabel(it)}
+        return path
+    }
+
 
 
 }

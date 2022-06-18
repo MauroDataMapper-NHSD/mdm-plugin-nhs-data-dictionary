@@ -110,6 +110,7 @@ class NhsDataDictionaryService {
     BusinessDefinitionService businessDefinitionService
     SupportingInformationService supportingInformationService
     DataSetConstraintService dataSetConstraintService
+    DataSetFolderService dataSetFolderService
 
     DDWorkItemProfileProviderService ddWorkItemProfileProviderService
 
@@ -182,6 +183,7 @@ class NhsDataDictionaryService {
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
         addClassesToDictionary(coreModel, dataDictionary)
+        addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
         addDataSetsToDictionary(dataSetsFolder, dataDictionary)
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
@@ -286,6 +288,11 @@ class NhsDataDictionaryService {
     void addDataSetsToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
         Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
         dataDictionary.dataSets = dataSetService.collectNhsDataDictionaryComponents(dataSetModels, dataDictionary)
+    }
+
+    void addDataSetFoldersToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
+        Set<Folder> dataSetFolders = dataSetFolderService.getAllFolders(dataSetsFolder)
+        dataDictionary.dataSetFolders = dataSetFolderService.collectNhsDataDictionaryComponents(dataSetFolders, dataDictionary)
     }
 
     void addBusDefsToDictionary(Terminology busDefsTerminology, NhsDataDictionary dataDictionary) {
@@ -518,6 +525,13 @@ class NhsDataDictionaryService {
             endTime = System.currentTimeMillis()
             log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
         }
+
+        if(publishOptions.publishDataSetFolders) {
+            startTime = System.currentTimeMillis()
+            dataSetFolderService.persistDataSetFolders(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress)
+            log.info('DataSetService persist complete in {}', Utils.timeTaken(startTime))
+        }
+
 
         if(publishOptions.publishDataSets) {
             startTime = System.currentTimeMillis()

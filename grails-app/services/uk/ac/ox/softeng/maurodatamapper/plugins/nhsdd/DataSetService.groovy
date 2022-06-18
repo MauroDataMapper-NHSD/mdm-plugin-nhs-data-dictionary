@@ -546,7 +546,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
         // Now set the descriptions of any data set folders that have a matching webpage:
 
-        setFolderDescriptions(dataSetsFolder, [], dataDictionary)
+        // setFolderDescriptions(dataSetsFolder, [], dataDictionary)
     }
 
     void setFolderDescriptions(Folder sourceFolder, List<String> path, NhsDataDictionary nhsDataDictionary) {
@@ -606,26 +606,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     void addDataClassToDataModel(DataClass dataClass, DataModel dataModel) {
         dataModel.addToDataClasses(dataClass)
         dataClass.dataClasses.each {childDataClass -> addDataClassToDataModel(childDataClass, dataModel)}
-    }
-
-    Folder getFolderAtPath(Folder sourceFolder, List<String> path, String createdByEmail) {
-        if (path.size() == 1) {
-            return sourceFolder
-        } else {
-            String nextFolderName = path.remove(0)
-            Folder nextFolder = sourceFolder.childFolders.find {it.label == nextFolderName}
-            if (!nextFolder) {
-                nextFolder = new Folder(label: nextFolderName, createdBy: createdByEmail)
-                sourceFolder.addToChildFolders(nextFolder)
-                if (!folderService.validate(nextFolder)) {
-                    throw new ApiInvalidModelException('NHSDD', 'Invalid model', nextFolder.errors)
-                }
-                folderService.save(nextFolder)
-            }
-            return getFolderAtPath(nextFolder, path, createdByEmail)
-
-        }
-
     }
 
     NhsDDDataSet getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
