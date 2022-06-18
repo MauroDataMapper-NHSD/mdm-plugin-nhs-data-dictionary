@@ -5,6 +5,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefini
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetConstraint
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
@@ -19,6 +20,7 @@ class PublishOptions {
     boolean publishBusinessDefinitions = true
     boolean publishSupportingInformation = true
     boolean publishDataSetConstraints = true
+    boolean publishDataSetFolders = true
 
     static PublishOptions fromParameters(Map<String, String> params = [:]) {
 
@@ -30,6 +32,7 @@ class PublishOptions {
             publishBusinessDefinitions = Boolean.parseBoolean(params["businessDefinitions"]?:'true')
             publishSupportingInformation = Boolean.parseBoolean(params["supportingInformation"]?:'true')
             publishDataSetConstraints = Boolean.parseBoolean(params["dataSetConstraints"]?:'true')
+            publishDataSetFolders = Boolean.parseBoolean(params["dataSetFolders"]?:'true')
 
         }
     }
@@ -55,6 +58,9 @@ class PublishOptions {
         }
         if(dataDictionaryComponent instanceof NhsDDDataSetConstraint) {
             return publishDataSetConstraints
+        }
+        if(dataDictionaryComponent instanceof NhsDDDataSetFolder) {
+            return publishDataSetFolders
         }
     }
 

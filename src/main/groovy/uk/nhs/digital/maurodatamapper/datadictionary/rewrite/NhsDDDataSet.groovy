@@ -62,7 +62,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
                 log.warn("Cannot find explanatory page for dataset: {}", name)
             }
         }
-        path = getPath()
+        path = getWebPath()
         definitionAsXml = xml.definition
         otherProperties["approvingOrganisation"] = "Data Alliance Partnership Board (DAPB)"
     }
@@ -106,22 +106,6 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
         "DDDataSet"
     }
 
-    List<String> getPath() {
-        List<String> path = []
-        try {
-            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Messages", ".txaClass20"))
-        } catch (Exception e) {
-            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Web_Site_Content", ".txaClass20"))
-        }
-        path.removeAll {it.equalsIgnoreCase("Data_Sets")}
-        path.removeAll {it.equalsIgnoreCase("Content")}
-
-        if (isRetired()) {
-            path.add(0, "Retired")
-        }
-        path = path.collect {DDHelperFunctions.tidyLabel(it)}
-        return path
-    }
 
 
     String getMauroPath() {

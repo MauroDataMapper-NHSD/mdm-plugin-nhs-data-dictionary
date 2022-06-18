@@ -19,25 +19,24 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
-class NhsDDWebPage implements NhsDataDictionaryComponent {
+class NhsDDDataSetFolder implements NhsDataDictionaryComponent {
 
-    List<String> path = []
+    List<String> folderPath = []
 
     @Override
     String getStereotype() {
-        "Web Page"
+        "Data Set Folder"
     }
 
     @Override
     String getStereotypeForPreview() {
-        "webPage"
+        "dataSet"
     }
 
     @Override
     boolean isValidXmlNode(def xmlNode) {
-        return !xmlNode."base-uri".text().contains("Supporting_Definitions") &&
-               !xmlNode."base-uri".text().contains("Supporting_Information") &&
-               !xmlNode."base-uri".text().contains("CDS_Supporting_Information")
+        return xmlNode."name".text().contains("Introduction") &&
+               xmlNode."base-uri".text().contains("Messages")
     }
 
 
@@ -54,9 +53,9 @@ class NhsDDWebPage implements NhsDataDictionaryComponent {
     @Override
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
-        dataDictionary.webPagesByUin[getUin()] = this
+        //dataDictionary.webPagesByUin[getUin()] = this
         if(otherProperties["baseUri"].contains("Messages")) {
-            path = getPath()
+            folderPath = getWebPath()
         }
     }
 

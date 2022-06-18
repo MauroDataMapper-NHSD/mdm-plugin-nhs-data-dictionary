@@ -17,12 +17,18 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
+import uk.ac.ox.softeng.maurodatamapper.core.container.Classifier
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.core.model.Container
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
+import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MultiFacetAware
+import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -50,7 +56,7 @@ import java.util.regex.Pattern
 
 @Slf4j
 @Transactional
-abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends NhsDataDictionaryComponent> {
+abstract class DataDictionaryComponentService<T extends InformationAware & MetadataAware, D extends NhsDataDictionaryComponent> {
 
     DataModelService dataModelService
     DataClassService dataClassService
@@ -59,6 +65,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
     TermService termService
     CodeSetService codeSetService
     FolderService folderService
+
     MetadataService metadataService
     AuthorityService authorityService
 
@@ -66,6 +73,7 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
 
     @Autowired
     MessageSource messageSource
+
 
     List<T> index(UUID versionedFolderId, boolean includeRetired = false) {
         (getAll(versionedFolderId, includeRetired) as List).sort {it.label}
@@ -327,15 +335,6 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         }
     }
 
-    void addMetadataFromXml(T domainObject, def xml, String currentUserEmailAddress) {
-
-        attributeMetadata.entrySet().each {entry ->
-            String xmlValue = xml[entry.value].text()
-            if (xmlValue && xmlValue != "") {
-                addToMetadata(domainObject, entry.key, xmlValue, currentUserEmailAddress)
-            }
-        }
-    }
 
     void addToMetadata(MetadataAware domainObject, String key, String value, String currentUserEmailAddress) {
 
@@ -394,6 +393,16 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
         return allRelevantMetadata.any{md -> md.value == "true"}
     }
 
+    boolean containerIsRetired(Container container) {
+        List<Metadata> allRelevantMetadata = Metadata
+                .byMultiFacetAwareItemIdAndNamespace(container.id, getMetadataNamespace())
+                .eq('key', "isRetired")
+                .list()
+
+        return allRelevantMetadata.any{md -> md.value == "true"}
+    }
+
+
     List<NhsDDCode> getCodesForTerms(List<Term> terms, NhsDataDictionary nhsDataDictionary) {
         List<NhsDDCode> codes = []
         List<Metadata> allRelevantMetadata = Metadata
@@ -418,6 +427,26 @@ abstract class DataDictionaryComponentService<T extends CatalogueItem, D extends
             return nhsDDCode
         })
         return codes
+    }
+
+    Folder getFolderAtPath(Folder sourceFolder, List<String> path, String createdByEmail) {
+        if (path.size() == 1) {
+            return sourceFolder
+        } else {
+            String nextFolderName = path.remove(0)
+            Folder nextFolder = sourceFolder.childFolders.find {it.label == nextFolderName}
+            if (!nextFolder) {
+                nextFolder = new Folder(label: nextFolderName, createdBy: createdByEmail)
+                sourceFolder.addToChildFolders(nextFolder)
+                if (!folderService.validate(nextFolder)) {
+                    throw new ApiInvalidModelException('NHSDD', 'Invalid model', nextFolder.errors)
+                }
+                folderService.save(nextFolder)
+            }
+            return getFolderAtPath(nextFolder, path, createdByEmail)
+
+        }
+
     }
 
 }
