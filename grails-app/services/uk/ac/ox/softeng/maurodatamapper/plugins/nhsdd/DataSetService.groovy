@@ -533,20 +533,19 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     void persistDataSets(NhsDataDictionary dataDictionary,
                          VersionedFolder dictionaryFolder, DataModel coreDataModel, User currentUser) {
 
-        Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUser.emailAddress)
-        dictionaryFolder.addToChildFolders(dataSetsFolder)
-        if (!folderService.validate(dataSetsFolder)) {
-            throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
-        }
-        folderService.save(dataSetsFolder)
+        Folder dataSetsFolder = folderService.findByPath(dictionaryFolder, ["Data Sets"])
+        if(!dataSetsFolder) {
+             dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUser.emailAddress)
+             dictionaryFolder.addToChildFolders(dataSetsFolder)
+             if (!folderService.validate(dataSetsFolder)) {
+                 throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
+             }
+             folderService.save(dataSetsFolder)
+         }
 
         dataDictionary.dataSets.each {name, dataSet ->
             createAndSaveDataModel(dataSet, dataSetsFolder, dictionaryFolder, currentUser, dataDictionary)
         }
-
-        // Now set the descriptions of any data set folders that have a matching webpage:
-
-        // setFolderDescriptions(dataSetsFolder, [], dataDictionary)
     }
 
     void setFolderDescriptions(Folder sourceFolder, List<String> path, NhsDataDictionary nhsDataDictionary) {
