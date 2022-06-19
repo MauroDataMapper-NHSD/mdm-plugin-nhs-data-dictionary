@@ -211,7 +211,7 @@ class NhsDataDictionary {
             if(!introductoryWebPage && !dataSetFolder.isRetired()) {
                 log.error("Cannot find introductory web page: ${dataSetFolder.name}")
             } else {
-                if(introductoryWebPage) {
+                if(introductoryWebPage && !dataSetFolder.isRetired()) {
                     log.error("Introduction page found: " + introductoryWebPage.name)
                     dataSetFolder.otherProperties = introductoryWebPage.otherProperties
                     dataSetFolder.definition = introductoryWebPage.definition
