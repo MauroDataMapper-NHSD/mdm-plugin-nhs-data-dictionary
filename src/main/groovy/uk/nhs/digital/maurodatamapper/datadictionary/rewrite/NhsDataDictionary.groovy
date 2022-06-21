@@ -141,7 +141,7 @@ class NhsDataDictionary {
     }
 
 
-    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null) {
+    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null, PublishOptions publishOptions) {
         return new NhsDataDictionary().tap {
             log.info('Building new NHS Data Dictionary from XML')
             long startTime = System.currentTimeMillis()
