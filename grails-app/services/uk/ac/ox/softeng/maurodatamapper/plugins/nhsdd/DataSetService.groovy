@@ -533,24 +533,15 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     void persistDataSets(NhsDataDictionary dataDictionary,
                          VersionedFolder dictionaryFolder, DataModel coreDataModel, User currentUser) {
 
-        Folder dataSetsFolder = folderService.findByPath(dictionaryFolder, ["Data Sets"])
-        if(!dataSetsFolder) {
-             dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUser.emailAddress)
-             dictionaryFolder.addToChildFolders(dataSetsFolder)
-             if (!folderService.validate(dataSetsFolder)) {
-                 throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
-             }
-             folderService.save(dataSetsFolder)
-         }
-
+        Folder dataSetsFolder = getFolderAtPath(dictionaryFolder, [NhsDataDictionary.DATA_SETS_FOLDER_NAME], currentUser.emailAddress)
         dataDictionary.dataSets.each {name, dataSet ->
             createAndSaveDataModel(dataSet, dataSetsFolder, dictionaryFolder, currentUser, dataDictionary)
         }
     }
 
+    /*
     void setFolderDescriptions(Folder sourceFolder, List<String> path, NhsDataDictionary nhsDataDictionary) {
         NhsDDWebPage matchingWebPage = nhsDataDictionary.webPages[sourceFolder.label + " Introduction"]
-
         if(matchingWebPage) {
             sourceFolder.description = matchingWebPage.definition
             sourceFolder.save()
@@ -563,9 +554,8 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             newPath.add(childFolder.label)
             setFolderDescriptions(childFolder, newPath, nhsDataDictionary)
         }
-
-
     }
+     */
 
     void createAndSaveDataModel(NhsDDDataSet dataSet, Folder dataSetsFolder, Folder dictionaryFolder, User currentUser,
                                 NhsDataDictionary nhsDataDictionary) {
@@ -590,15 +580,21 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
         addMetadataFromComponent(dataSetDataModel, dataSet, currentUser.emailAddress)
 
+        System.err.println("Saving: " + dataSet.name)
         // Fix the created by field and any other associations
         dataModelService.checkImportedDataModelAssociations(currentUser, dataSetDataModel)
 
-        DataModel validated = dataModelService.validate(dataSetDataModel)
-        if (validated.hasErrors()) {
-            GormUtils.outputDomainErrors(messageSource, validated)
+        dataModelService.validate(dataSetDataModel)
+        if (dataSetDataModel.hasErrors()) {
+            GormUtils.outputDomainErrors(messageSource, dataSetDataModel)
+            System.err.println("Error validating")
+            System.err.println(messageSource)
             //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
         } else {
-            dataModelService.saveModelWithContent(validated)
+            dataSetDataModel.allDataElements.each {
+                System.err.println(it)
+            }
+            //dataModelService.saveModelWithContent(dataSetDataModel)
         }
     }
 

@@ -429,7 +429,7 @@ class NhsDataDictionaryService {
     VersionedFolder ingest(User currentUser, def xml, String releaseDate, Boolean finalise, String folderVersionNo, String prevVersion,
                            String branchName = "main", PublishOptions publishOptions, boolean deletePrevious = false) {
 
-        NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo)
+        NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo, publishOptions)
 
         nhsDataDictionary.branchName = branchName?:"main"
         log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)

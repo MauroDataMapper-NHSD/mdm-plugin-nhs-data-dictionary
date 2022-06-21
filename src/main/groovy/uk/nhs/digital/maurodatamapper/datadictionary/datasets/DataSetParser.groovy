@@ -428,7 +428,7 @@ class DataSetParser {
         dataClass.description = dataClass.description?.trim() ?: null
     }
 
-    static DataElement getElementFromText(Object anchor, DataModel dataModel, NhsDataDictionary dataDictionary, String currentClass) {
+    static DataElement getElementFromText(Object anchor, DataModel dataModel, NhsDataDictionary dataDictionary, DataClass currentClass) {
         //String elementLabel = ((String)anchor.@href).replaceAll(" ", "%20")
         String elementUrl = ((String) anchor.@href)
 
@@ -437,23 +437,25 @@ class DataSetParser {
         }
 
 
-        DataElement de = null
+        DataElement dataElement = null
         if (dataDictionary) {
-            de = dataDictionary.elementsByUrl[elementUrl]
+            dataElement = dataDictionary.elementsByUrl[elementUrl]
         }
-        if (!de) {
-            log.error("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass}, model: ${dataModel.label}")
+        if (!dataElement) {
+            log.error("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass.label}, model: ${dataModel.label}")
             DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype"}
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
                 dataModel.addToDataTypes(defaultDataType)
             }
-            DataElement dataElement = new DataElement(label: anchor.text(), dataType: defaultDataType)
-            return dataElement
+            dataElement = new DataElement(label: anchor.text(), dataType: defaultDataType, dataClass: currentClass)
+            currentClass.addToDataElements(dataElement)
 
         } else {
-            return de
+            System.err.println("Shouldn't be here...")
+            currentClass.addToImportedDataElements(dataElement)
         }
+        return dataElement
     }
 
     static final Map<String, String> fileNameFixes = [

@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.util.regex.Matcher
@@ -146,7 +147,7 @@ class NhsDataDictionary {
     }
 
 
-    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null) {
+    static NhsDataDictionary buildFromXml(def xml, String releaseDate, String folderVersionNo = null, PublishOptions publishOptions) {
         return new NhsDataDictionary().tap {
             log.info('Building new NHS Data Dictionary from XML')
             long startTime = System.currentTimeMillis()
@@ -158,21 +159,27 @@ class NhsDataDictionary {
                 String componentNameWithPackage = "${NhsDataDictionary.packageName}.${componentClassName}"
                 NhsDataDictionaryComponent dummyComponent = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
                     .newInstance()
-                xml[dummyComponent.getXmlNodeName()].sort {it.name.text()}.each { node ->
-                    NhsDataDictionaryComponent component = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
-                                                                                                          .newInstance()
-                    if(component.isValidXmlNode(node)) {
-                        component.fromXml(node, it)
-                        component.calculateShortDescription()
-                        NhsDataDictionaryComponent existingItem = map[component.name]
-                        if(!existingItem || existingItem.isRetired()) {
-                            map[component.name] = component
+                if(publishOptions.isPublishableComponent(dummyComponent)) {
+                    xml[dummyComponent.getXmlNodeName()].sort {it.name.text()}.each {node ->
+                        NhsDataDictionaryComponent component = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
+                            .newInstance()
+                        if (component.isValidXmlNode(node)) {
+                            component.fromXml(node, it)
+                            component.calculateShortDescription()
+                            NhsDataDictionaryComponent existingItem = map[component.name]
+                            if (!existingItem || existingItem.isRetired()) {
+                                map[component.name] = component
+                            }
                         }
                     }
                 }
             }
-            processDataSetFolders()
-            processClassLinks()
+            if(publishOptions.publishDataSetFolders) {
+                processDataSetFolders()
+            }
+            if(publishOptions.publishClasses) {
+                processClassLinks()
+            }
             processLinksFromXml()
             long endTime = System.currentTimeMillis()
             log.info("Data Dictionary build from XML complete in ${Utils.getTimeString(endTime - startTime)}")

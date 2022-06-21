@@ -430,7 +430,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     }
 
     Folder getFolderAtPath(Folder sourceFolder, List<String> path, String createdByEmail) {
-        if (path.size() == 1) {
+        if (path.size() == 0) {
             return sourceFolder
         } else {
             String nextFolderName = path.remove(0)

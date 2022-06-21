@@ -331,19 +331,18 @@ class CDSDataSetParser {
         if (tr.td[2].a.size() == 6) {
             //
             DataSetParser.setChoice(currentClass)
-            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass.label)
+            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
 
             DataSetParser.setOrder(dataElement1, 1)
-            currentClass.addToImportedDataElements(dataElement1)
+
 
             DataClass andClass = new DataClass(label: "And")
             DataSetParser.setOrder(andClass, 2)
             DataSetParser.setAnd(andClass)
             List<DataElement> deList = [dataElement1]
             for (int i = 1; i < 6; i++) {
-                DataElement dataElement = DataSetParser.getElementFromText(tr.td[2].a[i], dataModel, dataDictionary, currentClass.label)
+                DataElement dataElement = DataSetParser.getElementFromText(tr.td[2].a[i], dataModel, dataDictionary, currentClass)
                 DataSetParser.setOrder(dataElement, i)
-                andClass.addToImportedDataElements(dataElement)
                 deList.add(dataElement)
             }
             currentClass.addToDataClasses(andClass)
@@ -360,7 +359,7 @@ class CDSDataSetParser {
             } else {
                 DataSetParser.setAddress(choiceClass)
             }
-            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass.label)
+            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
             DataSetParser.getAndSetMRO(tr.td[0], [dataElement1], choiceClass)
             DataSetParser.getAndSetRepeats(tr.td[1], [dataElement1], choiceClass)
             DataSetParser.getAndSetRules(tr.td[3], [dataElement1], choiceClass)
@@ -368,7 +367,6 @@ class CDSDataSetParser {
             //DataElement dataElement2 = getElementFromText(tr.td[2].a[2], dataModel, dataDictionary, currentClass.label)
             DataSetParser.setOrder(dataElement1, 1)
             //setOrder(dataElement2, 2)
-            choiceClass.addToImportedDataElements(dataElement1)
             //choiceClass.addToImportedDataElements(dataElement2)
             currentClass.addToDataClasses(choiceClass)
 
@@ -378,8 +376,8 @@ class CDSDataSetParser {
             DataClass choiceClass = new DataClass(label: "Choice")
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
-            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass.label)
-            DataElement dataElement2 = DataSetParser.getElementFromText(tr.td[2].a[1], dataModel, dataDictionary, currentClass.label)
+            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
+            DataElement dataElement2 = DataSetParser.getElementFromText(tr.td[2].a[1], dataModel, dataDictionary, currentClass)
 
             DataSetParser.getAndSetMRO(tr.td[0], [dataElement1, dataElement2], choiceClass)
             DataSetParser.getAndSetRepeats(tr.td[1], [dataElement1, dataElement2], choiceClass)
@@ -387,33 +385,29 @@ class CDSDataSetParser {
 
             DataSetParser.setOrder(dataElement1, 1)
             DataSetParser.setOrder(dataElement2, 2)
-            choiceClass.addToImportedDataElements(dataElement1)
-            choiceClass.addToImportedDataElements(dataElement2)
             currentClass.addToDataClasses(choiceClass)
         } else {
             if (tr.td.size() == 6) {
                 // rare occurrence with unmerged first columns
-                DataElement dataElement = DataSetParser.getElementFromText(tr.td[4].a, dataModel, dataDictionary, currentClass.label)
+                DataElement dataElement = DataSetParser.getElementFromText(tr.td[4].a, dataModel, dataDictionary, currentClass)
                 DataSetParser.getAndSetMRO(tr.td[2], [dataElement])
                 DataSetParser.getAndSetRepeats(tr.td[3], [dataElement])
                 DataSetParser.getAndSetRules(tr.td[5], [dataElement])
                 DataSetParser.setOrder(dataElement, position)
-                currentClass.addToImportedDataElements(dataElement)
 
             } else {
                 DataElement dataElement = null
                 if (tr.td[2].p.size() == 1) {
                     // There's one example where the element is wrapped in a <p>
-                    dataElement = DataSetParser.getElementFromText(tr.td[2].p.a, dataModel, dataDictionary, currentClass.label)
+                    dataElement = DataSetParser.getElementFromText(tr.td[2].p.a, dataModel, dataDictionary, currentClass)
                 } else {
-                    dataElement = DataSetParser.getElementFromText(tr.td[2].a, dataModel, dataDictionary, currentClass.label)
+                    dataElement = DataSetParser.getElementFromText(tr.td[2].a, dataModel, dataDictionary, currentClass)
                 }
                 // assume 4
                 DataSetParser.getAndSetMRO(tr.td[0], [dataElement])
                 DataSetParser.getAndSetRepeats(tr.td[1], [dataElement])
                 DataSetParser.getAndSetRules(tr.td[3], [dataElement])
                 DataSetParser.setOrder(dataElement, position)
-                currentClass.addToImportedDataElements(dataElement)
             }
         }
     }

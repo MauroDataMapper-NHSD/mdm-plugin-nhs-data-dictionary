@@ -64,6 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -138,7 +139,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         assert xml
 
         when:
-        NhsDataDictionary dataDictionary = NhsDataDictionary.buildFromXml(xml, 'November 2021')
+        NhsDataDictionary dataDictionary = NhsDataDictionary.buildFromXml(xml, 'November 2021', new PublishOptions())
 
         then:
 
