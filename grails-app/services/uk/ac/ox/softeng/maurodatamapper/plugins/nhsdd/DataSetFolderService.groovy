@@ -77,7 +77,7 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
     void persistDataSetFolders(NhsDataDictionary dataDictionary,
                         VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress) {
 
-        Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUserEmailAddress)
+        Folder dataSetsFolder = new Folder(label: NhsDataDictionary.DATA_SETS_FOLDER_NAME, createdBy: currentUserEmailAddress)
         dictionaryFolder.addToChildFolders(dataSetsFolder)
         if (!folderService.validate(dataSetsFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)
