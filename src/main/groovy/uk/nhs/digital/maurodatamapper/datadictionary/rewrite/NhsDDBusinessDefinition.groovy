@@ -19,11 +19,10 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 @Slf4j
-class NhsDDBusinessDefinition implements NhsDataDictionaryComponent {
+class NhsDDBusinessDefinition implements NhsDataDictionaryComponent <Term> {
 
     @Override
     String getStereotype() {

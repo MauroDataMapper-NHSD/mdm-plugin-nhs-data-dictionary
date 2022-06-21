@@ -34,8 +34,15 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
     @Override
     NhsDDDataSetFolder show(UUID versionedFolderId, String id) {
         Folder folderFolder = folderService.get(id)
-        NhsDDDataSetFolder dataSetFolder = getNhsDataDictionaryComponentFromCatalogueItem(folderFolder, null)
+        NhsDDDataSetFolder dataSetFolder = getNhsDataDictionaryComponentFromCatalogueItem(folderFolder, null, [])
         dataSetFolder.definition = convertLinksInDescription(versionedFolderId, dataSetFolder.getDescription())
+        List<String> folderPath = [folderFolder.label]
+        Folder parentFolder = (Folder) folderFolder.getParent()
+        while(parentFolder.label != "Data Sets") {
+            folderPath.add(0, parentFolder.label)
+            parentFolder = (Folder) parentFolder.getParent()
+        }
+        dataSetFolder.folderPath = folderPath
         return dataSetFolder
     }
 
@@ -43,19 +50,35 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
     Set<Folder> getAll(UUID versionedFolderId, boolean includeRetired = false) {
         Folder dataSetsFolder = nhsDataDictionaryService.getDataSetsFolder(versionedFolderId)
 
-        List<Folder> allFolders = getAllFolders(dataSetsFolder, includeRetired)
+        Map<List<String>, Set<Folder>> allFolders = getAllFolders([], dataSetsFolder, includeRetired)
 
-        allFolders.findAll {folder ->
-            folder.label != "Retired" && (
-                includeRetired || !containerIsRetired(folder))
+        Set<Folder> returnFolders = [] as Set
+        allFolders.values().each {folders ->
+            folders.each {folder ->
+                if(folder.label != "Retired" && (
+                    includeRetired || !containerIsRetired(folder))) {
+                    returnFolders.add(folder)
+                }
+            }
+
         }
+        return returnFolders
     }
 
-    Set<Folder> getAllFolders(Folder dataSetsFolder, boolean includeRetired = false) {
-        Set<Folder> returnFolders = []
-        returnFolders.addAll(folderService.findAllByParentId(dataSetsFolder.id))
+    Map<List<String>, Set<Folder>> getAllFolders(List<String> currentPath, Folder dataSetsFolder, boolean includeRetired = false) {
+        Map<List<String>, Set<Folder>> returnFolders = [:]
+        folderService.findAllByParentId(dataSetsFolder.id).each {
+            if(returnFolders[currentPath]) {
+                returnFolders[currentPath].add(it)
+            } else {
+                returnFolders[currentPath] = ([it] as Set)
+            }
+        }
         dataSetsFolder.childFolders.each {childFolder ->
-            returnFolders.addAll(getAllFolders(childFolder, includeRetired))
+            List<String> newPath = []
+            newPath.addAll(currentPath)
+            newPath.add(childFolder.label)
+            returnFolders.putAll(getAllFolders(newPath, childFolder, includeRetired))
         }
         return returnFolders
     }
@@ -66,18 +89,25 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
         NhsDataDictionary.METADATA_NAMESPACE + ".data set folder"
     }
 
+    @Deprecated
     @Override
     NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(Folder catalogueItem, NhsDataDictionary dataDictionary) {
+        return getNhsDataDictionaryComponentFromCatalogueItem(catalogueItem, dataDictionary, [])
+    }
+
+    NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(Folder catalogueItem, NhsDataDictionary dataDictionary, List<String> path) {
         NhsDDDataSetFolder folder = new NhsDDDataSetFolder()
         nhsDataDictionaryComponentFromItem(catalogueItem, folder)
+        folder.folderPath = path
         folder.dataDictionary = dataDictionary
         return folder
     }
 
+
     void persistDataSetFolders(NhsDataDictionary dataDictionary,
                         VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress) {
 
-        Folder dataSetsFolder = new Folder(label: NhsDataDictionary.DATA_SETS_FOLDER_NAME, createdBy: currentUserEmailAddress)
+        Folder dataSetsFolder = new Folder(label: "Data Sets", createdBy: currentUserEmailAddress)
         dictionaryFolder.addToChildFolders(dataSetsFolder)
         if (!folderService.validate(dataSetsFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', dataSetsFolder.errors)

@@ -17,7 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish
 
-
+import org.apache.commons.lang3.StringUtils
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject2
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -28,6 +28,8 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import net.lingala.zip4j.ZipFile
 import org.apache.commons.io.FileUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
@@ -81,17 +83,32 @@ class WebsiteUtility {
         dataDictionary.allComponents.
             sort {it.name }.
             each {component ->
-                if(publishOptions.isPublishableComponent(component)) {
-                    String path = "${component.stereotypeForPreview}/${component.nameWithoutNonAlphaNumerics.substring(0,1)}/${component.getNameWithoutNonAlphaNumerics()}"
-                    ditaProject.addTopicToMapById(path, component.generateTopic(), component.stereotypeForPreview, Toc.NO)
+                if(!(component instanceof NhsDDDataSet || component instanceof  NhsDDDataSetFolder)) {
+                    if (publishOptions.isPublishableComponent(component)) {
+                        String path = "${component.stereotypeForPreview}/${component.nameWithoutNonAlphaNumerics.substring(0, 1)}/${component.getNameWithoutNonAlphaNumerics()}"
+                        ditaProject.addTopicToMapById(path, component.generateTopic(), component.stereotypeForPreview, Toc.NO)
+                    }
                 }
+            }
+
+        System.err.println("Data Set Folders: " + dataDictionary.dataSetFolders.size())
+        dataDictionary.dataSetFolders.values().each {folder ->
+            String path = "dataSets/" + StringUtils.join(folder.getDitaFolderPath(), "/")
+            ditaProject.addMapToMapById(path, folder.generateMap(), Toc.NO)
+            ditaProject.addTopicToMapById(path, folder.generateTopic(), folder.getDitaKey(), Toc.NO)
+        }
+
+        dataDictionary.dataSets.values().each {dataSet ->
+            String path = "dataSets/" + StringUtils.join(dataSet.getDitaFolderPath(), "/")
+            ditaProject.addMapToMainMap(path, dataSet.generateMap(), Toc.NO)
+            ditaProject.addTopicToMapById(path, dataSet.generateTopic(), dataSet.getDitaKey(), Toc.NO)
         }
 
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
         //System.err.println(ditaOutputDirectory)
-        overwriteGithubDir(ditaOutputDirectory)
+        //overwriteGithubDir(ditaOutputDirectory)
 
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")

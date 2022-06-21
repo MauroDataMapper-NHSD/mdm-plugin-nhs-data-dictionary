@@ -17,11 +17,14 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 
-class NhsDDDataSetFolder implements NhsDataDictionaryComponent {
+class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
 
     List<String> folderPath = []
+
+    Map<String, NhsDDDataSetFolder> childFolders = [:]
+    Map<String, NhsDDDataSet> dataSets = [:]
 
     @Override
     String getStereotype() {
@@ -62,5 +65,12 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent {
     String getMauroPath() {
         return ""
     }
+
+    List<String> getDitaFolderPath() {
+        folderPath.collect {
+            it.replaceAll("[^A-Za-z0-9 ]", "").replace(" ", "_")
+        }
+    }
+
 
 }

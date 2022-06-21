@@ -29,7 +29,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 
 @Slf4j
-class NhsDDDataSet implements NhsDataDictionaryComponent {
+class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     @Override
     String getStereotype() {
@@ -176,6 +176,12 @@ class NhsDDDataSet implements NhsDataDictionaryComponent {
             }
         }
 
+    }
+
+    List<String> getDitaFolderPath() {
+        webPath.collect {
+            it.replaceAll("[^A-Za-z0-9 ]", "").replace(" ", "_")
+        }
     }
 
 

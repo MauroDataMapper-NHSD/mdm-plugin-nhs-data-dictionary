@@ -195,6 +195,7 @@ class NhsDataDictionary {
             paths.add(newWebPath)
         }
         paths.each {path ->
+            
             NhsDDDataSetFolder dataSetFolder = new NhsDDDataSetFolder()
             dataSetFolder.name = path.last()
             dataSetFolder.folderPath.addAll(path)

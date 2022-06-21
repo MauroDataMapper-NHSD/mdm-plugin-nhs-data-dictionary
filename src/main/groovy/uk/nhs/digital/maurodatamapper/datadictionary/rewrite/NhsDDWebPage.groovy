@@ -17,9 +17,10 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
-class NhsDDWebPage implements NhsDataDictionaryComponent {
+class NhsDDWebPage implements NhsDataDictionaryComponent <Term> {
 
     List<String> path = []
 

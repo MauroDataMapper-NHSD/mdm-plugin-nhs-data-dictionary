@@ -17,15 +17,15 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Format
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
 
 @Slf4j
-class NhsDDElement implements NhsDataDictionaryComponent {
+class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
     @Override
     String getStereotype() {
