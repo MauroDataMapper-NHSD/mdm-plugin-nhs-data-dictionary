@@ -173,7 +173,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         // This is to test that ingesting again doesnt error and also to test the batch deletion code
         given:
         setupData()
-        testingService.cleanIngest(user, 'november2021.xml', 'November 2021')
+        testingService.cleanIngest(user, 'november2021.xml', 'November 2021', 'main')
         def xml = loadXml('november2021.xml')
         assert xml
 
@@ -208,7 +208,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         given:
         setupData()
         //        UUID releaseId = VersionedFolder.by().id().get()
-        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', true, true)
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', 'main', true, true)
         VersionedFolder release = versionedFolderService.get(releaseId)
 
         when:
@@ -251,7 +251,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'MD01 : Merge Diff Nov 2021 ingest and branch'() {
         given:
         setupData()
-        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021')
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', 'main')
         VersionedFolder release = versionedFolderService.get(releaseId)
         UUID mainBranchId = testingService.createBranch(user, release, VersionAwareConstraints.DEFAULT_BRANCH_NAME)
         UUID testBranchId = testingService.createBranch(user, release, 'test')
@@ -348,7 +348,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'S01 : Obtain statistics for November 2021'() {
         given:
         setupData()
-        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', false)
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', 'main', false)
         //        UUID releaseId = VersionedFolder.by().id().get()
 
         when:
@@ -373,7 +373,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     void 'IN01 : Run integrity checks for November 2021'() {
         given:
         setupData()
-        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021')
+        UUID releaseId = testingService.cleanIngest(user, 'november2021.xml', 'November 2021', 'main')
         //        UUID releaseId = VersionedFolder.by().id().get()
 
         when:
