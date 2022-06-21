@@ -49,6 +49,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirCodeSystem
@@ -228,7 +229,7 @@ class NhsDataDictionaryService {
 
         dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements, dataDictionary)
         dataDictionary.attributes.values().each { ddAttribute ->
-            dataDictionary.attributesByCatalogueId[ddAttribute.catalogueItem.id] = ddAttribute
+            dataDictionary.attributesByCatalogueId[ddAttribute.getCatalogueItem().id] = ddAttribute
         }
     }
 
@@ -239,7 +240,7 @@ class NhsDataDictionaryService {
 
         dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements, dataDictionary)
         dataDictionary.elements.values().each { ddElement ->
-            dataDictionary.elementsByCatalogueId[ddElement.catalogueItem.id] = ddElement
+            dataDictionary.elementsByCatalogueId[ddElement.getCatalogueItem().id] = ddElement
         }
     }
 
@@ -250,7 +251,7 @@ class NhsDataDictionaryService {
         classClasses.removeAll {it.label == "Retired"}
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
         dataDictionary.classes.values().each { ddClass ->
-            dataDictionary.classesByCatalogueId[ddClass.catalogueItem.id] = ddClass
+            dataDictionary.classesByCatalogueId[ddClass.getCatalogueItem().id] = ddClass
         }
 /*       classClasses.each {dataClass ->
             //DDClass ddClass = new DDClass()
@@ -291,8 +292,15 @@ class NhsDataDictionaryService {
     }
 
     void addDataSetFoldersToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
-        Set<Folder> dataSetFolders = dataSetFolderService.getAllFolders(dataSetsFolder)
-        dataDictionary.dataSetFolders = dataSetFolderService.collectNhsDataDictionaryComponents(dataSetFolders, dataDictionary)
+        Map<List<String>, Set<Folder>> dataSetFolders = dataSetFolderService.getAllFolders([], dataSetsFolder)
+        dataSetFolders.each { path, folders ->
+            folders.each {folder ->
+                NhsDDDataSetFolder dataSetFolder = dataSetFolderService.getNhsDataDictionaryComponentFromCatalogueItem(folder, dataDictionary, path)
+                dataDictionary.dataSetFolders[dataSetFolder.name] = dataSetFolder
+            }
+        }
+
+
     }
 
     void addBusDefsToDictionary(Terminology busDefsTerminology, NhsDataDictionary dataDictionary) {

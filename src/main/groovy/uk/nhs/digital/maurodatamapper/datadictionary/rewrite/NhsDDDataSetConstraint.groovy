@@ -18,9 +18,10 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import groovy.util.logging.Slf4j
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 @Slf4j
-class NhsDDDataSetConstraint implements NhsDataDictionaryComponent {
+class NhsDDDataSetConstraint implements NhsDataDictionaryComponent <Term> {
 
     @Override
     String getStereotype() {

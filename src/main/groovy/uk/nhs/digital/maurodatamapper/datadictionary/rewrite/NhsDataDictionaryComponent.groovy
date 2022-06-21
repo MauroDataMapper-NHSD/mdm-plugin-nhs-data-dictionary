@@ -18,6 +18,8 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -28,12 +30,13 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.xml.MarkupBuilder
 import groovy.xml.XmlSlurper
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.Change
 
 import java.util.regex.Matcher
 
-trait NhsDataDictionaryComponent {
+trait NhsDataDictionaryComponent <T extends MdmDomain> {
 
     // For parsing short descriptions
     static XmlSlurper xmlSlurper = new XmlSlurper()
@@ -43,7 +46,7 @@ trait NhsDataDictionaryComponent {
 
     NhsDataDictionary dataDictionary
 
-    CatalogueItem catalogueItem
+    T catalogueItem
     String catalogueItemModelId
     String catalogueItemParentId
 
@@ -256,6 +259,15 @@ trait NhsDataDictionaryComponent {
         return changeList
     }
 
+    DitaMap generateMap() {
+        DitaMap.build(
+                id: getDitaKey()
+        ) {
+            title getNameWithRetired()
+        }
+    }
+
+
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
@@ -277,7 +289,6 @@ trait NhsDataDictionaryComponent {
             getWebsiteTopics().each {
                 topic it
             }
-
         }
     }
 
@@ -285,7 +296,9 @@ trait NhsDataDictionaryComponent {
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {
-                div HtmlHelper.replaceHtmlWithDita(definition)
+                if(definition) {
+                    div HtmlHelper.replaceHtmlWithDita(definition)
+                }
             }
         }
     }
