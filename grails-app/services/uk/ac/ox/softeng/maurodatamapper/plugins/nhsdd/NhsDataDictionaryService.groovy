@@ -24,7 +24,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
-import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
@@ -61,18 +60,17 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.All
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AllItemsHaveShortDescription
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.AttributesLinkedToAClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.BrokenLinks
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ClassLinkedToRetiredAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsHaveAnOverview
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsIncludePreparatoryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.DataSetsIncludeRetiredItem
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ClassLinkedToRetiredAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaperUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaperPdfUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaper
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaperPdfUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
 
 import java.nio.file.Files
@@ -668,22 +666,6 @@ class NhsDataDictionaryService {
             response.add(""" "${component.getStereotype()}", "${component.getNameWithRetired()}", "${component.calculateShortDescription()}" """)
         }
         return response
-    }
-
-
-    def changePaper(UUID versionedFolderId) {
-
-        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
-        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
-
-        NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
-        NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
-
-
-        String outputPath = "/Users/james/Desktop/ditaTest/"
-
-        ChangePaperUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
-
     }
 
     NhsDataDictionary newDataDictionary() {
