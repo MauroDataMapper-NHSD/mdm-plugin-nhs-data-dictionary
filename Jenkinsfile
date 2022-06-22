@@ -12,7 +12,7 @@ pipeline {
     options {
         skipDefaultCheckout(true) // we use git LFS so we cant use the default checkout
         timestamps()
-        timeout(time: 30, unit: 'MINUTES')
+//        timeout(time: 30, unit: 'MINUTES')
         skipStagesAfterUnstable()
         buildDiscarder(logRotator(numToKeepStr: '30'))
     }
