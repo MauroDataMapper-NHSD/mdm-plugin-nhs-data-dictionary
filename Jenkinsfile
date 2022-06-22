@@ -10,6 +10,7 @@ pipeline {
     }
 
     options {
+        skipDefaultCheckout(true) // we use git LFS so we cant use the default checkout
         timestamps()
         timeout(time: 30, unit: 'MINUTES')
         skipStagesAfterUnstable()
@@ -17,6 +18,25 @@ pipeline {
     }
 
     stages {
+        // This stage is required to do the checkout of the code as we need to use git LFS (this does require git-lfs to have been installed on the jenkins server)
+        stage('Checkout') {
+            steps {
+//                // Clean workspace before build
+//                cleanWs() // hopefully not needed
+                script {
+                    def gitRemoteOriginUrl = scm.getUserRemoteConfigs()[0].getUrl()
+                    echo 'The remote URL is ' + gitRemoteOriginUrl
+                    scmVars = checkout(
+                        [$class           : 'GitSCM',
+                         branches         : [[name: 'refs/heads/$BRANCH_NAME']],
+                         extensions       : [[$class: 'GitLFSPull'], [$class: 'LocalBranch', localBranch: '**']],
+                         gitTool          : 'git',
+                         userRemoteConfigs : [[credentialsId: "58b31599-1344-416d-8c14-66886fad260e", url: gitRemoteOriginUrl]]
+                        ])
+                }
+            }
+        }
+
 
         stage('Clean') {
             // Only clean when the last build failed
@@ -135,7 +155,8 @@ pipeline {
 
             publishCoverage adapters: [jacocoAdapter('**/reports/jacoco/jacocoTestReport.xml')]
             outputTestResults()
-            jacoco classPattern: '**/build/classes', execPattern: '**/build/jacoco/*.exec', sourceInclusionPattern: '**/*.java,**/*.groovy', sourcePattern: '**/src/main/groovy,**/grails-app/controllers,**/grails-app/domain,**/grails-app/services,**/grails-app/utils'
+            jacoco classPattern: '**/build/classes', execPattern: '**/build/jacoco/*.exec', sourceInclusionPattern: '**/*.java,**/*.groovy',
+                   sourcePattern: '**/src/main/groovy,**/grails-app/controllers,**/grails-app/domain,**/grails-app/services,**/grails-app/utils'
             archiveArtifacts allowEmptyArchive: true, artifacts: '**/*.log'
             zulipNotification(topic: 'mdm-plugin-nhs-data-dictionary')
         }
