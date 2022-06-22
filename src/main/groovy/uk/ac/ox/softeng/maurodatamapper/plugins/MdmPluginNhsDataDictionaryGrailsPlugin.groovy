@@ -23,7 +23,7 @@ import grails.plugins.Plugin
 class MdmPluginNhsDataDictionaryGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = '5.1.2 > *'
+    def grailsVersion = '5.1.7 > *'
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
         "grails-app/views/error.gsp"
@@ -64,7 +64,10 @@ Endpoints to provide services for managing and reviewing the data dictionary
     }
 
     def dependsOn = [
-        mdmCore    : '5.0.0 > *',
+        mdmCore             : '5.1.0 > *',
+        mdmPluginDataModel  : '5.1.0 > *',
+        mdmPluginTerminology: '5.1.0 > *',
+        mdmPluginProfile    : '5.1.0 > *'
     ]
 
     void doWithDynamicMethods() {
