@@ -60,11 +60,13 @@ Endpoints to provide services for managing and reviewing the data dictionary
 
     Closure doWithSpring() {
         {->
-            // TODO Implement runtime spring config (optional)
         }
     }
 
-    /*
+    def dependsOn = [
+        mdmCore    : '5.0.0 > *',
+    ]
+
     void doWithDynamicMethods() {
         // TODO Implement registering dynamic methods to classes (optional)
     }
@@ -88,5 +90,4 @@ Endpoints to provide services for managing and reviewing the data dictionary
         // TODO Implement code that is executed when the application shuts down (optional)
     }
 
-    */
 }
