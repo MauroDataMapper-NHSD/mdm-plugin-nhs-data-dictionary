@@ -111,4 +111,10 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     }
 
 
+    def diff() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        respond(nhsDataDictionaryService.diff(versionedFolderId))
+
+    }
+
 }
