@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.diff.bidirectional.ObjectDiff
 import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
@@ -67,6 +68,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Ele
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ClassLinkedToRetiredAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ChangePaperUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaperPdfUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
@@ -669,6 +671,21 @@ class NhsDataDictionaryService {
     }
 
 
+    def changePaper(UUID versionedFolderId) {
+
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+
+        NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
+        NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
+
+
+        String outputPath = "/Users/james/Desktop/ditaTest/"
+
+        ChangePaperUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
+
+    }
+
     NhsDataDictionary newDataDictionary() {
         NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
         setTemplateText(nhsDataDictionary)
@@ -690,6 +707,24 @@ class NhsDataDictionaryService {
         if(!dataDictionary.retiredItemText) {
             dataDictionary.preparatoryItemText = KNOWN_KEYS["retired.template"]
         }
+    }
+
+    def diff(UUID versionedFolderId) {
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+
+        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+
+        // Load the things into memory
+        //NhsDataDictionary thisDataDictionary = buildDataDictionary(versionedFolderId)
+        //NhsDataDictionary previousDataDictionary = buildDataDictionary(versionedFolderId)
+        //ObjectDiff objectDiff = versionedFolderService.getDiffForVersionedFolders(thisDictionary, previousVersion)
+
+        log.info('---------- Starting merge diff ----------')
+        long start = System.currentTimeMillis()
+        MergeDiff<VersionedFolder> objectDiff = versionedFolderService.getMergeDiffForVersionedFolders(thisDictionary, previousVersion)
+        log.info('Merge Diff took {}', Utils.timeTaken(start))
+
+        return objectDiff
     }
 
     void buildWorkItemDetails(VersionedFolder thisVersionedFolder, NhsDataDictionary dataDictionary) {
