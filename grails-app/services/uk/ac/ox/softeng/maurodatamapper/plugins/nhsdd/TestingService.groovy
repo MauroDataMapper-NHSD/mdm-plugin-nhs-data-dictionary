@@ -33,6 +33,7 @@ import groovy.util.logging.Slf4j
 import groovy.xml.XmlSlurper
 import org.hibernate.SessionFactory
 import org.springframework.beans.factory.annotation.Autowired
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -85,7 +86,7 @@ class TestingService {
         log.info('---------- Ingesting {} ----------', name)
         def xml = loadXml(name)
         assert xml
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null, branchName, deletePrevious)
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, releaseDate, finalised, null, null, branchName, new PublishOptions(), deletePrevious)
         sessionFactory.currentSession.flush()
         sessionFactory.currentSession.clear()
         log.info('---------- Finished Ingesting {} ----------', name)

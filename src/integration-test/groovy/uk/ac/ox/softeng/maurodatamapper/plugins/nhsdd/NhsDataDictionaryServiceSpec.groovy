@@ -180,7 +180,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         when: 'ingest again'
         log.info('---------- 2nd Ingest --------')
         // Delete old folder complete in 21 secs 547 ms with the batching
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null, new PublishOptions())
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', false, null, null, null, new PublishOptions())
 
         then:
         noExceptionThrown()
@@ -196,7 +196,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         when: 'finalise'
         // finalise dictionary complete in 39 secs 787 ms
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null, new PublishOptions())
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null, 'main', new PublishOptions())
 
         then:
         noExceptionThrown()
