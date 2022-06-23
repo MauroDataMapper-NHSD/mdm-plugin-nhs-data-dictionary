@@ -119,7 +119,6 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
             System.err.println("Persisting: ${dataSetFolder.name}")
             List<String> folderPath = []
             folderPath.addAll(dataSetFolder.folderPath)
-            folderPath.add(name)
             Folder newFolder = getFolderAtPath(dataSetsFolder, folderPath, currentUserEmailAddress)
             if(dataSetFolder.definition) {
                 newFolder.description = dataSetFolder.definition

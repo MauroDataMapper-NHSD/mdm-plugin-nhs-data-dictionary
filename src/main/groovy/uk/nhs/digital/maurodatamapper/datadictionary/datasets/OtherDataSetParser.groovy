@@ -241,12 +241,16 @@ class OtherDataSetParser {
                     if(catalogueItem instanceof DataClass) {
                         currentClass.addToDataClasses(catalogueItem)
                     } else if(catalogueItem instanceof DataElement) {
-                        if (catalogueItem.dataClass) {
+
+                        // Shouldn't need to do this any more!
+/*                        if (catalogueItem.dataClass) {
                             currentClass.addToImportedDataElements(catalogueItem)
                         } else {
                             // If the DE has been created/not found in the core DM then we need to add it to the DC rather than import it
                             currentClass.addToDataElements(catalogueItem)
                         }
+
+ */
                         //log.debug("Added ${catalogueItem.label} to ${currentClass.label}")
                     }
                 }

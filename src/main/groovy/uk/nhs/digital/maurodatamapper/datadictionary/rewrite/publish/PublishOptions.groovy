@@ -25,6 +25,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetConstra
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 class PublishOptions {
@@ -78,6 +79,9 @@ class PublishOptions {
         }
         if(dataDictionaryComponent instanceof NhsDDDataSetFolder) {
             return publishDataSetFolders
+        }
+        if(dataDictionaryComponent instanceof NhsDDWebPage) {
+            return true
         }
     }
 

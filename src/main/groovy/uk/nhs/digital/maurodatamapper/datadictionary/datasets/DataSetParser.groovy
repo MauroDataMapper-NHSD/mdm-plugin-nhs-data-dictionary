@@ -442,7 +442,7 @@ class DataSetParser {
             dataElement = dataDictionary.elementsByUrl[elementUrl]
         }
         if (!dataElement) {
-            log.error("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass.label}, model: ${dataModel.label}")
+            log.info("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass.label}, model: ${dataModel.label}")
             DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype"}
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
@@ -452,7 +452,6 @@ class DataSetParser {
             currentClass.addToDataElements(dataElement)
 
         } else {
-            System.err.println("Shouldn't be here...")
             currentClass.addToImportedDataElements(dataElement)
         }
         return dataElement
