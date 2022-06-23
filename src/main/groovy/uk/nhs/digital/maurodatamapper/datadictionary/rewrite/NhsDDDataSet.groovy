@@ -63,6 +63,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
             }
         }
         path = getWebPath()
+        path.removeLast()
         definitionAsXml = xml.definition
         otherProperties["approvingOrganisation"] = "Data Alliance Partnership Board (DAPB)"
     }

@@ -591,10 +591,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             System.err.println(messageSource)
             //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
         } else {
-            dataSetDataModel.allDataElements.each {
-                System.err.println(it)
-            }
-            //dataModelService.saveModelWithContent(dataSetDataModel)
+            dataModelService.saveModelWithContent(dataSetDataModel)
         }
     }
 

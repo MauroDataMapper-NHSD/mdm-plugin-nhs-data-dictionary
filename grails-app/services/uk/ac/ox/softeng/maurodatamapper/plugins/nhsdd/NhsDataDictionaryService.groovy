@@ -184,11 +184,12 @@ class NhsDataDictionaryService {
         addAttributesToDictionary(coreModel, dataDictionary)
         addElementsToDictionary(coreModel, dataDictionary)
         addClassesToDictionary(coreModel, dataDictionary)
-        addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
         addDataSetsToDictionary(dataSetsFolder, dataDictionary)
+        addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
         addDataSetConstraintsToDictionary(dataSetConstraintsTerminology, dataDictionary)
+        
 
         dataDictionary.buildInternalLinks()
 
@@ -286,6 +287,7 @@ class NhsDataDictionaryService {
 
     }
 
+
     void addDataSetsToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
         Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
         dataDictionary.dataSets = dataSetService.collectNhsDataDictionaryComponents(dataSetModels, dataDictionary)
@@ -293,15 +295,15 @@ class NhsDataDictionaryService {
 
     void addDataSetFoldersToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
         Map<List<String>, Set<Folder>> dataSetFolders = dataSetFolderService.getAllFolders([], dataSetsFolder)
+
         dataSetFolders.each { path, folders ->
             folders.each {folder ->
                 NhsDDDataSetFolder dataSetFolder = dataSetFolderService.getNhsDataDictionaryComponentFromCatalogueItem(folder, dataDictionary, path)
                 dataDictionary.dataSetFolders[dataSetFolder.name] = dataSetFolder
             }
         }
-
-
     }
+
 
     void addBusDefsToDictionary(Terminology busDefsTerminology, NhsDataDictionary dataDictionary) {
         dataDictionary.businessDefinitions = businessDefinitionService.collectNhsDataDictionaryComponents(termService.findAllByTerminologyId(busDefsTerminology.id), dataDictionary)
@@ -537,7 +539,7 @@ class NhsDataDictionaryService {
         if(publishOptions.publishDataSetFolders) {
             startTime = System.currentTimeMillis()
             dataSetFolderService.persistDataSetFolders(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress)
-            log.info('DataSetService persist complete in {}', Utils.timeTaken(startTime))
+            log.info('DataSetFolderService persist complete in {}', Utils.timeTaken(startTime))
         }
 
 
