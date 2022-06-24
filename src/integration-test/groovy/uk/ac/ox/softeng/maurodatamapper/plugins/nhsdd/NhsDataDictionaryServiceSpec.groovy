@@ -361,11 +361,11 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         stats
         log.info('{}', JsonOutput.prettyPrint(statsJson))
-        checkStatsMapEntry(stats, 'Attributes', 2528, 0, 1194)
-        checkStatsMapEntry(stats, 'Data Elements', 4916, 8, 2202)
+        checkStatsMapEntry(stats, 'Attributes', 2526, 0, 1192)
+        checkStatsMapEntry(stats, 'Data Elements', 4915, 8, 2201)
         checkStatsMapEntry(stats, 'Classes', 363, 0, 138)
         checkStatsMapEntry(stats, 'Data Sets', 261, 0, 136)
-        checkStatsMapEntry(stats, 'NHS Business Definitions', 1230, 1, 388)
+        checkStatsMapEntry(stats, 'NHS Business Definitions', 1230, 1, 390)
         checkStatsMapEntry(stats, 'Supporting Information', 152, 0, 24)
         checkStatsMapEntry(stats, 'Data Set Constraints', 33, 0, 5)
     }
@@ -421,7 +421,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     }
 
     String renderStatisticsAsJson(NhsDataDictionary nhsDataDictionary) {
-        WritableScriptTemplate t = templateEngine.resolveTemplate('/NhsDataDictionary/statistics.gson')
+        WritableScriptTemplate t = templateEngine.resolveTemplate('/nhsDataDictionary/statistics.gson')
         def writable = t.make(nhsDataDictionary: nhsDataDictionary)
         def sw = new StringWriter()
         writable.writeTo(sw)
