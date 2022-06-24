@@ -278,12 +278,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         setupData()
         // Ingest initial models and configure
         def ids = testingService.buildTestData(user)
-        String releaseId = ids.v1
-        String novBranchId = ids.v2
+        String releaseId = ids.releaseId
+        String novBranchId = ids.novBranchId
 
         // Create a september branch
         ids = testingService.branchTestData(user, releaseId)
-        String septBranchId = ids.v2
+        String septBranchId = ids.septBranchId
 
         VersionedFolder novBranch = versionedFolderService.get(novBranchId)
         VersionedFolder septBranch = versionedFolderService.get(septBranchId)
@@ -319,12 +319,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         setupData()
         // Ingest initial models and configure
         def ids = testingService.buildTestData(user)
-        String releaseId = ids.v1
-        String novBranchId = ids.v2
+        String releaseId = ids.releaseId
+        String novBranchId = ids.novBranchId
 
         // Create a september branch
         ids = testingService.branchTestData(user, releaseId)
-        String septBranchId = ids.v2
+        String septBranchId = ids.septBranchId
 
         VersionedFolder novBranch = versionedFolderService.get(novBranchId)
         VersionedFolder septBranch = versionedFolderService.get(septBranchId)
