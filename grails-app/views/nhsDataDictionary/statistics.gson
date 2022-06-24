@@ -10,7 +10,7 @@ json {
         'Preparatory' nhsDataDictionary.attributes.values().count {it.isPreparatory()}
         'Retired' nhsDataDictionary.attributes.values().count {it.isRetired()}
     }
-    'Data Field Notes' {
+    'Data Elements' {
         'Total' nhsDataDictionary.elements.size()
         'Preparatory' nhsDataDictionary.elements.values().count {it.isPreparatory()}
         'Retired' nhsDataDictionary.elements.values().count {it.isRetired()}
