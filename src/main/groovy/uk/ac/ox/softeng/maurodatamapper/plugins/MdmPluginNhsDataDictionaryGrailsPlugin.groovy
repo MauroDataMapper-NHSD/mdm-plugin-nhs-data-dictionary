@@ -65,7 +65,7 @@ Endpoints to provide services for managing and reviewing the data dictionary
 
     def dependsOn = [
         mdmCore             : '5.1.0 > *',
-        mdmPluginDataModel  : '5.1.0 > *',
+        mdmPluginDatamodel  : '5.1.0 > *',
         mdmPluginTerminology: '5.1.0 > *',
         mdmPluginProfile    : '5.1.0 > *'
     ]
