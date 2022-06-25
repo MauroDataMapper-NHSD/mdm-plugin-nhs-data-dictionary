@@ -32,6 +32,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
@@ -559,7 +560,10 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
     void createAndSaveDataModel(NhsDDDataSet dataSet, Folder dataSetsFolder, Folder dictionaryFolder, User currentUser,
                                 NhsDataDictionary nhsDataDictionary) {
+        long startTime = System.currentTimeMillis()
         Folder folder = getFolderAtPath(dataSetsFolder, dataSet.path, currentUser.emailAddress)
+        log.error('Get Folder complete in {}', Utils.timeTaken(startTime))
+
         log.debug('Ingesting {}', dataSet.name)
 
         DataModel dataSetDataModel = new DataModel(
@@ -571,27 +575,38 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             folder: folder,
             branchName: nhsDataDictionary.branchName
         )
-
+        startTime = System.currentTimeMillis()
         if (dataSet.name.startsWith("CDS")) {
             CDSDataSetParser.parseCDSDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
         } else {
             DataSetParser.parseDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
         }
+        log.error('Parse data set complete in {}', Utils.timeTaken(startTime))
 
+        startTime = System.currentTimeMillis()
         addMetadataFromComponent(dataSetDataModel, dataSet, currentUser.emailAddress)
+        log.error('Add Metadata complete in {}', Utils.timeTaken(startTime))
 
         System.err.println("Saving: " + dataSet.name)
         // Fix the created by field and any other associations
+        startTime = System.currentTimeMillis()
         dataModelService.checkImportedDataModelAssociations(currentUser, dataSetDataModel)
+        log.error('Checking complete in {}', Utils.timeTaken(startTime))
 
+        startTime = System.currentTimeMillis()
         dataModelService.validate(dataSetDataModel)
+        log.error('Validating complete in {}', Utils.timeTaken(startTime))
+
         if (dataSetDataModel.hasErrors()) {
             GormUtils.outputDomainErrors(messageSource, dataSetDataModel)
             System.err.println("Error validating")
             System.err.println(messageSource)
             //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
         } else {
+            startTime = System.currentTimeMillis()
             dataModelService.saveModelWithContent(dataSetDataModel)
+            log.error('Save dataset complete in {}', Utils.timeTaken(startTime))
+
         }
     }
 
