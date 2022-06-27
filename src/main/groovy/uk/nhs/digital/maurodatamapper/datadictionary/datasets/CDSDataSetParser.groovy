@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.datasets
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
@@ -33,13 +34,19 @@ class CDSDataSetParser {
 
     static void parseCDSDataSet(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> dataClasses = []
-        dataClasses = parseCDSDataSetWithHeaderTables(definition, dataModel, dataDictionary)
 
+        long startTime = System.currentTimeMillis()
+        dataClasses = parseCDSDataSetWithHeaderTables(definition, dataModel, dataDictionary)
+        log.error('Initial parse data set complete in {}', Utils.timeTaken(startTime))
+        startTime = System.currentTimeMillis()
         dataClasses.eachWithIndex {dataClass, index ->
             dataModel.addToDataClasses(dataClass)
             DataSetParser.setOrder(dataClass, index + 1)
         }
+        log.error('Add to DCs data set complete in {}', Utils.timeTaken(startTime))
+        startTime = System.currentTimeMillis()
         DataSetParser.fixPotentialDuplicates(dataModel)
+        log.error('Fix duplicates complete in {}', Utils.timeTaken(startTime))
     }
 
     static List<DataClass> parseCDSDataSetWithHeaderTables(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
@@ -242,6 +249,7 @@ class CDSDataSetParser {
 
 
     static List<DataClass> parseCDSSection(List<GPathResult> components, DataModel dataModel, NhsDataDictionary dataDictionary) {
+        long startTime = System.currentTimeMillis()
         List<DataClass> returnClasses = []
         DataClass currentClass = null
         int classWebOrder = 0
@@ -323,6 +331,7 @@ class CDSDataSetParser {
             }
 
         }
+        log.error('Parse CDS Section complete in {}', Utils.timeTaken(startTime))
         return returnClasses
 
     }

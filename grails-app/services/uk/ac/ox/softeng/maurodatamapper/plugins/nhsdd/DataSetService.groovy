@@ -17,7 +17,6 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
@@ -40,7 +39,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDWebPage
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
@@ -57,43 +55,6 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
         return dataSet
     }
-
-/*    @Override
-    def show(UUID versionedFolderId, String id) {
-        DataModel dataModel = dataModelService.get(id)
-
-        String description = convertLinksInDescription(branch, dataModel.description)
-        String shortDesc = replaceLinksInShortDescription(getShortDescription(dataModel, null))
-
-        DataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(branch)
-
-        def result = [
-            catalogueId     : dataModel.id.toString(),
-            name            : dataModel.label,
-            stereotype      : "dataSet",
-            shortDescription: shortDesc,
-            description     : description,
-            alsoKnownAs     : getAliases(dataModel)
-        ]
-
-        StringBuffer stringBuffer = new StringBuffer()
-        if (dataModel && dataModel.dataClasses && dataModel.dataClasses.size() > 0) {
-            log.debug("Data Classes: " + dataModel.dataClasses.size())
-            dataModel.dataClasses.sort {
-                dataClass -> Integer.parseInt((DDHelperFunctions.getMetadataValue(dataClass, "Web Order") ?: "0"))
-            }.each {dataClass ->
-                if (dataModel.label.startsWith("CDS")) {
-                    stringBuffer.append outputCDSClassAsDita(dataClass, dataDictionary, dataModel).toString()
-                } else {
-                    stringBuffer.append outputClassAsDita(dataClass, dataDictionary).toString()
-                }
-            }
-            result["specifications"] = stringBuffer.toString()
-        }
-        return result
-    }
-
- */
 
     @Override
     Set<DataModel> getAll(UUID versionedFolderId, boolean includeRetired = false) {

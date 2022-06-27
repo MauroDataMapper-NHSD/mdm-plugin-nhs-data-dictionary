@@ -11,7 +11,9 @@ import groovy.xml.XmlSlurper
 import org.springframework.context.MessageSource
 import org.springframework.test.annotation.Rollback
 import spock.lang.Specification
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.OtherDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 
@@ -20,17 +22,17 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Rollback
 class DataSetParserSpec extends BaseIntegrationSpec {
 
+    static XmlSlurper xmlSlurper = new XmlSlurper()
+
     static List<String> testFiles = [
+        "CDS V6-3 Type 180 - Admitted Patient Care - Unfinished Birth Episode CDS",
         "Inter-provider Transfer Administrative Minimum Data Set",
     ]
 
     DataModel parseDataSet(String filename) {
         log.debug('Ingesting {}', filename)
 
-        String testFileContents = getClass().classLoader.getResourceAsStream (filename + ".xml").text
-        XmlSlurper xmlSlurper = new XmlSlurper()
-
-        System.err.println()
+        String testFileContents = getClass().classLoader.getResourceAsStream ("testDataSets/" + filename + ".xml").text
 
         NhsDataDictionary newDataDictionary = new NhsDataDictionary()
         DataModel dataSetDataModel = new DataModel(
@@ -42,7 +44,12 @@ class DataSetParserSpec extends BaseIntegrationSpec {
             //folder: folder,
             //branchName: newDataDictionary.branchName
         )
-        DataSetParser.parseDataSet(xmlSlurper.parseText(testFileContents), dataSetDataModel, newDataDictionary)
+
+        if (filename.startsWith("CDS")) {
+            CDSDataSetParser.parseCDSDataSet(xmlSlurper.parseText(testFileContents), dataSetDataModel, newDataDictionary)
+        } else {
+            DataSetParser.parseDataSet(xmlSlurper.parseText(testFileContents), dataSetDataModel, newDataDictionary)
+        }
         return dataSetDataModel
     }
 
@@ -51,11 +58,12 @@ class DataSetParserSpec extends BaseIntegrationSpec {
 
         expect:
             DataModel dm = parseDataSet(filename)
+            System.err.println(dm.childDataClasses)
             dm.allDataElements.size() == elements
 
         where:
-            filename | elements | classes
-            testFiles[0] | 100 | 100
+            filename << testFiles
+            elements << [36, 100]
 
     }
 

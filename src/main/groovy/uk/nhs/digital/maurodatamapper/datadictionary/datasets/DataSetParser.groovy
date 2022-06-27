@@ -633,12 +633,12 @@ class DataSetParser {
 
 
     static List<List<String>> getElementParameters(Node td) {
-        td.depthFirst().findAll {n ->
+        /*td.depthFirst().findAll {n ->
             n instanceof Node && (n.name() == "strong" || n.name() == "em" || n.name() == "p")
         }.each {
             //n -> HtmlHelper.removeNodeKeepChildren(n)
         }
-
+        */
 
         // log.debug("getElementParameters")
         List<List<String>> allValues = []
