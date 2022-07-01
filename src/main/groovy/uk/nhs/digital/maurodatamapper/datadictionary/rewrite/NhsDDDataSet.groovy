@@ -22,11 +22,9 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
-import groovy.xml.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
-import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
+import groovy.xml.XmlUtil
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -43,7 +41,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
 
     List<String> path
-    GPathResult definitionAsXml
+    String definitionAsXml
 
     boolean isCDS
 
@@ -64,7 +62,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         }
         path = getWebPath()
         path.removeLast()
-        definitionAsXml = xml.definition
+        definitionAsXml = XmlUtil.serialize(xml.definition)
         otherProperties["approvingOrganisation"] = "Data Alliance Partnership Board (DAPB)"
     }
 

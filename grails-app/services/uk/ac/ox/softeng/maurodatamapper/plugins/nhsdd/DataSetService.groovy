@@ -17,6 +17,9 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
@@ -537,10 +540,15 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             branchName: nhsDataDictionary.branchName
         )
         startTime = System.currentTimeMillis()
+        System.err.println(dataSet.definitionAsXml)
+        XmlSlurper xmlSlurper = new XmlSlurper()
+        xmlSlurper.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        GPathResult definition = xmlSlurper.parseText(dataSet.definitionAsXml)
+
         if (dataSet.name.startsWith("CDS")) {
-            CDSDataSetParser.parseCDSDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
+            CDSDataSetParser.parseCDSDataSet(definition, dataSetDataModel, nhsDataDictionary)
         } else {
-            DataSetParser.parseDataSet(dataSet.definitionAsXml, dataSetDataModel, nhsDataDictionary)
+            DataSetParser.parseDataSet(definition, dataSetDataModel, nhsDataDictionary)
         }
         log.error('Parse data set complete in {}', Utils.timeTaken(startTime))
 
