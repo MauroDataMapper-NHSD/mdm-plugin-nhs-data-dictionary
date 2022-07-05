@@ -178,13 +178,14 @@ class DDHelperFunctions {
         topLevelClasses
     }
 
-    static boolean tableIsClassHeader(GPathResult table) {
-        if (table.tbody.tr.th.size() == 1 && table.tbody.tr.th.@class.text() == "duckblue") {
+    static boolean tableIsClassHeader(Node table) {
+        if (table.tbody.tr.th.size() == 1 && table.tbody.tr.th.@class == "duckblue") {
             return true
         }
         // For CDS
-        if (/*table.tbody.tr.size() == 2 && */ table.tbody.tr[0].td.size() == 2 &&
-                                               table.tbody.tr[0].td[1].@class.text() == "duckblue") {
+        if (/*table.tbody.tr.size() == 2 && */ table.tbody.tr[0] &&
+                                               table.tbody.tr[0].td.size() == 2 &&
+                                               table.tbody.tr[0].td[1].@class == "duckblue") {
             return true
         }
         return false

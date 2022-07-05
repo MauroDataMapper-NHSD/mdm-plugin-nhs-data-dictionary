@@ -7,6 +7,7 @@ import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
 import groovy.util.logging.Slf4j
+import groovy.xml.XmlParser
 import groovy.xml.XmlSlurper
 import org.springframework.context.MessageSource
 import org.springframework.test.annotation.Rollback
@@ -22,11 +23,12 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Rollback
 class DataSetParserSpec extends BaseIntegrationSpec {
 
-    static XmlSlurper xmlSlurper = new XmlSlurper()
+
+    static XmlParser xmlParser = new XmlParser()
 
     static List<String> testFiles = [
-        "CDS V6-3 Type 180 - Admitted Patient Care - Unfinished Birth Episode CDS",
         "Inter-provider Transfer Administrative Minimum Data Set",
+        "CDS V6-3 Type 180 - Admitted Patient Care - Unfinished Birth Episode CDS",
     ]
 
     DataModel parseDataSet(String filename) {
@@ -46,9 +48,9 @@ class DataSetParserSpec extends BaseIntegrationSpec {
         )
 
         if (filename.startsWith("CDS")) {
-            CDSDataSetParser.parseCDSDataSet(xmlSlurper.parseText(testFileContents), dataSetDataModel, newDataDictionary)
+            CDSDataSetParser.parseCDSDataSet(xmlParser.parseText(testFileContents), dataSetDataModel, newDataDictionary)
         } else {
-            DataSetParser.parseDataSet(xmlSlurper.parseText(testFileContents), dataSetDataModel, newDataDictionary)
+            DataSetParser.parseDataSet(xmlParser.parseText(testFileContents), dataSetDataModel, newDataDictionary)
         }
         return dataSetDataModel
     }
@@ -58,7 +60,6 @@ class DataSetParserSpec extends BaseIntegrationSpec {
 
         expect:
             DataModel dm = parseDataSet(filename)
-            System.err.println(dm.childDataClasses)
             dm.allDataElements.size() == elements
 
         where:

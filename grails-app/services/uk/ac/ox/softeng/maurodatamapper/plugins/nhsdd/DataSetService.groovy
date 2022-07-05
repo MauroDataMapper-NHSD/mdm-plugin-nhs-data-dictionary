@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import groovy.xml.XmlParser
 import groovy.xml.XmlSlurper
 import groovy.xml.slurpersupport.GPathResult
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
@@ -50,6 +51,12 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
     @Autowired
     MessageSource messageSource
+
+    static XmlParser xmlParser = new XmlParser()
+    static {
+        xmlParser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+    }
+
 
     @Override
     NhsDDDataSet show(UUID versionedFolderId, String id) {
@@ -526,7 +533,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
                                 NhsDataDictionary nhsDataDictionary) {
         long startTime = System.currentTimeMillis()
         Folder folder = getFolderAtPath(dataSetsFolder, dataSet.path, currentUser.emailAddress)
-        log.error('Get Folder complete in {}', Utils.timeTaken(startTime))
+        log.info('Get Folder complete in {}', Utils.timeTaken(startTime))
 
         log.debug('Ingesting {}', dataSet.name)
 
@@ -540,31 +547,28 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             branchName: nhsDataDictionary.branchName
         )
         startTime = System.currentTimeMillis()
-        System.err.println(dataSet.definitionAsXml)
-        XmlSlurper xmlSlurper = new XmlSlurper()
-        xmlSlurper.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-        GPathResult definition = xmlSlurper.parseText(dataSet.definitionAsXml)
+        Node definition = xmlParser.parseText(dataSet.definitionAsXml)
 
         if (dataSet.name.startsWith("CDS")) {
             CDSDataSetParser.parseCDSDataSet(definition, dataSetDataModel, nhsDataDictionary)
         } else {
             DataSetParser.parseDataSet(definition, dataSetDataModel, nhsDataDictionary)
         }
-        log.error('Parse data set complete in {}', Utils.timeTaken(startTime))
+        log.info('Parse data set complete in {}', Utils.timeTaken(startTime))
 
         startTime = System.currentTimeMillis()
         addMetadataFromComponent(dataSetDataModel, dataSet, currentUser.emailAddress)
-        log.error('Add Metadata complete in {}', Utils.timeTaken(startTime))
+        log.info('Add Metadata complete in {}', Utils.timeTaken(startTime))
 
         System.err.println("Saving: " + dataSet.name)
         // Fix the created by field and any other associations
         startTime = System.currentTimeMillis()
         dataModelService.checkImportedDataModelAssociations(currentUser, dataSetDataModel)
-        log.error('Checking complete in {}', Utils.timeTaken(startTime))
+        log.info('Checking complete in {}', Utils.timeTaken(startTime))
 
         startTime = System.currentTimeMillis()
         dataModelService.validate(dataSetDataModel)
-        log.error('Validating complete in {}', Utils.timeTaken(startTime))
+        log.info('Validating complete in {}', Utils.timeTaken(startTime))
 
         if (dataSetDataModel.hasErrors()) {
             GormUtils.outputDomainErrors(messageSource, dataSetDataModel)
@@ -572,9 +576,13 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
             System.err.println(messageSource)
             //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
         } else {
+            log.error("Saving dataset: " + dataSetDataModel.label)
             startTime = System.currentTimeMillis()
+            if(dataSetDataModel.label == "CDS V6-2-2 Type 011 - Emergency Care CDS") {
+                System.err.println("Here")
+            }
             dataModelService.saveModelWithContent(dataSetDataModel)
-            log.error('Save dataset complete in {}', Utils.timeTaken(startTime))
+            log.info('Save dataset complete in {}', Utils.timeTaken(startTime))
 
         }
     }
