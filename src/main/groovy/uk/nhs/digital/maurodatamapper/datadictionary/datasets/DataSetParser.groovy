@@ -27,15 +27,11 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 
 import groovy.util.logging.Slf4j
-import groovy.xml.XmlUtil
-import groovy.xml.slurpersupport.GPathResult
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 class DataSetParser {
-
-    static XmlParser xmlParser = XmlParser.newInstance()
 
     static final String xmlFileName = "valuesets-expanded-september.xml"
 
@@ -152,12 +148,12 @@ class DataSetParser {
         assert (hash != "")
     }
 
-    static void parseDataSet(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
+    static void parseDataSet(Node definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> dataClasses = []
-        if (definition.children().count {it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it)}) {
+        if (definition.children().count {it instanceof Node && it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it)}) {
             dataClasses = OtherDataSetParser.parseDataSetWithHeaderTables(definition, dataModel, dataDictionary)
         } else {
-            definition.children().findAll {it.name() == "table"}.each {GPathResult table ->
+            definition.children().findAll {it instanceof Node && it.name() == "table"}.each {Node table ->
                 dataClasses.addAll(OtherDataSetParser.parseDataClassTable(table, dataModel, dataDictionary, 1))
             }
         }
@@ -171,8 +167,8 @@ class DataSetParser {
         fixPotentialDuplicates(dataModel)
     }
 
-    static boolean isSkyBlue(GPathResult gPathResult) {
-        return gPathResult.@class.text() == "skyblue"
+    static boolean isSkyBlue(Node node) {
+        return node.@class == "skyblue"
     }
 
 
@@ -369,10 +365,10 @@ class DataSetParser {
     }
 
 
-    static List<List<GPathResult>> partitionByDuckBlueClasses(GPathResult dataSetDefinition) {
+    static List<List<Node>> partitionByDuckBlueClasses(Node dataSetDefinition) {
 
-        List<List<GPathResult>> topLevelClasses = []
-        List<GPathResult> list = []
+        List<List<Node>> topLevelClasses = []
+        List<Node> list = []
         dataSetDefinition.children().each {childNode ->
             if (DDHelperFunctions.tableIsClassHeader(childNode)) {
                 if (list.size() > 0) {
@@ -388,7 +384,7 @@ class DataSetParser {
         topLevelClasses
     }
 
-    static void setNameAndDescriptionFromCell(DataClass dataClass, GPathResult cell) {
+    static void setNameAndDescriptionFromCell(DataClass dataClass, Node cell) {
         String cellContent = cell.text()
         // log.debug(cellContent)
         int colonIndex = cellContent.indexOf(":")
@@ -442,7 +438,7 @@ class DataSetParser {
             dataElement = dataDictionary.elementsByUrl[elementUrl]
         }
         if (!dataElement) {
-            log.info("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass.label}, model: ${dataModel.label}")
+            log.warn("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass.label}, model: ${dataModel.label}")
             DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype"}
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
@@ -555,8 +551,7 @@ class DataSetParser {
     }
 
 
-    static void getAndSetMRO(GPathResult gPathResult, List<DataElement> elementList, DataClass choiceClass = null) {
-        Node node = xmlParser.parseText(XmlUtil.serialize(gPathResult).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+    static void getAndSetMRO(Node node, List<DataElement> elementList, DataClass choiceClass = null) {
         List<List<String>> params = getElementParameters(node)
 
         if (params.size() == 1 && elementList.size() > 1) {
@@ -576,13 +571,12 @@ class DataSetParser {
             params.each {
                 log.debug(it.toString())
             }
-            log.debug(gPathResult.toString())
+            log.debug(node.toString())
         }
 
     }
 
-    static void getAndSetRepeats(GPathResult gPathResult, List<DataElement> elementList, DataClass choiceClass = null) {
-        Node node = xmlParser.parseText(XmlUtil.serialize(gPathResult).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+    static void getAndSetRepeats(Node node, List<DataElement> elementList, DataClass choiceClass = null) {
         List<List<String>> params = getElementParameters(node)
 
         if (params.size() == 1 && elementList.size() > 1) {
@@ -597,14 +591,13 @@ class DataSetParser {
             elementList.each {DataElement entry ->
                 log.debug(entry.label)
             }
-            log.debug(gPathResult.toString())
+            log.debug(node.toString())
         }
 
     }
 
 
-    static void getAndSetRules(GPathResult gPathResult, List<DataElement> elementList, DataClass choiceClass = null) {
-        Node node = xmlParser.parseText(XmlUtil.serialize(gPathResult).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+    static void getAndSetRules(Node node, List<DataElement> elementList, DataClass choiceClass = null) {
         List<List<String>> params = getElementParameters(node)
 
         if (choiceClass && params.size() == 1 && elementList.size() > 1) {
@@ -619,7 +612,7 @@ class DataSetParser {
             elementList.each {DataElement entry ->
                 log.debug(entry.label)
             }
-            log.debug(gPathResult.toString())
+            log.debug(node.toString())
         }
 
     }

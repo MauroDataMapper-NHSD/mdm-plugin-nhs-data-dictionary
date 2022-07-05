@@ -23,8 +23,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
-import groovy.xml.XmlUtil
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -32,7 +30,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 class CDSDataSetParser {
 
 
-    static void parseCDSDataSet(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
+    static void parseCDSDataSet(Node definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> dataClasses = []
 
         long startTime = System.currentTimeMillis()
@@ -49,13 +47,13 @@ class CDSDataSetParser {
         log.error('Fix duplicates complete in {}', Utils.timeTaken(startTime))
     }
 
-    static List<DataClass> parseCDSDataSetWithHeaderTables(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
+    static List<DataClass> parseCDSDataSetWithHeaderTables(Node definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> returnDataClasses = []
         // log.debug(partitionByDuckBlueClasses(definition).size())
-        List<List<GPathResult>> sections = DataSetParser.partitionByDuckBlueClasses(definition)
+        List<List<Node>> sections = DataSetParser.partitionByDuckBlueClasses(definition)
         for (int sectIdx = 0; sectIdx < sections.size(); sectIdx++) {
-            List<GPathResult> sect = sections.get(sectIdx)
-            List<GPathResult> ors = sect.findAll {
+            List<Node> sect = sections.get(sectIdx)
+            List<Node> ors = sect.findAll {
                 (it.name() == "table" && it.text().trim() == "OR") ||
                 (it.name() == "strong" && it.text().trim() == "OR")
             }
@@ -83,33 +81,25 @@ class CDSDataSetParser {
         return returnDataClasses
     }
 
-    static void parseCDSElementTable(List<GPathResult> tableRows, DataClass currentClass, DataModel dataModel, NhsDataDictionary dataDictionary,
+    static void parseCDSElementTable(List<Node> tableRows, DataClass currentClass, DataModel dataModel, NhsDataDictionary dataDictionary,
                                      int position) {
         if (tableRows.size() == 0) {return} // We're done
-        GPathResult firstRow = tableRows[0]
+        Node firstRow = tableRows[0]
 
-        if (tableRows.size() == 1 && firstRow.td[0].@bgcolor.text() == "#DCDCDC" && firstRow.td.size() == 3) {
+        if (tableRows.size() == 1 && firstRow.td[0].@bgcolor == "#DCDCDC" && firstRow.td.size() == 3) {
 
             // Single row, pointer to data class
             DataSetParser.setMRO(currentClass, firstRow.td[0].text())
             DataSetParser.setGroupRepeats(currentClass, firstRow.td[1].text())
             DataSetParser.setDataSetReference(currentClass)
             if (firstRow.td[2].strong.a.size() > 0) {
-                DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].strong.a[0].@href.text())
+                DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].strong.a[0].@href)
             } else {
-                DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].a[0].@href.text())
+                DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].a[0].@href)
             }
-            Node tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(firstRow.td[2]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
-            tdNode.children()[0].replaceNode {}
 
-            String multiplicityText = XmlUtil.serialize(tdNode).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
-            multiplicityText = multiplicityText
-                .replaceFirst("<td[^>]*>", "")
-                .replaceFirst("</td>", "")
-
-
-            DataSetParser.setMultiplicityText(currentClass, multiplicityText)
-        } else if (firstRow.td.size() == 4 && firstRow.td[2].@bgcolor.text() == "#DCDCDC") {
+            DataSetParser.setMultiplicityText(currentClass, firstRow.td[2].text())
+        } else if (firstRow.td.size() == 4 && firstRow.td[2].@bgcolor == "#DCDCDC") {
             // Let's start parsing a class
             DataClass childClass = getClassFromTD(firstRow.td[2], dataDictionary)
             //DataClass childClass = new DataClass(label: "Option 2")
@@ -119,19 +109,19 @@ class CDSDataSetParser {
             currentClass.addToDataClasses(childClass)
             Integer noRows = 1
             if (firstRow.td[0].@rowspan) {
-                noRows = Integer.parseInt(firstRow.td[0].@rowspan.text())
+                noRows = Integer.parseInt(firstRow.td[0].@rowspan)
                 //log.debug("noRows: " + noRows)
             }
             if (tableRows[noRows] && tableRows[noRows].td.size() == 6
                 && (tableRows[noRows].td[4].text() == "PERSON BIRTH DATE" || tableRows[noRows].td[4].text() == "PERSON_BIRTH_DATE")) {
                 noRows++
             }
-            List<GPathResult> classRows = tableRows.take(noRows).drop(1)
+            List<Node> classRows = tableRows.take(noRows).drop(1)
             parseCDSElementTable(classRows, childClass, dataModel, dataDictionary, position)
-            List<GPathResult> otherRows = tableRows.drop(noRows)
+            List<Node> otherRows = tableRows.drop(noRows)
             parseCDSElementTable(otherRows, currentClass, dataModel, dataDictionary, position + 1)
         } else if ((firstRow.td.size() == 2 || firstRow.td.size() == 3)
-            && firstRow.td[1].@bgcolor.text() == "#DCDCDC") {
+            && firstRow.td[1].@bgcolor == "#DCDCDC") {
             // This is a class like that of "Patient Identity"
             DataClass childClass = getClassFromTD(firstRow.td[1], dataDictionary)
             //DataSetParser.setMRO(childClass, firstRow.td[0].text())
@@ -146,7 +136,7 @@ class CDSDataSetParser {
             // This is probably "One of the following two options must be used",
             // "OR", or similar.
             log.debug("Ignoring: " + firstRow.td.strong.text())
-        } else if (firstRow.td.size() == 1 && firstRow.td.@bgcolor.text() == "white"
+        } else if (firstRow.td.size() == 1 && firstRow.td.@bgcolor == "white"
             && firstRow.td.strong.size() == 0
             && tableRows[1].td.size() == 1) {
             // This is in the "BABY" groups, where we're starting a choice
@@ -159,7 +149,7 @@ class CDSDataSetParser {
             DataSetParser.setChoice(choiceClass)
             currentClass.addToDataClasses(choiceClass)
             tableRows = tableRows.drop(1)
-            List<List<GPathResult>> partitions =
+            List<List<Node>> partitions =
                 DataSetParser.partitionList(tableRows,
                                             {it ->
                                                 (it.td.size() == 1
@@ -172,16 +162,16 @@ class CDSDataSetParser {
             }
 
         } else if (firstRow.td.size() == 4 &&
-                   (firstRow.td[2].@bgcolor.text() == "white" || firstRow.td[2].@bgcolor.size() == 0)) {
+                   (firstRow.td[2].@bgcolor == "white" || !firstRow.td[2].@bgcolor)) {
             parseCDSElement(dataModel, currentClass, firstRow, dataDictionary, position)
-            List<GPathResult> nextRows = tableRows.drop(1)
+            List<Node> nextRows = tableRows.drop(1)
             parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position + 1)
         } else if (firstRow.td.size() == 6 &&
-                   (firstRow.td[4].@bgcolor.text() == "white" || firstRow.td[4].@bgcolor.size() == 0)
+                   (firstRow.td[4].@bgcolor == "white" || !firstRow.td[4].@bgcolor)
             && (firstRow.td[4].text() == "PERSON BIRTH DATE" || firstRow.td[4].text() == "PERSON_BIRTH_DATE" || firstRow.td[4].text() ==
                 "PROFESSIONAL_REGISTRATION_ISSUER_CODE")) {
             parseCDSElement(dataModel, currentClass, firstRow, dataDictionary, position)
-            List<GPathResult> nextRows = tableRows.drop(1)
+            List<Node> nextRows = tableRows.drop(1)
             parseCDSElementTable(nextRows, currentClass, dataModel, dataDictionary, position + 1)
         } else {
             log.error("Cannot pattern match row: {}\n{}\n{}",
@@ -200,12 +190,11 @@ class CDSDataSetParser {
         trimmed ?: null
     }
 
-    static DataClass getClassFromTD(GPathResult td, NhsDataDictionary dataDictionary) {
+    static DataClass getClassFromTD(Node td, NhsDataDictionary dataDictionary) {
         DataClass dataClass = new DataClass(label: "")
-        Node tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(td).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
 
         // Issue where the trimmed content == NBSP so we need to trim it then check that for NBSP
-        def firstStringNode = tdNode.depthFirst().find {
+        def firstStringNode = td.depthFirst().find {
             it instanceof String ||
             (it instanceof Node && it.localText().size() > 0 &&
              it.localText().any {cleanWhiteSpace(it)})
@@ -228,7 +217,7 @@ class CDSDataSetParser {
         dataClass.label = label.replaceFirst("DATA GROUP:", '').trim()
 
         if (dataClass.label == " ") {
-            log.error("NBSP Found for DataClass name. Extracted Label:[{}]\nXML: {}", label, XmlUtil.serialize(tdNode))
+            log.error("NBSP Found for DataClass name. Extracted Label:[{}]\nXML: {}", label, td)
         }
 
         return dataClass
@@ -248,7 +237,7 @@ class CDSDataSetParser {
     }
 
 
-    static List<DataClass> parseCDSSection(List<GPathResult> components, DataModel dataModel, NhsDataDictionary dataDictionary) {
+    static List<DataClass> parseCDSSection(List<Node> components, DataModel dataModel, NhsDataDictionary dataDictionary) {
         long startTime = System.currentTimeMillis()
         List<DataClass> returnClasses = []
         DataClass currentClass = null
@@ -265,15 +254,12 @@ class CDSDataSetParser {
 
                 Node tdNode = null
                 if (component.tbody.tr[1].td.size() == 3) {
-                    tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[2]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+                    tdNode = component.tbody.tr[1].td[2]
                 } else {
-                    tdNode = DataSetParser.xmlParser.parseText(XmlUtil.serialize(component.tbody.tr[1].td[0]).replaceFirst("<\\?xml version=\"1.0\".*\\?>", ""))
+                    tdNode = component.tbody.tr[1].td[0]
                 }
 
-                currentClass.description = XmlUtil.serialize(tdNode)
-                                               .replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
-                                               .replaceFirst("<td[^>]*>", "")
-                                               .replaceFirst("</td>", "")
+                currentClass.description = tdNode.text()
                                                .replaceFirst("FUNCTION:", "")
                                                .trim() ?: null
 
@@ -282,10 +268,15 @@ class CDSDataSetParser {
                 mro = mro.replaceAll("Group", "")
                 mro = mro.replaceAll("Status", "")
                 DataSetParser.setMRO(currentClass, mro.trim())
-                String groupRepeats = component.tbody.tr[1].td[1].text()
-                groupRepeats = groupRepeats.replaceAll("Group", "")
-                groupRepeats = groupRepeats.replaceAll("Repeats", "")
-                DataSetParser.setGroupRepeats(currentClass, groupRepeats.trim())
+                if(!component.tbody.tr[1].td[1]) {
+                    System.err.println("unexpected row:")
+                    System.err.println(component.tbody.tr[1])
+                } else {
+                    String groupRepeats = component.tbody.tr[1].td[1].text()
+                    groupRepeats = groupRepeats.replaceAll("Group", "")
+                    groupRepeats = groupRepeats.replaceAll("Repeats", "")
+                    DataSetParser.setGroupRepeats(currentClass, groupRepeats.trim())
+                }
 
                 if (ors > 0) {
                     DataSetParser.setChoice(currentClass)
@@ -295,7 +286,7 @@ class CDSDataSetParser {
                     //log.debug("Got it!")
                     //log.debug(component.tbody.tr[1].td.text())
 
-                    List<GPathResult> tableRows = []
+                    List<Node> tableRows = []
                     component.tbody.tr.each {tr -> tableRows.add(tr)}
                     tableRows = tableRows.drop(2)
                     parseCDSElementTable(tableRows, currentClass, dataModel, dataDictionary, classWebOrder)
@@ -306,23 +297,23 @@ class CDSDataSetParser {
 
 
             } else if (component.name() == "table" && component.tbody.tr.size() >= 1 && currentClass) {
-                if (ors > 0 && component.tbody.tr.count {tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC"} > 1) {
+                if (ors > 0 && component.tbody.tr.count {tr -> tr.td[0].@bgcolor == "#DCDCDC"} > 1) {
                     log.debug("Found an exception: " + dataModel.label)
                     log.debug(component.tbody.tr[0].td[1].text() + " " + component.tbody.tr[0].td[2].text())
-                    component.tbody.tr.findAll {tr -> tr.td[0]."@bgcolor".text() == "#DCDCDC"}.each {tr ->
+                    component.tbody.tr.findAll {tr -> tr.td[0].@bgcolor == "#DCDCDC"}.each {tr ->
                         log.debug(tr.td[1].text() + " " + tr.td[2].text())
                     }
                     DataClass andClass = new DataClass(label: "And")
                     DataSetParser.setAnd(andClass)
                     currentClass.addToDataClasses(andClass)
-                    List<GPathResult> tableRows = []
+                    List<Node> tableRows = []
                     component.tbody.tr.each {tr -> tableRows.add(tr)}
                     parseCDSElementTable(tableRows, andClass, dataModel, dataDictionary, classWebOrder)
                     DataSetParser.setOrder(andClass, classWebOrder)
                     classWebOrder++
 
                 } else {
-                    List<GPathResult> tableRows = []
+                    List<Node> tableRows = []
                     component.tbody.tr.each {tr -> tableRows.add(tr)}
                     parseCDSElementTable(tableRows, currentClass, dataModel, dataDictionary, classWebOrder)
                     DataSetParser.setOrder(currentClass, classWebOrder)
@@ -336,7 +327,7 @@ class CDSDataSetParser {
 
     }
 
-    static void parseCDSElement(DataModel dataModel, DataClass currentClass, GPathResult tr, NhsDataDictionary dataDictionary, int position) {
+    static void parseCDSElement(DataModel dataModel, DataClass currentClass, Node tr, NhsDataDictionary dataDictionary, int position) {
         if (tr.td[2].a.size() == 6) {
             //
             DataSetParser.setChoice(currentClass)

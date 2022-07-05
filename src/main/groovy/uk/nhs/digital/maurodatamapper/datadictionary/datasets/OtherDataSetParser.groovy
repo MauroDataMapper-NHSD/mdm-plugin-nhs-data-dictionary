@@ -24,13 +24,12 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
 import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
 class OtherDataSetParser {
-    static List<DataClass> parseDataSetWithHeaderTables(GPathResult definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
+    static List<DataClass> parseDataSetWithHeaderTables(Node definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         DataClass currentClass = null
         DataClass originalParentClass = null // for when we have to drop down into a choice block
         Integer classWebOrder = 0
@@ -39,9 +38,9 @@ class OtherDataSetParser {
         List<DataClass> returnDataClasses = []
         //log.debug(partitionByDuckBlueClasses(definition).size())
         DataSetParser.partitionByDuckBlueClasses(definition).each {sect ->
-            List<GPathResult> section = sect.findAll { it.name() != "br" }
-            List<GPathResult> tables = section.findAll { it.name() == "table" }
-            List<GPathResult> ors = section.findAll {
+            List<Node> section = sect.findAll { it.name() != "br" }
+            List<Node> tables = section.findAll { it.name() == "table" }
+            List<Node> ors = section.findAll {
                 it.name() == "strong" &&
                 it.text().toLowerCase() == "or"
             }
@@ -174,7 +173,7 @@ class OtherDataSetParser {
         return returnDataClasses
     }
 
-    static List<DataClass> parseDataClassTable(GPathResult table,
+    static List<DataClass> parseDataClassTable(Node table,
                                                DataModel dataModel,
                                                NhsDataDictionary dataDictionary,
                                                Integer choiceNo = 1) {
@@ -194,7 +193,7 @@ class OtherDataSetParser {
                         dataClasses.add(currentClass)
                         elementWebOrder = 0
                     }
-                    DataSetParser.setNameAndDescriptionFromCell(currentClass, (GPathResult) tr.td[1])
+                    DataSetParser.setNameAndDescriptionFromCell(currentClass, (Node) tr.td[1])
 
                 } else {
                     // ignore
@@ -206,7 +205,7 @@ class OtherDataSetParser {
                            || tr.td.text().startsWith("One occurrence of this group"))) {
                 // ignore
             } else if (tr.th.size() == 1
-                && DataSetParser.isSkyBlue(tr.th)) {
+                && (DataSetParser.isSkyBlue(tr.th[0]) || tr.th[0].@class == "duckblue")) {
                 if (((String) tr.th.text()).toLowerCase() != "data set data elements") {
                     // We're starting a new class.  Let's finish with the old one...
                     if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
@@ -215,10 +214,10 @@ class OtherDataSetParser {
                         dataClasses.add(currentClass)
                         elementWebOrder = 0
                     }
-                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tr.th)
+                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tr.th[0])
                 }
             } else if (tr.td.size() == 1
-                && DataSetParser.isSkyBlue(tr.td)) {
+                && DataSetParser.isSkyBlue(tr.td[0])) {
                 if (((String) tr.td.text()).toLowerCase() != "data set data elements") {
                     // We're starting a new class.  Let's finish with the old one...
                     if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
@@ -227,7 +226,7 @@ class OtherDataSetParser {
                         dataClasses.add(currentClass)
                         elementWebOrder = 0
                     }
-                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tr.td)
+                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tr.td[0])
                 }
             } else {
                 if (!currentClass) { // We're probably in a duckblue section, and there's one table, and it
@@ -437,7 +436,7 @@ class OtherDataSetParser {
 
     }
 
-    static CatalogueItem parseDataElementRow(GPathResult tr, DataModel dataModel, NhsDataDictionary dataDictionary, DataClass currentClass ) {
+    static CatalogueItem parseDataElementRow(Node tr, DataModel dataModel, NhsDataDictionary dataDictionary, DataClass currentClass ) {
         //log.debug("parseDataElementRow")
         String currentClassName = currentClass.label
         CatalogueItem returnElement = null
@@ -475,7 +474,7 @@ class OtherDataSetParser {
                 returnElement = new DataClass(label: "Choice")
                 Integer choiceElementWebOrder = 0
                 tr.td[1].children().each { child ->
-                    if (child.name() == "a") {
+                    if (child instanceof Node && child.name() == "a") {
                         DataElement dataElement = DataSetParser.getElementFromText(child, dataModel, dataDictionary, currentClass)
                         //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                         DataSetParser.setOrder(dataElement, choiceElementWebOrder)
@@ -503,7 +502,7 @@ class OtherDataSetParser {
 
 
             } else if(tr.td[1].a.size() == 3) {
-                if(tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "and") {
+                if(tr.td[1].em.size() >= 2 && tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "and") {
                     returnElement = new DataClass(label: "Choice")
                     DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
@@ -521,7 +520,7 @@ class OtherDataSetParser {
                     returnElement.addToDataClasses(andClass)
                     DataSetParser.setOrder(andClass, 1)
 
-                } else if (tr.td[1].em[0].text() == "and" && tr.td[1].em[1].text() == "or") {
+                } else if (tr.td[1].em.size() >= 2 && tr.td[1].em[0].text() == "and" && tr.td[1].em[1].text() == "or") {
                     returnElement = new DataClass(label: "Choice")
                     DataSetParser.setChoice(returnElement)
                     DataClass andClass = new DataClass(label: "And")
@@ -538,7 +537,7 @@ class OtherDataSetParser {
                     dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClass)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 1)
-                } else if (tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "or") {
+                } else if (tr.td[1].em.size() >= 2 && tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "or") {
                     returnElement = new DataClass(label: "Choice")
                     DataSetParser.setChoice(returnElement)
                     DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
@@ -601,8 +600,8 @@ class OtherDataSetParser {
 
                     DataSetParser.setChoice(returnElement)
                     DataSetParser.setAddress(returnElement)
-                    dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 1", value: tr.td[1].a[1]."@href".text()))
-                    dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 2", value: tr.td[1].a[3]."@href".text()))
+                    dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 1", value: tr.td[1].a[1].@href))
+                    dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 2", value: tr.td[1].a[3].@href))
                 }  else {
                     unmatchedPattern("Unmatched 4 link pattern", tr, dataModel.label, currentClassName)
                 }
@@ -645,7 +644,7 @@ class OtherDataSetParser {
         return returnElement
     }
 
-    static void unmatchedPattern(String message, GPathResult component, String... context) {
+    static void unmatchedPattern(String message, Node component, String... context) {
         log.error("Unmatched Pattern {}\n{}\n{}", message, component.toString(), context.join(','))
     }
 
