@@ -27,6 +27,7 @@ class DataSetParserSpec extends BaseIntegrationSpec {
     static XmlParser xmlParser = new XmlParser()
 
     static List<String> testFiles = [
+        "AIDC for Patient Identification Data Set",
         "Inter-provider Transfer Administrative Minimum Data Set",
         "CDS V6-3 Type 180 - Admitted Patient Care - Unfinished Birth Episode CDS",
     ]
@@ -64,7 +65,7 @@ class DataSetParserSpec extends BaseIntegrationSpec {
 
         where:
             filename << testFiles
-            elements << [36, 100]
+            elements << [19, 36, 244]
 
     }
 
