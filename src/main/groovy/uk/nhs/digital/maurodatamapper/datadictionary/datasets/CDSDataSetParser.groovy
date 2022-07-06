@@ -59,6 +59,7 @@ class CDSDataSetParser {
             }
             if (ors.size() == 1 && sect.size() == 3) {
                 DataClass choiceClass = new DataClass(label: "Choice")
+                dataModel.addToDataClasses(choiceClass)
                 DataSetParser.setChoice(choiceClass)
                 List<DataClass> classes1 = parseCDSSection(sect, dataModel, dataDictionary)
                 sectIdx++
@@ -101,7 +102,7 @@ class CDSDataSetParser {
             DataSetParser.setMultiplicityText(currentClass, firstRow.td[2].text())
         } else if (firstRow.td.size() == 4 && firstRow.td[2].@bgcolor == "#DCDCDC") {
             // Let's start parsing a class
-            DataClass childClass = getClassFromTD(firstRow.td[2], dataDictionary)
+            DataClass childClass = getClassFromTD(firstRow.td[2], dataDictionary, dataModel)
             //DataClass childClass = new DataClass(label: "Option 2")
             DataSetParser.setMRO(childClass, firstRow.td[0].text())
             DataSetParser.setGroupRepeats(childClass, firstRow.td[1].text())
@@ -123,7 +124,7 @@ class CDSDataSetParser {
         } else if ((firstRow.td.size() == 2 || firstRow.td.size() == 3)
             && firstRow.td[1].@bgcolor == "#DCDCDC") {
             // This is a class like that of "Patient Identity"
-            DataClass childClass = getClassFromTD(firstRow.td[1], dataDictionary)
+            DataClass childClass = getClassFromTD(firstRow.td[1], dataDictionary, dataModel)
             //DataSetParser.setMRO(childClass, firstRow.td[0].text())
             DataSetParser.setGroupRepeats(childClass, firstRow.td[0].text())
             DataSetParser.setOrder(childClass, position)
@@ -144,7 +145,7 @@ class CDSDataSetParser {
             //log.debug(tableRows.size())
             tableRows = tableRows.drop(1)
 
-            DataClass choiceClass = getClassFromTD(tableRows[0].td[0], dataDictionary)
+            DataClass choiceClass = getClassFromTD(tableRows[0].td[0], dataDictionary, dataModel)
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
             currentClass.addToDataClasses(choiceClass)
@@ -190,8 +191,9 @@ class CDSDataSetParser {
         trimmed ?: null
     }
 
-    static DataClass getClassFromTD(Node td, NhsDataDictionary dataDictionary) {
+    static DataClass getClassFromTD(Node td, NhsDataDictionary dataDictionary, DataModel dataModel) {
         DataClass dataClass = new DataClass(label: "")
+        dataModel.addToDataClasses(dataClass)
 
         // Issue where the trimmed content == NBSP so we need to trim it then check that for NBSP
         def firstStringNode = td.depthFirst().find {
@@ -250,6 +252,7 @@ class CDSDataSetParser {
         components.each {component ->
             if (DDHelperFunctions.tableIsClassHeader(component)) {
                 currentClass = new DataClass(label: component.tbody.tr[0].td[1].text())
+                dataModel.addToDataClasses(currentClass)
                 currentClass.label = currentClass.label.replaceFirst("DATA GROUP:", "").trim()
 
                 Node tdNode = null
@@ -304,6 +307,7 @@ class CDSDataSetParser {
                         log.debug(tr.td[1].text() + " " + tr.td[2].text())
                     }
                     DataClass andClass = new DataClass(label: "And")
+                    dataModel.addToDataClasses(andClass)
                     DataSetParser.setAnd(andClass)
                     currentClass.addToDataClasses(andClass)
                     List<Node> tableRows = []
@@ -337,6 +341,7 @@ class CDSDataSetParser {
 
 
             DataClass andClass = new DataClass(label: "And")
+            dataModel.addToDataClasses(andClass)
             DataSetParser.setOrder(andClass, 2)
             DataSetParser.setAnd(andClass)
             List<DataElement> deList = [dataElement1]
@@ -352,6 +357,7 @@ class CDSDataSetParser {
         } else if (tr.td[2].a.size() == 4) {
             // Address
             DataClass choiceClass = new DataClass(label: "Choice")
+            dataModel.addToDataClasses(choiceClass)
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
             if (tr.td[2].a[0].text().contains("NAME")) {
@@ -374,6 +380,7 @@ class CDSDataSetParser {
         } else if ((tr.td[2].em && tr.td[2].em.text().equalsIgnoreCase("Or")) ||
                    (tr.td[2].strong && tr.td[2].strong.text().equalsIgnoreCase("OR"))) {
             DataClass choiceClass = new DataClass(label: "Choice")
+            dataModel.addToDataClasses(choiceClass)
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
             DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
@@ -389,7 +396,7 @@ class CDSDataSetParser {
         } else {
             if (tr.td.size() == 6) {
                 // rare occurrence with unmerged first columns
-                DataElement dataElement = DataSetParser.getElementFromText(tr.td[4].a, dataModel, dataDictionary, currentClass)
+                DataElement dataElement = DataSetParser.getElementFromText(tr.td[4].a[0], dataModel, dataDictionary, currentClass)
                 DataSetParser.getAndSetMRO(tr.td[2], [dataElement])
                 DataSetParser.getAndSetRepeats(tr.td[3], [dataElement])
                 DataSetParser.getAndSetRules(tr.td[5], [dataElement])
@@ -399,9 +406,9 @@ class CDSDataSetParser {
                 DataElement dataElement = null
                 if (tr.td[2].p.size() == 1) {
                     // There's one example where the element is wrapped in a <p>
-                    dataElement = DataSetParser.getElementFromText(tr.td[2].p.a, dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tr.td[2].p.a[0], dataModel, dataDictionary, currentClass)
                 } else {
-                    dataElement = DataSetParser.getElementFromText(tr.td[2].a, dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
                 }
                 // assume 4
                 DataSetParser.getAndSetMRO(tr.td[0], [dataElement])

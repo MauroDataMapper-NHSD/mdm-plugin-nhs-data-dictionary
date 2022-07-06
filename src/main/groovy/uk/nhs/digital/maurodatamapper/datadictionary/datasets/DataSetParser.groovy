@@ -243,31 +243,59 @@ class DataSetParser {
     }
 
     static void setOrder(MetadataAware item, Integer order) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Web Order", value: "" + order))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Web Order", value: "" + order))
+        }
     }
 
     static void setChoice(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Choice", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Choice", value: "true"))
+        }
     }
 
     static void setAnd(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "And", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "And", value: "true"))
+        }
     }
 
     static void setAddress(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address Choice", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address Choice", value: "true"))
+        }
     }
 
     static void setNameChoice(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Name Choice", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Name Choice", value: "true"))
+        }
     }
 
     static void setInclusiveOr(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Inclusive", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Inclusive", value: "true"))
+        }
     }
 
     static void setDataSetReference(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Data Set Reference", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Data Set Reference", value: "true"))
+        }
     }
 
     static boolean isDataSetReference(MetadataAware item) {
@@ -279,7 +307,11 @@ class DataSetParser {
     }
 
     static void setDataSetReferenceTo(MetadataAware item, String dataSetName) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Data Set Reference To", value: dataSetName))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Data Set Reference To", value: dataSetName))
+        }
     }
 
 
@@ -288,7 +320,11 @@ class DataSetParser {
     }
 
     static void setMultiplicityText(MetadataAware item, String multiplicity) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Multiplicity Text", value: multiplicity))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Multiplicity Text", value: multiplicity))
+        }
     }
 
     static String getMultiplicityText(MetadataAware item) {
@@ -296,15 +332,27 @@ class DataSetParser {
     }
 
     static void setMRO(MetadataAware item, String mro) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "MRO", value: mro))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "MRO", value: mro))
+        }
     }
 
     static String getMRO(MetadataAware item) {
-        item.getMetadata().find {it.key == "MRO"}?.value
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.getMetadata().find { it.key == "MRO" }?.value
+        }
     }
 
     static void setRules(MetadataAware item, String rules) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Rules", value: rules))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Rules", value: rules))
+        }
     }
 
     static String getRules(MetadataAware item) {
@@ -312,7 +360,11 @@ class DataSetParser {
     }
 
     static void setGroupRepeats(MetadataAware item, String groupRepeats) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Group Repeats", value: groupRepeats))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Group Repeats", value: groupRepeats))
+        }
     }
 
     static String getGroupRepeats(MetadataAware item) {
@@ -321,7 +373,11 @@ class DataSetParser {
 
 
     static void setNotOption(MetadataAware item) {
-        item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "NotOption", value: "true"))
+        if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
+            // Do nothing yet
+        } else {
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "NotOption", value: "true"))
+        }
     }
 
     static boolean isChoice(MetadataAware item) {

@@ -578,10 +578,12 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         } else {
             log.error("Saving dataset: " + dataSetDataModel.label)
             startTime = System.currentTimeMillis()
-            if(dataSetDataModel.label == "CDS V6-2-2 Type 011 - Emergency Care CDS") {
-                System.err.println("Here")
+            try {
+                dataModelService.saveModelWithContent(dataSetDataModel)
+            } catch(Exception e) {
+                e.printStackTrace()
             }
-            dataModelService.saveModelWithContent(dataSetDataModel)
+
             log.info('Save dataset complete in {}', Utils.timeTaken(startTime))
 
         }
