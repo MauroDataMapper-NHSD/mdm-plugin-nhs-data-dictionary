@@ -150,7 +150,7 @@ class DataSetParser {
 
     static void parseDataSet(Node definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
         List<DataClass> dataClasses = []
-        if (definition.children().count {it instanceof Node && it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it)}) {
+        if (definition.children().find {it instanceof Node && it.name() == "table" && DDHelperFunctions.tableIsClassHeader(it)}) {
             dataClasses = OtherDataSetParser.parseDataSetWithHeaderTables(definition, dataModel, dataDictionary)
         } else {
             definition.children().findAll {it instanceof Node && it.name() == "table"}.each {Node table ->
@@ -426,13 +426,13 @@ class DataSetParser {
         List<List<Node>> topLevelClasses = []
         List<Node> list = []
         dataSetDefinition.children().each {childNode ->
-            if (DDHelperFunctions.tableIsClassHeader(childNode)) {
+            if (childNode instanceof Node && childNode.name() == "table" && DDHelperFunctions.tableIsClassHeader(childNode)) {
                 if (list.size() > 0) {
                     topLevelClasses.add(list)
                 }
                 list = []
                 list.add(childNode)
-            } else {
+            } else if(childNode instanceof Node) {
                 list.add(childNode)
             }
         }
@@ -482,19 +482,22 @@ class DataSetParser {
 
     static DataElement getElementFromText(Object anchor, DataModel dataModel, NhsDataDictionary dataDictionary, DataClass currentClass) {
         //String elementLabel = ((String)anchor.@href).replaceAll(" ", "%20")
-        String elementUrl = ((String) anchor.@href)
-
-        if (fileNameFixes[elementUrl]) {
-            elementUrl = fileNameFixes[elementUrl]
-        }
-
-
+        String elementUrl
         DataElement dataElement = null
-        if (dataDictionary) {
-            dataElement = dataDictionary.elementsByUrl[elementUrl]
+        if(anchor && anchor.@href) {
+            elementUrl = ((String) anchor.@href)
+
+            if (fileNameFixes[elementUrl]) {
+                elementUrl = fileNameFixes[elementUrl]
+            }
+            if (dataDictionary) {
+                dataElement = dataDictionary.elementsByUrl[elementUrl]
+            }
+        } else if (anchor && !anchor.@href) {
+            dataElement = dataDictionary.elements[anchor.text()]
         }
         if (!dataElement) {
-            log.warn("Cannot find element: ${anchor.text()} - ${elementUrl} In class: ${currentClass.label}, model: ${dataModel.label}")
+            log.warn("Cannot find element: ${anchor} in class: ${currentClass.label}, model: ${dataModel.label}")
             DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype"}
             if (!defaultDataType) {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
@@ -775,5 +778,8 @@ class DataSetParser {
         return String.valueOf(chars)
     }
 
+    static List<Node> tableRowCells(Node tr) {
+        tr.children().findAll { it instanceof Node && (it.name() == "td" || it.name() == "th") }
+    }
 
 }

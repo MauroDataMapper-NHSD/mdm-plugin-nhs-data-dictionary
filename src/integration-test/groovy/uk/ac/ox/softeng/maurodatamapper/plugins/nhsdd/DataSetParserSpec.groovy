@@ -2,19 +2,15 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
-import uk.ac.ox.softeng.maurodatamapper.test.MdmSpecification
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 
 import grails.testing.mixin.integration.Integration
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlParser
-import groovy.xml.XmlSlurper
 import org.springframework.context.MessageSource
 import org.springframework.test.annotation.Rollback
-import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.datasets.OtherDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 
@@ -27,6 +23,7 @@ class DataSetParserSpec extends BaseIntegrationSpec {
     static XmlParser xmlParser = new XmlParser()
 
     static List<String> testFiles = [
+        "Cover of Vaccination Evaluated Rapidly (Cover) Data Set",
         "AIDC for Patient Identification Data Set",
         "Inter-provider Transfer Administrative Minimum Data Set",
         "CDS V6-3 Type 180 - Admitted Patient Care - Unfinished Birth Episode CDS",
@@ -65,7 +62,7 @@ class DataSetParserSpec extends BaseIntegrationSpec {
 
         where:
             filename << testFiles
-            elements << [19, 36, 244]
+            elements << [24,19, 36, 244]
 
     }
 

@@ -250,7 +250,7 @@ class CDSDataSetParser {
         }
 
         components.each {component ->
-            if (DDHelperFunctions.tableIsClassHeader(component)) {
+            if (component instanceof Node && component.name() == "table" && DDHelperFunctions.tableIsClassHeader(component)) {
                 currentClass = new DataClass(label: component.tbody.tr[0].td[1].text())
                 dataModel.addToDataClasses(currentClass)
                 currentClass.label = currentClass.label.replaceFirst("DATA GROUP:", "").trim()
@@ -326,7 +326,7 @@ class CDSDataSetParser {
             }
 
         }
-        log.error('Parse CDS Section complete in {}', Utils.timeTaken(startTime))
+        log.info('Parse CDS Section complete in {}', Utils.timeTaken(startTime))
         return returnClasses
 
     }
@@ -404,17 +404,26 @@ class CDSDataSetParser {
 
             } else {
                 DataElement dataElement = null
-                if (tr.td[2].p.size() == 1) {
+                if (tr.td[2].p.size() == 1 && tr.td[2].p[0].a.size() == 1) {
                     // There's one example where the element is wrapped in a <p>
-                    dataElement = DataSetParser.getElementFromText(tr.td[2].p.a[0], dataModel, dataDictionary, currentClass)
-                } else {
+                    dataElement = DataSetParser.getElementFromText(tr.td[2].p[0].a[0], dataModel, dataDictionary, currentClass)
+                } else if(tr.td[2].p.size() == 1 && tr.td[2].p[0].a.size() == 0) {
+                    dataElement = DataSetParser.getElementFromText(tr.td[2].p[0], dataModel, dataDictionary, currentClass)
+                } else if(tr.td[2].a[0]) {
                     dataElement = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
+                } else if(tr.td[2].p.size() == 0 && tr.td[2].a.size() == 0 && tr.td[2].text()) {
+                    dataElement = DataSetParser.getElementFromText(tr.td[2], dataModel, dataDictionary, currentClass)
+                } else {
+                    System.err.println("Cannot match pattern:")
+                    System.err.println(tr)
                 }
                 // assume 4
-                DataSetParser.getAndSetMRO(tr.td[0], [dataElement])
-                DataSetParser.getAndSetRepeats(tr.td[1], [dataElement])
-                DataSetParser.getAndSetRules(tr.td[3], [dataElement])
-                DataSetParser.setOrder(dataElement, position)
+                if(dataElement) {
+                    DataSetParser.getAndSetMRO(tr.td[0], [dataElement])
+                    DataSetParser.getAndSetRepeats(tr.td[1], [dataElement])
+                    DataSetParser.getAndSetRules(tr.td[3], [dataElement])
+                    DataSetParser.setOrder(dataElement, position)
+                }
             }
         }
     }
