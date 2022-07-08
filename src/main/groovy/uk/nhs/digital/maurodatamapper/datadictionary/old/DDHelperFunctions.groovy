@@ -161,7 +161,7 @@ class DDHelperFunctions {
         List<List<GPathResult>> topLevelClasses = []
         List<GPathResult> list = []
         dataSetDefinition.table.each {table ->
-            if (tableIsClassHeader(table)) {
+            if (table instanceof Node && table.name() == "table" && tableIsClassHeader(table)) {
                 if (list.size() > 0) {
                     topLevelClasses.add(list)
                 }
@@ -179,7 +179,9 @@ class DDHelperFunctions {
     }
 
     static boolean tableIsClassHeader(Node table) {
-        if (table.tbody.tr.th.size() == 1 && table.tbody.tr.th.@class == "duckblue") {
+        if (table.tbody.tr.size() == 1 &&
+            table.tbody.tr[0].th.size() == 1 &&
+            table.tbody.tr[0].th[0].@class == "duckblue") {
             return true
         }
         // For CDS

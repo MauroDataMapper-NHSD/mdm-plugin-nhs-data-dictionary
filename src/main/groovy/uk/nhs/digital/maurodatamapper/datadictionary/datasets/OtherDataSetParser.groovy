@@ -38,9 +38,9 @@ class OtherDataSetParser {
         List<DataClass> returnDataClasses = []
         //log.debug(partitionByDuckBlueClasses(definition).size())
         DataSetParser.partitionByDuckBlueClasses(definition).each {sect ->
-            List<Node> section = sect.findAll { it.name() != "br" }
-            List<Node> tables = section.findAll { it.name() == "table" }
-            List<Node> ors = section.findAll {
+            List<Node> section = sect.findAll { it instanceof Node && it.name() != "br" }
+            List<Node> tables = section.findAll { it instanceof Node && it.name() == "table" }
+            List<Node> ors = section.findAll {it instanceof Node &&
                 it.name() == "strong" &&
                 it.text().toLowerCase() == "or"
             }
@@ -136,8 +136,12 @@ class OtherDataSetParser {
                 dataModel.addToDataClasses(dataClass)
                 elementWebOrder = 0
 
-                section.find { it.name() == "strong" && it.text() != "OR" }.each { par ->
-                    dataClass.description += par.text()
+                section.findAll {it instanceof Node && it.name() == "strong" && it.text() != "OR" }.each { par ->
+                    if(par instanceof Node) {
+                        dataClass.description += par.text()
+                    } else {
+                        dataClass.description += par
+                    }
                 }
 
                 dataClass.description = dataClass.description.trim() ?: null
@@ -188,6 +192,7 @@ class OtherDataSetParser {
         List<DataClass> dataClasses = [currentClass]
 
         table.tbody.tr.eachWithIndex { tr, idx ->
+            //System.err.println("Processing row: " + tr)
             if (tr.th.size() == 2 && DataSetParser.isSkyBlue(tr.th[0])) {
                 // ignore
             } else if (tr.td.size() == 2 && DataSetParser.isSkyBlue(tr.td[0])) {
@@ -212,7 +217,7 @@ class OtherDataSetParser {
                            || tr.td.text().startsWith("One occurrence of this group"))) {
                 // ignore
             } else if (tr.th.size() == 1
-                && (DataSetParser.isSkyBlue(tr.th[0]) || tr.th[0].@class == "duckblue")) {
+                && (DataSetParser.isSkyBlue(tr.th[0])  || tr.th[0].@class == "duckblue" )) {
                 if (((String) tr.th.text()).toLowerCase() != "data set data elements") {
                     // We're starting a new class.  Let's finish with the old one...
                     if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
@@ -226,7 +231,7 @@ class OtherDataSetParser {
                 }
             } else if (tr.td.size() == 1
                 && DataSetParser.isSkyBlue(tr.td[0])) {
-                if (((String) tr.td.text()).toLowerCase() != "data set data elements") {
+                if (((String) tr.td[0].text()).toLowerCase() != "data set data elements") {
                     // We're starting a new class.  Let's finish with the old one...
                     if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
                         (currentClass.dataClasses && currentClass.dataClasses.size() > 0)) {
@@ -450,6 +455,7 @@ class OtherDataSetParser {
         //log.debug("parseDataElementRow")
         String currentClassName = currentClass.label
         CatalogueItem returnElement = null
+
         /*GPathResult elementTd = tr.td[0]
         if(tr.td.size() > 1) {
             elementTd = tr.td[1]
@@ -457,34 +463,34 @@ class OtherDataSetParser {
         elementTd.children().each {
 
         }*/
+        List<Node> tds = DataSetParser.tableRowCells(tr)
 
-
-        if(tr.td.size() == 1) {
-            if(tr.td.a.size() > 1) {
+        if(tds.size() == 1) {
+            if(tds[0].a.size() > 1) {
                 unmatchedPattern("Found more than one link on a single column row", tr, dataModel.label, currentClassName)
             } else {
-                returnElement = DataSetParser.getElementFromText(tr.td.a[0], dataModel, dataDictionary, currentClass)
-                int multiples = getMultipleOccurrences(tr.td.text())
+                returnElement = DataSetParser.getElementFromText(tds[0].a[0], dataModel, dataDictionary, currentClass)
+                int multiples = getMultipleOccurrences(tds[0].text())
                 if(multiples == 1) {
                     returnElement.maxMultiplicity = -1
                 } else if(multiples != 0) {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
                 }
             }
-        } else if(tr.td.size() == 2) {
-            if(tr.td[1].a.size() == 1) {
-                returnElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
-                int multiples = getMultipleOccurrences(tr.td[1].text())
+        } else if(tds.size() == 2) {
+            if(tds[1].a.size() == 1) {
+                returnElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
+                int multiples = getMultipleOccurrences(tds[1].text())
                 if(multiples == 1) {
                     returnElement.maxMultiplicity = -1
                 } else if(multiples != 0) {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
                 }
-            } else if(tr.td[1].a.size() == 2) {
+            } else if(tds[1].a.size() == 2) {
                 returnElement = new DataClass(label: "Choice")
                 dataModel.addToDataClasses(returnElement)
                 Integer choiceElementWebOrder = 0
-                tr.td[1].children().each { child ->
+                tds[1].children().each { child ->
                     if (child instanceof Node && child.name() == "a") {
                         DataElement dataElement = DataSetParser.getElementFromText(child, dataModel, dataDictionary, currentClass)
                         //log.debug("Added ${dataElement.label} to ${returnElement.label}")
@@ -492,17 +498,17 @@ class OtherDataSetParser {
                         choiceElementWebOrder++
                     }
                 }
-                if(tr.td[1].em[0].text() == "or") {
+                if(tds[1].em[0].text() == "or") {
                     DataSetParser.setChoice(returnElement)
-                } else if(tr.td[1].em[0].text() == "and") {
+                } else if(tds[1].em[0].text() == "and") {
                     DataSetParser.setAnd(returnElement)
-                } else if(tr.td[1].em[0].text() == "and/or") {
+                } else if(tds[1].em[0].text() == "and/or") {
                     DataSetParser.setInclusiveOr(returnElement)
                 } else {
                     unmatchedPattern("Unmatched 2 link pattern", tr, dataModel.label, currentClassName)
                 }
 
-                int multiples = getMultipleOccurrences(tr.td[1].text())
+                int multiples = getMultipleOccurrences(tds[1].text())
                 if(multiples == 2) {
                     returnElement.dataElements.each {de ->
                         de.maxMultiplicity = -1
@@ -512,11 +518,11 @@ class OtherDataSetParser {
                 }
 
 
-            } else if(tr.td[1].a.size() == 3) {
-                if(tr.td[1].em.size() >= 2 && tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "and") {
+            } else if(tds[1].a.size() == 3) {
+                if(tds[1].em.size() >= 2 && tds[1].em[0].text() == "or" && tds[1].em[1].text() == "and") {
                     returnElement = new DataClass(label: "Choice")
                     dataModel.addToDataClasses(returnElement)
-                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
+                    DataElement dataElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 0)
                     DataSetParser.setChoice(returnElement)
@@ -524,57 +530,57 @@ class OtherDataSetParser {
                     DataClass andClass = new DataClass(label: "And")
                     dataModel.addToDataClasses(andClass)
                     DataSetParser.setAnd(andClass)
-                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tds[1].a[1], dataModel, dataDictionary, currentClass)
                     DataSetParser.setOrder(dataElement, 0)
                     //log.debug("Added ${dataElement.label} to ${andClass.label}")
-                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tds[1].a[2], dataModel, dataDictionary, currentClass)
                     DataSetParser.setOrder(dataElement, 1)
                     //log.debug("Added ${dataElement.label} to ${andClass.label}")
                     returnElement.addToDataClasses(andClass)
                     DataSetParser.setOrder(andClass, 1)
 
-                } else if (tr.td[1].em.size() >= 2 && tr.td[1].em[0].text() == "and" && tr.td[1].em[1].text() == "or") {
+                } else if (tds[1].em.size() >= 2 && tds[1].em[0].text() == "and" && tds[1].em[1].text() == "or") {
                     returnElement = new DataClass(label: "Choice")
                     dataModel.addToDataClasses(returnElement)
                     DataSetParser.setChoice(returnElement)
                     DataClass andClass = new DataClass(label: "And")
                     dataModel.addToDataClasses(returnElement)
                     DataSetParser.setAnd(andClass)
-                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
+                    DataElement dataElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                     DataSetParser.setOrder(dataElement, 0)
                     //log.debug("Added ${dataElement.label} to ${andClass.label}")
-                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tds[1].a[1], dataModel, dataDictionary, currentClass)
                     DataSetParser.setOrder(dataElement, 1)
                     //log.debug("Added ${dataElement.label} to ${andClass.label}")
                     returnElement.addToDataClasses(andClass)
                     DataSetParser.setOrder(andClass, 0)
 
-                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tds[1].a[2], dataModel, dataDictionary, currentClass)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 1)
-                } else if (tr.td[1].em.size() >= 2 && tr.td[1].em[0].text() == "or" && tr.td[1].em[1].text() == "or") {
+                } else if (tds[1].em.size() >= 2 && tds[1].em[0].text() == "or" && tds[1].em[1].text() == "or") {
                     returnElement = new DataClass(label: "Choice")
                     dataModel.addToDataClasses(returnElement)
                     DataSetParser.setChoice(returnElement)
-                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
+                    DataElement dataElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                     DataSetParser.setOrder(dataElement, 0)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
-                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tds[1].a[1], dataModel, dataDictionary, currentClass)
                     DataSetParser.setOrder(dataElement, 1)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
-                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClass)
+                    dataElement = DataSetParser.getElementFromText(tds[1].a[2], dataModel, dataDictionary, currentClass)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 2)
                 } else if((dataModel.label == "National Joint Registry Data Set - Common Details" ||
                            dataModel.label == "National_Joint_Registry_Data_Set_-_Common_Details") &&
                           tr.td[1].a[0].text() == "POSTCODE_OF_USUAL_ADDRESS") {
-                    returnElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
+                    returnElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                 } else {
                     unmatchedPattern("Unmatched 3 link pattern: ", tr, dataModel.label, currentClassName)
-                    returnElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
+                    returnElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                 }
 
-                int multiples = getMultipleOccurrences(tr.td[1].text())
+                int multiples = getMultipleOccurrences(tds[1].text())
                 if(multiples == 3) {
                     log.trace("3 multiples!")
                     returnElement.dataElements.each {de ->
@@ -589,17 +595,17 @@ class OtherDataSetParser {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
                 }
 
-            } else if (tr.td[1].a.size() == 4) {
-                if(tr.td[1].em.size() == 3
-                    && tr.td[1].em[0].text() == "or"
-                    && tr.td[1].em[1].text() == "or"
-                    && tr.td[1].em[2].text() == "or") {
+            } else if (tds[1].a.size() == 4) {
+                if(tds[1].em.size() == 3
+                    && tds[1].em[0].text() == "or"
+                    && tds[1].em[1].text() == "or"
+                    && tds[1].em[2].text() == "or") {
                     // a1 - a2 or b1 or b2
                     returnElement = new DataClass(label: "Choice")
                     dataModel.addToDataClasses(returnElement)
                     Integer choiceElementWebOrder = 0
 
-                    tr.td[1].a.each { anchor ->
+                    tds[1].a.each { anchor ->
                         DataElement dataElement = DataSetParser.getElementFromText(anchor, dataModel, dataDictionary, currentClass)
                         //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                         DataSetParser.setOrder(dataElement, choiceElementWebOrder)
@@ -607,26 +613,26 @@ class OtherDataSetParser {
                     }
                     DataSetParser.setChoice(returnElement)
 
-                } else if(tr.td[1].em.size() == 1 && tr.td[1].em[0].text() == "or") {
+                } else if(tds[1].em.size() == 1 && tds[1].em[0].text() == "or") {
                     // a1 - a2 or b1 - b2
                     returnElement = new DataClass(label: "Choice")
                     dataModel.addToDataClasses(returnElement)
 
-                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass)
+                    DataElement dataElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                     //log.debug("Added ${dataElement.label} to ${returnElement.label}")
                     DataSetParser.setOrder(dataElement, 1)
 
                     DataSetParser.setChoice(returnElement)
                     DataSetParser.setAddress(returnElement)
                     if(dataElement.importingDataClasses == null) {
-                        dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 1", value: tr.td[1].a[1].@href))
-                        dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 2", value: tr.td[1].a[3].@href))
+                        dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 1", value: tds[1].a[1].@href))
+                        dataElement.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Address 2", value: tds[1].a[3].@href))
                     }
                 }  else {
                     unmatchedPattern("Unmatched 4 link pattern", tr, dataModel.label, currentClassName)
                 }
 
-                int multiples = getMultipleOccurrences(tr.td[1].text())
+                int multiples = getMultipleOccurrences(tds[1].text())
                 if(multiples == 4) {
                     log.trace("4 multiples!")
                     returnElement.dataElements.each {de ->
@@ -650,11 +656,11 @@ class OtherDataSetParser {
                 unmatchedPattern("Unknown number of links!", tr, dataModel.label, currentClassName)
             }
             // Replace then trim as NBSP is not whitespace and could be removed to result in WS left over
-            String mro = tr.td[0].text().replaceAll(" ", "").trim()
+            String mro = tds[0].text().replaceAll(" ", "").trim()
             if (mro == "M" || mro == "R" || mro == "O" || mro == "P") {
                 DataSetParser.setMRO(returnElement, mro)
             } else {
-                unmatchedPattern("Unknown MRO", tr.td[0], dataModel.label, currentClassName)
+                unmatchedPattern("Unknown MRO", tds[0], dataModel.label, currentClassName)
             }
 
         } else {

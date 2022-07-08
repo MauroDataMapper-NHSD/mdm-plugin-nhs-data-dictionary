@@ -197,14 +197,14 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
             }
         }
         terminologies = terminologyService.saveModelsWithContent(terminologies, 1000)
-        Map<String, Terminology> savedTerminologies = terminologies.collectEntries{ [it.label, it]}
+        attributeTerminologiesByName.putAll(terminologies.collectEntries{ [it.label, it]})
 
         dataDictionary.attributes.each { name, attribute ->
             DataType dataType
 
             if (attribute.codes.size() > 0) {
 
-                Terminology terminology = savedTerminologies[name]
+                Terminology terminology = attributeTerminologiesByName[name]
                 //nhsDataDictionary.attributeTerminologiesByName[name] = terminology
                 dataType = new ModelDataType(label: "${name} Attribute Type",
                                              modelResourceDomainType: terminology.getDomainType(),

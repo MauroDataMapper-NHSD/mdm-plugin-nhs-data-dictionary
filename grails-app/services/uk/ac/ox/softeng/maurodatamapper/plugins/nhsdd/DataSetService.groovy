@@ -560,7 +560,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         addMetadataFromComponent(dataSetDataModel, dataSet, currentUser.emailAddress)
         log.info('Add Metadata complete in {}', Utils.timeTaken(startTime))
 
-        System.err.println("Saving: " + dataSet.name)
+        //System.err.println("Saving: " + dataSet.name)
         // Fix the created by field and any other associations
         startTime = System.currentTimeMillis()
         dataModelService.checkImportedDataModelAssociations(currentUser, dataSetDataModel)
