@@ -139,8 +139,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
         Map<String, PrimitiveType> primitiveTypes = [:]
         Map<String, Folder> folders = [:]
         int idx = 0
-        dataDictionary.attributes.each {name, attribute ->
-            DataType dataType
+        List<Terminology> terminologies = []
+        dataDictionary.attributes.each { name, attribute ->
 
             if (attribute.codes.size() > 0) {
                 String folderName = attribute.name.substring(0, 1).toUpperCase()
@@ -157,43 +157,54 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 // attributeTerminologiesFolder.save()
 
                 Terminology terminology = new Terminology(
-                    label: name,
-                    folder: subFolder,
-                    createdBy: currentUserEmailAddress,
-                    authority: authorityService.defaultAuthority,
-                    branchName: dataDictionary.branchName)
+                        label: name,
+                        folder: subFolder,
+                        createdBy: currentUserEmailAddress,
+                        authority: authorityService.defaultAuthority,
+                        branchName: dataDictionary.branchName)
                 terminology.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.terminology", key: "version", value: attribute.codesVersion))
 
-                attribute.codes.each {code ->
+                attribute.codes.each { code ->
                     Term term = new Term(
-                        code: code.code,
-                        definition: code.definition,
-                        createdBy: currentUserEmailAddress,
-                        label: "${code.code} : ${code.definition}",
-                        depth: 1,
-                        terminology: terminology
+                            code: code.code,
+                            definition: code.definition,
+                            createdBy: currentUserEmailAddress,
+                            label: "${code.code} : ${code.definition}",
+                            depth: 1,
+                            terminology: terminology
                     )
 
-                    code.propertiesAsMap().each {key, value ->
-                        if(value) {
+                    code.propertiesAsMap().each { key, value ->
+                        if (value) {
                             term.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.term",
-                                                            key: key,
-                                                            value: value,
-                                                            createdBy: currentUserEmailAddress))
+                                    key: key,
+                                    value: value,
+                                    createdBy: currentUserEmailAddress))
                         }
                     }
                     terminology.addToTerms(term)
 
                 }
                 if (terminologyService.validate(terminology)) {
-                    terminology = terminologyService.saveModelWithContent(terminology)
+                    terminologies.add(terminology)
+                    //terminology = terminologyService.saveModelWithContent(terminology)
                     //                    terminology.terms.size() // Required to reload the terms back into the session
                     attributeTerminologiesByName[name] = terminology
                 } else {
                     GormUtils.outputDomainErrors(messageSource, terminology) // TODO throw exception???
                     log.error("Cannot save terminology: ${name}")
                 }
+            }
+        }
+        terminologies = terminologyService.saveModelsWithContent(terminologies, 1000)
+        Map<String, Terminology> savedTerminologies = terminologies.collectEntries{ [it.label, it]}
 
+        dataDictionary.attributes.each { name, attribute ->
+            DataType dataType
+
+            if (attribute.codes.size() > 0) {
+
+                Terminology terminology = savedTerminologies[name]
                 //nhsDataDictionary.attributeTerminologiesByName[name] = terminology
                 dataType = new ModelDataType(label: "${name} Attribute Type",
                                              modelResourceDomainType: terminology.getDomainType(),
@@ -226,6 +237,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 v.terms.size()
             }
         }
+
     }
 
     NhsDDAttribute getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
