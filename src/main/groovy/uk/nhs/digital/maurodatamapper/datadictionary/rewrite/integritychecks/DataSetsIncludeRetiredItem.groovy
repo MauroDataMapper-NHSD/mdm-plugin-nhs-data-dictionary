@@ -19,6 +19,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
@@ -35,7 +36,13 @@ class DataSetsIncludeRetiredItem implements IntegrityCheck {
 
         errors = dataDictionary.dataSets.values().findAll {component ->
             ((DataModel)component.catalogueItem).allDataElements.find {dataElement ->
-                dataDictionary.elementsByCatalogueId[dataElement.id].isRetired()
+                NhsDDElement foundElement = dataDictionary.elementsByCatalogueId[dataElement.id]
+                if(foundElement) {
+                    return foundElement.isRetired()
+                } else {
+                    // This must be one of those 'preview' elements, and so we'll assume it's not retired
+                    return false
+                }
             }
         }
         return errors
