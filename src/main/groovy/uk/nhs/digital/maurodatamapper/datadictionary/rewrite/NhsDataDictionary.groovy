@@ -102,7 +102,8 @@ class NhsDataDictionary {
             businessDefinitions.values() +
             supportingInformation.values() +
             dataSetConstraints.values() +
-            webPages.values()) as List
+            webPages.values() +
+            dataSetFolders.values()) as List
     }
 
     Map<String, List<NhsDataDictionaryComponent>> allComponentsByIndex(boolean includeRetired = false) {
