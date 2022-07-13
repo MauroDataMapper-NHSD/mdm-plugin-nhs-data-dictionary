@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import groovy.xml.XmlParser
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
@@ -31,7 +32,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOpti
 class NhsDataDictionaryController implements ResourcelessMdmController {
 
     // For ingest
-    static XmlSlurper xmlSlurper = new XmlSlurper()
+    static XmlParser xmlParser = new XmlParser(false, false)
 
     NhsDataDictionaryService nhsDataDictionaryService
 
@@ -40,7 +41,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         if (!params.ingestFile) {
             throw new ApiBadRequestException("NHSDD-01", "No ingestFile parameter supplied")
         }
-        def xml = xmlSlurper.parse(params.ingestFile.getInputStream())
+        def xml = xmlParser.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
         PublishOptions publishOptions = PublishOptions.fromParameters(params)
         VersionedFolder newVersionedFolder = nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params

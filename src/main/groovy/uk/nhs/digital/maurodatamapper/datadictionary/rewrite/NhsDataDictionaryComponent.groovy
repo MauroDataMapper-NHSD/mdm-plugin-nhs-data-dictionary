@@ -104,15 +104,15 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         definition = DDHelperFunctions.parseHtml(cleanedDefinition)
         definition = definition.replaceAll("\\s+", " ")
 */
-        definition = (DDHelperFunctions.parseHtml(xml.definition)).replace("\u00a0", " ")
+        definition = (DDHelperFunctions.parseHtml(xml.definition[0])).replace("\u00a0", " ")
 
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
-            String xmlValue = xml[entry.value][0].text()
-            if(!xmlValue || xmlValue == "") {
-                xmlValue = xml."class"[entry.value].text()
+            Node xmlValue = xml[entry.value][0]
+            if((!xmlValue || xmlValue.text() == "") && xml."class"[entry.value]) {
+                xmlValue = xml."class"[entry.value][0]
             }
-            if(xmlValue && xmlValue != "") {
-                otherProperties[entry.key] = xmlValue
+            if(xmlValue && xmlValue.text() != "") {
+                otherProperties[entry.key] = xmlValue.text()
             }
         }
     }

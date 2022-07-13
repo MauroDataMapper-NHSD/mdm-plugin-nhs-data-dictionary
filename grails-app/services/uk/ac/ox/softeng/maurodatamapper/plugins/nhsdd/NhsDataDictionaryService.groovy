@@ -167,9 +167,9 @@ class NhsDataDictionaryService {
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
         long totalStart = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
 
-        VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
-        buildWorkItemDetails(thisVersionedFolder, dataDictionary)
+        buildWorkItemDetails(dataDictionary.containingVersionedFolder, dataDictionary)
 
         List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
 
@@ -177,7 +177,7 @@ class NhsDataDictionaryService {
         Terminology supDefTerminology = terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
         Terminology dataSetConstraintsTerminology = terminologies.find {it.label == NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}
 
-        Folder dataSetsFolder = thisVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
+        Folder dataSetsFolder = dataDictionary.containingVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
         DataModel coreModel = getCoreModel(versionedFolderId)
 

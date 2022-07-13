@@ -68,7 +68,7 @@ class DDHelperFunctions {
 
     }
 
-    static String parseHtml(GPathResult res) {
+    static String parseHtml(Node res) {
         if (!res || !res.toString().trim()) {
             return null
         }

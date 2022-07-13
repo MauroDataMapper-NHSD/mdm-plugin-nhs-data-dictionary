@@ -92,11 +92,15 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     }
 
     static String unquoteString(String input) {
-        input.
-            replaceAll("&quot;", "\"").
-            replaceAll("&gt;", ">").
-            replaceAll("&lt;", "<").
-            replaceAll("&apos;", "'")
+        if(input) {
+            return input.
+                replaceAll("&quot;", "\"").
+                replaceAll("&gt;", ">").
+                replaceAll("&lt;", "<").
+                replaceAll("&apos;", "'")
+        } else {
+            return null
+        }
     }
 
 

@@ -40,7 +40,7 @@ class NhsDDClassLink {
 
 
     NhsDDClassLink(def link) {
-        uin = link."@uin".text()
+        uin = link."@uin"
         metaclass = link.metaclass.text()
         clientRole = link.clientRole.text()
         supplierRole = link.supplierRole.text()
@@ -51,8 +51,8 @@ class NhsDDClassLink {
         partOfSupplierKey = link.partOfSupplierKey.text()
         relationSupplierExclusivity = link.relationSupplierExclusivity.text()
         relationClientExclusivity = link.relationClientExclusivity.text()
-        supplierUin = link.participant.find {it."@role".text() == "Supplier"}."@referencedUin".text()
-        clientUin = link.participant.find {it."@role".text() == "Client"}."@referencedUin".text()
+        supplierUin = link.participant.find {it."@role" == "Supplier"}."@referencedUin"
+        clientUin = link.participant.find {it."@role" == "Client"}."@referencedUin"
     }
 
 /*    ClassLink(DataElement dataElement) {
