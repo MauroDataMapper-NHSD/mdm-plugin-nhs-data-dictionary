@@ -42,6 +42,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     List<String> path
     String definitionAsXml
+    String overviewPageUrl
 
     boolean isCDS
 
@@ -62,7 +63,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         }
         path = getWebPath()
         path.removeLast()
-        definitionAsXml = XmlUtil.serialize(xml.definition)
+        definitionAsXml = XmlUtil.serialize(xml.definition[0])
         otherProperties["approvingOrganisation"] = "Data Alliance Partnership Board (DAPB)"
     }
 

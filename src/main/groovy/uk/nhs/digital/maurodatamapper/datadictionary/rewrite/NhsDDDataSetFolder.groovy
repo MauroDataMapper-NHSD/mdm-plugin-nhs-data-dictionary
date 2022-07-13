@@ -63,12 +63,28 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
     }
 
     String getMauroPath() {
-        String response = "fo:Data Sets|"
+        String response = "fo:Data Sets"
         getFolderPath().each {pathComponent ->
-            response += "fo:${pathComponent}|"
+            response += "|fo:${pathComponent}"
         }
         return response
     }
+
+    Map<String, String> getUrlReplacements() {
+        if(!this.otherProperties["ddUrl"]) {
+            return [:]
+        }
+        String ddUrl = this.otherProperties["ddUrl"]
+        String ddUrl2 = ddUrl.replace("introduction", "menu")
+        String ddUrl3 = ddUrl.replace("introduction", "overview")
+        return [
+                (ddUrl) : this.getMauroPath(),
+                (ddUrl2) : this.getMauroPath(),
+                (ddUrl3) : this.getMauroPath()
+
+        ]
+    }
+
 
     List<String> getDitaFolderPath() {
         folderPath.collect {

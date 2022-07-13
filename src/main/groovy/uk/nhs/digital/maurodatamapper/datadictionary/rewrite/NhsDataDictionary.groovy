@@ -17,7 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
@@ -82,6 +82,8 @@ class NhsDataDictionary {
     String folderName = FOLDER_NAME
 
     String branchName = "main"
+
+    VersionedFolder containingVersionedFolder
 
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
         "NhsDDAttribute": attributes,
@@ -154,8 +156,10 @@ class NhsDataDictionary {
                 String componentNameWithPackage = "${NhsDataDictionary.packageName}.${componentClassName}"
                 NhsDataDictionaryComponent dummyComponent = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
                     .newInstance()
+                System.err.println("Building ${componentClassName}...")
+                long componentStartTime = System.currentTimeMillis()
                 if(publishOptions.isPublishableComponent(dummyComponent)) {
-                    xml[dummyComponent.getXmlNodeName()].sort {it.name.text()}.each {node ->
+                    xml[dummyComponent.getXmlNodeName()] /*.sort {it.name.text()} */.each {node ->
                         NhsDataDictionaryComponent component = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
                             .newInstance()
                         if (component.isValidXmlNode(node)) {
@@ -168,21 +172,30 @@ class NhsDataDictionary {
                         }
                     }
                 }
+                log.info("${componentClassName} built in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
             }
+            long componentStartTime = System.currentTimeMillis()
             if(publishOptions.publishDataSetFolders) {
                 processDataSetFolders()
             }
+            log.info("Data Set Folders built in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
+            componentStartTime = System.currentTimeMillis()
             if(publishOptions.publishClasses) {
                 processClassLinks()
             }
+            log.info("Class Links built in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
+            componentStartTime = System.currentTimeMillis()
             processLinksFromXml()
+            log.info("Links processed in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
+
             long endTime = System.currentTimeMillis()
             log.info("Data Dictionary build from XML complete in ${Utils.getTimeString(endTime - startTime)}")
         }
     }
 
     Map<String, String> introductionPageMap = [
-            "PLICS": "PLICS Data Set Overview",
+            //"PLICS": "PLICS Data Set Overview",
+            "PLICS Data Set": "Patient Level Information Costing System Integrated Data Set Introduction",
             "COSDS": "Cancer Outcomes and Services Data Set Introduction",
             "EPMA": "EPMA Data Set Overviews"
     ]
@@ -245,6 +258,7 @@ class NhsDataDictionary {
         getAllComponents().each {component ->
             replacements.putAll(component.getUrlReplacements())
         }
+        System.err.println(replacements)
         Map<String, List<String>> unmatchedUrls = [:]
         getAllComponents().each {component ->
             component.definition = replaceUrls(component.definition, replacements, unmatchedUrls, component.name)
