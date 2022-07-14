@@ -187,7 +187,7 @@ class OtherDataSetParser {
                                                NhsDataDictionary dataDictionary,
                                                Integer choiceNo = 1) {
         Integer elementWebOrder = 0
-        DataClass currentClass = new DataClass(label: "")
+        DataClass currentClass = new DataClass(label: "Test Class")
         dataModel.addToDataClasses(currentClass)
         List<DataClass> dataClasses = [currentClass]
 
@@ -210,11 +210,19 @@ class OtherDataSetParser {
                 } else {
                     // ignore
                 }
-            } else if (tr.td.size() == 1 &&
-                       (tr.td.text().startsWith("One of the following")
-                           || tr.td.text().startsWith("At least one of the following")
-                           || tr.td.text().startsWith("One of the following may be provided per")
-                           || tr.td.text().startsWith("One occurrence of this group"))) {
+            } else if (tr.td.size() == 1) {
+                System.err.println(tr.td[0].text())
+                if(tr.td[0].strong.size() > 0) {
+                    System.err.println(tr.td[0].strong[0].text())
+                }
+                       if(tr.td[0].text().startsWith("One of the following")
+                           || tr.td[0].text().startsWith("At least one of the following")
+                           || tr.td[0].text().startsWith("One of the following may be provided per")
+                           || tr.td[0].text().startsWith("One occurrence of this group")) {
+                           System.err.println("Here")
+                       }  else {
+                           System.err.println ("Not here!")
+                       }
                 // ignore
             } else if (tr.th.size() == 1
                 && (DataSetParser.isSkyBlue(tr.th[0])  || tr.th[0].@class == "duckblue" )) {
@@ -466,8 +474,8 @@ class OtherDataSetParser {
         List<Node> tds = DataSetParser.tableRowCells(tr)
 
         if(tds.size() == 1) {
-            if(tds[0].a.size() > 1) {
-                unmatchedPattern("Found more than one link on a single column row", tr, dataModel.label, currentClassName)
+            if(tds[0].a.size() != 1 ) {
+                unmatchedPattern("Found more than one link, or no links, on a single column row", tr, dataModel.label, currentClassName)
             } else {
                 returnElement = DataSetParser.getElementFromText(tds[0].a[0], dataModel, dataDictionary, currentClass)
                 int multiples = getMultipleOccurrences(tds[0].text())

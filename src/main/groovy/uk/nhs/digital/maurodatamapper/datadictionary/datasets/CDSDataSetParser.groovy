@@ -39,6 +39,11 @@ class CDSDataSetParser {
         startTime = System.currentTimeMillis()
         dataClasses.eachWithIndex {dataClass, index ->
             dataModel.addToDataClasses(dataClass)
+            if(!dataClass.label || dataClass.label == "") {
+                log.error("Class with unset label: ${dataModel.label}")
+                log.error(dataClass.toString())
+                dataClass.label = "Test Class Label"
+            }
             DataSetParser.setOrder(dataClass, index + 1)
         }
         log.error('Add to DCs data set complete in {}', Utils.timeTaken(startTime))
