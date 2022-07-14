@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 import static uk.ac.ox.softeng.maurodatamapper.core.BootStrap.BootStrapUser
 
@@ -43,6 +44,15 @@ class BootStrap {
                                                               category: NhsDataDictionaryService.NHSDD_PROPERTY_CATEGORY)
                     GormUtils.checkAndSave(messageSource, apiProperty)
                 }
+            }
+
+            ApiProperty defaultProfile = ApiProperty.findByKey('ui.default.profile.namespace')
+            if(!defaultProfile) {
+                defaultProfile = new ApiProperty(key: 'ui.default.profile.namespace', value: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE,
+                                                 createdBy: BootStrapUser.instance.emailAddress,
+                                                 category: 'UI',
+                                                 publiclyVisible: true)
+                GormUtils.checkAndSave(messageSource, defaultProfile)
             }
         }
 
