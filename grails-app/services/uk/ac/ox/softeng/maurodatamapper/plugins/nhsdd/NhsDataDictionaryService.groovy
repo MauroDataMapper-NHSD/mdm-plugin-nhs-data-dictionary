@@ -25,6 +25,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -457,6 +458,10 @@ class NhsDataDictionaryService {
         VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
                                                                createdBy: currentUser.emailAddress, branchName: nhsDataDictionary.branchName)
 
+        defaultProfileMetadata(currentUser.emailAddress).each { metadata ->
+            dictionaryFolder.addToMetadata(metadata)
+        }
+
         if (!folderService.validate(dictionaryFolder)) {
             throw new ApiInvalidModelException('NHSDD', 'Invalid model', dictionaryFolder.errors)
         }
@@ -718,5 +723,17 @@ class NhsDataDictionaryService {
             }.collectEntries {md ->
                 [md.key, md.value]
             }
+    }
+
+    static List<Metadata> defaultProfileMetadata(String userEmailAddress) {
+        Class clazz = DDWorkItemProfileProviderService.class
+        return [
+            new Metadata(namespace: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE, key: 'namespace',
+                         value: clazz.getPackage().toString(), createdBy: userEmailAddress),
+            new Metadata(namespace: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE, key: 'name',
+                         value: clazz.getSimpleName(), createdBy: userEmailAddress),
+            new Metadata(namespace: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE, key: 'version',
+                         value: '1.0.0', createdBy: userEmailAddress)
+        ]
     }
 }
