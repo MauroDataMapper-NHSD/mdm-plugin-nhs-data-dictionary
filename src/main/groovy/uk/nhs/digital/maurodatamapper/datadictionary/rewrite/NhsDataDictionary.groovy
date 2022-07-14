@@ -37,6 +37,7 @@ class NhsDataDictionary {
     static final String WEBSITE_URL = "https://www.datadictionary.nhs.uk/"
 
     static final String METADATA_NAMESPACE = "uk.nhs.datadictionary"
+    static final String DEFAULT_PROFILE_NAMESPACE = "default.profile"
 
     static final String FOLDER_NAME = "NHS Data Dictionary"
     static final String CORE_MODEL_NAME = "NHS Data Dictionary - Core"
@@ -196,6 +197,7 @@ class NhsDataDictionary {
     Map<String, String> introductionPageMap = [
             //"PLICS": "PLICS Data Set Overview",
             "PLICS Data Set": "Patient Level Information Costing System Integrated Data Set Introduction",
+            "Electronic Prescribing and Medicines Administration": "Electronic Prescribing and Medicines Administration Data Sets Introduction",
             "COSDS": "Cancer Outcomes and Services Data Set Introduction",
             "EPMA": "EPMA Data Set Overviews"
     ]
@@ -258,7 +260,6 @@ class NhsDataDictionary {
         getAllComponents().each {component ->
             replacements.putAll(component.getUrlReplacements())
         }
-        System.err.println(replacements)
         Map<String, List<String>> unmatchedUrls = [:]
         getAllComponents().each {component ->
             component.definition = replaceUrls(component.definition, replacements, unmatchedUrls, component.name)

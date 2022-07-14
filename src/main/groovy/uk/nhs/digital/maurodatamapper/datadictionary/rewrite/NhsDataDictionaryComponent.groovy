@@ -453,6 +453,9 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         if (isRetired()) {
             path.add(0, "Retired")
         }
+        if(name.startsWith("CDS")) {
+            path.add(0, "Commissioning Data Sets")
+        }
         path = path.collect {DDHelperFunctions.tidyLabel(it)}
         return path
     }

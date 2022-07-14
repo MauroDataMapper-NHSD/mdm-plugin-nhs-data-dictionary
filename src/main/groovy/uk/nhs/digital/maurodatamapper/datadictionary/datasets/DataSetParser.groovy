@@ -503,7 +503,7 @@ class DataSetParser {
                 defaultDataType = new PrimitiveType(label: "Unmatched datatype")
                 dataModel.addToDataTypes(defaultDataType)
             }
-            dataElement = new DataElement(label: anchor, dataType: defaultDataType, dataClass: currentClass)
+            dataElement = new DataElement(label: anchor.text(), dataType: defaultDataType)
             currentClass.addToDataElements(dataElement)
 
         } else {
