@@ -219,9 +219,9 @@ class OtherDataSetParser {
                            || tr.td[0].text().startsWith("At least one of the following")
                            || tr.td[0].text().startsWith("One of the following may be provided per")
                            || tr.td[0].text().startsWith("One occurrence of this group")) {
-                           System.err.println("Here")
+                           //System.err.println("Here")
                        }  else {
-                           System.err.println ("Not here!")
+                           //System.err.println ("Not here!")
                        }
                 // ignore
             } else if (tr.th.size() == 1

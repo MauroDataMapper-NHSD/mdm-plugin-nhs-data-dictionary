@@ -38,19 +38,19 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent <Term> {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription
+        if(!definition || definition == "") {
+            return name
+        }
         if(isPreparatory()) {
-            shortDescription = "This item is being used for development purposes and has not yet been approved."
+            return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
-                shortDescription = getFirstSentence()
+                return getFirstSentence()
             } catch (Exception e) {
                 log.error("Couldn't parse the definition for $name because ${e.message}")
-                shortDescription = name
+                return name
             }
         }
-        otherProperties["shortDescription"] = shortDescription
-        return shortDescription
     }
 
     @Override

@@ -47,19 +47,17 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription
         if (isPreparatory()) {
-            shortDescription = "This item is being used for development purposes and has not yet been approved."
+            return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
-                shortDescription = getFirstSentence()
+                return getFirstSentence()
             } catch (Exception e) {
                 e.printStackTrace()
                 log.error("Couldn't parse: " + definition)
-                shortDescription = name
+                return name
             }
         }
-        otherProperties["shortDescription"] = shortDescription
     }
 
     @Override

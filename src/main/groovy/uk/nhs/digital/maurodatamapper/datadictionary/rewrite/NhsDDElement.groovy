@@ -49,25 +49,22 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription = name
         if(isPreparatory()) {
-            shortDescription = "This item is being used for development purposes and has not yet been approved."
+            return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
                 String firstSentence = getFirstSentence()
                 if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && instantiatesAttributes.size() == 1) {
-                    shortDescription = instantiatesAttributes[0].otherProperties["shortDescription"]
+                    return instantiatesAttributes[0].otherProperties["shortDescription"]
                 } else if(firstSentence) {
-                    shortDescription = firstSentence
+                    return firstSentence
                 }
             } catch (Exception e) {
                 e.printStackTrace()
                 log.error("Couldn't parse: ${definition}")
-                shortDescription = name
+                return name
             }
         }
-        otherProperties["shortDescription"] = shortDescription
-        return shortDescription
     }
 
     @Override

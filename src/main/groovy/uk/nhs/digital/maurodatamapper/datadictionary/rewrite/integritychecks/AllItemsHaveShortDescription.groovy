@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
@@ -34,7 +35,11 @@ class AllItemsHaveShortDescription implements IntegrityCheck {
 
         errors = dataDictionary.getAllComponents().findAll {component ->
             String shortDesc = component.otherProperties["shortDescription"]
-            (shortDesc == null || shortDesc == "")
+            if(component instanceof NhsDDDataSetFolder) {
+                System.err.println(((NhsDDDataSetFolder)component).folderPath)
+                System.err.println("${component.name} : ${shortDesc}")
+            }
+            return (shortDesc == null || shortDesc == "")
         }
         return errors
     }

@@ -40,7 +40,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
 
-    List<String> path
+    List<String> path = []
     String definitionAsXml
     String overviewPageUrl
 
@@ -69,22 +69,23 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription = name
+        if(!definition || definition == "") {
+            return name
+        }
         if(isPreparatory()) {
-            shortDescription = "This item is being used for development purposes and has not yet been approved."
+            return "This item is being used for development purposes and has not yet been approved."
         } else {
-
             List<String> aliases = [name]
             aliases.addAll(getAliases().values())
+            aliases.add(path.last())
 
             try {
 
                 List<String> allSentences = calculateSentences(definition)
-
                 if(isRetired()) {
-                    shortDescription = allSentences[0]
+                    return allSentences[0]
                 } else {
-                    shortDescription = allSentences.find {sentence ->
+                    return allSentences.find {sentence ->
                         aliases.find {alias ->
                             sentence.contains(alias)
                         }
@@ -94,11 +95,9 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
             } catch (Exception e) {
                 e.printStackTrace()
                 log.error("Couldn't parse: " + definition)
-                shortDescription = name
+                return name
             }
         }
-        otherProperties["shortDescription"] = shortDescription
-        return shortDescription
     }
 
     @Override

@@ -62,7 +62,7 @@ class NhsDataDictionary {
     Map<String, NhsDDElement> elements = [:]
     Map<String, NhsDDClass> classes = [:]
     Map<String, NhsDDDataSet> dataSets = [:]
-    Map<String, NhsDDDataSetFolder> dataSetFolders = [:]
+    Map<List<String>, NhsDDDataSetFolder> dataSetFolders = [:]
     Map<String, NhsDDBusinessDefinition> businessDefinitions = [:]
     Map<String, NhsDDSupportingInformation> supportingInformation = [:]
     Map<String, NhsDDDataSetConstraint> dataSetConstraints = [:]
@@ -91,9 +91,9 @@ class NhsDataDictionary {
         "NhsDDElement": elements,
         "NhsDDClass": classes,
         "NhsDDWebPage": webPages,
-        "NhsDDDataSet": dataSets,
         "NhsDDBusinessDefinition": businessDefinitions,
         "NhsDDSupportingInformation": supportingInformation,
+        "NhsDDDataSet": dataSets,
         "NhsDDDataSetConstraint": dataSetConstraints,
     ]
 
@@ -157,7 +157,7 @@ class NhsDataDictionary {
                 String componentNameWithPackage = "${NhsDataDictionary.packageName}.${componentClassName}"
                 NhsDataDictionaryComponent dummyComponent = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
                     .newInstance()
-                System.err.println("Building ${componentClassName}...")
+                log.info("Building ${componentClassName}...")
                 long componentStartTime = System.currentTimeMillis()
                 if(publishOptions.isPublishableComponent(dummyComponent)) {
                     xml[dummyComponent.getXmlNodeName()] /*.sort {it.name.text()} */.each {node ->
@@ -165,7 +165,6 @@ class NhsDataDictionary {
                             .newInstance()
                         if (component.isValidXmlNode(node)) {
                             component.fromXml(node, it)
-                            component.calculateShortDescription()
                             NhsDataDictionaryComponent existingItem = map[component.name]
                             if (!existingItem || existingItem.isRetired()) {
                                 map[component.name] = component
@@ -189,6 +188,12 @@ class NhsDataDictionary {
             processLinksFromXml()
             log.info("Links processed in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
 
+            componentStartTime = System.currentTimeMillis()
+            allComponents.each { component ->
+                component.setShortDescription()
+            }
+            log.info("Short descriptions calculated in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
+
             long endTime = System.currentTimeMillis()
             log.info("Data Dictionary build from XML complete in ${Utils.getTimeString(endTime - startTime)}")
         }
@@ -197,9 +202,9 @@ class NhsDataDictionary {
     Map<String, String> introductionPageMap = [
             //"PLICS": "PLICS Data Set Overview",
             "PLICS Data Set": "Patient Level Information Costing System Integrated Data Set Introduction",
-            "Electronic Prescribing and Medicines Administration": "Electronic Prescribing and Medicines Administration Data Sets Introduction",
-            "COSDS": "Cancer Outcomes and Services Data Set Introduction",
-            "EPMA": "EPMA Data Set Overviews"
+            "EPMA": "Electronic Prescribing and Medicines Administration Data Sets Introduction",
+            "COSDS": "Cancer Outcomes and Services Data Set Introduction"
+            //"Commissioning Data Sets": "Commissioning Data Sets (CDS) Introduction"
     ]
 
     void processDataSetFolders() {
@@ -210,8 +215,10 @@ class NhsDataDictionary {
             newWebPath.removeLast()
             paths.add(newWebPath)
         }
+        paths.add(["Commissioning Data Sets"])
+        paths.add(["Retired"])
         paths.each {path ->
-            
+
             NhsDDDataSetFolder dataSetFolder = new NhsDDDataSetFolder()
             dataSetFolder.name = path.last()
             dataSetFolder.folderPath.addAll(path)
@@ -225,17 +232,17 @@ class NhsDataDictionary {
             if(!introductionPageName) {
                 introductionPageName = dataSetFolder.name + " Introduction"
             }
-            NhsDDWebPage introductoryWebPage = webPages[introductionPageName]
+            NhsDataDictionaryComponent introductoryWebPage = webPages[introductionPageName]?:supportingInformation[introductionPageName]
             if(!introductoryWebPage && !dataSetFolder.isRetired()) {
                 log.error("Cannot find introductory web page: ${dataSetFolder.name}")
             } else {
                 if(introductoryWebPage && !dataSetFolder.isRetired()) {
-                    log.error("Introduction page found: " + introductoryWebPage.name)
+                    log.info("Introduction page found: " + introductoryWebPage.name)
                     dataSetFolder.otherProperties = introductoryWebPage.otherProperties
                     dataSetFolder.definition = introductoryWebPage.definition
                 }
             }
-            dataSetFolders[dataSetFolder.name] = dataSetFolder
+            dataSetFolders[path] = dataSetFolder
         }
 
     }

@@ -19,6 +19,9 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
 
     List<String> folderPath = []
@@ -45,7 +48,37 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
 
     @Override
     String calculateShortDescription() {
-        return null
+        if(!definition || definition == "") {
+            return name
+        }
+        if(isPreparatory()) {
+            return "This item is being used for development purposes and has not yet been approved."
+        } else {
+
+            List<String> aliases = [name]
+            aliases.addAll(getAliases().values())
+
+            try {
+
+                List<String> allSentences = calculateSentences(definition?:"")
+
+                if(isRetired()) {
+                    return allSentences[0]
+                } else {
+                    return allSentences.find {sentence ->
+                        aliases.find {alias ->
+                            sentence.contains(alias)
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace()
+                log.error("Couldn't parse: " + name)
+                log.error("Couldn't parse: " + definition)
+                return name
+            }
+        }
     }
 
     @Override

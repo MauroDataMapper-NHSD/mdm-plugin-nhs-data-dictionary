@@ -52,24 +52,23 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
 
     @Override
     String calculateShortDescription() {
-        String shortDescription
         if(isPreparatory()) {
-            shortDescription = "This item is being used for development purposes and has not yet been approved."
+            return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
                 String firstSentence = getFirstSentence()
                 if (firstSentence.toLowerCase().contains("a subtype of")) {
                     String secondSentence = getSentence(1)
-                    shortDescription = secondSentence
+                    return secondSentence
                 } else {
-                    shortDescription = firstSentence
+                    return firstSentence
                 }
             } catch (Exception e) {
                 log.error("Couldn't parse: " + definition)
-                shortDescription = name
+                e.printStackTrace()
+                return name
             }
         }
-        return shortDescription
     }
 
     @Override
