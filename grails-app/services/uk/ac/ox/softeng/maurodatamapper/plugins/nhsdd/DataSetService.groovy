@@ -18,9 +18,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import groovy.xml.XmlParser
-import groovy.xml.XmlSlurper
-import groovy.xml.slurpersupport.GPathResult
-import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem

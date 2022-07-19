@@ -30,10 +30,10 @@ import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import grails.gorm.transactions.Transactional
 import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
-import groovy.xml.XmlSlurper
 import org.hibernate.SessionFactory
 import org.springframework.beans.factory.annotation.Autowired
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
+import groovy.xml.XmlParser
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -97,7 +97,7 @@ class TestingService {
         Path resourcesPath = Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources')
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
-        def xml = new XmlSlurper().parse(Files.newBufferedReader(testFilePath))
+        def xml = new XmlParser().parse(Files.newBufferedReader(testFilePath))
         xml
     }
 

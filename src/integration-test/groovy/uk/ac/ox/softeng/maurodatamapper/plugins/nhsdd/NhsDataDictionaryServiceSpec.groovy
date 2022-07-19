@@ -59,7 +59,7 @@ import grails.web.databinding.DataBindingUtils
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
-import groovy.xml.XmlSlurper
+import groovy.xml.XmlParser
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
@@ -431,7 +431,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     def loadXml(String filename) {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
-        def xml = new XmlSlurper().parse(Files.newBufferedReader(testFilePath))
+        def xml = new XmlParser().parse(Files.newBufferedReader(testFilePath))
         xml
     }
 

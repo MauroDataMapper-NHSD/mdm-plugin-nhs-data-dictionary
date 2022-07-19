@@ -22,8 +22,6 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
 @Slf4j
 class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {

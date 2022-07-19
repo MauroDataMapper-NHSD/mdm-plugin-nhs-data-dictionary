@@ -18,9 +18,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
 @Slf4j
 class NhsDDSupportingInformation implements NhsDataDictionaryComponent <Term> {
