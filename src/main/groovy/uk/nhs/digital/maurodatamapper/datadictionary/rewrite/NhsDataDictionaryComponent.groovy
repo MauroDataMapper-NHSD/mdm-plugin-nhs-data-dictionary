@@ -28,6 +28,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Format
 import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
+import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import groovy.xml.XmlSlurper
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
@@ -36,10 +37,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper
 
 import java.util.regex.Matcher
 
+@Slf4j
 trait NhsDataDictionaryComponent <T extends MdmDomain> {
-
-    // For parsing short descriptions
-    static XmlSlurper xmlSlurper = new XmlSlurper()
 
     abstract String getStereotype()
     abstract String getStereotypeForPreview()
@@ -80,10 +79,22 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         otherProperties["titleCaseName"]
     }
 
+    void setShortDescription() {
+        String shortDescription = calculateShortDescription()
+        if(!shortDescription) {
+            log.error("Null short description! ${name}")
+            shortDescription = name
+        }
+        //shortDescription = shortDescription.replaceAll("\\\\r", " ")
+        shortDescription = shortDescription.replaceAll("\\s+", " ")
+        shortDescription = shortDescription.replaceAll("\\\\n", " ")
+        shortDescription = shortDescription.replaceAll("\\\\r", " ")
+        otherProperties["shortDescription"] = shortDescription
+    }
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
-        if(xml.name.text()) {
-            this.name = xml.name.text().replace("_", " ")
+        if(xml.name.size() > 0 && xml.name.text()) {
+            this.name = xml.name[0].text().replace("_", " ")
         } else { // This should only apply for dataSetConstraints
             this.name = xml."class".name.text().replace("_", " ")
         }
@@ -402,25 +413,47 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
             return xml.text().split("\\.")
         }
 
+        List<String> response = getNodeSentences(xml)
+
+        response.removeAll {it.trim() == ""}
+        return response
+    }
+
+    static List<String> getNodeSentences(String str) {
+        return str.split("\\.")
+    }
+
+    static List<String> getNodeSentences(Node xml) {
         List<String> response = []
         xml.children().each { childNode ->
-            if(childNode instanceof String) {
+            if (childNode instanceof String) {
                 response.add((String) childNode)
             } else {
                 switch (childNode.name().toString().toLowerCase()) {
-                    case 'table':
                     case 'img':
+                    case 'br':
+                        break
+                    case 'ul':
+                    case 'table':
+                    case 'div':
+                        childNode.children().each { child ->
+                            response.addAll(getNodeSentences(child))
+                        }
                         break
                     case 'p':
-                    case 'div':
                     case 'span':
+                    case 'strong':
                     default:
                         response.addAll(childNode.text().split("\\."))
+                        break
+
+
                 }
             }
         }
         return response
     }
+
 
     String getFirstSentence(String html = this.definition) {
         getSentence(html, 0)
@@ -450,11 +483,11 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         path.removeAll {it.equalsIgnoreCase("Data_Sets")}
         path.removeAll {it.equalsIgnoreCase("Content")}
 
-        if (isRetired()) {
-            path.add(0, "Retired")
-        }
         if(name.startsWith("CDS")) {
             path.add(0, "Commissioning Data Sets")
+        }
+        if (isRetired()) {
+            path.add(0, "Retired")
         }
         path = path.collect {DDHelperFunctions.tidyLabel(it)}
         return path

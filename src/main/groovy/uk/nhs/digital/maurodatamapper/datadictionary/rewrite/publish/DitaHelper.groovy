@@ -210,7 +210,7 @@ class DitaHelper {
                 txt component.getNameWithRetired()
             }
             prolog getProlog(component)
-            shortdesc component.calculateShortDescription()
+            shortdesc component.getShortDescription()
 
         }
     }

@@ -50,6 +50,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassRelationship
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
@@ -290,8 +291,14 @@ class NhsDataDictionaryService {
 
 
     void addDataSetsToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
-        Set<DataModel> dataSetModels = dataSetService.getAllDataSets(dataSetsFolder)
-        dataDictionary.dataSets = dataSetService.collectNhsDataDictionaryComponents(dataSetModels, dataDictionary)
+        Map<List<String>, Set<DataModel>> dataSetModelMap = dataSetService.getAllDataSets([], dataSetsFolder)
+        dataSetModelMap.each {path, dataModels ->
+            dataModels.each { dataModel ->
+                NhsDDDataSet dataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(dataModel, dataDictionary)
+                dataSet.path.addAll(path)
+                dataDictionary.dataSets[dataModel.label] = dataSet
+            }
+        }
     }
 
     void addDataSetFoldersToDictionary(Folder dataSetsFolder, NhsDataDictionary dataDictionary) {
@@ -300,7 +307,7 @@ class NhsDataDictionaryService {
         dataSetFolders.each { path, folders ->
             folders.each {folder ->
                 NhsDDDataSetFolder dataSetFolder = dataSetFolderService.getNhsDataDictionaryComponentFromCatalogueItem(folder, dataDictionary, path)
-                dataDictionary.dataSetFolders[dataSetFolder.name] = dataSetFolder
+                dataDictionary.dataSetFolders[path] = dataSetFolder
             }
         }
     }
@@ -669,8 +676,9 @@ class NhsDataDictionaryService {
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
 
         List<String> response = []
-        thisDataDictionary.getAllComponents().sort { it.name}.each { component ->
-            response.add(""" "${component.getStereotype()}", "${component.getNameWithRetired()}", "${component.calculateShortDescription()}" """)
+        thisDataDictionary.getAllComponents().sort { it.name.toLowerCase()}.each { component ->
+            String shortDescription = component.otherProperties["shortDescription"]
+            response.add(""" "${component.getStereotype()}", "${component.getNameWithRetired()}", "${shortDescription}" """)
         }
         return response
     }

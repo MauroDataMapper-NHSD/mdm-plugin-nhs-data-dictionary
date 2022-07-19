@@ -59,10 +59,10 @@ class BrokenLinks implements IntegrityCheck {
                 }
                 if(code == 404) {
                     errorComponents.addAll(componentList)
-                    System.err.println("Broken link: " + link)
+                    log.info("Broken link: " + link)
                 }
             } catch(Exception e) {
-                System.err.println("${link}: Exception")
+                log.error("${link}: Exception")
                 errorComponents.addAll(componentList)
             }
         }

@@ -68,18 +68,25 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
     @Override
     Set<DataModel> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+        Set<DataModel> returnModels = [] as Set
         Folder dataSetsFolder = nhsDataDictionaryService.getDataSetsFolder(versionedFolderId)
 
-        getAllDataSets(dataSetsFolder, includeRetired).findAll {dataModel ->
-            includeRetired || !catalogueItemIsRetired(dataModel)
+        getAllDataSets([], dataSetsFolder, includeRetired).values().each {dataModels ->
+            returnModels.addAll(dataModels.findAll {dataModel ->
+                includeRetired || !catalogueItemIsRetired(dataModel)
+            })
         }
+        return returnModels
     }
 
-    Set<DataModel> getAllDataSets(Folder dataSetsFolder, boolean includeRetired = false) {
-        Set<DataModel> returnModels = []
-        returnModels.addAll(dataModelService.findAllByFolderId(dataSetsFolder.id))
+    Map<List<String>, Set<DataModel>> getAllDataSets(List<String> currentPath, Folder dataSetsFolder, boolean includeRetired = false) {
+        Map<List<String>, Set<DataModel>> returnModels = [:]
+        returnModels[currentPath] = dataModelService.findAllByFolderId(dataSetsFolder.id) as Set
         dataSetsFolder.childFolders.each {childFolder ->
-            returnModels.addAll(getAllDataSets(childFolder, includeRetired))
+            List<String> newPath = []
+            newPath.addAll(currentPath)
+            newPath.add(childFolder.label)
+            returnModels.putAll(getAllDataSets(newPath, childFolder, includeRetired))
         }
         return returnModels
     }
@@ -572,11 +579,11 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
         if (dataSetDataModel.hasErrors()) {
             GormUtils.outputDomainErrors(messageSource, dataSetDataModel)
-            System.err.println("Error validating")
-            System.err.println(messageSource)
+            log.error("Error validating")
+            log.error(messageSource.toString())
             //        TODO throw an exception instead???    throw new ApiInvalidModelException('NHSDD', 'Invalid model', validated.errors)
         } else {
-            log.error("Saving dataset: " + dataSetDataModel.label)
+            log.info("Saving dataset: " + dataSetDataModel.label)
             startTime = System.currentTimeMillis()
             try {
                 dataModelService.saveModelWithContent(dataSetDataModel)
