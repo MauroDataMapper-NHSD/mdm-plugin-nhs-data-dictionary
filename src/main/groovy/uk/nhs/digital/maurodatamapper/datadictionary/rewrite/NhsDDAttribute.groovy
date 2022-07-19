@@ -19,12 +19,8 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
-import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
-import groovy.xml.slurpersupport.GPathResult
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 
 @Slf4j
 class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {

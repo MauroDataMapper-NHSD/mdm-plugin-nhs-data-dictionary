@@ -25,7 +25,6 @@ import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import groovy.xml.XmlSlurper
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 
 @Slf4j

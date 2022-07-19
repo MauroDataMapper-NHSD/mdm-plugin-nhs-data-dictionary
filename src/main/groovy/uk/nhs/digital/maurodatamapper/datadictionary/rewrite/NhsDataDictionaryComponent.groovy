@@ -30,7 +30,6 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
-import groovy.xml.XmlSlurper
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.Change

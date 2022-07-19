@@ -29,11 +29,6 @@ import groovy.xml.XmlUtil
 @Slf4j
 class DDHelperFunctions {
 
-    static String DATA_DICTIONARY_FOLDER_NAME = "NHS Data Dictionary"
-    static String DATA_DICTIONARY_CORE_MODEL_NAME = "NHS Data Dictionary - Core"
-    static boolean FINALISED = false
-
-
     static String[] getPath(String input, String delimiter, String suffix) {
         String suffixRemoved = input.replaceAll(suffix, "")
 
