@@ -46,7 +46,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     boolean isCDS
 
-    List<NhsDDDataSetClass> dataSetClasses
+    List<NhsDDDataSetClass> dataSetClasses = []
 
     @Override
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
@@ -111,7 +111,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         String mauroPath = StringUtils.join(path.collect{"fo:${it}"}, "|")
 
         mauroPath += "dm:${name}"
-
+        return mauroPath
     }
 
     String getStructureAsHtml() {
@@ -127,8 +127,8 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
     void outputAsHtml(MarkupBuilder markupBuilder) {
-        ((DataModel) catalogueItem).dataClasses.each {dataClass ->
-            outputClassAsHtml(dataClass, markupBuilder)
+        dataSetClasses.each {ddDataClass ->
+            outputClassAsHtml(ddDataClass, markupBuilder)
         }
     }
 
@@ -138,12 +138,11 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         }
     }
 
-    void outputClassAsHtml(DataClass dataClass, MarkupBuilder markupBuilder) {
-        if (DataSetParser.isChoice(dataClass) && dataClass.label.startsWith("Choice")) {
+    void outputClassAsHtml(NhsDDDataSetClass ddDataClass, MarkupBuilder markupBuilder) {
+        if (ddDataClass.isChoice && ddDataClass.name.startsWith("Choice")) {
             markupBuilder.b "One of the following options must be used:"
-            dataClass.dataClasses.
-                sort {it.metadata.find {md -> md.key == "Web Order"}.value }.
-                eachWithIndex{DataClass childDataClass, int idx ->
+            ddDataClass.dataSetClasses.
+                eachWithIndex{childDataClass, int idx ->
                     if (idx != 0) {
                         markupBuilder.b "Or"
                     }
@@ -152,24 +151,30 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         } else {
 
             markupBuilder.table (class:"simpletable table table-sm") {
-                tr {
-                    th (colspan: 2, class: "thead-light") {
-                        b dataClass.label
-                        if(dataClass.description) {
-                            p dataClass.description
+                thead {
+                    tr {
+                        th(colspan: 2, class: "thead-light") {
+                            b ddDataClass.name
+                            if (ddDataClass.description) {
+                                p ddDataClass.description
+                            }
                         }
                     }
                 }
-                if(dataClass.importedDataElements) {
-                    markupBuilder.tr {
-                        td (width: "20%") { p "Mandation" }
-                        td (width: "80%") { p "Data Elements" }
+                tbody {
+                    if (ddDataClass.dataSetElements) {
+                        markupBuilder.tr {
+                            td(style: "width: 20%;") {p "Mandation"}
+                            td(style: "width: 80%;") {p "Data Elements"}
+                        }
                     }
-                }
-                dataClass.importedDataElements.each {dataElement ->
-                    markupBuilder.tr {
-                        td ""
-                        td dataElement.label
+                    ddDataClass.dataSetElements.each {dataElement ->
+                        markupBuilder.tr {
+                            td ""
+                            td {
+                                dataElement.createHtmlLink(markupBuilder)
+                            }
+                        }
                     }
                 }
             }

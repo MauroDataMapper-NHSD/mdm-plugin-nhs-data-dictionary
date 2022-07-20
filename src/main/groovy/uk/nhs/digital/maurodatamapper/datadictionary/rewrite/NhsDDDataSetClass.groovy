@@ -18,11 +18,15 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 
 class NhsDDDataSetClass {
+
+    String name
+    String description
 
     String mandation
     String minMultiplicity
@@ -30,9 +34,31 @@ class NhsDDDataSetClass {
     String constraints
     Boolean isChoice
 
-    List<NhsDDDataSetClass> dataSetClasses
-    List<NhsDDDataSetElement> dataSetElements
+    List<NhsDDDataSetClass> dataSetClasses = []
+    List<NhsDDDataSetElement> dataSetElements = []
 
+    NhsDataDictionary dataDictionary
+
+    NhsDDDataSetClass(DataClass dataClass, NhsDataDictionary dataDictionary) {
+        this.name = dataClass.label
+        this.description = dataClass.description
+        isChoice = DataSetParser.isChoice(dataClass)
+        mandation = DataSetParser.getMRO(dataClass)
+        constraints = DataSetParser.getRules(dataClass)
+
+        this.dataDictionary = dataDictionary
+
+        dataClass.dataClasses.sort {childDataClass ->
+            DataSetParser.getOrder(childDataClass)
+        }.each {childDataClass ->
+            dataSetClasses.add(new NhsDDDataSetClass(childDataClass, dataDictionary))
+        }
+        dataClass.getImportedDataElements().each {dataElement ->
+            dataSetElements.add(new NhsDDDataSetElement(dataElement, dataDictionary))
+
+        }
+
+    }
 
 
 }
