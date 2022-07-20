@@ -50,7 +50,9 @@ class ChangePaperPdfUtility {
             title "Summary of Changes"
             body {
                 changePaper.stereotypedChanges.each {stereotypedChange ->
-                    section generateSummaryContentSection(stereotypedChange.changedItems, stereotypedChange.stereotypeName)
+                    if(stereotypedChange.changedItems) {
+                        section generateSummaryContentSection(stereotypedChange.changedItems, stereotypedChange.stereotypeName)
+                    }
                 }
             }
         }
