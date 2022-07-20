@@ -17,13 +17,35 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+
+import groovy.xml.MarkupBuilder
+
 class NhsDDDataSetElement{
+
+    String name
 
     String mandation
     String minMultiplicity
     String maxMultiplicity
     String constraints
+    UUID elementId
 
     NhsDDElement reuseElement
+    NhsDataDictionary dataDictionary
+
+    NhsDDDataSetElement(DataElement dataElement, NhsDataDictionary dataDictionary) {
+        this.name = dataElement.label
+        this.elementId = dataElement.id
+        this.dataDictionary = dataDictionary
+    }
+
+    def createHtmlLink(MarkupBuilder markupBuilder) {
+        String link = "#/preview/${dataDictionary.containingVersionedFolder.id.toString()}/element/${elementId.toString()}"
+        markupBuilder.a (href: link, class: "element") {
+            mkp.yield(name)
+        }
+
+    }
 
 }

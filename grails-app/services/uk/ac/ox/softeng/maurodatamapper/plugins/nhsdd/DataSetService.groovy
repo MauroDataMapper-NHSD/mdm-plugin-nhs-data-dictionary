@@ -40,6 +40,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetClass
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 @Slf4j
@@ -58,7 +59,10 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     @Override
     NhsDDDataSet show(UUID versionedFolderId, String id) {
         DataModel dataModel = dataModelService.get(id)
-        NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, null)
+        VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
+        NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
+        nhsDataDictionary.containingVersionedFolder = thisVersionedFolder
+        NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, nhsDataDictionary)
         dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
         return dataSet
     }
@@ -97,6 +101,11 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDDataSet dataSet = new NhsDDDataSet()
         nhsDataDictionaryComponentFromItem(catalogueItem, dataSet)
+        catalogueItem.childDataClasses.sort {dataClass ->
+            DataSetParser.getOrder(dataClass)
+        }.each {dataClass ->
+            dataSet.dataSetClasses.add(new NhsDDDataSetClass(dataClass, dataDictionary))
+        }
         dataSet.dataDictionary = dataDictionary
         return dataSet
     }

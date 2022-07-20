@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.core.container.Classifier
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
@@ -65,6 +66,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     TermService termService
     CodeSetService codeSetService
     FolderService folderService
+    VersionedFolderService versionedFolderService
 
     MetadataService metadataService
     AuthorityService authorityService
