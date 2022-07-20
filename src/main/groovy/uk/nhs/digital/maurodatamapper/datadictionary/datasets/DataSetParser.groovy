@@ -239,7 +239,7 @@ class DataSetParser {
     }
 
     static Integer getOrder(MetadataAware item) {
-        Integer.parseInt(item.getMetadata().find {it.key == "Web Order"}.value?:"0")
+        Integer.parseInt(item.getMetadata().find {it.key == "Web Order"}?.value?:"0")
     }
 
     static void setOrder(MetadataAware item, Integer order) {

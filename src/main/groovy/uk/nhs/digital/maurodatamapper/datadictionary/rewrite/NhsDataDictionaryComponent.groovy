@@ -241,7 +241,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
                     }
                 }
             )
-        } else if (definition != previousComponent.definition) {
+        } else if (description != previousComponent.description) {
             markupBuilder.div {
                 div (class: "old") {
                     mkp.yieldUnescaped(previousComponent.description)

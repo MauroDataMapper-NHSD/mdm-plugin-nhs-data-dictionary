@@ -647,11 +647,10 @@ class NhsDataDictionaryService {
         return new ChangePaper(thisDataDictionary, previousDataDictionary)
     }
 
-    File generateChangePaper(UUID versionedFolderId, boolean isTest = false) {
+    File generateChangePaper(UUID versionedFolderId, boolean includeDataSets = false, boolean isTest = false) {
 
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
-
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 

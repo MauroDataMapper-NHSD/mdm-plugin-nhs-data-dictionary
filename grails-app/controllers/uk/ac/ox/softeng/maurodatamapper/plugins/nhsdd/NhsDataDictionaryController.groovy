@@ -89,7 +89,9 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def generateChangePaper() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        File file = nhsDataDictionaryService.generateChangePaper(versionedFolderId, params.boolean('test')?: false)
+        File file = nhsDataDictionaryService.generateChangePaper(versionedFolderId,
+                                                                 params.boolean('dataSets')?: false,
+                                                                 params.boolean('test')?: false)
 
         header 'Access-Control-Expose-Headers', 'Content-Disposition'
         render(file: file, fileName: file.name, contentType: "application/zip")
