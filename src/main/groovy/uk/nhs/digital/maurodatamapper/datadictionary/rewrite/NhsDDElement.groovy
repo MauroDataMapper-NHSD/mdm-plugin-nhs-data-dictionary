@@ -84,11 +84,11 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
                 log.error("No linked attribute with UIN ${attributeUin} found for element ${name}")
             } else {
                 xml."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.concept.each {concept ->
-                    if (concept.property.find {property ->
-                        property.code.@value.toString() == "Data Element" &&
-                        property.valueString.@value.toString() == capitalizedCodeSetName
+                    if (concept.property.find {Node property ->
+                        property.code[0].attribute('value') == "Data Element" &&
+                        property.valueString[0].attribute('value') == capitalizedCodeSetName
                     }) {
-                        NhsDDCode code = linkedAttribute.codes.find {it -> it.code == concept.code.@value.toString()}
+                        NhsDDCode code = linkedAttribute.codes.find {it -> it.code == concept.code[0].attribute('value')}
                         codes.add(code)
                     }
                 }

@@ -658,7 +658,7 @@ class NhsDataDictionaryService {
         if(!isTest) {
             outputPath = Files.createTempDirectory('changePaper')
         }
-        return ChangePaperPdfUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath)
+        return ChangePaperPdfUtility.generateChangePaper(thisDataDictionary, previousDataDictionary, outputPath, includeDataSets)
     }
 
     File generateWebsite(UUID versionedFolderId, PublishOptions publishOptions) {

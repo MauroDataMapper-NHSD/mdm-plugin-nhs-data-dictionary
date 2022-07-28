@@ -60,5 +60,14 @@ class NhsDDDataSetClass {
 
     }
 
+    Set<NhsDDDataSetElement> getAllElements() {
+        Set<NhsDDDataSetElement> returnElements = [] as Set<NhsDDDataSetElement>
+        dataSetClasses.each {dataSetClass ->
+            returnElements.addAll(dataSetClass.getAllElements())
+        }
+        returnElements.addAll(dataSetElements)
+        return returnElements
+    }
+
 
 }

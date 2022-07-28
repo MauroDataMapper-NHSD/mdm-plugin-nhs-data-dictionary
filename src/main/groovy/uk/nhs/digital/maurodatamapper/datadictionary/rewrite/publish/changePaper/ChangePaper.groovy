@@ -20,11 +20,31 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePape
 import groovy.xml.MarkupBuilder
 import groovy.xml.XmlParser
 import groovy.xml.XmlUtil
-import org.xmlunit.builder.DiffBuilder
-import org.xmlunit.builder.Input
-import org.xmlunit.diff.Diff
+import org.outerj.daisy.diff.DaisyDiff
+import org.outerj.daisy.diff.helper.NekoHtmlParser
+import org.outerj.daisy.diff.html.HTMLDiffer
+import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
+import org.outerj.daisy.diff.html.TextNodeComparator
+import org.outerj.daisy.diff.html.dom.DomTreeBuilder
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.xml.sax.ContentHandler
+import org.xml.sax.InputSource
+
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetElement
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
+
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.Source
+import javax.xml.transform.sax.SAXTransformerFactory
+import javax.xml.transform.sax.TransformerHandler
+import javax.xml.transform.stream.StreamResult
 
 class ChangePaper {
 
@@ -33,7 +53,38 @@ class ChangePaper {
     static String example2 = "<p>Here is some more text</p>"
 
 
+
     static String example3 = "<p>       <strong>Introduction</strong>    </p>    <p> The purpose of the     <a href=\"fo:Central Return Data " +
+            "Setsdm:Venous" +
+            " " +
+            "Thromboembolism Risk Assessment Data Set\">Venous Thromboembolism Risk Assessment Data Set</a>  is to quantify the number of " +
+            "    <a href=\"dm:NHS Data Dictionary - Core|dc:Classes|dc:PATIENT\">PATIENTS</a>  (aged 16 and over) admitted to hospital, " +
+            "who are risk assessed for Venous Thromboembolism using the     <a href=\"te:NHS Business Definitions|tm:Venous " +
+            "Thromboembolism Risk Assessment Tool\">Venous Thromboembolism Risk Assessment Tool</a>  to allow appropriate preventative " +
+            "treatment based on guidance from the     <a href=\"te:NHS Business Definitions|tm:National Institute for Health and Care " +
+            "Excellence\">National Institute for Health and Care Excellence</a>  (    <a href=\"te:NHS Business Definitions|tm:National " +
+            "Institute for Health and Care Excellence\">NICE</a> ).  </p>    <p>       <strong>Collection and submission</strong>    </p> " +
+            "   <p> All providers of NHS funded acute hospital care (including     <a href=\"te:NHS Business Definitions|tm:NHS Foundation" +
+            " Trust\">NHS Foundation Trusts</a>  and     <a href=\"te:NHS Business Definitions|tm:Independent Provider\">Independent " +
+            "Providers</a>  of acute NHS services) must complete this data collection.  </p>    <p> Data on Venous Thromboembolism risk " +
+            "assessments is uploaded onto the     <a href=\"te:Supporting Information|tm:Strategic Data Collection Service\">Strategic " +
+            "Data Collection Service</a>  (    <a href=\"te:Supporting Information|tm:Strategic Data Collection Service\">SDCS</a> ) each " +
+            "month no later than 20 working days after the month end. Revisions to the data set before the cut off date are allowed, " +
+            "however revisions made after the cut off date must be made in liaison with     <a href=\"te:NHS Business Definitions|tm:NHS " +
+            "England\">NHS England</a> .</p>    <p>       " +
+            "<strong>Further guidance</strong>    </p>    <p> For further guidance on the     <a href=\"fo:Central Return Data " +
+            "Setsdm:Venous Thromboembolism Risk Assessment Data Set\">Venous Thromboembolism Risk Assessment Data Set</a> , see the:  </p>" +
+            "    <ul>       <li>          <div>             <a href=\"te:NHS Business Definitions|tm:NHS England\">NHS England</a>  " +
+            "website at         <a href=\"https://www.england.nhs.uk/statistics/statistical-work-areas/vte/\" target=\"_blank\">Venous " +
+            "thromboembolism (VTE) risk assessment</a>          </div>       </li>       <li>          <div>             <a href=\"te:NHS " +
+            "Business Definitions|tm:National Institute for Health and Care Excellence\">National Institute for Health and Care " +
+            "Excellence</a>  website at         <a href=\"https://www.nice.org.uk/guidance/CG92\" target=\"_blank\">Venous thromboembolism" +
+            " - reducing the risk</a> .      </div>       </li>    </ul>    <p>       <strong>Mandation</strong>    </p>    <p>The " +
+            "Mandation column indicates the recommendation for the inclusion of data.</p>    <ul>       <li>          <div>M = Mandatory: " +
+            "this data element is mandatory and the technical process (e.g. submission of the data set, production of output etc) cannot " +
+            "be completed without this data element being present.</div>       </li>    </ul>"
+
+    static String example4 = "<p>       <strong>Introduction</strong>    </p>    <p> The purpose of the     <a href=\"fo:Central Return Data " +
                        "Setsdm:Venous" +
                       " " +
                      "Thromboembolism Risk Assessment Data Set\">Venous Thromboembolism Risk Assessment Data Set</a>  is to quantify the number of " +
@@ -63,25 +114,65 @@ class ChangePaper {
                      "this data element is mandatory and the technical process (e.g. submission of the data set, production of output etc) cannot " +
                      "be completed without this data element being present.</div>       </li>    </ul>"
 
-    static void main(String[] args) {
+/*    static void main(String[] args) {
+
         XmlParser xmlParser = new XmlParser()
-        Node node1 = xmlParser.parseText(example1)
-        Node node2 = xmlParser.parseText(example2)
+        //Node node1 = xmlParser.parseText(example1)
+        //Node node2 = xmlParser.parseText(example2)
+
+
+        String str3 = HtmlHelper.applyJTidy("<div>" + example3 + "</div>").toString()
+        String str4 = HtmlHelper.applyJTidy("<div>" + example4 + "</div>").toString()
+
+        System.err.println(diff(str3, str4))
+
+
+        Source source = Input.fromString(str3).build()
+        Source target = Input.fromString(str4).build()
+        Diff myDiff = DiffBuilder.compare(source).withTest(target)
+                //.checkForSimilar()
+                .checkForIdentical()
+                .ignoreWhitespace()
+
+                .build()
+
+        XPathEngine xPathEngine = new JAXPXPathEngine()
+
+
+        myDiff.differences.each {difference ->
+            xPathEngine.selectNodes(difference.comparison.testDetails.XPath, source).each { node ->
+                Element replacementNode = node.getOwnerDocument().createElement("div")
+                replacementNode.setAttribute("class", "deleted")
+                node.getParentNode().replaceChild(replacementNode, node)
+            }
+        }
+        System.err.println(myDiff.testSource)
+
 
         nodeDiff(node1, node2).each {
             System.err.println(XmlUtil.serialize(it))
         }
-    }
 
+    }
+*/
+
+/*
     static List<String> recurseNodes = ["div", "ol", "ul", "table", "tbody", "thead"]
 
     static List<Node> nodeDiff(Node a, Node b) {
         List<Node> returnNodes = []
 
-        if(a.name() == b.name() && a.text() == b.text()) {
+        if(nodeEquals(a,b)) {
             returnNodes.add(a)
         } else {
             if(a.name() == b.name() && recurseNodes.contains(a.name())) {
+                Node replacementA = new Node(a.parent(), a.name(), a.attributes())
+
+                nodeDiff(a.children(), b.children()).each {
+                    replacementA.append(it)
+                }
+
+                returnNodes.add(replacementA)
 
             } else {
                 if(a."@class") {
@@ -102,7 +193,32 @@ class ChangePaper {
     }
 
 
+    List<Node> nodeDiff(List<Node> aList, List<Node> bList) {
+        if(aList.size() == 0) {
+            return bList
+        }
+        if(bList.size() == 0) {
+            return aList
+        }
+        Node a = aList[0]
+        Node b = bList[0]
+        if(nodeEquals(a,b)) {
+            List<Node> returnNodes = [a]
+            aList.remove(0)
+            bList.remove(0)
+            returnNodes.addAll(nodeDiff(aList, bList))
+            return returnNodes
+        } else {
 
+        }
+
+    }
+
+    boolean nodeEquals(Node a, Node b) {
+        return (a.name() == b.name() && a.text() == b.text())
+    }
+
+*/
 
     List<StereotypedChange> stereotypedChanges = []
 
@@ -116,7 +232,7 @@ class ChangePaper {
     String background
     String sponsor
 
-    ChangePaper(NhsDataDictionary nhsDataDictionary, NhsDataDictionary oldDataDictionary) {
+    ChangePaper(NhsDataDictionary nhsDataDictionary, NhsDataDictionary oldDataDictionary, boolean includeDataSets = false) {
         reference = nhsDataDictionary.workItemDetails['reference'] ?: 'CRXXXX'
         type = nhsDataDictionary.workItemDetails['type'] ?: 'Change Request'
         versionNo = nhsDataDictionary.workItemDetails['versionNo'] ?: '1.0'
@@ -127,7 +243,7 @@ class ChangePaper {
         background = nhsDataDictionary.workItemDetails['backgroundText'] ?: backgroundText()
         sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS Digital'
 
-        stereotypedChanges = calculateChanges(nhsDataDictionary, oldDataDictionary)
+        stereotypedChanges = calculateChanges(nhsDataDictionary, oldDataDictionary, includeDataSets)
     }
 
     Map<String, String> propertiesAsMap() {
@@ -147,32 +263,86 @@ class ChangePaper {
         return response
     }
 
-    private List<StereotypedChange> calculateChanges(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary) {
+    private List<StereotypedChange> calculateChanges(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, boolean includeDataSets = false) {
         List<StereotypedChange> changedItems = []
         changedItems += new StereotypedChange(stereotypeName: "NHS Business Definition",
               changedItems: compareMaps(thisDataDictionary.businessDefinitions, previousDataDictionary.businessDefinitions))
         changedItems += new StereotypedChange(stereotypeName: "Supporting Information",
               changedItems: compareMaps(thisDataDictionary.supportingInformation, previousDataDictionary.supportingInformation))
-        changedItems += new StereotypedChange(stereotypeName: "Attribute",
-              changedItems: compareMaps(thisDataDictionary.attributes, previousDataDictionary.attributes))
-        changedItems += new StereotypedChange(stereotypeName: "Data Element",
-              changedItems: compareMaps(thisDataDictionary.elements, previousDataDictionary.elements))
+
+        StereotypedChange attributeChange = new StereotypedChange(stereotypeName: "Attribute",
+                changedItems: compareMaps(thisDataDictionary.attributes, previousDataDictionary.attributes))
+
+        changedItems += attributeChange
+
+        StereotypedChange elementChange = new StereotypedChange(stereotypeName: "Data Element",
+                changedItems: compareMaps(thisDataDictionary.elements, previousDataDictionary.elements))
+
+        changedItems += elementChange
+
         changedItems += new StereotypedChange(stereotypeName: "Class",
               changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary.classes))
+
+        List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary.dataSets, includeDataSets)
+
         changedItems += new StereotypedChange(stereotypeName: "Data Set",
-              changedItems: compareMaps(thisDataDictionary.dataSets, previousDataDictionary.dataSets))
+              changedItems: dataSetChanges)
         changedItems += new StereotypedChange(stereotypeName: "Data Set Constraint",
               changedItems: compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary.dataSetConstraints))
+
+        if(includeDataSets && dataSetChanges.size() > 0) {
+            Set<NhsDDDataSet> changedDataSets = [] as Set<NhsDDDataSet>
+            dataSetChanges.each { changedItem ->
+                changedDataSets.add((NhsDDDataSet)changedItem.dictionaryComponent)
+            }
+            changedDataSets.each { dataSet ->
+                Set<NhsDDDataSetElement> dataSetElements = dataSet.getAllElements()
+                Set<NhsDDAttribute> dataSetAttributes = [] as Set<NhsDDAttribute>
+                dataSetElements.each {dataSetElement ->
+
+                    elementChange.changedItems.add(new ChangedItem(
+                            dictionaryComponent: dataSetElement.reuseElement,
+                            changes: [new Change(
+                                    changeType: "Data Set Change",
+                                    stereotype: dataSetElement.reuseElement.stereotype,
+                                    oldItem: null,
+                                    newItem: dataSetElement.reuseElement,
+                                    htmlDetail: dataSetElement.reuseElement.description,
+                                    ditaDetail: Div.build {
+                                        div HtmlHelper.replaceHtmlWithDita(dataSetElement.reuseElement.description)
+                                    })]
+                    ))
+                    dataSetAttributes.addAll(((NhsDDElement)dataSetElement.reuseElement).instantiatesAttributes)
+                }
+                dataSetAttributes.each { attribute ->
+
+                    attributeChange.changedItems.add(new ChangedItem(
+                            dictionaryComponent: attribute,
+                            changes: [new Change(
+                                    changeType: "Data Set Change",
+                                    stereotype: attribute.stereotype,
+                                    oldItem: null,
+                                    newItem: attribute,
+                                    htmlDetail: attribute.description,
+                                    ditaDetail: Div.build {
+                                        div HtmlHelper.replaceHtmlWithDita(attribute.description)
+                                    })]
+                    ))
+                }
+            }
+        }
+
         return changedItems
     }
 
     private static List<ChangedItem> compareMaps(
         Map<String, NhsDataDictionaryComponent> newList,
-        Map<String, NhsDataDictionaryComponent> oldList) {
+        Map<String, NhsDataDictionaryComponent> oldList,
+        boolean includeDataSets = false) {
         List<ChangedItem> changedItems = []
         newList.sort{ it.key }.each {name, component ->
             NhsDataDictionaryComponent previousComponent = oldList[name]
-            List<Change> changes = component.getChanges(previousComponent)
+            List<Change> changes = component.getChanges(previousComponent, includeDataSets)
             if (changes) {
                 changedItems.add(new ChangedItem(
                     dictionaryComponent: component,

@@ -191,64 +191,38 @@ class OtherDataSetParser {
         dataModel.addToDataClasses(currentClass)
         List<DataClass> dataClasses = [currentClass]
 
-        table.tbody.tr.eachWithIndex { tr, idx ->
+        table.tbody.tr.eachWithIndex { Node tr, idx ->
+            List<Node> tableCells = DataSetParser.tableRowCells(tr)
+
             //System.err.println("Processing row: " + tr)
-            if (tr.th.size() == 2 && DataSetParser.isSkyBlue(tr.th[0])) {
-                // ignore
-            } else if (tr.td.size() == 2 && DataSetParser.isSkyBlue(tr.td[0])) {
+            if (tableCells.size() == 2 && DataSetParser.isSkyBlue(tableCells[0])) {
                 if (dataModel.label.startsWith("National Joint Registry Data Set") ||
                     dataModel.label.startsWith("National_Joint_Registry_Data_Set")) {
-                    if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
-                        (currentClass.dataClasses && currentClass.dataClasses.size() > 0)) {
+                    if (alreadyHasContent(currentClass)) {
                         currentClass = new DataClass()
                         dataModel.addToDataClasses(currentClass)
                         dataClasses.add(currentClass)
                         elementWebOrder = 0
                     }
-                    DataSetParser.setNameAndDescriptionFromCell(currentClass, (Node) tr.td[1])
-
-                } else {
-                    // ignore
+                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tableCells[1])
                 }
-            } else if (tr.td.size() == 1) {
-                System.err.println(tr.td[0].text())
-                if(tr.td[0].strong.size() > 0) {
-                    System.err.println(tr.td[0].strong[0].text())
-                }
-                       if(tr.td[0].text().startsWith("One of the following")
-                           || tr.td[0].text().startsWith("At least one of the following")
-                           || tr.td[0].text().startsWith("One of the following may be provided per")
-                           || tr.td[0].text().startsWith("One occurrence of this group")) {
-                           //System.err.println("Here")
-                       }  else {
-                           //System.err.println ("Not here!")
-                       }
+            } else if (tableCells.size() == 1 &&
+                        (tableCells[0].text().trim().startsWith("One of the following")
+                           || tableCells[0].text().trim().startsWith("At least one of the following")
+                           || tableCells[0].text().trim().startsWith("One of the following may be provided per")
+                           || tableCells[0].text().trim().startsWith("One occurrence of this group"))) {
                 // ignore
-            } else if (tr.th.size() == 1
-                && (DataSetParser.isSkyBlue(tr.th[0])  || tr.th[0].@class == "duckblue" )) {
-                if (((String) tr.th.text()).toLowerCase() != "data set data elements") {
+            } else if (tableCells.size() == 1
+                && (DataSetParser.isSkyBlue(tableCells[0])  || tableCells[0].attribute("class") == 'duckblue' )) {
+                if (((String) tableCells[0].text()).toLowerCase() != "data set data elements") {
                     // We're starting a new class.  Let's finish with the old one...
-                    if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
-                        (currentClass.dataClasses && currentClass.dataClasses.size() > 0)) {
+                    if (alreadyHasContent(currentClass)) {
                         currentClass = new DataClass()
                         dataModel.addToDataClasses(currentClass)
                         dataClasses.add(currentClass)
                         elementWebOrder = 0
                     }
-                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tr.th[0])
-                }
-            } else if (tr.td.size() == 1
-                && DataSetParser.isSkyBlue(tr.td[0])) {
-                if (((String) tr.td[0].text()).toLowerCase() != "data set data elements") {
-                    // We're starting a new class.  Let's finish with the old one...
-                    if ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
-                        (currentClass.dataClasses && currentClass.dataClasses.size() > 0)) {
-                        currentClass = new DataClass()
-                        dataModel.addToDataClasses(currentClass)
-                        dataClasses.add(currentClass)
-                        elementWebOrder = 0
-                    }
-                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tr.td[0])
+                    DataSetParser.setNameAndDescriptionFromCell(currentClass, tableCells[0])
                 }
             } else {
                 if (!currentClass) { // We're probably in a duckblue section, and there's one table, and it
@@ -258,203 +232,20 @@ class OtherDataSetParser {
                     dataClasses.add(currentClass)
                 } else {
                     CatalogueItem catalogueItem = parseDataElementRow(tr, dataModel, dataDictionary, currentClass)
+                    if(!catalogueItem) {
+                        System.err.println("Cannot parse item from row:")
+                        System.err.println(tr)
+                    }
                     DataSetParser.setOrder(catalogueItem, elementWebOrder)
                     elementWebOrder++
                     if(catalogueItem instanceof DataClass) {
                         currentClass.addToDataClasses(catalogueItem)
                     } else if(catalogueItem instanceof DataElement) {
-
-                        // Shouldn't need to do this any more!
-/*                        if (catalogueItem.dataClass) {
-                            currentClass.addToImportedDataElements(catalogueItem)
-                        } else {
-                            // If the DE has been created/not found in the core DM then we need to add it to the DC rather than import it
-                            currentClass.addToDataElements(catalogueItem)
-                        }
-
- */
-                        //log.debug("Added ${catalogueItem.label} to ${currentClass.label}")
+                        // Ignore
                     }
                 }
-
-
-
-                /*                if (tr.td[1].a.size() == 2 && tr.td[1].em[0].text() == "or") { // a or b
-                                    DataClass choiceClass = new DataClass(label: "Choice " + choiceNo)
-                                    choiceNo++
-                                    Integer choiceElementWebOrder = 0
-                                    tr.td[1].children().each { child ->
-                                        if (child.name() == "a") {
-                                            DataElement dataElement = DataSetParser.getElementFromText(child, dataModel, dataDictionary, choiceClass.label)
-                                            choiceClass.addToDataElements(dataElement)
-                                            DataSetParser.setOrder(dataElement, choiceElementWebOrder)
-                                            choiceElementWebOrder++
-                                        }
-                                    }
-                                    DataSetParser.setChoice(choiceClass)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 2 && tr.td[1].em[0].text() == "and") { // a or b
-                                    DataClass choiceClass = new DataClass(label: "And " + choiceNo)
-                                    choiceNo++
-                                    Integer choiceElementWebOrder = 0
-                                    tr.td[1].children().each { child ->
-                                        if (child.name() == "a") {
-                                            DataElement dataElement = DataSetParser.getElementFromText(child, dataModel, dataDictionary, choiceClass.label)
-                                            choiceClass.addToDataElements(dataElement)
-                                            DataSetParser.setOrder(dataElement, choiceElementWebOrder)
-                                            choiceElementWebOrder++
-                                        }
-                                    }
-                                    DataSetParser.setAnd(choiceClass)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 2 && tr.td[1].em[0].text() == "and/or") { // a or b
-                                    DataClass choiceClass = new DataClass(label: "Choice " + choiceNo)
-                                    DataSetParser.setInclusiveOr(choiceClass)
-                                    choiceNo++
-                                    Integer choiceElementWebOrder = 0
-                                    tr.td[1].children().each { child ->
-                                        if (child.name() == "a") {
-                                            DataElement dataElement = DataSetParser.getElementFromText(child, dataModel, dataDictionary, choiceClass.label)
-                                            choiceClass.addToDataElements(dataElement)
-                                            DataSetParser.setOrder(dataElement, choiceElementWebOrder)
-                                            choiceElementWebOrder++
-                                        }
-                                    }
-                                    DataSetParser.setChoice(choiceClass)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 4 && tr.td[1].em.size() == 1 && tr.td[1].em[0].text() == "or") {
-                                    // a1 - a2 or b1 - b2
-                                    DataClass choiceClass = new DataClass(label: "Choice " + choiceNo)
-                                    choiceNo++
-                                    Integer choiceElementWebOrder = 0
-
-                                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, choiceClass.label)
-                                    choiceClass.addToDataElements(dataElement)
-                                    DataSetParser.setOrder(dataElement, choiceElementWebOrder)
-                                    choiceElementWebOrder++
-
-                                    DataSetParser.setChoice(choiceClass)
-                                    DataSetParser.setAddress(choiceClass)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 4 && tr.td[1].em.size() == 3 && tr.td[1].em[0].text() == "or") {
-                                    // a1 or a2 or a3 or a4
-                                    DataClass choiceClass = new DataClass(label: "Choice " + choiceNo)
-                                    choiceNo++
-                                    Integer choiceElementWebOrder = 0
-
-                                    tr.td[1].a.each { anchor ->
-                                        DataElement dataElement = DataSetParser.getElementFromText(anchor, dataModel, dataDictionary, choiceClass.label)
-                                        choiceClass.addToDataElements(dataElement)
-                                        DataSetParser.setOrder(dataElement, choiceElementWebOrder)
-                                        choiceElementWebOrder++
-                                    }
-                                    DataSetParser.setChoice(choiceClass)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 3 &&
-                                        tr.td[1].em[0].text() == "or" &&
-                                        tr.td[1].em[1].text() == "and") { // a or (b and c)
-                                    DataClass choiceClass = new DataClass(label: "Choice " + choiceNo)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    choiceNo++
-                                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass.label)
-                                    choiceClass.addToDataElements(dataElement)
-                                    DataSetParser.setOrder(dataElement, 0)
-                                    DataSetParser.setChoice(choiceClass)
-
-                                    DataClass andClass = new DataClass(label: "And " + choiceNo)
-                                    DataSetParser.setAnd(andClass)
-                                    choiceNo++
-                                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, currentClass.label)
-                                    DataSetParser.setOrder(dataElement, 0)
-                                    andClass.addToDataElements(dataElement)
-                                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, currentClass.label)
-                                    DataSetParser.setOrder(dataElement, 1)
-                                    andClass.addToDataElements(dataElement)
-                                    choiceClass.addToDataClasses(andClass)
-                                    DataSetParser.setOrder(andClass, 1)
-
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 3 &&
-                                        tr.td[1].em[0].text() == "and" &&
-                                        tr.td[1].em[1].text() == "or") { // (a and b) or c)
-                                    DataClass choiceClass = new DataClass(label: "Choice " + choiceNo)
-                                    DataSetParser.setMRO(choiceClass, tr.td[0].text())
-                                    choiceNo++
-                                    DataSetParser.setChoice(choiceClass)
-
-                                    DataClass andClass = new DataClass(label: "And " + choiceNo)
-                                    DataSetParser.setAnd(andClass)
-                                    choiceNo++
-                                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, choiceClass.label)
-                                    DataSetParser.setOrder(dataElement, 0)
-                                    andClass.addToDataElements(dataElement)
-                                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[1], dataModel, dataDictionary, choiceClass.label)
-                                    DataSetParser.setOrder(dataElement, 1)
-                                    andClass.addToDataElements(dataElement)
-                                    choiceClass.addToDataClasses(andClass)
-                                    DataSetParser.setOrder(andClass, 0)
-
-                                    dataElement = DataSetParser.getElementFromText(tr.td[1].a[2], dataModel, dataDictionary, choiceClass.label)
-                                    choiceClass.addToDataElements(dataElement)
-                                    DataSetParser.setOrder(dataElement, 1)
-
-
-                                    currentClass.addToDataClasses(choiceClass)
-                                    DataSetParser.setOrder(choiceClass, elementWebOrder)
-                                    elementWebOrder++
-
-                                } else if (tr.td[1].a.size() == 3) {
-                                    if (!currentClass) { // We're probably in a duckblue section, and there's one table, and it
-                                        // doesn't have any further header information.
-                                        currentClass = new DataClass()
-                                        dataClasses.add(currentClass)
-                                    }
-                                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a[0], dataModel, dataDictionary, currentClass.label)
-                                    dataElement.description == tr.td[1]
-                                    currentClass.addToDataElements(dataElement)
-                                    DataSetParser.setOrder(dataElement, elementWebOrder)
-                                    elementWebOrder++
-                                } else {
-                                    if (!currentClass) { // We're probably in a duckblue section, and there's one table, and it
-                                        // doesn't have any further header information.
-                                        currentClass = new DataClass()
-                                        dataClasses.add(currentClass)
-                                    }
-                                    DataElement dataElement = DataSetParser.getElementFromText(tr.td[1].a, dataModel, dataDictionary, currentClass.label)
-                                    DataSetParser.setMRO(dataElement, tr.td[0].text())
-                                    currentClass.addToDataElements(dataElement)
-                                    DataSetParser.setOrder(dataElement, elementWebOrder)
-                                    elementWebOrder++
-                                }
-                            */
             }
         }
-        //log.debug("data classes " + dataClasses.size())
-
-        //log.debug(currentClass.dataElements.size())
         return dataClasses
 
     }
@@ -463,14 +254,6 @@ class OtherDataSetParser {
         //log.debug("parseDataElementRow")
         String currentClassName = currentClass.label
         CatalogueItem returnElement = null
-
-        /*GPathResult elementTd = tr.td[0]
-        if(tr.td.size() > 1) {
-            elementTd = tr.td[1]
-        }
-        elementTd.children().each {
-
-        }*/
         List<Node> tds = DataSetParser.tableRowCells(tr)
 
         if(tds.size() == 1) {
@@ -685,6 +468,12 @@ class OtherDataSetParser {
     static int getMultipleOccurrences(String input) {
         return StringUtils.countMatches(input, "Multiple occurrences of this item are permitted") +
                StringUtils.countMatches(input, "Multiple occurrences of this data item are permitted")
+    }
+
+    static boolean alreadyHasContent(DataClass currentClass) {
+        return ((currentClass.dataElements && currentClass.dataElements.size() > 0) ||
+                (currentClass.dataClasses && currentClass.dataClasses.size() > 0) ||
+                (currentClass.importedDataElements && currentClass.importedDataElements.size() > 0))
     }
 
 
