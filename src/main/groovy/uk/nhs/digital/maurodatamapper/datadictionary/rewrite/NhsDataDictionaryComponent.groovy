@@ -32,6 +32,7 @@ import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.Change
 
 import java.util.regex.Matcher
@@ -191,7 +192,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         return """${NhsDataDictionary.WEBSITE_URL}/${getStereotypeForPreview()}/${getNameWithoutNonAlphaNumerics()}.html"""
     }
 
-    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
+    List<Change> getChanges(NhsDataDictionaryComponent previousComponent, boolean includeDataSets = false) {
 
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
@@ -218,12 +219,18 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         } else if(isRetired() && !previousComponent.isRetired()) {
 
             markupBuilder.div {
-                div (class: "old") {
+                /*div (class: "deleted") {
                     mkp.yieldUnescaped(previousComponent.description)
                 }
                 div (class: "new") {
                     mkp.yieldUnescaped(this.description)
+                }*/
+
+                div {
+                    mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
                 }
+
+
             }
 
             changeList += new Change(
@@ -233,21 +240,27 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
                 newItem: this,
                 htmlDetail: stringWriter.toString(),
                 ditaDetail: Div.build {
-                    div (outputClass: "old") {
+                    div (outputClass: "deleted") {
                         div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                        if(previousComponent instanceof NhsDDDataSet) {
+                            div HtmlHelper.replaceHtmlWithDita(previousComponent.outputAsHtml(markupBuilder))
+                        }
                     }
                     div (outputClass: "new") {
                         div HtmlHelper.replaceHtmlWithDita(this.description)
+                        if(this instanceof NhsDDDataSet) {
+                            div HtmlHelper.replaceHtmlWithDita(this.outputAsHtml(markupBuilder))
+                        }
                     }
                 }
             )
         } else if (description != previousComponent.description) {
             markupBuilder.div {
-                div (class: "old") {
-                    mkp.yieldUnescaped(previousComponent.description)
-                }
-                div (class: "new") {
-                    mkp.yieldUnescaped(this.description)
+                div {
+                    mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
+                    if(this instanceof NhsDDDataSet && includeDataSets) {
+                        mkp.yieldUnescaped(((NhsDDDataSet)this).structureAsHtml)
+                    }
                 }
             }
             changeList += new Change(
@@ -257,7 +270,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
                 newItem: this,
                 htmlDetail: stringWriter.toString(),
                 ditaDetail: Div.build {
-                    div (outputClass: "old") {
+                    div (outputClass: "deleted") {
                         div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
                     }
                     div (outputClass: "new") {

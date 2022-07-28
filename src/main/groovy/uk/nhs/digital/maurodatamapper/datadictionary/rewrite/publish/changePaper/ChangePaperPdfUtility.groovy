@@ -36,9 +36,9 @@ import java.util.regex.Matcher
 @Slf4j
 class ChangePaperPdfUtility {
 
-    static File generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, Path outputPath) {
+    static File generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, Path outputPath, boolean includeDataSets = false) {
 
-        ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary)
+        ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
 
         DitaProject ditaProject = new DitaProject().tap {
             title = changePaper.subject
@@ -129,19 +129,19 @@ class ChangePaperPdfUtility {
     }
 
 
-    static String replaceLinksInDescription(String definition, Map<String, String> pathLookup) {
-        if(definition) {
-            Matcher matcher = NhsDataDictionary.pattern.matcher(definition)
+    static String replaceLinksInHtml(String html, Map<String, String> pathLookup) {
+        if(html) {
+            Matcher matcher = NhsDataDictionary.pattern.matcher(html)
             while(matcher.find()) {
                 String matchedUrl = pathLookup[matcher.group(1)]
                 if(matchedUrl) {
                     String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
-                    definition = definition.replace(matcher.group(0), replacement)
+                    html = html.replace(matcher.group(0), replacement)
                     // System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
                 }
             }
         }
-        return definition
+        return html
     }
 
 
@@ -169,6 +169,7 @@ class ChangePaperPdfUtility {
 
     static List<Topic> generateChangeTopics(StereotypedChange stereotypedChange, Map<String, String> pathLookup) {
         List<Topic> topics = []
+
         stereotypedChange.changedItems.each {changedItem ->
             //String newDefinition = replaceLinksInDescription(changedItem.dictionaryComponent.description, pathLookup)
 
@@ -180,7 +181,9 @@ class ChangePaperPdfUtility {
                 shortdesc "Change to ${stereotypedChange.stereotypeName}: ${changeText}"
 
                 changedItem.changes.each {change ->
-                    String newChangeDetails = replaceLinksInDescription(change.htmlDetail, pathLookup)
+                    System.err.println(change.htmlDetail)
+                    String newChangeDetails = replaceLinksInHtml(change.htmlDetail, pathLookup)
+                    System.err.println(newChangeDetails)
                     body {
                         div HtmlHelper.replaceHtmlWithDita(newChangeDetails)
                     }

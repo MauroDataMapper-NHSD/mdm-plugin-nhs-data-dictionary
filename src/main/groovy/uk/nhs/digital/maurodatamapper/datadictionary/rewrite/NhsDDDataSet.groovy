@@ -117,6 +117,8 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     String getStructureAsHtml() {
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+        markupBuilder.setEscapeAttributes(false)
+        markupBuilder.setDoubleQuotes(true)
         if(name.startsWith("CDS")) {
             outputAsCdsHtml(markupBuilder)
         } else {
@@ -172,7 +174,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
                         markupBuilder.tr {
                             td ""
                             td {
-                                dataElement.createHtmlLink(markupBuilder)
+                                dataElement.createLink(markupBuilder)
                             }
                         }
                     }
@@ -188,5 +190,13 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         }
     }
 
+
+    Set<NhsDDDataSetElement> getAllElements() {
+        Set<NhsDDDataSetElement> dataSetElements = [] as Set<NhsDDDataSetElement>
+        dataSetClasses.each {dataSetClass ->
+            dataSetElements.addAll(dataSetClass.getAllElements())
+        }
+        return dataSetElements
+    }
 
 }

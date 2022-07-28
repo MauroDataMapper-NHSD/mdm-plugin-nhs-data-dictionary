@@ -38,11 +38,21 @@ class NhsDDDataSetElement{
         this.name = dataElement.label
         this.elementId = dataElement.id
         this.dataDictionary = dataDictionary
+        this.reuseElement = dataDictionary.elements[dataElement.label]
     }
 
     def createHtmlLink(MarkupBuilder markupBuilder) {
         String link = "#/preview/${dataDictionary.containingVersionedFolder.id.toString()}/element/${elementId.toString()}"
         markupBuilder.a (href: link, class: "element") {
+            mkp.yield(name)
+        }
+
+    }
+
+    def createLink(MarkupBuilder markupBuilder) {
+        String link = reuseElement.getMauroPath()
+        System.err.println(link)
+        markupBuilder.a (href: link) {
             mkp.yield(name)
         }
 

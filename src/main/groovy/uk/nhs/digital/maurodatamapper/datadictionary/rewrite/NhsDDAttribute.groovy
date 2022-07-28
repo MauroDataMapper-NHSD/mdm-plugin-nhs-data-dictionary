@@ -65,8 +65,8 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
             xml."code-system"[0].Bundle.entry.resource.CodeSystem.concept.each {concept ->
                 NhsDDCode code = new NhsDDCode(this)
 
-                code.code = concept.code.@value.toString()
-                code.definition = concept.display.@value.toString()
+                code.code = concept.code[0].@value.toString()
+                code.definition = concept.display[0].@value.toString()
 
                 code.publishDate = concept.property.find {it.code."@value" == "Publish Date"}?.valueDateTime?."@value"?.text()
                 code.isRetired = concept.property.find {it.code."@value" == "Status"}?.valueString?."@value"?.text() == "retired"

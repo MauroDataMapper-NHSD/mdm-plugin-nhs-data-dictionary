@@ -33,6 +33,7 @@ repositories {
     maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-release"}
     maven {url "https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot"}
     maven {url "https://repo.grails.org/grails/core"}
+    maven {url "https://packages.atlassian.com/mvn/maven-atlassian-external"}
 }
 
 configurations {

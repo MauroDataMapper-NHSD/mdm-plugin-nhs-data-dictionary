@@ -243,6 +243,9 @@ class DataSetParser {
     }
 
     static void setOrder(MetadataAware item, Integer order) {
+        if(!item) {
+            log.error("Setting order on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -251,6 +254,9 @@ class DataSetParser {
     }
 
     static void setChoice(MetadataAware item) {
+        if(!item) {
+            log.error("Setting choice on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -259,6 +265,10 @@ class DataSetParser {
     }
 
     static void setAnd(MetadataAware item) {
+        if(!item) {
+            log.error("Setting choice on null element!")
+        }
+
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -267,6 +277,10 @@ class DataSetParser {
     }
 
     static void setAddress(MetadataAware item) {
+        if(!item) {
+            log.error("Setting address on null element!")
+        }
+
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -275,6 +289,9 @@ class DataSetParser {
     }
 
     static void setNameChoice(MetadataAware item) {
+        if(!item) {
+            log.error("Setting name choice on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -283,6 +300,10 @@ class DataSetParser {
     }
 
     static void setInclusiveOr(MetadataAware item) {
+        if(!item) {
+            log.error("Setting inclusive or on null element!")
+        }
+
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -291,6 +312,9 @@ class DataSetParser {
     }
 
     static void setDataSetReference(MetadataAware item) {
+        if(!item) {
+            log.error("Setting data set reference on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -307,6 +331,10 @@ class DataSetParser {
     }
 
     static void setDataSetReferenceTo(MetadataAware item, String dataSetName) {
+        if(!item) {
+            log.error("Setting data set reference to on null element!")
+        }
+
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -320,6 +348,10 @@ class DataSetParser {
     }
 
     static void setMultiplicityText(MetadataAware item, String multiplicity) {
+        if(!item) {
+            log.error("Setting multiplicity text on null element!")
+        }
+
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -332,6 +364,9 @@ class DataSetParser {
     }
 
     static void setMRO(MetadataAware item, String mro) {
+        if(!item) {
+            log.error("Setting MRO on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -348,6 +383,9 @@ class DataSetParser {
     }
 
     static void setRules(MetadataAware item, String rules) {
+        if(!item) {
+            log.error("Setting rules on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -360,6 +398,9 @@ class DataSetParser {
     }
 
     static void setGroupRepeats(MetadataAware item, String groupRepeats) {
+        if(!item) {
+            log.error("Setting group repeats on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
@@ -373,6 +414,9 @@ class DataSetParser {
 
 
     static void setNotOption(MetadataAware item) {
+        if(!item) {
+            log.error("Setting not option on null element!")
+        }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {

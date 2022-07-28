@@ -44,6 +44,8 @@ class DataSetParserSpec extends BaseIntegrationSpec {
         "AIDC for Patient Identification Data Set",
         "Inter-provider Transfer Administrative Minimum Data Set",
         "CDS V6-3 Type 180 - Admitted Patient Care - Unfinished Birth Episode CDS",
+        "Venous Thromboembolism Risk Assessment Data Set",
+        "Cancer Outcomes and Services Data Set - Central Nervous System"
     ]
 
     DataModel parseDataSet(String filename) {
@@ -79,7 +81,7 @@ class DataSetParserSpec extends BaseIntegrationSpec {
 
         where:
             filename << testFiles
-            elements << [24,19, 36, 244]
+            elements << [24,19, 36, 244, 5, 14]
 
     }
 

@@ -43,6 +43,9 @@ class Change {
         if(changeType == "Description") {
             return "Changed description"
         }
+        if(changeType == "Data Set Change") {
+            return "Changed Data Set"
+        }
     }
 
 }
