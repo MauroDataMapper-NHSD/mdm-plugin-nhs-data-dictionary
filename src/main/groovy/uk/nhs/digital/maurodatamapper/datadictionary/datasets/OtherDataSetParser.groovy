@@ -187,7 +187,7 @@ class OtherDataSetParser {
                                                NhsDataDictionary dataDictionary,
                                                Integer choiceNo = 1) {
         Integer elementWebOrder = 0
-        DataClass currentClass = new DataClass(label: "Test Class")
+        DataClass currentClass = new DataClass()
         dataModel.addToDataClasses(currentClass)
         List<DataClass> dataClasses = [currentClass]
 
@@ -213,7 +213,7 @@ class OtherDataSetParser {
                            || tableCells[0].text().trim().startsWith("One occurrence of this group"))) {
                 // ignore
             } else if (tableCells.size() == 1
-                && (DataSetParser.isSkyBlue(tableCells[0])  || tableCells[0].attribute("class") == 'duckblue' )) {
+                && (DataSetParser.isSkyBlue(tableCells[0]))) {
                 if (((String) tableCells[0].text()).toLowerCase() != "data set data elements") {
                     // We're starting a new class.  Let's finish with the old one...
                     if (alreadyHasContent(currentClass)) {
