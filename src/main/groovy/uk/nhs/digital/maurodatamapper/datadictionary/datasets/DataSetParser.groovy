@@ -485,7 +485,7 @@ class DataSetParser {
     }
 
     static void setNameAndDescriptionFromCell(DataClass dataClass, Node cell) {
-        String cellContent = cell.text()
+        String cellContent = cell.text().trim()
         // log.debug(cellContent)
         int colonIndex = cellContent.indexOf(":")
 
@@ -511,7 +511,7 @@ class DataSetParser {
                 } else if ((!dataClass.label || dataClass.label == "") && cellContent.contains(".")) {
                     int detailsLocation = cellContent.indexOf(".")
                     dataClass.label = cellContent.subSequence(0, detailsLocation)
-                    dataClass.description = cellContent
+                    dataClass.description = cellContent.substring(detailsLocation + 1)
                 } else {
                     if (dataClass.label && dataClass.label != "" && (!dataClass.description || dataClass.description == "")) {
                         dataClass.description = cellContent
@@ -521,6 +521,7 @@ class DataSetParser {
                 }
             }
         }
+        dataClass.label = dataClass.label.trim()
         dataClass.description = dataClass.description?.trim() ?: null
     }
 
