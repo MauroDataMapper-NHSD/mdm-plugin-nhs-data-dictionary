@@ -24,21 +24,29 @@ import groovy.xml.MarkupBuilder
 class NhsDDDataSetElement{
 
     String name
+    String description
 
     String mandation
     String minMultiplicity
     String maxMultiplicity
     String constraints
     UUID elementId
+    boolean retired
 
     NhsDDElement reuseElement
     NhsDataDictionary dataDictionary
 
-    NhsDDDataSetElement(DataElement dataElement, NhsDataDictionary dataDictionary) {
+    NhsDDDataSetElement(DataElement dataElement) {
         this.name = dataElement.label
         this.elementId = dataElement.id
-        this.dataDictionary = dataDictionary
-        this.reuseElement = dataDictionary.elements[dataElement.label]
+    }
+    NhsDDDataSetElement(DataElement dataElement, NhsDataDictionary dataDictionary) {
+        this(dataElement)
+
+        if(dataDictionary) {
+            this.dataDictionary = dataDictionary
+            this.reuseElement = dataDictionary.elements[dataElement.label]
+        }
     }
 
     def createHtmlLink(MarkupBuilder markupBuilder) {
@@ -50,8 +58,15 @@ class NhsDDDataSetElement{
     }
 
     def createLink(MarkupBuilder markupBuilder) {
-        String link = reuseElement.getMauroPath()
-        System.err.println(link)
+        String link
+
+        if(isRetired()) {
+            link = "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
+        } else {
+            link = "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
+        }
+
+
         markupBuilder.a (href: link) {
             mkp.yield(name)
         }

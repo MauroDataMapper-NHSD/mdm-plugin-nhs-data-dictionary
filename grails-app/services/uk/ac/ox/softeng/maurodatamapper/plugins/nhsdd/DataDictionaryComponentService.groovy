@@ -105,6 +105,11 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
     List<StereotypedCatalogueItem> getWhereUsed(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
+        dataDictionary.allComponents.each {
+            if(!it.definition) {
+                System.err.println("null definition!" + it.name)
+            }
+        }
         NhsDataDictionaryComponent component = getByCatalogueItemId(UUID.fromString(id), dataDictionary)
         String itemLink = component.getMauroPath()
         List<NhsDataDictionaryComponent> whereUsedComponents = dataDictionary.getAllComponents().
@@ -350,7 +355,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
     void nhsDataDictionaryComponentFromItem(T catalogueItem, NhsDataDictionaryComponent component) {
         component.name = catalogueItem.label
-        component.definition = catalogueItem.description
+        component.definition = catalogueItem.description?:""
         component.catalogueItem = catalogueItem
 
 

@@ -17,9 +17,8 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils
 
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
-
 import groovy.transform.Sortable
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
@@ -28,12 +27,12 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryCo
  */
 @Sortable(includes = 'label')
 class StereotypedCatalogueItem {
-    CatalogueItem catalogueItem
+    MdmDomain catalogueItem
     String label
     String stereotype
     Boolean isRetired
 
-    StereotypedCatalogueItem(CatalogueItem catalogueItem, String stereotype) {
+    StereotypedCatalogueItem(MdmDomain catalogueItem, String stereotype) {
         this.catalogueItem = catalogueItem
         this.stereotype = stereotype
         this.isRetired = catalogueItem.metadata.find {

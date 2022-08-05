@@ -39,12 +39,17 @@ class NhsDDDataSetClass {
 
     NhsDataDictionary dataDictionary
 
-    NhsDDDataSetClass(DataClass dataClass, NhsDataDictionary dataDictionary) {
+    NhsDDDataSetClass(DataClass dataClass) {
         this.name = dataClass.label
         this.description = dataClass.description
         isChoice = DataSetParser.isChoice(dataClass)
         mandation = DataSetParser.getMRO(dataClass)
         constraints = DataSetParser.getRules(dataClass)
+    }
+
+
+    NhsDDDataSetClass(DataClass dataClass, NhsDataDictionary dataDictionary) {
+        this(dataClass)
 
         this.dataDictionary = dataDictionary
 
@@ -55,7 +60,9 @@ class NhsDDDataSetClass {
         }
         dataClass.getImportedDataElements().each {dataElement ->
             dataSetElements.add(new NhsDDDataSetElement(dataElement, dataDictionary))
-
+        }
+        dataClass.getDataElements().each { dataElement ->
+                dataSetElements.add(new NhsDDDataSetElement(dataElement, dataDictionary))
         }
 
     }

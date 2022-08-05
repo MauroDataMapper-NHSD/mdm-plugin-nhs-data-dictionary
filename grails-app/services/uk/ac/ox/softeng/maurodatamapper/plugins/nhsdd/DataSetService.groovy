@@ -64,6 +64,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         nhsDataDictionary.containingVersionedFolder = thisVersionedFolder
         NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, nhsDataDictionary)
         dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
+        dataSet.htmlStructure = convertLinksInDescription(versionedFolderId, dataSet.getStructureAsHtml())
         return dataSet
     }
 
@@ -101,7 +102,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem, NhsDataDictionary dataDictionary) {
         NhsDDDataSet dataSet = new NhsDDDataSet()
         nhsDataDictionaryComponentFromItem(catalogueItem, dataSet)
-        catalogueItem.childDataClasses.sort {dataClass ->
+        catalogueItem.childDataClasses.sort { dataClass ->
             DataSetParser.getOrder(dataClass)
         }.each {dataClass ->
             dataSet.dataSetClasses.add(new NhsDDDataSetClass(dataClass, dataDictionary))

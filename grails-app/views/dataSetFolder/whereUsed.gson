@@ -1,0 +1,7 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+
+model {
+  List<StereotypedCatalogueItem> stereotypedCatalogueItemList
+}
+
+json g.render(stereotypedCatalogueItemList)
