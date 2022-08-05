@@ -19,8 +19,9 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MultiFacetAware
 
-abstract class DataDictionaryComponentController<T extends CatalogueItem> {
+abstract class DataDictionaryComponentController<T extends MultiFacetAware> {
 	static responseFormats = ['json', 'xml']
 
     DataSetService dataSetService
@@ -30,6 +31,7 @@ abstract class DataDictionaryComponentController<T extends CatalogueItem> {
     BusinessDefinitionService businessDefinitionService
     SupportingInformationService supportingInformationService
     DataSetConstraintService dataSetConstraintService
+    DataSetFolderService dataSetFolderService
 
     NhsDataDictionaryService nhsDataDictionaryService
 

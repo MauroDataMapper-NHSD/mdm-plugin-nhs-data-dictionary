@@ -1,0 +1,8 @@
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+
+model {
+    Iterable<Folder> folderList
+}
+
+json g.render(folderList.collect {new StereotypedCatalogueItem(it, "dataSetFolder")})

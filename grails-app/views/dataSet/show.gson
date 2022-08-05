@@ -6,5 +6,5 @@ model {
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDDataSet, stereotype: "dataSet"]
 json {
 
-    definition nhsDDDataSet.getStructureAsHtml()
+    definition nhsDDDataSet.htmlStructure
 }

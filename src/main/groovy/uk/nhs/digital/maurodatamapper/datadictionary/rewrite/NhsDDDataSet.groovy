@@ -29,6 +29,8 @@ import groovy.xml.XmlUtil
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
+
+
     @Override
     String getStereotype() {
         "Data Set"
@@ -43,6 +45,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     List<String> path = []
     String definitionAsXml
     String overviewPageUrl
+    String htmlStructure
 
     boolean isCDS
 

@@ -27,6 +27,9 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.diff.tridirectional.MergeDiff
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLink
+import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.VersionLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.model.VersionTreeModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -104,6 +107,7 @@ class NhsDataDictionaryService {
     VersionedFolderService versionedFolderService
     MetadataService metadataService
     TermService termService
+    VersionLinkService versionLinkService
 
     DataSetService dataSetService
     ClassService classService
@@ -650,7 +654,14 @@ class NhsDataDictionaryService {
     File generateChangePaper(UUID versionedFolderId, boolean includeDataSets = false, boolean isTest = false) {
 
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
-        VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+
+        VersionedFolder previousVersion
+        if(thisDictionary.isFinalised()) {
+            previousVersion = versionedFolderService.get(versionLinkService.findBySourceModelAndLinkType(thisDictionary, VersionLinkType.NEW_MODEL_VERSION_OF)?.targetModelId)
+            System.err.println(previousVersion.label)
+        } else {
+            previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
+        }
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 

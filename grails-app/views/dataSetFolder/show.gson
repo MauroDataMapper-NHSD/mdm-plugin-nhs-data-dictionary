@@ -1,0 +1,12 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+
+model {
+    NhsDDDataSetFolder nhsDDDataSetFolder
+}
+inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDDataSetFolder, stereotype: "dataSetFolder"]
+json {
+    childFolders g.render(nhsDDDataSetFolder.childFolders.values().sort{it.name}.collect {new StereotypedCatalogueItem(it.catalogueItem, "dataSetFolder")})
+    dataSets g.render(nhsDDDataSetFolder.dataSets.values().sort{it.name}.collect {new StereotypedCatalogueItem(it.catalogueItem, "dataSet")})
+
+}

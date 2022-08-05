@@ -19,11 +19,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
@@ -31,18 +33,41 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Transactional
 class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDDataSetFolder> {
 
+    @Autowired
+    DataSetService dataSetService
+
     @Override
     NhsDDDataSetFolder show(UUID versionedFolderId, String id) {
-        Folder folderFolder = folderService.get(id)
+        Folder folderFolder
+        if(id && id != "root") {
+            folderFolder = folderService.get(id)
+        } else {
+            VersionedFolder vf = versionedFolderService.get(versionedFolderId)
+            folderFolder = vf.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
+        }
         NhsDDDataSetFolder dataSetFolder = getNhsDataDictionaryComponentFromCatalogueItem(folderFolder, null, [])
         dataSetFolder.definition = convertLinksInDescription(versionedFolderId, dataSetFolder.getDescription())
-        List<String> folderPath = [folderFolder.label]
-        Folder parentFolder = (Folder) folderFolder.getParent()
-        while(parentFolder.label != "Data Sets") {
-            folderPath.add(0, parentFolder.label)
-            parentFolder = (Folder) parentFolder.getParent()
+        if(id && id != 'root') {
+            List<String> folderPath = [folderFolder.label]
+            Folder parentFolder = (Folder) folderFolder.getParent()
+            while(parentFolder.label != "Data Sets") {
+                folderPath.add(0, parentFolder.label)
+                parentFolder = (Folder) parentFolder.getParent()
+            }
+            dataSetFolder.folderPath = folderPath
         }
-        dataSetFolder.folderPath = folderPath
+        folderFolder.childFolders.each { it ->
+            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, null, [])
+            dataSetFolder.childFolders[it.label] = childFolder
+        }
+        dataModelService.findAllByFolderId(folderFolder.id).each {
+            NhsDDDataSet childDataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(it, null)
+            dataSetFolder.dataSets[it.label] = childDataSet
+        }
+        folderFolder.childFolders.each { it ->
+            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, null, [])
+            dataSetFolder.childFolders[it.label] = childFolder
+        }
         return dataSetFolder
     }
 

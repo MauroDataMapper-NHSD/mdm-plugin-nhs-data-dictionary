@@ -83,6 +83,9 @@ class UrlMappings {
                         '/dataSetConstraints'(resources: 'dataSetConstraint', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
                             "/whereUsed"(controller: 'dataSetConstraint', action: 'whereUsed')
                         }
+                        '/dataSetFolders'(resources: 'dataSetFolder', excludes: DEFAULT_EXCLUDES_AND_NO_SAVE) {
+                            "/whereUsed"(controller: 'dataSetFolder', action: 'whereUsed')
+                        }
                     }
                 }
             }
