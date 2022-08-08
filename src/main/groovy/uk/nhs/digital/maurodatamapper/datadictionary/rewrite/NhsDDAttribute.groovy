@@ -62,18 +62,22 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
 
         if (xml."code-system".size() > 0) {
             codesVersion = xml."code-system"[0].Bundle.entry.resource.CodeSystem.version."@value".text()
-            xml."code-system"[0].Bundle.entry.resource.CodeSystem.concept.each {concept ->
+            xml."code-system"[0].Bundle.entry.resource.CodeSystem.concept.each {Node concept ->
                 NhsDDCode code = new NhsDDCode(this)
 
                 code.code = concept.code[0].@value.toString()
                 code.definition = concept.display[0].@value.toString()
 
-                code.publishDate = concept.property.find {it.code."@value" == "Publish Date"}?.valueDateTime?."@value"?.text()
-                code.isRetired = concept.property.find {it.code."@value" == "Status"}?.valueString?."@value"?.text() == "retired"
-                code.retiredDate = concept.property.find {it.code."@value" == "Retired Date"}?.valueDateTime?."@value"?.text()
-                code.webOrder = concept.property.find {it.code."@value" == "Web Order"}?.valueInteger?."@value"?.text()
-                code.webPresentation = unquoteString(concept.property.find {it.code."@value" == "Web Presentation"}?.valueString?."@value"?.text())
+                code.publishDate = concept.property.find {it.code[0].@value == "Publish Date"}?.valueDateTime[0].@value
+                code.isRetired = concept.property.find {it.code[0].@value == "Status"}?.valueString[0]?.@value == "retired"
+                if(code.isRetired) {
+                    code.retiredDate = concept.property.find {it.code[0].@value == "Retired Date"}?.valueDateTime[0]?.@value
+                }
+                code.webOrder = concept.property.find {it.code[0].@value == "Web Order"}?.valueInteger[0]?.@value
+                code.webPresentation = unquoteString(concept.property.find {it.code[0].@value == "Web Presentation"}?.valueString?[0]?.@value)
                 code.isDefault = (code.webOrder == null || code.webOrder == "0")
+
+
                 codes.add(code)
             }
         }

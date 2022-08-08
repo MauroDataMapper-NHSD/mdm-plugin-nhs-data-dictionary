@@ -171,14 +171,19 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
             if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
                 return otherProperties["attributeText"] + definition
             } else {
-                return "<p>" +
-                        "<a href=\"${getMauroPath()}\">" +
-                        getNameWithRetired() +
-                        "</a> is the same as attribute " +
-                        "<a href=\"${instantiatesAttributes[0].getMauroPath()}\"'>" +
-                        instantiatesAttributes[0].getNameWithRetired() +
-                        "</a>.</p>" +
-                        definition
+                if(instantiatesAttributes.size() == 1) {
+
+                    return "<p>" +
+                            "<a href=\"${getMauroPath()}\">" +
+                            getNameWithRetired() +
+                            "</a> is the same as attribute " +
+                            "<a href=\"${instantiatesAttributes[0].getMauroPath()}\"'>" +
+                            instantiatesAttributes[0].getNameWithRetired() +
+                            "</a>.</p>" +
+                            definition
+                } else {
+                    return definition
+                }
             }
         }
     }
