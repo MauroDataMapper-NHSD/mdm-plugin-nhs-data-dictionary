@@ -50,7 +50,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     @Autowired
     MessageSource messageSource
 
-    static XmlParser xmlParser = new XmlParser()
+    static XmlParser xmlParser = new XmlParser(false, false)
     static {
         xmlParser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
     }

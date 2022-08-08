@@ -58,7 +58,6 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
 
     abstract String calculateShortDescription()
 
-
     boolean isRetired() {
         "true" == otherProperties["isRetired"]
     }
@@ -467,7 +466,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
     }
 
 
-    String getFirstSentence(String html = this.definition) {
+    String getFirstSentence(String html = this.getDescription()) {
         getSentence(html, 0)
     }
 

@@ -17,12 +17,19 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
+import groovy.util.Node
+import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Format
 
 import groovy.util.logging.Slf4j
+import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
@@ -104,7 +111,25 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
             nhsDDAttribute.instantiatedByElements.add(this)
         }
 
+
+        if(!isRetired()) {
+            if (definition.find(regex)) {
+                definition = definition.replaceFirst(regex, "").trim()
+            } else {
+                Node definitionXml = HtmlHelper.tidyAndConvertToNode("<p>" + definition + "<p>")
+                Node firstParagraph = definitionXml.children().find{it instanceof Node && it.name() == 'p'}
+                firstParagraph.parent().remove(firstParagraph)
+
+                otherProperties["attributeText"] = XmlUtil.serialize(firstParagraph).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
+                definition = XmlUtil.serialize(definitionXml).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
+
+            }
+        }
+
     }
+
+    //final String regex = "<a[^>]*>[^<]*<\\/a> is the same as attribute\\W<a[^>]*>[^<]*<\\/a>\\s*\\."
+    final String regex = "<a[^>]*>[^<]*</a>\\W+is\\s+the\\s+same\\s+as\\s+attribute\\W+<a[^>]*>[^<]*</a>\\s*\\."
 
     String getMauroPath() {
         if(isRetired()) {
@@ -130,6 +155,31 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
         if(otherProperties["formatLink"] && pathLookup[otherProperties["formatLink"]]) {
             formatLinkXref = pathLookup[otherProperties["formatLink"]].calculateXRef()
+        }
+        if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
+            otherProperties["attributeText"] = replaceLinksInString(otherProperties["attributeText"], pathLookup)
+        }
+    }
+
+    @Override
+    String getDescription() {
+        if(dataDictionary && isRetired()) {
+            return dataDictionary.retiredItemText
+        } else if(dataDictionary && isPreparatory()) {
+            return dataDictionary.preparatoryItemText
+        } else {
+            if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
+                return otherProperties["attributeText"] + definition
+            } else {
+                return "<p>" +
+                        "<a href=\"${getMauroPath()}\">" +
+                        getNameWithRetired() +
+                        "</a> is the same as attribute " +
+                        "<a href=\"${instantiatesAttributes[0].getMauroPath()}\"'>" +
+                        instantiatesAttributes[0].getNameWithRetired() +
+                        "</a>.</p>" +
+                        definition
+            }
         }
     }
 

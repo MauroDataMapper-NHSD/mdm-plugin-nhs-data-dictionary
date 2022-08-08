@@ -46,7 +46,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-
+import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
@@ -338,6 +338,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
     void addMetadataFromComponent(T domainObject, NhsDataDictionaryComponent component, String currentUserEmailAddress) {
         component.otherProperties.each {key, value ->
+            if(!NhsDataDictionary.KEYS_FOR_INGEST_ONLY.contains(key))
             addToMetadata(domainObject, key, value, currentUserEmailAddress)
         }
     }

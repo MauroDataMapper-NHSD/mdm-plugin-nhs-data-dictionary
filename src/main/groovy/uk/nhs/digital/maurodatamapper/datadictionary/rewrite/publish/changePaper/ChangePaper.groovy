@@ -116,7 +116,7 @@ class ChangePaper {
 
 /*    static void main(String[] args) {
 
-        XmlParser xmlParser = new XmlParser()
+        XmlParser xmlParser = new XmlParser(false, false)
         //Node node1 = xmlParser.parseText(example1)
         //Node node2 = xmlParser.parseText(example2)
 
