@@ -431,7 +431,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     def loadXml(String filename) {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
-        def xml = new XmlParser().parse(Files.newBufferedReader(testFilePath))
+        def xml = new XmlParser(false, false).parse(Files.newBufferedReader(testFilePath))
         xml
     }
 

@@ -73,6 +73,24 @@ pipeline {
             }
         }
 
+        // Deploy develop branch even if tests fail if the code builds, as it'll be an unstable snapshot but we should still deploy
+        stage('Deploy develop to Artifactory') {
+            when {
+                allOf {
+                    branch 'develop'
+                    expression {
+                        currentBuild.currentResult == 'SUCCESS'
+                    }
+                }
+
+            }
+            steps {
+                script {
+                    sh "./gradlew --build-cache publish"
+                }
+            }
+        }
+
         stage('Unit Test') {
 
             steps {
@@ -119,7 +137,6 @@ pipeline {
                 allOf {
                     anyOf {
                         branch 'main'
-                        branch 'develop'
                     }
                     expression {
                         currentBuild.currentResult == 'SUCCESS'
@@ -129,7 +146,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "./gradlew publish"
+                    sh "./gradlew --build-cache publish"
                 }
             }
         }

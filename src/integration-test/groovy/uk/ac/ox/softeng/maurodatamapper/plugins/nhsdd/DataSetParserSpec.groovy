@@ -37,7 +37,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 class DataSetParserSpec extends BaseIntegrationSpec {
 
 
-    static XmlParser xmlParser = new XmlParser()
+    static XmlParser xmlParser = new XmlParser(false, false)
 
     static List<String> testFiles = [
         "Cover of Vaccination Evaluated Rapidly (Cover) Data Set",

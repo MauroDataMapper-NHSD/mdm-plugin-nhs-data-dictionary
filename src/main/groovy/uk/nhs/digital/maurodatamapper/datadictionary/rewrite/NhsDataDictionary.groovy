@@ -271,6 +271,7 @@ class NhsDataDictionary {
         getAllComponents().each {component ->
             component.definition = replaceUrls(component.definition, replacements, unmatchedUrls, component.name)
             if(component instanceof NhsDDElement) {
+
                 ((NhsDDElement)component).codes.each {code ->
                     if(code.webPresentation) {
                         code.webPresentation = replaceUrls(code.webPresentation, replacements, unmatchedUrls, component.name)
@@ -280,6 +281,10 @@ class NhsDataDictionary {
                 if(formatLink && replacements[formatLink]) {
                     ((NhsDDElement)component).otherProperties["formatLink"] = replacements[formatLink]
                 }
+                if(component.otherProperties["attributeText"] && component.otherProperties["attributeText"] != "") {
+                    component.otherProperties["attributeText"] = replaceUrls(component.otherProperties["attributeText"], replacements, unmatchedUrls, component.name)
+                }
+
             }
             if(component instanceof NhsDDAttribute) {
                 ((NhsDDAttribute)component).codes.each {code ->
@@ -320,7 +325,8 @@ class NhsDataDictionary {
 
         // These fields are not part of the original ingest from xml but calculated subsequently.
         // Another approach would be to enumerate all the profile definitions from this plugin and list all their keys
-        allKeys.addAll(["shortDescription","overview","linkedAttributes","noAliasesRequired","approvingOrganisation"])
+        allKeys.addAll(["shortDescription","overview","linkedAttributes","noAliasesRequired","approvingOrganisation", "attributeText"])
+        allKeys.removeAll(KEYS_FOR_INGEST_ONLY)
         return allKeys
     }
 
@@ -340,6 +346,14 @@ class NhsDataDictionary {
         "aliasSnomedCTRefsetName": "SNOMED CT Refset Name"
     ]
 
+    static List<String> KEYS_FOR_INGEST_ONLY = [
+            "uin",
+            "baseUri",
+            "ultimatePath",
+            "ddUrl",
+            "search",
+            "baseVersion"
+    ]
 
     static final Map<String, String> METADATA_FIELD_MAPPING = [
         // Aliases
