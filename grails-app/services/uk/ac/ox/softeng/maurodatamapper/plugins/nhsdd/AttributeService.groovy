@@ -50,6 +50,11 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
         NhsDDAttribute attribute = getNhsDataDictionaryComponentFromCatalogueItem(attributeElement, nhsDataDictionaryService.newDataDictionary())
         attribute.instantiatedByElements.addAll (elementService.getAllForAttribute(versionedFolderId, attribute))
         attribute.definition = convertLinksInDescription(versionedFolderId, attribute.getDescription())
+        attribute.codes.each {code ->
+            if(code.webPresentation) {
+                code.webPresentation = convertLinksInDescription(versionedFolderId, code.webPresentation)
+            }
+        }
         return attribute
     }
 

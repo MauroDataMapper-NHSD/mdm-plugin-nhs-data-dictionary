@@ -57,6 +57,9 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, nhsDataDictionaryService.newDataDictionary())
         element.instantiatesAttributes.addAll(attributeService.getAllForElement(versionedFolderId, element))
         element.definition = convertLinksInDescription(versionedFolderId, element.getDescription())
+        element.codes.each {code ->
+            code.webPresentation = convertLinksInDescription(versionedFolderId, code.webPresentation)
+        }
         return element
     }
 
