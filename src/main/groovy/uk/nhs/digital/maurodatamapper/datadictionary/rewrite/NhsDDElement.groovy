@@ -45,6 +45,12 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 
 
+    @Override
+    String getPluralStereotypeForWebsite() {
+        "elements"
+    }
+
+
 
     List<NhsDDCode> codes = []
 

@@ -34,7 +34,7 @@ import java.util.regex.Pattern
 class NhsDataDictionary {
 
 
-    static final String WEBSITE_URL = "https://www.datadictionary.nhs.uk/"
+    static final String WEBSITE_URL = "https://www.datadictionary.nhs.uk"
 
     static final String METADATA_NAMESPACE = "uk.nhs.datadictionary"
     static final String DEFAULT_PROFILE_NAMESPACE = "default.profile"

@@ -39,6 +39,12 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
         "dataSet"
     }
 
+
+    @Override
+    String getPluralStereotypeForWebsite() {
+        "data_sets"
+    }
+
     @Override
     boolean isValidXmlNode(def xmlNode) {
         return xmlNode."name".text().contains("Introduction") &&

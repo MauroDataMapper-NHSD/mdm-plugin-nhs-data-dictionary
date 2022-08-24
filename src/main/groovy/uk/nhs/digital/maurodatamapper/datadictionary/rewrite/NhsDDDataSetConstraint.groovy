@@ -35,6 +35,11 @@ class NhsDDDataSetConstraint implements NhsDataDictionaryComponent <Term> {
 
 
     @Override
+    String getPluralStereotypeForWebsite() {
+        "xml_schema_constraints"
+    }
+
+    @Override
     String calculateShortDescription() {
         if (isPreparatory()) {
             return "This item is being used for development purposes and has not yet been approved."

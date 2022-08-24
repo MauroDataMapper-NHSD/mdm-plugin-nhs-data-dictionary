@@ -747,7 +747,7 @@ class NhsDataDictionaryService {
         Class clazz = DDWorkItemProfileProviderService.class
         return [
             new Metadata(namespace: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE, key: 'namespace',
-                         value: clazz.getPackage().toString(), createdBy: userEmailAddress),
+                         value: clazz.getPackageName().toString(), createdBy: userEmailAddress),
             new Metadata(namespace: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE, key: 'name',
                          value: clazz.getSimpleName(), createdBy: userEmailAddress),
             new Metadata(namespace: NhsDataDictionary.DEFAULT_PROFILE_NAMESPACE, key: 'version',

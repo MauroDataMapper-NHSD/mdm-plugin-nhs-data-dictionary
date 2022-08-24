@@ -35,6 +35,11 @@ class NhsDDWebPage implements NhsDataDictionaryComponent <Term> {
     }
 
     @Override
+    String getPluralStereotypeForWebsite() {
+        "web_pages"
+    }
+
+    @Override
     boolean isValidXmlNode(def xmlNode) {
         return !xmlNode."base-uri".text().contains("Supporting_Definitions") &&
                !xmlNode."base-uri".text().contains("Supporting_Information") /* &&
