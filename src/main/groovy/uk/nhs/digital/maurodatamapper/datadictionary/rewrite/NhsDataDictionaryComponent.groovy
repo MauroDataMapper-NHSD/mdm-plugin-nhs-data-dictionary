@@ -42,6 +42,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
 
     abstract String getStereotype()
     abstract String getStereotypeForPreview()
+    abstract String getPluralStereotypeForWebsite()
 
     NhsDataDictionary dataDictionary
 
@@ -188,7 +189,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
     }
 
     String getDataDictionaryUrl() {
-        return """${NhsDataDictionary.WEBSITE_URL}/${getStereotypeForPreview()}/${getNameWithoutNonAlphaNumerics()}.html"""
+        return """${NhsDataDictionary.WEBSITE_URL}/${getPluralStereotypeForWebsite()}/${getNameWithoutNonAlphaNumerics().toLowerCase()}.html"""
     }
 
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent, boolean includeDataSets = false) {

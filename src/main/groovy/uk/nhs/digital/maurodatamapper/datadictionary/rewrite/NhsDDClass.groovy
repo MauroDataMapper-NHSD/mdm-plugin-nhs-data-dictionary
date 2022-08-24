@@ -36,6 +36,10 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         "class"
     }
 
+    @Override
+    String getPluralStereotypeForWebsite() {
+        "classes"
+    }
 
     List<NhsDDCode> codes = []
 

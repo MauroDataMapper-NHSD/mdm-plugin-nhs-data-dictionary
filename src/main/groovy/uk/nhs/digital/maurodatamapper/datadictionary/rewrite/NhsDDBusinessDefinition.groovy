@@ -36,6 +36,11 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent <Term> {
 
 
     @Override
+    String getPluralStereotypeForWebsite() {
+        "nhs_business_definitions"
+    }
+
+    @Override
     String calculateShortDescription() {
         if (isPreparatory()) {
             return "This item is being used for development purposes and has not yet been approved."

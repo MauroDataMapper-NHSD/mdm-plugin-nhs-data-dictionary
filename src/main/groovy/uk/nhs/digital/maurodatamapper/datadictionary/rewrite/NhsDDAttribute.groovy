@@ -35,6 +35,11 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         "attribute"
     }
 
+    @Override
+    String getPluralStereotypeForWebsite() {
+        "attributes"
+    }
+
     List<NhsDDCode> codes = []
 
     String codesVersion
@@ -168,6 +173,5 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
             }
         }
     }
-
 
 }

@@ -42,6 +42,12 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
 
+    @Override
+    String getPluralStereotypeForWebsite() {
+        "data_sets"
+    }
+
+
     List<String> path = []
     String definitionAsXml
     String overviewPageUrl

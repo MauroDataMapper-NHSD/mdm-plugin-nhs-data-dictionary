@@ -34,41 +34,40 @@ class DaisyDiffHelper {
 
     static String diff(String first, String second) throws Exception {
 
-        StringWriter finalResult = new StringWriter();
+        StringWriter finalResult = new StringWriter()
         //SAXTransformerFactory tf = new org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl()
-        SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
-        System.err.println(tf.class)
-        TransformerHandler result = tf.newTransformerHandler();
-        result.getTransformer().setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-        result.getTransformer().setOutputProperty(OutputKeys.INDENT, "yes");
-        result.getTransformer().setOutputProperty(OutputKeys.METHOD, "html");
+        SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance()
+        TransformerHandler result = tf.newTransformerHandler()
+        result.getTransformer().setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
+        result.getTransformer().setOutputProperty(OutputKeys.INDENT, "yes")
+        result.getTransformer().setOutputProperty(OutputKeys.METHOD, "html")
         //result.getTransformer().setOutputProperty(OutputKeys.ENCODING, TestHelper.ENCODING);
-        result.setResult(new StreamResult(finalResult));
+        result.setResult(new StreamResult(finalResult))
 
-        ContentHandler postProcess = result;
+        ContentHandler postProcess = result
 
-        Locale locale = Locale.getDefault();
-        String prefix = "diff";
+        Locale locale = Locale.getDefault()
+        String prefix = "diff"
 
-        NekoHtmlParser cleaner = new NekoHtmlParser();
+        NekoHtmlParser cleaner = new NekoHtmlParser()
 
         InputSource oldSource = new InputSource(new StringReader(
-                first));
+                first))
         InputSource newSource = new InputSource(new StringReader(
-                second));
+                second))
 
         DomTreeBuilder oldHandler = new DomTreeBuilder();
-        cleaner.parse(oldSource, oldHandler);
+        cleaner.parse(oldSource, oldHandler)
         TextNodeComparator leftComparator = new TextNodeComparator(
-                oldHandler, locale);
+                oldHandler, locale)
 
         DomTreeBuilder newHandler = new DomTreeBuilder();
-        cleaner.parse(newSource, newHandler);
+        cleaner.parse(newSource, newHandler)
         TextNodeComparator rightComparator = new TextNodeComparator(
-                newHandler, locale);
+                newHandler, locale)
 
         HtmlSaxDiffOutput output = new HtmlSaxDiffOutput(postProcess,
-                prefix);
+                prefix)
 
         //Debug code
 //        LCSSettings settings = new LCSSettings();
@@ -81,10 +80,10 @@ class DaisyDiffHelper {
 //        LOG.info(">>>>Number of diffs is "+differences.length);
         //End of debug code
 
-        HTMLDiffer differ = new HTMLDiffer(output);
-        differ.diff(leftComparator, rightComparator);
+        HTMLDiffer differ = new HTMLDiffer(output)
+        differ.diff(leftComparator, rightComparator)
 
-        return finalResult.toString();
+        return finalResult.toString().replaceAll(" changes=\"[^\"]*\"", "")
 
     }
 

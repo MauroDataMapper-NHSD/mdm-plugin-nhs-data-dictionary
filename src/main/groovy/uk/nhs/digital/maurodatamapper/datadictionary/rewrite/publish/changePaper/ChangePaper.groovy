@@ -303,7 +303,7 @@ class ChangePaper {
                     elementChange.changedItems.add(new ChangedItem(
                             dictionaryComponent: dataSetElement.reuseElement,
                             changes: [new Change(
-                                    changeType: "Data Set Change",
+                                    changeType: "Unchanged Item",
                                     stereotype: dataSetElement.reuseElement.stereotype,
                                     oldItem: null,
                                     newItem: dataSetElement.reuseElement,
@@ -319,7 +319,7 @@ class ChangePaper {
                     attributeChange.changedItems.add(new ChangedItem(
                             dictionaryComponent: attribute,
                             changes: [new Change(
-                                    changeType: "Data Set Change",
+                                    changeType: "Unchanged Item",
                                     stereotype: attribute.stereotype,
                                     oldItem: null,
                                     newItem: attribute,

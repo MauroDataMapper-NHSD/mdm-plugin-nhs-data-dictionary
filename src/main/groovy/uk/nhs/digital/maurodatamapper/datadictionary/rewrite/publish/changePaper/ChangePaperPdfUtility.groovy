@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePape
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicMeta
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
@@ -27,6 +28,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import groovy.util.logging.Slf4j
 import net.lingala.zip4j.ZipFile
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -38,12 +40,43 @@ class ChangePaperPdfUtility {
 
     static File generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, Path outputPath, boolean includeDataSets = false) {
 
-        ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
-
         DitaProject ditaProject = new DitaProject().tap {
-            title = changePaper.subject
+            title = thisDataDictionary.workItemDetails['subject'] ?: 'NHS England and NHS Improvement'
+            topicMeta = TopicMeta.build() {
+                otherMeta(name: 'changePaperId', content: thisDataDictionary.workItemDetails['reference'] ?: 'CRXXXX')
+            }
             filename = 'changePaper'
         }
+
+        Map<String, NhsDataDictionaryComponent> pathLookup = [:]
+        thisDataDictionary.getAllComponents().each { it ->
+            ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
+            pathLookup[it.getMauroPath()] = it
+        }
+
+
+
+        previousDataDictionary.getAllComponents().each { it ->
+            if(!pathLookup[it.getMauroPath()]) {
+                ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
+                pathLookup[it.getMauroPath()] = it
+            }
+        }
+        System.err.println(pathLookup)
+
+        thisDataDictionary.getAllComponents().each {it ->
+            it.replaceLinksInDefinition(pathLookup)
+        }
+        previousDataDictionary.getAllComponents().each {it ->
+            it.replaceLinksInDefinition(pathLookup)
+        }
+
+        ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
+
+
+
+
+
         // ditaProject.addTopic("", createSummaryTopic(dataDictionary))
 
         Topic summaryOfChangesTopic = Topic.build(id: "summary") {
@@ -57,12 +90,8 @@ class ChangePaperPdfUtility {
             }
         }
 
-        Map<String, String> pathLookup = [:]
-        thisDataDictionary.getAllComponents().each { it ->
-            ditaProject.addExternalKey(it.getDitaKey(), it.otherProperties["ddUrl"])
-            pathLookup[it.getMauroPath()] = it.getDitaKey()
-        }
-        List<Topic> changeTopics = generateChangeTopics(changePaper.stereotypedChanges, pathLookup)
+        //System.err.println(pathLookup)
+        List<Topic> changeTopics = generateChangeTopics(changePaper.stereotypedChanges)
         Topic changesTopic = Topic.build(id: "changes") {
             title "Changes"
             body {
@@ -137,7 +166,10 @@ class ChangePaperPdfUtility {
                 if(matchedUrl) {
                     String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
                     html = html.replace(matcher.group(0), replacement)
-                    // System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
+                    System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
+                    System.err.println(html)
+                } else {
+                    System.err.println("Cannot match: " + matcher.group(0))
                 }
             }
         }
@@ -167,11 +199,12 @@ class ChangePaperPdfUtility {
         }
     }
 
-    static List<Topic> generateChangeTopics(StereotypedChange stereotypedChange, Map<String, String> pathLookup) {
+    static List<Topic> generateChangeTopics(StereotypedChange stereotypedChange) {
         List<Topic> topics = []
 
         stereotypedChange.changedItems.each {changedItem ->
             //String newDefinition = replaceLinksInDescription(changedItem.dictionaryComponent.description, pathLookup)
+            System.err.println(changedItem.dictionaryComponent.name)
 
             Topic subTopic = Topic.build(id: changedItem.dictionaryComponent.getDitaKey()) {
                 title changedItem.dictionaryComponent.name
@@ -181,12 +214,11 @@ class ChangePaperPdfUtility {
                 shortdesc "Change to ${stereotypedChange.stereotypeName}: ${changeText}"
 
                 changedItem.changes.each {change ->
-                    System.err.println(change.htmlDetail)
-                    String newChangeDetails = replaceLinksInHtml(change.htmlDetail, pathLookup)
-                    System.err.println(newChangeDetails)
+                    //String newChangeDetails = replaceLinksInHtml(change.htmlDetail, pathLookup)
                     body {
-                        div HtmlHelper.replaceHtmlWithDita(newChangeDetails)
+                        div HtmlHelper.replaceHtmlWithDita(change.htmlDetail)
                     }
+                    System.err.println(change.htmlDetail)
                 }
             }
             topics.add(subTopic)
@@ -194,12 +226,12 @@ class ChangePaperPdfUtility {
         return topics
     }
 
-    static List<Topic> generateChangeTopics(List<StereotypedChange> stereotypedChanges, Map<String, String> pathLookup) {
+    static List<Topic> generateChangeTopics(List<StereotypedChange> stereotypedChanges) {
 
         List<Topic> topics = []
         if(stereotypedChanges && stereotypedChanges.size() != 0) {
             stereotypedChanges.each {stereotypedChange ->
-                topics.addAll(generateChangeTopics(stereotypedChange, pathLookup))
+                topics.addAll(generateChangeTopics(stereotypedChange))
             }
         }
         return topics

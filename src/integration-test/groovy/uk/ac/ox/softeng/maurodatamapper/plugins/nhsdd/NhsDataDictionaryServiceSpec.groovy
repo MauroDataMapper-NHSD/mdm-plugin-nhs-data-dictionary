@@ -121,6 +121,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
     @Shared
     User user
+    static final XmlParser xmlParser = new XmlParser()
 
     void setupSpec() {
         resourcesPath = Paths.get(BuildSettings.BASE_DIR.absolutePath, 'src', 'integration-test', 'resources')
@@ -431,7 +432,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     def loadXml(String filename) {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
-        def xml = new XmlParser(false, false).parse(Files.newBufferedReader(testFilePath))
+        def xml = xmlParser.parse(Files.newBufferedReader(testFilePath))
         xml
     }
 

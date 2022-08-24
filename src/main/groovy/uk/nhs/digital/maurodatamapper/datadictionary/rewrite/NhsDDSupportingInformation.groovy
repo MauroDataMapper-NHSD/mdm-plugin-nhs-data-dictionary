@@ -35,6 +35,12 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent <Term> {
 
 
     @Override
+    String getPluralStereotypeForWebsite() {
+        "supporting_information"
+    }
+
+
+    @Override
     String calculateShortDescription() {
         if(!definition || definition == "") {
             return name
