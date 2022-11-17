@@ -74,7 +74,13 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
                 code.definition = concept.display[0].@value.toString()
 
                 code.publishDate = concept.property.find {it.code[0].@value == "Publish Date"}?.valueDateTime[0].@value
-                code.isRetired = concept.property.find {it.code[0].@value == "Status"}?.valueString[0]?.@value == "retired"
+
+                code.isRetired = false
+                if(concept.property.find {it.code[0].@value == "Status"}) {
+                    code.isRetired = concept.property.find {it.code[0].@value == "Status"}?.valueString[0]?.@value == "retired"
+                } else if(concept.property.find {it.code[0].@value == "status"}) {
+                    code.isRetired = concept.property.find {it.code[0].@value == "status"}?.valueCode[0]?.@value == "retired"
+                }
                 if(code.isRetired) {
                     code.retiredDate = concept.property.find {it.code[0].@value == "Retired Date"}?.valueDateTime[0]?.@value
                 }

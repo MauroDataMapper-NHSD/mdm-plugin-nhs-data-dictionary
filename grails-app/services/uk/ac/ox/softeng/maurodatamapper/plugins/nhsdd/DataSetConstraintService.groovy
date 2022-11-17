@@ -33,8 +33,9 @@ class DataSetConstraintService extends DataDictionaryComponentService<Term, NhsD
 
     @Override
     NhsDDDataSetConstraint show(UUID versionedFolderId, String id) {
+        NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
         Term dataSetConstraintTerm = termService.get(id)
-        NhsDDDataSetConstraint dataSetConstraint = getNhsDataDictionaryComponentFromCatalogueItem(dataSetConstraintTerm, null)
+        NhsDDDataSetConstraint dataSetConstraint = getNhsDataDictionaryComponentFromCatalogueItem(dataSetConstraintTerm, dataDictionary)
         dataSetConstraint.definition = convertLinksInDescription(versionedFolderId, dataSetConstraint.getDescription())
         return dataSetConstraint
     }
