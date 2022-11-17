@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES_AND_NO_SAVE
 
@@ -39,6 +40,7 @@ class UrlMappings {
 
                 group "/$versionedFolderId", {
 
+                    put '/newVersion'(controller: 'NhsDataDictionary', action: 'newVersion')
                     get '/statistics'(controller: 'NhsDataDictionary', action: 'statistics')
                     get '/integrityChecks'(controller: 'NhsDataDictionary', action: 'integrityChecks')
 
@@ -50,6 +52,8 @@ class UrlMappings {
                         get '/changePaper'(controller: 'NhsDataDictionary', action: 'generateChangePaper')
 
                         get '/shortDescriptions'(controller: 'NhsDataDictionary', action: 'shortDescriptions')
+
+                        get '/iso11179'(controller: 'NhsDataDictionary', action: 'iso11179')
 
                         // More endpoints to control publication to OntoServer
                         get '/codeSystem/validateBundle'(controller: 'NhsDataDictionary', action: 'codeSystemValidateBundle')

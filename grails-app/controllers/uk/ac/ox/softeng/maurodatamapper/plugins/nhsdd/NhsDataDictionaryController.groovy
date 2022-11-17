@@ -20,11 +20,14 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import groovy.xml.XmlParser
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.security.UserService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import uk.ac.ox.softeng.maurodatamapper.security.UserGroup
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 
 @Slf4j
@@ -34,6 +37,17 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     static XmlParser xmlParser = new XmlParser(false, false)
 
     NhsDataDictionaryService nhsDataDictionaryService
+
+    @Transactional
+    def newVersion() {
+        System.err.println("Creating a new version...")
+        User currentUser = getCurrentUser()
+        long startTime = System.currentTimeMillis()
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        UUID newVersionedFolderId = nhsDataDictionaryService.newVersion(currentUser, versionedFolderId)
+        System.err.println(Utils.timeTaken(startTime))
+        respond([newVersionedFolderId.toString()])
+    }
 
     @Transactional
     def ingest() {
@@ -117,6 +131,12 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
         respond(nhsDataDictionaryService.diff(versionedFolderId))
 
+    }
+
+    def iso11179() {
+        UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
+        String response = nhsDataDictionaryService.iso11179(versionedFolderId)
+        render (text: response, contentType: "text/xml", encoding: "UTF-8")
     }
 
 }

@@ -37,6 +37,8 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
+import uk.ac.ox.softeng.maurodatamapper.iso11179.domain.MetadataBundle
+import uk.ac.ox.softeng.maurodatamapper.iso11179.domain.helpers.MarshalHelper
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles.DDWorkItemProfileProviderService
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
@@ -72,6 +74,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.Dat
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.ReusedItemNames
+import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.ISO11179Helper
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaper
@@ -125,6 +128,119 @@ class NhsDataDictionaryService {
     CodeSetService codeSetService
     SessionFactory sessionFactory
 
+    UUID newVersion(User currentUser, UUID versionedFolderId) {
+        VersionedFolder original = versionedFolderService.get(versionedFolderId)
+        // load the VersionedFolder into memory...
+
+        original.metadata.size()
+        original.annotations.each {an ->
+            an.childAnnotations.size()
+        }
+        original.childFolders.each { cf ->
+            cf.childFolders.each { cf2 ->
+                cf2.childFolders.size()
+                cf2.metadata.size()
+                cf2.rules.size()
+                cf2.semanticLinks.size()
+                cf2.annotations.size()
+                cf2.referenceFiles.size()
+            }
+            cf.annotations.size()
+            cf.metadata.size()
+            cf.rules.size()
+            cf.semanticLinks.size()
+            cf.referenceFiles.size()
+
+
+        }
+        original.rules.size()
+        original.referenceFiles.size()
+        original.semanticLinks.size()
+        original.versionLinks.size()
+        // discard the whole structure
+
+        original.id = null
+        original.discard()
+
+
+        original.metadata = []
+        original.annotations = []
+        original.rules = []
+        original.metadata = []
+        original.semanticLinks = []
+        original.referenceFiles = []
+        original.versionLinks = []
+
+        Set<Folder> originalChildFolders = []
+        originalChildFolders.addAll(original.childFolders)
+
+        original.childFolders = []
+        original.addToChildFolders(originalChildFolders.collect { cf ->
+            cf.id = null
+            cf.discard()
+            cf.annotations = []
+            cf.rules = []
+            cf.metadata = []
+            cf.semanticLinks = []
+            cf.referenceFiles = []
+
+            Set<Folder> cfChildFolders = []
+            cfChildFolders.addAll(cf.childFolders)
+
+            cf.childFolders = []
+            cfChildFolders.each { cf2 ->
+                cf2.id = null
+                cf2.discard()
+
+                cf2.childFolders = []
+                cf2.metadata = []
+                cf2.annotations = []
+                cf2.rules = []
+                cf2.semanticLinks = []
+                cf2.referenceFiles = []
+                cf.addToChildFolders(cf2)
+            }
+            cf
+        })
+        sessionFactory.currentSession.flush()
+        // Now save it again as a new thing
+
+
+        original.branchName = "main"
+        original.modelVersion = null
+        original.finalised = false
+
+        //original.validate()
+        //original.annotations.clear()
+        //original.childFolders.clear()
+
+        original.annotations = []
+        original.rules = []
+
+        //original.save(flush: true)
+        versionedFolderService.saveFolderHierarchy(original)
+
+        //sessionFactory.currentSession.flush()
+        //sessionFactory.currentSession.clear()
+        VersionedFolder old = versionedFolderService.get(versionedFolderId)
+        versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(original, old, currentUser)
+        original.versionLinks.each {
+            it.save()
+        }
+
+        //versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(newCopy, original, currentUser)
+        //versionedFolderService.saveFolderHierarchy(newCopy)
+
+        /*
+        VersionedFolder originalVersionedFolder = versionedFolderService.get(versionedFolderId)
+        versionedFolder = versionedFolderService.get(versionedFolder.id)
+
+        versionedFolder.label = originalVersionedFolder.label
+        System.err.println(versionedFolder.validate())
+        versionedFolder.save()
+        */
+        return original.id
+    }
 
     def branches(UserSecurityPolicyManager userSecurityPolicyManager) {
         List<VersionedFolder> versionedFolders = VersionedFolder.findAll().findAll {
@@ -401,7 +517,7 @@ class NhsDataDictionaryService {
         allItems.addAll(dataDictionary.dataSetConstraints.values().collect {
             new StereotypedCatalogueItem(it)
         })
-        return allItems.sort()
+        return allItems.sort {it.label.toLowerCase()}
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
@@ -639,6 +755,16 @@ class NhsDataDictionaryService {
             }
         return new FhirBundle(type: "transaction", entries: entries)
     }
+
+    String iso11179(UUID versionedFolderId) {
+        VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
+        NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
+
+        MetadataBundle metadataBundle = ISO11179Helper.generateMetadataBundle(thisDataDictionary)
+
+        return MarshalHelper.marshallMetadataBundleToString(metadataBundle)
+    }
+
 
     ChangePaper previewChangePaper(UUID versionedFolderId) {
 

@@ -17,12 +17,39 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.MdmInterceptor
+import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.security.UserGroup
 
-class NhsDataDictionaryInterceptor {
 
-    // TODO: Need to be an administrator before most methods can be called.
+class NhsDataDictionaryInterceptor implements MdmInterceptor {
 
-    boolean before() { true }
+    public static final TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME = "Terminology Server Administrators"
+    public static final WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME = "Website Preview Generators"
+
+
+    boolean before() {
+        User currentUser = getCurrentUser()
+
+        if(invalidUserGroup(["codeSystemValidateBundle","valueSetValidateBundle"],
+                TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME)) {
+            return forbiddenDueToPermissions()
+        }
+        if(invalidUserGroup(["generateWebsite"],
+                WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME)) {
+            return forbiddenDueToPermissions()
+        }
+        return true
+    }
+
+    boolean invalidUserGroup(List<String> actionNames, String userGroupName) {
+        return actionNames.contains(actionName) &&
+                !currentUser.groups.find { UserGroup userGroup ->
+                    userGroup.name == userGroupName
+                }
+
+    }
+
 
     boolean after() { true }
 

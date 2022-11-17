@@ -38,6 +38,7 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
 
     @Override
     NhsDDDataSetFolder show(UUID versionedFolderId, String id) {
+        NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
         Folder folderFolder
         if(id && id != "root") {
             folderFolder = folderService.get(id)
@@ -45,7 +46,7 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
             VersionedFolder vf = versionedFolderService.get(versionedFolderId)
             folderFolder = vf.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
         }
-        NhsDDDataSetFolder dataSetFolder = getNhsDataDictionaryComponentFromCatalogueItem(folderFolder, null, [])
+        NhsDDDataSetFolder dataSetFolder = getNhsDataDictionaryComponentFromCatalogueItem(folderFolder, dataDictionary, [])
         dataSetFolder.definition = convertLinksInDescription(versionedFolderId, dataSetFolder.getDescription())
         if(id && id != 'root') {
             List<String> folderPath = [folderFolder.label]

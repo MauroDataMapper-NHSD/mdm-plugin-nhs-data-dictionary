@@ -18,7 +18,14 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins
 
 import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiProperty
+import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
+import uk.ac.ox.softeng.maurodatamapper.core.security.UserService
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryInterceptor
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryService
+import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
+import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.security.UserGroup
+import uk.ac.ox.softeng.maurodatamapper.security.UserGroupService
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +35,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 import static uk.ac.ox.softeng.maurodatamapper.core.BootStrap.BootStrapUser
 
 class BootStrap {
+
+    UserGroupService userGroupService
+    UserService userService
 
     @Autowired
     MessageSource messageSource
@@ -54,6 +64,23 @@ class BootStrap {
                                                  publiclyVisible: true)
                 GormUtils.checkAndSave(messageSource, defaultProfile)
             }
+
+            List<String> userGroupNames = [
+                    NhsDataDictionaryInterceptor.WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME,
+                    NhsDataDictionaryInterceptor.TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME
+            ]
+            CatalogueUser adminUser = CatalogueUser.findByEmailAddress(StandardEmailAddress.ADMIN)
+
+
+            userGroupNames.each {userGroupName ->
+                UserGroup userGroup = userGroupService.findByName(userGroupName)
+                if(!userGroup) {
+                    userGroup = new UserGroup(name: userGroupName, groupMembers: [adminUser] as Set,
+                                                createdBy: BootStrapUser.instance.emailAddress)
+                    GormUtils.checkAndSave(messageSource, userGroup)
+                }
+            }
+
         }
 
         environments {

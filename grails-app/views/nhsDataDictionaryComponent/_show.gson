@@ -10,6 +10,6 @@ json {
         name        nhsDataDictionaryComponent.getNameWithRetired()
         stereotype  stereotype
         shortDescription nhsDataDictionaryComponent.otherProperties["shortDescription"]
-        description nhsDataDictionaryComponent.definition
+        description nhsDataDictionaryComponent.getDescription()
         alsoKnownAs nhsDataDictionaryComponent.getAliases()
 }

@@ -31,10 +31,13 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 @Transactional
 class BusinessDefinitionService extends DataDictionaryComponentService<Term, NhsDDBusinessDefinition> {
 
+    NhsDataDictionaryService nhsDataDictionaryService
+
     @Override
     NhsDDBusinessDefinition show(UUID versionedFolderId, String id) {
+        NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
         Term businessDefinitionTerm = termService.get(id)
-        NhsDDBusinessDefinition businessDefinition = getNhsDataDictionaryComponentFromCatalogueItem(businessDefinitionTerm, null)
+        NhsDDBusinessDefinition businessDefinition = getNhsDataDictionaryComponentFromCatalogueItem(businessDefinitionTerm, dataDictionary)
         businessDefinition.definition = convertLinksInDescription(versionedFolderId, businessDefinition.getDescription())
         return businessDefinition
     }
