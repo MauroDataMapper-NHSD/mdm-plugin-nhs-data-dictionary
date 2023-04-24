@@ -31,7 +31,7 @@ class BrokenLinks implements IntegrityCheck {
 
     String description = "Check that all external links in descriptions lead to a valid web page"
 
-    static Pattern pattern = Pattern.compile("<a[\\s]*href=\"(http[^\"]*)\"[\\s]*>([^<]*)</a>")
+    static Pattern pattern = Pattern.compile("<a[\\s]*href=\"(http[^\"]*)\"[^>]*>([^<]*)</a>")
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
@@ -57,12 +57,20 @@ class BrokenLinks implements IntegrityCheck {
                     connect()
                     responseCode
                 }
+
+                if(code != 200) {
+                    componentList.each {component ->
+                        System.err.println("${component.stereotype},${component.name},${link}, ${code}")
+                    }
+                }
                 if(code == 404) {
                     errorComponents.addAll(componentList)
                     log.info("Broken link: " + link)
                 }
             } catch(Exception e) {
-                log.error("${link}: Exception")
+                componentList.each {component ->
+                    System.err.println("${component.stereotype},${component.name},${link}, Exception")
+                }
                 errorComponents.addAll(componentList)
             }
         }
