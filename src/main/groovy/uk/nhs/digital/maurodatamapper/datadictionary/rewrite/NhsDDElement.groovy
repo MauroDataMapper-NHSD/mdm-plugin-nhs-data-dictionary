@@ -17,19 +17,13 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import groovy.util.Node
 import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
-import uk.ac.ox.softeng.maurodatamapper.dita.enums.Format
 
 import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
-
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {

@@ -17,14 +17,10 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.rewrite
 
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
-import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
-import uk.ac.ox.softeng.maurodatamapper.dita.enums.Format
 import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
@@ -375,7 +371,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         XRef.build(
             outputClass: getOutputClass(),
             keyRef: getDitaKey(),
-            format: Format.HTML
+            format: "html"
         ) {
             txt getNameWithRetired()
         }
