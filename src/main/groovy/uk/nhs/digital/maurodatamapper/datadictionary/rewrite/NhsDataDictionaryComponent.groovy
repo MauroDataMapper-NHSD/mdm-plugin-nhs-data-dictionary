@@ -34,7 +34,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper
 import java.util.regex.Matcher
 
 @Slf4j
-trait NhsDataDictionaryComponent <T extends MdmDomain> {
+trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     abstract String getStereotype()
     abstract String getStereotypeForPreview()
@@ -501,6 +501,17 @@ trait NhsDataDictionaryComponent <T extends MdmDomain> {
         return path
     }
 
+    /*
+    Helper functions to resolve type checking issues in grails views
+     */
+
+    String getCatalogueItemIdAsString() {
+        return catalogueItem.id.toString()
+    }
+
+    String getCatalogueItemDomainTypeAsString() {
+        return catalogueItem.domainType.toString()
+    }
 
 
 }
