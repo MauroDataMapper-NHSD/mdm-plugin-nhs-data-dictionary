@@ -7,8 +7,8 @@ model {
 json {
     type        nhsDataDictionaryComponent.getStereotype()
     label       nhsDataDictionaryComponent.name
-    id          nhsDataDictionaryComponent.catalogueItem.id.toString()
-    domainType  nhsDataDictionaryComponent.catalogueItem.domainType
+    id          nhsDataDictionaryComponent.getCatalogueItemIdAsString()
+    domainType  nhsDataDictionaryComponent.getCatalogueItemDomainTypeAsString()
     parentId    nhsDataDictionaryComponent.catalogueItemParentId
     modelId     nhsDataDictionaryComponent.catalogueItemModelId
 

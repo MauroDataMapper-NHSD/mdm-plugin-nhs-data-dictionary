@@ -6,7 +6,7 @@ model {
 }
 
 json {
-        catalogueId nhsDataDictionaryComponent.catalogueItem.id.toString()
+        catalogueId nhsDataDictionaryComponent.getCatalogueItemIdAsString()
         name        nhsDataDictionaryComponent.getNameWithRetired()
         stereotype  stereotype
         shortDescription nhsDataDictionaryComponent.otherProperties["shortDescription"]
