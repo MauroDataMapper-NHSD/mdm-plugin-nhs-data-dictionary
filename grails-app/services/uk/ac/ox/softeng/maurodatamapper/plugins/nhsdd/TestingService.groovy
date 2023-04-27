@@ -32,7 +32,7 @@ import grails.util.BuildSettings
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
 import org.springframework.beans.factory.annotation.Autowired
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
 import groovy.xml.XmlParser
 
 import java.nio.file.Files

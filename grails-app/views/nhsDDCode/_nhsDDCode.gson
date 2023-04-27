@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
 
 model {
     NhsDDCode nhsDDCode

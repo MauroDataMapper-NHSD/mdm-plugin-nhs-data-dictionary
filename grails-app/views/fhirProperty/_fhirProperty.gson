@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirProperty
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirProperty
 
 model {
     FhirProperty fhirProperty

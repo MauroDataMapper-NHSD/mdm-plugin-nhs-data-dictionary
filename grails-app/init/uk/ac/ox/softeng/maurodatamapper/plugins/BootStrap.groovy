@@ -23,14 +23,13 @@ import uk.ac.ox.softeng.maurodatamapper.core.security.UserService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryInterceptor
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryService
 import uk.ac.ox.softeng.maurodatamapper.security.CatalogueUser
-import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.security.UserGroup
 import uk.ac.ox.softeng.maurodatamapper.security.UserGroupService
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import static uk.ac.ox.softeng.maurodatamapper.core.BootStrap.BootStrapUser
 

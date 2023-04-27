@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
 
 model {
     NhsDDBusinessDefinition nhsDDBusinessDefinition

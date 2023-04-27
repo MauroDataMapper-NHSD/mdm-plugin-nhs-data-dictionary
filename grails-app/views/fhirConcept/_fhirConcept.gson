@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirConcept
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirConcept
 
 model {
     FhirConcept fhirConcept

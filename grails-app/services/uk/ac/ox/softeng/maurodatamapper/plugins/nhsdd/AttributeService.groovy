@@ -33,10 +33,10 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 @Transactional
