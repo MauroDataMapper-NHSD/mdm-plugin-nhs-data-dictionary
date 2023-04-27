@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDSupportingInformation
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDSupportingInformation
 
 model {
     NhsDDSupportingInformation nhsDDSupportingInformation

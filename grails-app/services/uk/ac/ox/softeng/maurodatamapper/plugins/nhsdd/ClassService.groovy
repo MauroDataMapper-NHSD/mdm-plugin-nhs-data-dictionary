@@ -26,10 +26,10 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceTypeSer
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClassLink
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassLink
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import javax.lang.model.type.PrimitiveType
 

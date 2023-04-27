@@ -20,11 +20,9 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import groovy.xml.XmlParser
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
@@ -33,15 +31,11 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetClass
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetClass
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -110,7 +104,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         dataSet.dataDictionary = dataDictionary
         return dataSet
     }
-
+/*
     String outputClassAsDita(DataClass dataClass, DataDictionary dataDictionary) {
 
         StringBuffer result = new StringBuffer()
@@ -515,7 +509,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         }
         return result.toString()
     }
-
+*/
     void persistDataSets(NhsDataDictionary dataDictionary,
                          VersionedFolder dictionaryFolder, DataModel coreDataModel, User currentUser) {
 

@@ -1,5 +1,5 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirCodeSystem
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirResource
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirCodeSystem
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirResource
 
 model {
     FhirResource fhirResource

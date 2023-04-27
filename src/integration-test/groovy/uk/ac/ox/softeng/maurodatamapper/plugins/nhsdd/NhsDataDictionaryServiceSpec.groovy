@@ -62,9 +62,9 @@ import groovy.util.logging.Slf4j
 import groovy.xml.XmlParser
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Shared
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheck
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
 
 import java.nio.file.Files
 import java.nio.file.Path

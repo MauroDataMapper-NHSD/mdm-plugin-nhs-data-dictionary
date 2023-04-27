@@ -20,15 +20,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import groovy.xml.XmlParser
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.security.UserService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.ac.ox.softeng.maurodatamapper.security.UserGroup
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.PublishOptions
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
 
 @Slf4j
 class NhsDataDictionaryController implements ResourcelessMdmController {

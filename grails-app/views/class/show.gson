@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 
 model {
     NhsDDClass nhsDDClass

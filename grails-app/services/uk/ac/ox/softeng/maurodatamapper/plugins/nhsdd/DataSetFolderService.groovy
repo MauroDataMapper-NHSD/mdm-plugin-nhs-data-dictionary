@@ -22,12 +22,11 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 @Transactional

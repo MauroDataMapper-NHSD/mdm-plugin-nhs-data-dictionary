@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirValueSet
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirValueSet
 
 model {
     FhirValueSet fhirValueSet

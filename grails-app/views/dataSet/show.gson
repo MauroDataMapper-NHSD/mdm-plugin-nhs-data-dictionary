@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 
 model {
     NhsDDDataSet nhsDDDataSet

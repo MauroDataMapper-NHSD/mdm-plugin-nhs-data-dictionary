@@ -1,6 +1,6 @@
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
 
 model {
     Iterable<Term> termList

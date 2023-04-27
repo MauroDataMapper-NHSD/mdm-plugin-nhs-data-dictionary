@@ -28,7 +28,7 @@ import org.springframework.context.MessageSource
 import org.springframework.test.annotation.Rollback
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 
 @Slf4j

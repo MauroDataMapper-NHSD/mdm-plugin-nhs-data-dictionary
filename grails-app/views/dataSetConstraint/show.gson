@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetConstraint
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetConstraint
 
 model {
     NhsDDDataSetConstraint nhsDDDataSetConstraint

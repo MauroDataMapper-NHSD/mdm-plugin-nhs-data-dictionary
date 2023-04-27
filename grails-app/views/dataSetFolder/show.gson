@@ -1,5 +1,5 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetFolder
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
 
 model {
     NhsDDDataSetFolder nhsDDDataSetFolder

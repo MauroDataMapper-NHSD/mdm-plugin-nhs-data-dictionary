@@ -24,8 +24,8 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDDataSetConstraint
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetConstraint
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 @Transactional

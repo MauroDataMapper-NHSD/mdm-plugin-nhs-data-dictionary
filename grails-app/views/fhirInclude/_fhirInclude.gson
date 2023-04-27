@@ -1,5 +1,5 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirConcept
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirInclude
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirConcept
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirInclude
 
 model {
     FhirInclude fhirInclude

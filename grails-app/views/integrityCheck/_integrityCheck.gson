@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.integritychecks.IntegrityCheck
+import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheck
 
 model {
     IntegrityCheck integrityCheck

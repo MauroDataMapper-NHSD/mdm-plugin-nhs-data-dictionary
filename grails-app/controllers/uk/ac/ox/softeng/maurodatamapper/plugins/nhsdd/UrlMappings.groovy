@@ -17,7 +17,6 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
 
 import static uk.ac.ox.softeng.maurodatamapper.core.web.mapping.UrlMappingActions.DEFAULT_EXCLUDES_AND_NO_SAVE
 

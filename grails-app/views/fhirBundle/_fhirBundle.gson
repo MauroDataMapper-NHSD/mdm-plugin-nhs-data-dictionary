@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.fhir.FhirBundle
+import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirBundle
 
 model {
     FhirBundle fhirBundle

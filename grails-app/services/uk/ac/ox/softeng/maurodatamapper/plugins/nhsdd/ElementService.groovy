@@ -28,7 +28,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.enumeration.EnumerationValue
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
@@ -37,13 +36,10 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DDHelperFunctions
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDAttribute
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDElement
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 @Transactional
@@ -236,38 +232,6 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         }
         element.dataDictionary = dataDictionary
         return element
-    }
-
-    List<DataElement> getElementAttributes(DataElement dataElement, DataDictionary dataDictionary) {
-        List<DataElement> attributeElements = []
-        String elementAttributeList = DDHelperFunctions.getMetadataValue(dataElement, "element_attributes")
-        if (elementAttributeList) {
-            StringUtils.split(elementAttributeList, ",").each {uin ->
-                DDAttribute attribute = dataDictionary.attributes[uin]
-                if (attribute) {
-                    attributeElements.add(attribute.catalogueItem)
-                } else {
-                    log.error("Cannot find uin: " + uin)
-                }
-            }
-        }
-        return attributeElements
-    }
-
-    List<Map> generateCodeList(List<EnumerationValue> codes) {
-        List<Map> returnCodesList = []
-        codes.each {code ->
-            Map codeMap = [:]
-            String label = DDHelperFunctions.getMetadataValue(code, "label")
-            codeMap["code"] = label ?: code.key
-            String webPresentation = DDHelperFunctions.getMetadataValue(code, "Web Presentation")
-            codeMap["value"] = webPresentation ?: code.value
-            String retired = DDHelperFunctions.getMetadataValue(code, "isRetired")
-            codeMap["retired"] = retired
-
-            returnCodesList.add(codeMap)
-        }
-        return returnCodesList
     }
 
     void persistElements(NhsDataDictionary dataDictionary,

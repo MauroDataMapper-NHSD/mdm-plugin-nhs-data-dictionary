@@ -19,7 +19,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
-import uk.ac.ox.softeng.maurodatamapper.core.container.Classifier
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
@@ -28,7 +27,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.model.Container
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
-import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MultiFacetAware
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -46,11 +44,10 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import uk.nhs.digital.maurodatamapper.datadictionary.old.DataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDDCode
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionaryComponent
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.utils.StereotypedCatalogueItem
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern

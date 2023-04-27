@@ -25,7 +25,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 class OtherDataSetParser {

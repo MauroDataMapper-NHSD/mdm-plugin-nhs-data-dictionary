@@ -1,4 +1,4 @@
-import uk.nhs.digital.maurodatamapper.datadictionary.rewrite.publish.changePaper.ChangePaper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaper
 
 model {
     ChangePaper changePaper
