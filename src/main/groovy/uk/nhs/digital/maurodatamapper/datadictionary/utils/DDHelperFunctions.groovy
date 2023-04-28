@@ -17,7 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.utils
 
-
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -25,6 +27,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import groovy.util.logging.Slf4j
 import groovy.xml.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.ClassService
 
 @Slf4j
 class DDHelperFunctions {
@@ -59,7 +62,8 @@ class DDHelperFunctions {
         ret = ret.replaceAll("\n", " ")
         ret = ret.replaceAll("<definition>", " ")
         ret = ret.replaceAll("</definition>", " ")
-        return ret.trim() ?: null
+        ret = ret.replaceAll("<definition/>", " ")
+        return ret.trim()
 
     }
 
@@ -404,6 +408,32 @@ class DDHelperFunctions {
                 replaceAll("&lt;", "<").
                 replaceAll("&apos;", "'")
     }
+
+    static Folder getSubfolderFromName(FolderService folderService, Folder parent, String name, String currentUserEmailAddress) {
+        String folderName = name.substring(0, 1).toUpperCase()
+        Folder subFolder = parent.childFolders.find {it.label == folderName}
+        if (!subFolder) {
+            subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
+            parent.addToChildFolders(subFolder)
+            if (!folderService.validate(subFolder)) {
+                throw new ApiInvalidModelException('NHSDD', 'Invalid model', subFolder.errors)
+            }
+            folderService.save(subFolder)
+            //existingFolders[folderName] = subFolder
+        }
+        subFolder
+    }
+
+    static DataClass getChildClassFromName(DataModel parent, String name, String currentUserEmailAddress) {
+        String className = name.substring(0, 1).toUpperCase()
+        DataClass childClass = parent.childDataClasses.find {it.label == className}
+        if (!childClass) {
+            childClass = new DataClass(label: className, createdBy: currentUserEmailAddress)
+            parent.addToDataClasses(childClass)
+        }
+        childClass
+    }
+
 
 
 }

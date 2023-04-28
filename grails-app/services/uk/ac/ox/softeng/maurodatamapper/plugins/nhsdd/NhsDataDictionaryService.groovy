@@ -286,6 +286,7 @@ class NhsDataDictionaryService {
 
 
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
+        log.error("Building Data Dictionary...")
         long totalStart = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = newDataDictionary()
         dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
@@ -300,11 +301,12 @@ class NhsDataDictionaryService {
 
         Folder dataSetsFolder = dataDictionary.containingVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
-        DataModel coreModel = getCoreModel(versionedFolderId)
+        DataModel classesModel = getClassesModel(versionedFolderId)
+        DataModel elementsModel = getElementsModel(versionedFolderId)
 
-        addAttributesToDictionary(coreModel, dataDictionary)
-        addElementsToDictionary(coreModel, dataDictionary)
-        addClassesToDictionary(coreModel, dataDictionary)
+        addAttributesToDictionary(classesModel, dataDictionary)
+        addClassesToDictionary(classesModel, dataDictionary)
+        addElementsToDictionary(elementsModel, dataDictionary)
         addDataSetsToDictionary(dataSetsFolder, dataDictionary)
         addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
@@ -314,7 +316,7 @@ class NhsDataDictionaryService {
 
         dataDictionary.buildInternalLinks()
 
-        log.debug('Data Dictionary built in {}', Utils.timeTaken(totalStart))
+        log.error('Data Dictionary built in {}', Utils.timeTaken(totalStart))
 
         return dataDictionary
     }
@@ -334,9 +336,14 @@ class NhsDataDictionaryService {
         terminologies.find {it.label == NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}
     }
 
-    DataModel getCoreModel(UUID versionedFolderId) {
+    DataModel getElementsModel(UUID versionedFolderId) {
         List<DataModel> dataModels = dataModelService.findAllByFolderId(versionedFolderId)
-        dataModels.find {it.label == NhsDataDictionary.CORE_MODEL_NAME}
+        dataModels.find {it.label == NhsDataDictionary.ELEMENTS_MODEL_NAME}
+    }
+
+    DataModel getClassesModel(UUID versionedFolderId) {
+        List<DataModel> dataModels = dataModelService.findAllByFolderId(versionedFolderId)
+        dataModels.find {it.label == NhsDataDictionary.CLASSES_MODEL_NAME}
     }
 
     Folder getDataSetsFolder(UUID versionedFolderId) {
@@ -344,51 +351,43 @@ class NhsDataDictionaryService {
         childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
     }
 
-    void addAttributesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
-        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
-        DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
-        List<DataElement> attributeElements = DataElement.by().inList('dataClass.id', [attributesClass.id, retiredAttributesClass.id]).list()
-
+    void addAttributesToDictionary(DataModel classesModel, NhsDataDictionary dataDictionary) {
+        Set<DataElement> attributeElements = classesModel.getAllDataElements()
         dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements, dataDictionary)
         dataDictionary.attributes.values().each { ddAttribute ->
             dataDictionary.attributesByCatalogueId[ddAttribute.getCatalogueItem().id] = ddAttribute
         }
     }
 
-    void addElementsToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
-        DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
-        List<DataElement> elementElements = DataElement.by().inList('dataClass.id', [elementsClass.id, retiredElementsClass.id]).list()
-
+    void addElementsToDictionary(DataModel elementsModel, NhsDataDictionary dataDictionary) {
+        Set<DataElement> elementElements = elementsModel.getAllDataElements()
         dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements, dataDictionary)
         dataDictionary.elements.values().each { ddElement ->
             dataDictionary.elementsByCatalogueId[ddElement.getCatalogueItem().id] = ddElement
         }
     }
 
-    void addClassesToDictionary(DataModel coreModel, NhsDataDictionary dataDictionary) {
-        DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
-        DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
-        List<DataClass> classClasses = new DetachedCriteria<DataClass>(DataClass).inList('parentDataClass.id', [classesClass.id, retiredClassesClass.id]).list()
+    void addClassesToDictionary(DataModel classesModel, NhsDataDictionary dataDictionary) {
+        //DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
+        //DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
+        Set<DataClass> classClasses = classesModel.dataClasses
+        classClasses.addAll(classClasses.find {it.label == "Retired"}.dataClasses)
         classClasses.removeAll {it.label == "Retired"}
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
+        System.err.println(dataDictionary.classes.size())
         dataDictionary.classes.values().each { ddClass ->
             dataDictionary.classesByCatalogueId[ddClass.getCatalogueItem().id] = ddClass
         }
-/*       classClasses.each {dataClass ->
-            //DDClass ddClass = new DDClass()
-            //ddClass.fromCatalogueItem(dataDictionary, dataClass, classesClass.id, coreModel.id, metadataService)
-            NhsDDClass clazz = classService.classFromDataClass(dataClass, dataDictionary)
-            dataDictionary.classes[clazz.name] = clazz
-        }
 
- */
         // Now link associations
         dataDictionary.classes.values().each { dataClass ->
             ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
                 if(dataElement.dataType instanceof ReferenceType) {
                     DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
-
+                    System.err.println(dataClass.catalogueItem.label)
+                    System.err.println(dataElement.label)
+                    System.err.println(referencedClass)
+                    System.err.println(referencedClass.label)
                     dataClass.classRelationships.add(new NhsDDClassRelationship(
                         targetClass: dataDictionary.classes[referencedClass.label]
                     ).tap {
@@ -568,7 +567,7 @@ class NhsDataDictionaryService {
 
         NhsDataDictionary nhsDataDictionary = NhsDataDictionary.buildFromXml(xml, releaseDate, folderVersionNo, publishOptions)
 
-        nhsDataDictionary.branchName = branchName?:"main"
+        nhsDataDictionary.branchName = branchName ?: "main"
         log.info('Ingesting new NHSDD with release date {}, finalise {}, folderVersionNo {}, prevVersion {}', releaseDate, finalise, folderVersionNo, prevVersion)
         long startTime = System.currentTimeMillis()
         long originalStartTime = startTime
@@ -582,7 +581,7 @@ class NhsDataDictionaryService {
         }
 
         VersionedFolder dictionaryFolder = new VersionedFolder(authority: authorityService.defaultAuthority, label: dictionaryFolderName,
-                                                               createdBy: currentUser.emailAddress, branchName: nhsDataDictionary.branchName)
+                createdBy: currentUser.emailAddress, branchName: nhsDataDictionary.branchName)
 
         defaultProfileMetadata(currentUser.emailAddress).each { metadata ->
             dictionaryFolder.addToMetadata(metadata)
@@ -594,44 +593,62 @@ class NhsDataDictionaryService {
 
         versionedFolderService.save(dictionaryFolder)
 
-        VersionedFolder prevDictionaryVersion = null
         if (prevVersion) {
-            prevDictionaryVersion = versionedFolderService.get(prevVersion)
+            VersionedFolder prevDictionaryVersion = versionedFolderService.get(prevVersion)
             versionedFolderService.setFolderIsNewBranchModelVersionOfFolder(dictionaryFolder, prevDictionaryVersion, currentUser)
         }
 
-        DataModel coreDataModel =
-            new DataModel(label: NhsDataDictionary.CORE_MODEL_NAME,
-                          description: "Elements, attributes and classes",
-                          folder: dictionaryFolder,
-                          createdBy: currentUser.emailAddress,
-                          authority: authorityService.defaultAuthority,
-                          type: DataModelType.DATA_STANDARD,
-                          branchName: nhsDataDictionary.branchName)
+        Map<String, Terminology> attributeTerminologiesByName = [:]
+        Map<String, DataClass> attributeClassesByUin = [:]
+        Set<String> attributeUinIsKey = []
 
-        endTime = System.currentTimeMillis()
-        log.info('{} model built in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+        if(publishOptions.publishAttributes || publishOptions.publishClasses) {
 
-        TreeMap<String, Terminology> attributeTerminologiesByName = new TreeMap<>()
-        TreeMap<String, DataElement> attributeElementsByName = new TreeMap<>()
+            DataModel classesDataModel =
+                    new DataModel(label: NhsDataDictionary.CLASSES_MODEL_NAME,
+                            description: "NHS Data Dictionary Data Model (Classes and Attributes",
+                            folder: dictionaryFolder,
+                            createdBy: currentUser.emailAddress,
+                            authority: authorityService.defaultAuthority,
+                            type: DataModelType.DATA_STANDARD,
+                            branchName: nhsDataDictionary.branchName)
 
-        if(publishOptions.publishAttributes) {
             startTime = System.currentTimeMillis()
-            attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeElementsByName)
-            log.info('AttributeService persisted in {}', Utils.timeTaken(startTime))
-        }
-
-        if(publishOptions.publishElements) {
-            startTime = System.currentTimeMillis()
-            elementService.persistElements(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeTerminologiesByName)
-            log.info('ElementService persisted in {}', Utils.timeTaken(startTime))
-        }
-
-        if(publishOptions.publishClasses) {
-            startTime = System.currentTimeMillis()
-            classService.persistClasses(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress, attributeElementsByName)
+            classService.persistClasses(nhsDataDictionary, classesDataModel, currentUser.emailAddress, attributeClassesByUin, attributeUinIsKey)
             log.info('ClassService persisted in {}', Utils.timeTaken(startTime))
+
+            if(publishOptions.publishAttributes) {
+                startTime = System.currentTimeMillis()
+                attributeService.persistAttributes(nhsDataDictionary, dictionaryFolder, classesDataModel, currentUser.emailAddress, attributeTerminologiesByName, attributeClassesByUin, attributeUinIsKey)
+                log.info('AttributeService persisted in {}', Utils.timeTaken(startTime))
+            }
+            validateAndSaveModel(classesDataModel)
         }
+
+        // We'll need this for persisting data sets, even if it's null
+
+        DataModel elementDataModel = null
+        if (publishOptions.publishElements) {
+            elementDataModel =
+                    new DataModel(label: NhsDataDictionary.ELEMENTS_MODEL_NAME,
+                            description: "NHS Data Dictionary Data Elements",
+                            folder: dictionaryFolder,
+                            createdBy: currentUser.emailAddress,
+                            authority: authorityService.defaultAuthority,
+                            type: DataModelType.DATA_STANDARD,
+                            branchName: nhsDataDictionary.branchName)
+
+            startTime = System.currentTimeMillis()
+            elementService.persistElements(nhsDataDictionary, dictionaryFolder, elementDataModel, currentUser.emailAddress, attributeTerminologiesByName)
+            log.info('ElementService persisted in {}', Utils.timeTaken(startTime))
+
+
+            validateAndSaveModel(elementDataModel)
+            endTime = System.currentTimeMillis()
+            log.info('{} model built in {}', NhsDataDictionary.ELEMENTS_MODEL_NAME, Utils.getTimeString(endTime - startTime))
+        }
+
+
 
         if(publishOptions.publishBusinessDefinitions) {
             startTime = System.currentTimeMillis()
@@ -651,34 +668,19 @@ class NhsDataDictionaryService {
             log.info('DataSetConstraintService persisted in {}', Utils.timeTaken(startTime))
         }
 
-        if(publishOptions.publishAttributes || publishOptions.publishElements || publishOptions.publishClasses) {
-            startTime = System.currentTimeMillis()
-            log.debug('Validating [{}] model', NhsDataDictionary.CORE_MODEL_NAME)
-            dataModelService.validate(coreDataModel)
-            endTime = System.currentTimeMillis()
-            log.info('Validate [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
-            startTime = endTime
-            if (coreDataModel.hasErrors()) {
-                throw new ApiInvalidModelException('DMSXX', 'Model is invalid', coreDataModel.errors)
-            }
-
-            dataModelService.saveModelWithContent(coreDataModel, 1000)
-            endTime = System.currentTimeMillis()
-            log.info('Saved [{}] model complete in {}', NhsDataDictionary.CORE_MODEL_NAME, Utils.getTimeString(endTime - startTime))
-        }
-
         if(publishOptions.publishDataSetFolders) {
             startTime = System.currentTimeMillis()
-            dataSetFolderService.persistDataSetFolders(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser.emailAddress)
+            dataSetFolderService.persistDataSetFolders(nhsDataDictionary, dictionaryFolder, elementDataModel, currentUser.emailAddress)
             log.info('DataSetFolderService persist complete in {}', Utils.timeTaken(startTime))
         }
 
 
         if(publishOptions.publishDataSets) {
             startTime = System.currentTimeMillis()
-            dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, coreDataModel, currentUser)
+            dataSetService.persistDataSets(nhsDataDictionary, dictionaryFolder, elementDataModel, currentUser)
             log.info('DataSetService persist complete in {}', Utils.timeTaken(startTime))
         }
+
         // If any changes remain on the dictionary folder then save them
         if (dictionaryFolder.isDirty()) {
             log.debug('Validate and save {}', dictionaryFolderName)
@@ -879,4 +881,21 @@ class NhsDataDictionaryService {
                          value: '1.0.0', createdBy: userEmailAddress)
         ]
     }
+
+    void validateAndSaveModel(DataModel dataModel) {
+        long startTime = System.currentTimeMillis()
+        log.debug('Validating [{}] model', dataModel.label)
+        dataModelService.validate(dataModel)
+        long endTime = System.currentTimeMillis()
+        log.info('Validate [{}] model complete in {}', dataModel.label, Utils.getTimeString(endTime - startTime))
+        startTime = endTime
+        if (dataModel.hasErrors()) {
+            throw new ApiInvalidModelException('DMSXX', 'Model is invalid', dataModel.errors)
+        }
+
+        dataModelService.saveModelWithContent(dataModel, 1000)
+        endTime = System.currentTimeMillis()
+        log.info('Saved [{}] model complete in {}', dataModel.label, Utils.getTimeString(endTime - startTime))
+    }
+
 }

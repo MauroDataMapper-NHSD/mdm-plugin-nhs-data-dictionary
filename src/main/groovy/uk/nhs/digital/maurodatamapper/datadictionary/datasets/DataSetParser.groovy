@@ -18,6 +18,8 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets
 
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLink
+import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -28,6 +30,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 @Slf4j
 class DataSetParser {
@@ -238,6 +241,12 @@ class DataSetParser {
     }
 
     static Integer getOrder(MetadataAware item) {
+        if(item instanceof DataElement) {
+            return item.index
+        } else if(item instanceof DataClass) {
+            return item.index
+        }
+        // Otherwise ?
         Integer.parseInt(item.getMetadata().find {it.key == "Web Order"}?.value?:"0")
     }
 
@@ -248,7 +257,11 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Web Order", value: "" + order))
+            if(item instanceof DataElement) {
+                item.index = order
+            } else if(item instanceof DataClass) {
+                item.index = order
+            }
         }
     }
 
@@ -527,7 +540,7 @@ class DataSetParser {
     static DataElement getElementFromText(Object anchor, DataModel dataModel, NhsDataDictionary dataDictionary, DataClass currentClass) {
         //String elementLabel = ((String)anchor.@href).replaceAll(" ", "%20")
         String elementUrl
-        DataElement dataElement = null
+        DataElement originalDataElement = null
         if(anchor && anchor.@href) {
             elementUrl = ((String) anchor.@href)
 
@@ -535,23 +548,27 @@ class DataSetParser {
                 elementUrl = fileNameFixes[elementUrl]
             }
             if (dataDictionary) {
-                dataElement = dataDictionary.elementsByUrl[elementUrl]
+                originalDataElement = dataDictionary.elementsByUrl[elementUrl]
             }
         } else if (anchor && !anchor.@href) {
-            dataElement = dataDictionary.elements[anchor.text()]
+            originalDataElement = dataDictionary.elements[anchor.text()]
         }
-        if (!dataElement) {
-            log.warn("Cannot find element: ${anchor} in class: ${currentClass.label}, model: ${dataModel.label}")
-            DataType defaultDataType = dataModel.dataTypes.find {it.label == "Unmatched datatype"}
-            if (!defaultDataType) {
-                defaultDataType = new PrimitiveType(label: "Unmatched datatype")
-                dataModel.addToDataTypes(defaultDataType)
-            }
-            dataElement = new DataElement(label: anchor.text(), dataType: defaultDataType)
-            currentClass.addToDataElements(dataElement)
+        DataType defaultDataType = dataModel.dataTypes.find {it.label == "DataType: Any"}
+        if (!defaultDataType) {
+            defaultDataType = new PrimitiveType(label: "DataType: Any")
+            dataModel.addToDataTypes(defaultDataType)
+        }
+        DataElement dataElement = new DataElement(label: DDHelperFunctions.tidyLabel(anchor.text()), dataType: defaultDataType)
+        currentClass.addToDataElements(dataElement)
 
+        if (!originalDataElement) {
+            log.warn("Cannot find element: ${anchor} in class: ${currentClass.label}, model: ${dataModel.label}")
         } else {
-            currentClass.addToImportedDataElements(dataElement)
+            SemanticLink semanticLink = new SemanticLink(
+                    targetMultiFacetAwareItem: originalDataElement,
+                    linkType: SemanticLinkType.REFINES,
+            )
+            dataElement.addToSemanticLinks(semanticLink)
         }
         return dataElement
     }

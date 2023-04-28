@@ -105,9 +105,9 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
 
     String getMauroPath() {
         if(isRetired()) {
-            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${name}"
+            "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${name}"
         } else {
-            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:${name}"
+            return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:${name}"
         }
     }
 

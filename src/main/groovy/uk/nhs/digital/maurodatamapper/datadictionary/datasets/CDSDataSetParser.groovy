@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 @Slf4j
 class CDSDataSetParser {

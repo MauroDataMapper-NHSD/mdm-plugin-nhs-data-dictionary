@@ -30,6 +30,20 @@
     ]
   },
   {
+    "sectionName": "Key details",
+    "sectionDescription": "Whether this attribute is a key for its containing class",
+    "fields": [
+      {
+        "fieldName": "Is key",
+        "metadataPropertyName": "isKey",
+        "description": "Whether this item is a key or not",
+        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      }
+    ]
+  },
+  {
     "sectionName": "Headings and descriptions",
     "sectionDescription": "These fields allow additional headings and descriptions for publication",
     "fields": [

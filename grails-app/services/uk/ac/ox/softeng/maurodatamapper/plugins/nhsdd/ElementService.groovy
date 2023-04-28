@@ -17,10 +17,13 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLink
+import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLinkType
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -28,6 +31,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles.DDCodeSetProfileProviderService
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSet
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
@@ -40,12 +44,15 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 @Slf4j
 @Transactional
 class ElementService extends DataDictionaryComponentService<DataElement, NhsDDElement> {
 
     AttributeService attributeService
+    @Autowired
+    DDCodeSetProfileProviderService ddCodeSetProfileProviderService
 
     @Override
     NhsDDElement show(UUID versionedFolderId, String id) {
@@ -235,14 +242,12 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     void persistElements(NhsDataDictionary dataDictionary,
-                         VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
+                         VersionedFolder dictionaryFolder, DataModel elementsDataModel, String currentUserEmailAddress,
                          Map<String, Terminology> attributeTerminologiesByName) {
 
-        PrimitiveType stringDataType = coreDataModel.getPrimitiveTypes().find {it.label == "String"}
-        if (!stringDataType) {
-            stringDataType = new PrimitiveType(label: "String", createdBy: currentUserEmailAddress)
-            coreDataModel.addToDataTypes(stringDataType)
-        }
+        PrimitiveType stringDataType = new PrimitiveType(label: "String", createdBy: currentUserEmailAddress)
+        elementsDataModel.addToDataTypes(stringDataType)
+
 
         Folder dataElementCodeSetsFolder =
             new Folder(label: "Data Element CodeSets", createdBy: currentUserEmailAddress)
@@ -252,14 +257,9 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         }
         folderService.save(dataElementCodeSetsFolder)
 
-        DataClass allElementsClass = new DataClass(label: NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME, createdBy:
-            currentUserEmailAddress)
 
-        DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress,
-                                                       parentDataClass: allElementsClass)
-        allElementsClass.addToDataClasses(retiredElementsClass)
-        coreDataModel.addToDataClasses(allElementsClass)
-        coreDataModel.addToDataClasses(retiredElementsClass)
+        DataClass retiredElementsClass = new DataClass(label: "Retired", createdBy: currentUserEmailAddress)
+        elementsDataModel.addToDataClasses(retiredElementsClass)
 
 
         Map<String, Folder> folders = [:]
@@ -268,18 +268,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         dataDictionary.elements.each {name, element ->
             DataType dataType
             if (element.codes.size() > 0 && !element.isRetired()) {
-                String folderName = name.substring(0, 1).toUpperCase()
-                Folder subFolder = folders[folderName]
-                if (!subFolder) {
-                    subFolder = new Folder(label: folderName, createdBy: currentUserEmailAddress)
-                    dataElementCodeSetsFolder.addToChildFolders(subFolder)
-                    if (!folderService.validate(subFolder)) {
-                        throw new ApiInvalidModelException('NHSDD', 'Invalid model', subFolder.errors)
-                    }
-                    folderService.save(subFolder)
-                    folders[folderName] = subFolder
-                }
-
+                Folder subFolder = DDHelperFunctions.getSubfolderFromName(folderService, dataElementCodeSetsFolder, name, currentUserEmailAddress)
 
                 CodeSet codeSet = new CodeSet(
                     label: name,
@@ -287,7 +276,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
                     createdBy: currentUserEmailAddress,
                     authority: authorityService.defaultAuthority,
                     branchName: dataDictionary.branchName)
-                codeSet.addToMetadata(new Metadata(namespace: "uk.nhs.datadictionary.codeset", key: "version", value: element.codeSetVersion))
+                codeSet.addToMetadata(new Metadata(namespace: ddCodeSetProfileProviderService.metadataNamespace, key: "version", value: element.codeSetVersion))
 
 
                 // String terminologyUin = ddDataElement.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
@@ -315,7 +304,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
                                              modelResourceDomainType: codeSet.getDomainType(),
                                              modelResourceId: codeSet.id,
                                              createdBy: currentUserEmailAddress)
-                coreDataModel.addToDataTypes(dataType)
+                elementsDataModel.addToDataTypes(dataType)
             } else {
                 // no "value-set" nodes
                 dataType = stringDataType
@@ -331,13 +320,25 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
 
             String elementAttributes = StringUtils.join(element.instantiatesAttributes.collect {it.name}, ";")
 
+            element.instantiatesAttributes.each {attribute ->
+                if(attribute.catalogueItem) {
+                    SemanticLink semanticLink = new SemanticLink(
+                            targetMultiFacetAwareItem: attribute.catalogueItem,
+                            linkType: SemanticLinkType.REFINES,
+                            createdBy: currentUserEmailAddress
+                    )
+                    elementDataElement.addToSemanticLinks(semanticLink)
+                }
+            }
+
             addToMetadata(elementDataElement, "linkedAttributes", elementAttributes, currentUserEmailAddress)
 
-
+            DataClass parentClass
             if (element.isRetired()) {
                 retiredElementsClass.addToDataElements(elementDataElement)
             } else {
-                allElementsClass.addToDataElements(elementDataElement)
+                parentClass = DDHelperFunctions.getChildClassFromName(elementsDataModel, name, currentUserEmailAddress)
+                parentClass.addToDataElements(elementDataElement)
             }
             dataDictionary.elementsByUrl[element.otherProperties["ddUrl"]] = elementDataElement
         }

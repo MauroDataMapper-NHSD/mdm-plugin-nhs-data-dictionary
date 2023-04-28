@@ -236,65 +236,53 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         return clazz
     }
 
-    void persistClasses(NhsDataDictionary dataDictionary,
-                        VersionedFolder dictionaryFolder, DataModel coreDataModel, String currentUserEmailAddress,
-                        Map<String, DataElement> attributeElementsByName) {
-
-        DataClass parentDataClass = new DataClass(
-            label: NhsDataDictionary.DATA_CLASSES_CLASS_NAME,
-            createdBy: currentUserEmailAddress,
-            dataModel: coreDataModel)
-        coreDataModel.addToDataClasses(parentDataClass)
+    void persistClasses(NhsDataDictionary dataDictionary, DataModel classesDataModel, String currentUserEmailAddress,
+                        Map<String, DataClass> attributeClassesByUin, Set<String> attributeUinIsKey) {
 
         DataClass retiredDataClass = new DataClass(
             label: "Retired",
             createdBy: currentUserEmailAddress,
-            dataModel: coreDataModel)
-        coreDataModel.addToDataClasses(retiredDataClass)
-        parentDataClass.addToDataClasses(retiredDataClass)
+            dataModel: classesDataModel)
+        classesDataModel.addToDataClasses(retiredDataClass)
 
         TreeMap<String, DataClass> classesByName = new TreeMap<>()
         TreeMap<String, DataClass> classesByUin = new TreeMap<>()
+
         dataDictionary.classes.each {name, clazz ->
             if (!classesByName[name] || !clazz.isRetired()) {
                 DataClass dataClass = new DataClass(
                     label: name,
                     description: clazz.definition,
                     createdBy: currentUserEmailAddress,
-                    parentDataClass: parentDataClass
                 )
 
                 // TODO unnecessary as the or statement above excludes all non-retired DCs
                 if (clazz.isRetired()) {
                     retiredDataClass.addToDataClasses(dataClass)
                 } else {
-                    parentDataClass.addToDataClasses(dataClass)
+                    classesDataModel.addToDataClasses(dataClass)
                 }
-                coreDataModel.addToDataClasses(dataClass)
+                // We used to link the attributes here, but now that's all done in the attribute
+                // service because they're stored directly there.
+                // However, since the classes contain the information about which attribute appears in which class,
+                // we'll maintain a map here
 
-                // Now link the attributes from the properties
-
-                clazz.allAttributes().each {attribute ->
-                    DataElement attributeElement = attributeElementsByName[attribute.name]
-                    if(attributeElement) {
-                        attributeElement.addToImportingDataClasses(dataClass)
-                    } else {
-                        log.error("Cannot find attributeElement with name: " + attribute.name)
-                    }
+                clazz.allAttributes().each {
+                    attributeClassesByUin[it.uin] = dataClass
                 }
-
-
+                clazz.keyAttributes.each {
+                    attributeUinIsKey.add(it.uin)
+                }
                 addMetadataFromComponent(dataClass, clazz, currentUserEmailAddress)
 
                 classesByName[name] = dataClass
                 classesByUin[clazz.getUin()] = dataClass
 
-
             }
 
         }
 
-        // Now link the references
+        // Now link the references - we can only do this once all the classes are in place
         TreeMap<String, ReferenceType> classReferenceTypesByName = new TreeMap<>()
         dataDictionary.classes.each {name, clazz ->
             clazz.classLinks.each {classLink ->
@@ -314,7 +302,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
                                 createdBy: currentUserEmailAddress,
                                 referenceClass: targetDataClass)
                             targetDataClass.addToReferenceTypes(targetReferenceType)
-                            coreDataModel.addToDataTypes(targetReferenceType)
+                            classesDataModel.addToDataTypes(targetReferenceType)
                             classReferenceTypesByName[targetDataClass.label] = targetReferenceType
                         }
 
@@ -325,7 +313,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
                                 createdBy: currentUserEmailAddress,
                                 referenceClass: thisDataClass)
                             thisDataClass.addToReferenceTypes(sourceReferenceType)
-                            coreDataModel.addToDataTypes(sourceReferenceType)
+                            classesDataModel.addToDataTypes(sourceReferenceType)
                             classReferenceTypesByName[thisDataClass.label] = sourceReferenceType
                         }
 
