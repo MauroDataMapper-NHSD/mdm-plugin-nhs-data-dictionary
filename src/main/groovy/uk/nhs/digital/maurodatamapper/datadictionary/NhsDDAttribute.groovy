@@ -123,9 +123,9 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
 
     String getMauroPath() {
         if (isRetired()) {
-            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|dc:Retired|de:${name}"
+            "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|dc:Retired|de:${name}"
         } else {
-            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|de:${name}"
+            return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|de:${name}"
         }
     }
 

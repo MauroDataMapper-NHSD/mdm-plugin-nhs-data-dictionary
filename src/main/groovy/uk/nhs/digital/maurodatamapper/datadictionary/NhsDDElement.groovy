@@ -110,8 +110,6 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         instantiatesAttributes.each {nhsDDAttribute ->
             nhsDDAttribute.instantiatedByElements.add(this)
         }
-
-
         if(!isRetired()) {
             if (definition.find(regex)) {
                 definition = definition.replaceFirst(regex, "").trim()
@@ -133,9 +131,9 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
     String getMauroPath() {
         if(isRetired()) {
-            "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
+            "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
         } else {
-            return "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
+            return "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
         }
     }
 

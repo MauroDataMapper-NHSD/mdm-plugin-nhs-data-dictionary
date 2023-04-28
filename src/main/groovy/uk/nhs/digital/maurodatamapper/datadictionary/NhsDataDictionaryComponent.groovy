@@ -112,7 +112,6 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         definition = definition.replaceAll("\\s+", " ")
 */
         definition = (DDHelperFunctions.parseHtml(xml.definition[0])).replace("\u00a0", " ")
-
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
             Node xmlValue = xml[entry.value][0]
             if((!xmlValue || xmlValue.text() == "") && xml."class"[entry.value]) {
