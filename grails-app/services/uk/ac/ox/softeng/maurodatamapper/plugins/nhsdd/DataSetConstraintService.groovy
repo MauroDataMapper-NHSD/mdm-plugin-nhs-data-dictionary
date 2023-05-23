@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -59,9 +60,9 @@ class DataSetConstraintService extends DataDictionaryComponentService<Term, NhsD
     }
 
     @Override
-    NhsDDDataSetConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
+    NhsDDDataSetConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDDataSetConstraint dataSetConstraint = new NhsDDDataSetConstraint()
-        nhsDataDictionaryComponentFromItem(catalogueItem, dataSetConstraint)
+        nhsDataDictionaryComponentFromItem(catalogueItem, dataSetConstraint, metadata)
         dataSetConstraint.dataDictionary = dataDictionary
         return dataSetConstraint
     }

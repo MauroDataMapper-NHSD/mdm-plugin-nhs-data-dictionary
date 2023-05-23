@@ -23,7 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 
 import groovy.util.logging.Slf4j
-import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {

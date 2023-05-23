@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -229,9 +230,9 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     }
 
     @Override
-    NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem, NhsDataDictionary dataDictionary) {
+    NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDClass clazz = new NhsDDClass()
-        nhsDataDictionaryComponentFromItem(catalogueItem, clazz)
+        nhsDataDictionaryComponentFromItem(catalogueItem, clazz, metadata)
         clazz.dataDictionary = dataDictionary
         return clazz
     }
@@ -245,41 +246,36 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             dataModel: classesDataModel)
         classesDataModel.addToDataClasses(retiredDataClass)
 
-        TreeMap<String, DataClass> classesByName = new TreeMap<>()
         TreeMap<String, DataClass> classesByUin = new TreeMap<>()
 
         dataDictionary.classes.each {name, clazz ->
-            if (!classesByName[name] || !clazz.isRetired()) {
-                DataClass dataClass = new DataClass(
-                    label: name,
-                    description: clazz.definition,
-                    createdBy: currentUserEmailAddress,
-                )
+            DataClass dataClass = new DataClass(
+                label: name,
+                description: clazz.definition,
+                createdBy: currentUserEmailAddress,
+            )
 
-                // TODO unnecessary as the or statement above excludes all non-retired DCs
-                if (clazz.isRetired()) {
-                    retiredDataClass.addToDataClasses(dataClass)
-                } else {
-                    classesDataModel.addToDataClasses(dataClass)
-                }
-                // We used to link the attributes here, but now that's all done in the attribute
-                // service because they're stored directly there.
-                // However, since the classes contain the information about which attribute appears in which class,
-                // we'll maintain a map here
-
-                clazz.allAttributes().each {
-                    attributeClassesByUin[it.uin] = dataClass
-                }
-                clazz.keyAttributes.each {
-                    attributeUinIsKey.add(it.uin)
-                }
-                addMetadataFromComponent(dataClass, clazz, currentUserEmailAddress)
-
-                classesByName[name] = dataClass
-                classesByUin[clazz.getUin()] = dataClass
-
+            // TODO unnecessary as the or statement above excludes all non-retired DCs
+            if (clazz.isRetired()) {
+                classesDataModel.addToDataClasses(dataClass)
+                retiredDataClass.addToDataClasses(dataClass)
+            } else {
+                classesDataModel.addToDataClasses(dataClass)
             }
+            // We used to link the attributes here, but now that's all done in the attribute
+            // service because they're stored directly there.
+            // However, since the classes contain the information about which attribute appears in which class,
+            // we'll maintain a map here
 
+            clazz.allAttributes().each {
+                attributeClassesByUin[it.uin] = dataClass
+            }
+            clazz.keyAttributes.each {
+                attributeUinIsKey.add(it.uin)
+            }
+            addMetadataFromComponent(dataClass, clazz, currentUserEmailAddress)
+
+            classesByUin[clazz.getUin()] = dataClass
         }
 
         // Now link the references - we can only do this once all the classes are in place

@@ -22,6 +22,7 @@ import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import org.apache.commons.lang3.StringUtils
 import groovy.xml.XmlUtil
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -119,6 +120,41 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         mauroPath += "dm:${name}"
         return mauroPath
     }
+
+    @Override
+    List<Topic> getWebsiteTopics() {
+        List<Topic> topics = []
+        topics.add(descriptionTopic())
+
+        if(!isRetired() && getDataSetClasses()) {
+            topics.add(specificationTopic())
+        }
+        if(getAliases()) {
+            topics.add(aliasesTopic())
+        }
+        if(whereUsed) {
+            topics.add(whereUsedTopic())
+        }
+        return topics
+    }
+
+    Topic specificationTopic() {
+        Topic specificationTopic = Topic.build {
+            title "Specification"
+            id getDitaKey() + "_specification"
+            body {
+                getDataSetClasses().sort { it.webOrder }.each { dataSetClass ->
+                    if (name.startsWith("CDS")) {
+                        // div dataClass.outputCdsClassAsDita(dataDictionary)
+                    } else {
+                        div dataSetClass.outputClassAsDita(dataDictionary)
+                    }
+                }
+            }
+        }
+    }
+
+
 
     String getStructureAsHtml() {
         StringWriter stringWriter = new StringWriter()

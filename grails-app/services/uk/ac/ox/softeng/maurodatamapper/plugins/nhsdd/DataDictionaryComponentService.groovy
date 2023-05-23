@@ -45,6 +45,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
@@ -96,7 +97,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
     abstract String getMetadataNamespace()
 
-    abstract D getNhsDataDictionaryComponentFromCatalogueItem(T catalogueItem, NhsDataDictionary dataDictionary)
+    abstract D getNhsDataDictionaryComponentFromCatalogueItem(T catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null)
 
     abstract D getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary)
 
@@ -351,7 +352,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         }
     }
 
-    void nhsDataDictionaryComponentFromItem(T catalogueItem, NhsDataDictionaryComponent component) {
+    void nhsDataDictionaryComponentFromItem(T catalogueItem, NhsDataDictionaryComponent component, List<Metadata> metadata = null) {
         component.name = catalogueItem.label
         component.definition = catalogueItem.description?:""
         component.catalogueItem = catalogueItem
@@ -372,20 +373,28 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
         }
 
-
-        List<Metadata> allRelevantMetadata = Metadata
-            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
-            .inList('key', NhsDataDictionary.getAllMetadataKeys())
-            .list()
+        if(!metadata) {
+            if(component instanceof NhsDDElement) {
+                System.err.println("Building metadata for element!")
+            }
+            metadata = Metadata
+                    .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
+                    .inList('key', NhsDataDictionary.getAllMetadataKeys())
+                    .list()
+        }
 
         NhsDataDictionary.getAllMetadataKeys().each {key ->
-            component.otherProperties[key] = allRelevantMetadata.find {it.key == key}?.value
+            component.otherProperties[key] = metadata.find {it.key == key}?.value
         }
     }
 
-    Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems, NhsDataDictionary dataDictionary) {
+    Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems, NhsDataDictionary dataDictionary, Map<UUID, Metadata> metadataMap = null) {
         catalogueItems.collectEntries {ci ->
-            [ci.label, getNhsDataDictionaryComponentFromCatalogueItem(ci, dataDictionary)]
+            List<Metadata> metadata = null
+            if(metadataMap) {
+                metadata = metadataMap[ci.id]
+            }
+            [ci.label, getNhsDataDictionaryComponentFromCatalogueItem(ci, dataDictionary, metadata)]
         }
     }
 

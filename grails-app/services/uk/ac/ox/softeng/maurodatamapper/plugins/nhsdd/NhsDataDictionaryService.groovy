@@ -48,8 +48,6 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
-
-import grails.gorm.DetachedCriteria
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
@@ -75,10 +73,11 @@ import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCh
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ReusedItemNames
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.ISO11179Helper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.WebsiteUtility
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.website.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPdfUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
+
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -293,26 +292,43 @@ class NhsDataDictionaryService {
 
         buildWorkItemDetails(dataDictionary.containingVersionedFolder, dataDictionary)
 
+        log.error('Starting {}', Utils.timeTaken(totalStart))
+
+
         List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
 
         Terminology busDefTerminology = terminologies.find {it.label == NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}
         Terminology supDefTerminology = terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
         Terminology dataSetConstraintsTerminology = terminologies.find {it.label == NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}
 
+        log.error('Got terminologies {}', Utils.timeTaken(totalStart))
+
+
         Folder dataSetsFolder = dataDictionary.containingVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
         DataModel classesModel = getClassesModel(versionedFolderId)
         DataModel elementsModel = getElementsModel(versionedFolderId)
 
+        log.error('Got models {}', Utils.timeTaken(totalStart))
+
+
         addAttributesToDictionary(classesModel, dataDictionary)
+        log.error('Added to dictionary - attributes... {}', Utils.timeTaken(totalStart))
         addClassesToDictionary(classesModel, dataDictionary)
+        log.error('Added to dictionary - classes... {}', Utils.timeTaken(totalStart))
         addElementsToDictionary(elementsModel, dataDictionary)
-        addDataSetsToDictionary(dataSetsFolder, dataDictionary)
+        log.error('Added to dictionary - elements... {}', Utils.timeTaken(totalStart))
         addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
+        log.error('Added to dictionary - folders... {}', Utils.timeTaken(totalStart))
+        addDataSetsToDictionary(dataSetsFolder, dataDictionary)
+        log.error('Added to dictionary - data sets... {}', Utils.timeTaken(totalStart))
         addBusDefsToDictionary(busDefTerminology, dataDictionary)
+        log.error('Added to dictionary - bus defs... {}', Utils.timeTaken(totalStart))
         addSupDefsToDictionary(supDefTerminology, dataDictionary)
+        log.error('Added to dictionary - sup defs... {}', Utils.timeTaken(totalStart))
         addDataSetConstraintsToDictionary(dataSetConstraintsTerminology, dataDictionary)
-        
+
+        log.error('Added to dictionary... {}', Utils.timeTaken(totalStart))
 
         dataDictionary.buildInternalLinks()
 
@@ -361,7 +377,15 @@ class NhsDataDictionaryService {
 
     void addElementsToDictionary(DataModel elementsModel, NhsDataDictionary dataDictionary) {
         Set<DataElement> elementElements = elementsModel.getAllDataElements()
-        dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements, dataDictionary)
+        List<Metadata> elementMetadata = Metadata.byMultiFacetAwareItemIdInList(elementElements.collect {it.id} as List).list()
+        elementMetadata.each { metadata ->
+            if(dataDictionary.elementsMetadata[metadata.multiFacetAwareItemId]) {
+                dataDictionary.elementsMetadata[metadata.multiFacetAwareItemId].add(metadata)
+            } else {
+                dataDictionary.elementsMetadata[metadata.multiFacetAwareItemId] = [metadata]
+            }
+        }
+        dataDictionary.elements = elementService.collectNhsDataDictionaryComponents(elementElements, dataDictionary, dataDictionary.elementsMetadata)
         dataDictionary.elements.values().each { ddElement ->
             dataDictionary.elementsByCatalogueId[ddElement.getCatalogueItem().id] = ddElement
         }
@@ -370,11 +394,10 @@ class NhsDataDictionaryService {
     void addClassesToDictionary(DataModel classesModel, NhsDataDictionary dataDictionary) {
         //DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
         //DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
-        Set<DataClass> classClasses = classesModel.dataClasses
+        Set<DataClass> classClasses = classesModel.dataClasses.collect() as Set
         classClasses.addAll(classClasses.find {it.label == "Retired"}.dataClasses)
         classClasses.removeAll {it.label == "Retired"}
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
-        System.err.println(dataDictionary.classes.size())
         dataDictionary.classes.values().each { ddClass ->
             dataDictionary.classesByCatalogueId[ddClass.getCatalogueItem().id] = ddClass
         }
@@ -384,10 +407,6 @@ class NhsDataDictionaryService {
             ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
                 if(dataElement.dataType instanceof ReferenceType) {
                     DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
-                    System.err.println(dataClass.catalogueItem.label)
-                    System.err.println(dataElement.label)
-                    System.err.println(referencedClass)
-                    System.err.println(referencedClass.label)
                     dataClass.classRelationships.add(new NhsDDClassRelationship(
                         targetClass: dataDictionary.classes[referencedClass.label]
                     ).tap {
@@ -412,9 +431,26 @@ class NhsDataDictionaryService {
         Map<List<String>, Set<DataModel>> dataSetModelMap = dataSetService.getAllDataSets([], dataSetsFolder)
         dataSetModelMap.each {path, dataModels ->
             dataModels.each { dataModel ->
-                NhsDDDataSet dataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(dataModel, dataDictionary)
+                List<UUID> allIds = []
+                allIds.addAll(dataModel.getAllDataElements().collect{it.id})
+                allIds.addAll(dataModel.getDataClasses().collect {it.id})
+                List<Metadata> dataSetsMetadata = Metadata.byMultiFacetAwareItemIdInList(allIds).list()
+                dataSetsMetadata.each { metadata ->
+                    if(dataDictionary.dataSetsMetadata[metadata.multiFacetAwareItemId]) {
+                        dataDictionary.dataSetsMetadata[metadata.multiFacetAwareItemId].add(metadata)
+                    } else {
+                        dataDictionary.dataSetsMetadata[metadata.multiFacetAwareItemId] = [metadata]
+                    }
+                }
+
+                NhsDDDataSet dataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(dataModel, dataDictionary, null)
                 dataSet.path.addAll(path)
                 dataDictionary.dataSets[dataModel.label] = dataSet
+                List<String> folderPath = []
+                folderPath.addAll(path)
+                String parentFolderName = folderPath.removeLast()
+                NhsDDDataSetFolder folder = dataDictionary.dataSetFolders[folderPath].find {it.name == parentFolderName }
+                folder.dataSets[dataSet.name] = dataSet
             }
         }
     }
@@ -424,9 +460,26 @@ class NhsDataDictionaryService {
 
         dataSetFolders.each { path, folders ->
             folders.each {folder ->
-                NhsDDDataSetFolder dataSetFolder = dataSetFolderService.getNhsDataDictionaryComponentFromCatalogueItem(folder, dataDictionary, path)
-                dataDictionary.dataSetFolders[path] = dataSetFolder
+                NhsDDDataSetFolder dataSetFolder = dataSetFolderService.getNhsDataDictionaryComponentFromCatalogueItem(path, folder, dataDictionary)
+                if(dataDictionary.dataSetFolders[path]) {
+                    dataDictionary.dataSetFolders[path].add(dataSetFolder)
+                } else {
+                    dataDictionary.dataSetFolders[path] = [dataSetFolder]
+                }
             }
+        }
+
+        dataDictionary.dataSetFolders.each { path, dataSetFoldersAtPath ->
+            dataSetFoldersAtPath.each { dataSetFolder ->
+                List<String> childPath = []
+                childPath.addAll(path)
+                childPath.add(dataSetFolder.name)
+
+                dataDictionary.dataSetFolders[childPath].each {childDataSetFolder ->
+                    dataSetFolder.childFolders[childDataSetFolder.name] = childDataSetFolder
+                }
+            }
+
         }
     }
 
@@ -785,7 +838,6 @@ class NhsDataDictionaryService {
         VersionedFolder previousVersion
         if(thisDictionary.isFinalised()) {
             previousVersion = versionedFolderService.get(versionLinkService.findBySourceModelAndLinkType(thisDictionary, VersionLinkType.NEW_MODEL_VERSION_OF)?.targetModelId)
-            System.err.println(previousVersion.label)
         } else {
             previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
         }
@@ -803,7 +855,9 @@ class NhsDataDictionaryService {
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
 
-        Path outputPath = Files.createTempDirectory('website')
+        //Path outputPath = Files.createTempDirectory('website')
+
+        Path outputPath = Paths.get(TEST_OUTPUT_PATH)
 
         return WebsiteUtility.generateWebsite(thisDataDictionary, outputPath, publishOptions)
     }

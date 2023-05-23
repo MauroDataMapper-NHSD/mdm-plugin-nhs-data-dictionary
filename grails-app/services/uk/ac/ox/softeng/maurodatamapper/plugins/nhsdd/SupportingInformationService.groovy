@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -55,9 +56,9 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
     }
 
     @Override
-    NhsDDSupportingInformation getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
+    NhsDDSupportingInformation getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDSupportingInformation supportingInformation = new NhsDDSupportingInformation()
-        nhsDataDictionaryComponentFromItem(catalogueItem, supportingInformation)
+        nhsDataDictionaryComponentFromItem(catalogueItem, supportingInformation, metadata)
         supportingInformation.dataDictionary = dataDictionary
         return supportingInformation
     }

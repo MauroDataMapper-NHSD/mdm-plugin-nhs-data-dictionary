@@ -38,12 +38,12 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     @Transactional
     def newVersion() {
-        System.err.println("Creating a new version...")
+        log.debug("Creating a new version...")
         User currentUser = getCurrentUser()
         long startTime = System.currentTimeMillis()
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
         UUID newVersionedFolderId = nhsDataDictionaryService.newVersion(currentUser, versionedFolderId)
-        System.err.println(Utils.timeTaken(startTime))
+        log.debug(Utils.timeTaken(startTime))
         respond([newVersionedFolderId.toString()])
     }
 

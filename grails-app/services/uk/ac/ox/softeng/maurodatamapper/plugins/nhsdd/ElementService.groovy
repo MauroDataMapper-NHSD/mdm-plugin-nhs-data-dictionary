@@ -215,9 +215,9 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     @Override
-    NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary) {
+    NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDElement element = new NhsDDElement()
-        nhsDataDictionaryComponentFromItem(catalogueItem, element)
+        nhsDataDictionaryComponentFromItem(catalogueItem, element, metadata)
         String linkedAttributeMetadata = element.otherProperties["linkedAttributes"]
         if (linkedAttributeMetadata) {
             String[] linkedAttributeNames = StringUtils.split(linkedAttributeMetadata, ';')

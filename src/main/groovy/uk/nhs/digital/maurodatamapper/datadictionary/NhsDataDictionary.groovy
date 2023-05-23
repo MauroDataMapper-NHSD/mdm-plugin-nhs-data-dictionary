@@ -18,6 +18,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
@@ -62,7 +63,7 @@ class NhsDataDictionary {
     Map<String, NhsDDElement> elements = [:]
     Map<String, NhsDDClass> classes = [:]
     Map<String, NhsDDDataSet> dataSets = [:]
-    Map<List<String>, NhsDDDataSetFolder> dataSetFolders = [:]
+    Map<List<String>, List<NhsDDDataSetFolder>> dataSetFolders = [:]
     Map<String, NhsDDBusinessDefinition> businessDefinitions = [:]
     Map<String, NhsDDSupportingInformation> supportingInformation = [:]
     Map<String, NhsDDDataSetConstraint> dataSetConstraints = [:]
@@ -79,6 +80,9 @@ class NhsDataDictionary {
     Map<UUID, NhsDDClass> classesByCatalogueId = [:]
     Map<UUID, NhsDDElement> elementsByCatalogueId = [:]
     Map<UUID, NhsDDAttribute> attributesByCatalogueId = [:]
+
+    Map<UUID, List<Metadata>> elementsMetadata = [:]
+    Map<UUID, List<Metadata>> dataSetsMetadata = [:]
 
     String folderName = FOLDER_NAME
 
@@ -106,7 +110,7 @@ class NhsDataDictionary {
             supportingInformation.values() +
             dataSetConstraints.values() +
             webPages.values() +
-            dataSetFolders.values()) as List
+            dataSetFolders.values().flatten()) as List
     }
 
     Map<String, List<NhsDataDictionaryComponent>> allComponentsByIndex(boolean includeRetired = false) {
@@ -203,7 +207,9 @@ class NhsDataDictionary {
             //"PLICS": "PLICS Data Set Overview",
             "PLICS Data Set": "Patient Level Information Costing System Integrated Data Set Introduction",
             "EPMA": "Electronic Prescribing and Medicines Administration Data Sets Introduction",
-            "COSDS": "Cancer Outcomes and Services Data Set Introduction"
+            "COSDS": "Cancer Outcomes and Services Data Set Introduction",
+            "CDS V6-2": "Commissioning Data Set Version 6-2 Type List",
+            "CDS V6-3": "Commissioning Data Set Version 6-3 Type List",
             //"Commissioning Data Sets": "Commissioning Data Sets (CDS) Introduction"
     ]
 
@@ -214,6 +220,12 @@ class NhsDataDictionary {
             newWebPath.addAll(dataSet.getWebPath())
             newWebPath.removeLast()
             paths.add(newWebPath)
+        }
+        webPages.each { key, webPage ->
+            System.err.println("Web Page: ${key}")
+        }
+        supportingInformation.each { key, webPage ->
+            System.err.println("SupportingInformation: ${key}")
         }
         paths.add(["Commissioning Data Sets"])
         paths.add(["Retired"])
@@ -242,7 +254,12 @@ class NhsDataDictionary {
                     dataSetFolder.definition = introductoryWebPage.definition
                 }
             }
-            dataSetFolders[path] = dataSetFolder
+
+            if(dataSetFolders[path]) {
+                dataSetFolders[path].add(dataSetFolder)
+            } else {
+                dataSetFolders[path] = [dataSetFolder]
+            }
         }
 
     }
