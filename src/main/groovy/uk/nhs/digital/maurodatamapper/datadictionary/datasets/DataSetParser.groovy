@@ -241,13 +241,19 @@ class DataSetParser {
     }
 
     static Integer getOrder(MetadataAware item) {
-        if(item instanceof DataElement) {
-            return item.index
-        } else if(item instanceof DataClass) {
-            return item.index
+        Metadata md = item.getMetadata().find {it.key == "Web Order"}
+        if(md) {
+            return Integer.parseInt(md.value())
         }
-        // Otherwise ?
-        Integer.parseInt(item.getMetadata().find {it.key == "Web Order"}?.value?:"0")
+        if(item instanceof DataElement) {
+            return item.idx
+        } else if(item instanceof DataClass) {
+            return item.idx
+        }
+        else {
+            return 0
+        }
+
     }
 
     static void setOrder(MetadataAware item, Integer order) {

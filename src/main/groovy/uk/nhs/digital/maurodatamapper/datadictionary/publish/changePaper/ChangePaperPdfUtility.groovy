@@ -22,7 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicMeta
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
-import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
@@ -218,7 +218,6 @@ class ChangePaperPdfUtility {
                     body {
                         div HtmlHelper.replaceHtmlWithDita(change.htmlDetail)
                     }
-                    System.err.println(change.htmlDetail)
                 }
             }
             topics.add(subTopic)

@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
@@ -116,13 +117,13 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
 
     @Deprecated
     @Override
-    NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(Folder catalogueItem, NhsDataDictionary dataDictionary) {
-        return getNhsDataDictionaryComponentFromCatalogueItem(catalogueItem, dataDictionary, [])
+    NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(Folder catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
+        return getNhsDataDictionaryComponentFromCatalogueItem([], catalogueItem, dataDictionary, metadata)
     }
 
-    NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(Folder catalogueItem, NhsDataDictionary dataDictionary, List<String> path) {
+    NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(List<String> path, Folder catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDDataSetFolder folder = new NhsDDDataSetFolder()
-        nhsDataDictionaryComponentFromItem(catalogueItem, folder)
+        nhsDataDictionaryComponentFromItem(catalogueItem, folder, metadata)
         folder.folderPath = path
         folder.dataDictionary = dataDictionary
         return folder
@@ -140,28 +141,28 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
         folderService.save(dataSetsFolder)
 
 
-        dataDictionary.dataSetFolders.each {path, dataSetFolder ->
+        dataDictionary.dataSetFolders.each {path, folders ->
             //System.err.println("Persisting: ${dataSetFolder.name}")
 
             Folder newFolder = getFolderAtPath(dataSetsFolder, path, currentUserEmailAddress)
-            if(dataSetFolder.definition) {
-                newFolder.description = dataSetFolder.definition
-            }
-            addMetadataFromComponent(newFolder, dataSetFolder, currentUserEmailAddress)
+            folders.each {dataSetFolder ->
+                if(dataSetFolder.definition) {
+                    newFolder.description = dataSetFolder.definition
+                }
+                addMetadataFromComponent(newFolder, dataSetFolder, currentUserEmailAddress)
 
-            if (!folderService.validate(newFolder)) {
-                throw new ApiInvalidModelException('NHSDD', 'Invalid model', newFolder.errors)
+                if (!folderService.validate(newFolder)) {
+                    throw new ApiInvalidModelException('NHSDD', 'Invalid model', newFolder.errors)
+                }
+                folderService.save(newFolder)
             }
-            folderService.save(newFolder)
         }
     }
 
 
 
     NhsDDDataSetFolder getByCatalogueItemId(UUID catalogueItemId, NhsDataDictionary nhsDataDictionary) {
-        nhsDataDictionary.dataSetFolders.values().find {
-            it.catalogueItem.id == catalogueItemId
-        }
+        (NhsDDDataSetFolder) nhsDataDictionary.dataSetFolders.values().flatten().find { NhsDDDataSetFolder folder -> folder.catalogueItem.id == catalogueItemId }
     }
 
 }

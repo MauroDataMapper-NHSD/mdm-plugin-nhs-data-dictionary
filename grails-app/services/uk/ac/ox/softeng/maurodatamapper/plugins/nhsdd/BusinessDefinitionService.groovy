@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -60,9 +61,9 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
     }
 
     @Override
-    NhsDDBusinessDefinition getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary) {
+    NhsDDBusinessDefinition getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDBusinessDefinition businessDefinition = new NhsDDBusinessDefinition()
-        nhsDataDictionaryComponentFromItem(catalogueItem, businessDefinition)
+        nhsDataDictionaryComponentFromItem(catalogueItem, businessDefinition, metadata)
         businessDefinition.dataDictionary = dataDictionary
         return businessDefinition
     }

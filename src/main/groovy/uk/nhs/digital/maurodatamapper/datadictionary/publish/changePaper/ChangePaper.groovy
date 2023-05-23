@@ -19,7 +19,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
 import groovy.xml.MarkupBuilder
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
-import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetElement

@@ -60,7 +60,7 @@ class BrokenLinks implements IntegrityCheck {
 
                 if(code != 200) {
                     componentList.each {component ->
-                        System.err.println("${component.stereotype},${component.name},${link}, ${code}")
+                        log.error("${component.stereotype},${component.name},${link}, ${code}")
                     }
                 }
                 if(code == 404) {
@@ -69,7 +69,7 @@ class BrokenLinks implements IntegrityCheck {
                 }
             } catch(Exception e) {
                 componentList.each {component ->
-                    System.err.println("${component.stereotype},${component.name},${link}, Exception")
+                    log.error("${component.stereotype},${component.name},${link}, Exception")
                 }
                 errorComponents.addAll(componentList)
             }

@@ -20,6 +20,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import groovy.xml.XmlParser
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -93,14 +94,13 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     }
 
     @Override
-    NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem, NhsDataDictionary dataDictionary) {
+    NhsDDDataSet getNhsDataDictionaryComponentFromCatalogueItem(DataModel catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDDataSet dataSet = new NhsDDDataSet()
-        nhsDataDictionaryComponentFromItem(catalogueItem, dataSet)
-        catalogueItem.childDataClasses.sort { dataClass ->
-            DataSetParser.getOrder(dataClass)
-        }.each {dataClass ->
+        nhsDataDictionaryComponentFromItem(catalogueItem, dataSet, metadata)
+        catalogueItem.childDataClasses.each {dataClass ->
             dataSet.dataSetClasses.add(new NhsDDDataSetClass(dataClass, dataDictionary))
         }
+        dataSet.dataSetClasses = dataSet.dataSetClasses.sort { it.webOrder }
         dataSet.dataDictionary = dataDictionary
         return dataSet
     }

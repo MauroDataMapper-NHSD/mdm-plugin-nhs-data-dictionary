@@ -17,11 +17,12 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import groovy.sql.DataSet
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
-import uk.ac.ox.softeng.maurodatamapper.dita.html.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
@@ -161,7 +162,11 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     abstract String getMauroPath()
 
     String getDitaKey() {
-        getStereotype().replace(" ", "") + "_" + getNameWithoutNonAlphaNumerics()
+        String key = getStereotype().replace(" ", "") + "_" + getNameWithoutNonAlphaNumerics()
+        if(isRetired()) {
+            key += "_retired"
+        }
+        key.toLowerCase()
     }
 
     String getDescription() {
@@ -481,23 +486,32 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     List<String> getWebPath() {
-        List<String> path = []
-        try {
-            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Messages", ".txaClass20"))
-        } catch (Exception e) {
-            path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Web_Site_Content", ".txaClass20"))
-        }
-        path.removeAll {it.equalsIgnoreCase("Data_Sets")}
-        path.removeAll {it.equalsIgnoreCase("Content")}
+        if(otherProperties["baseUri"]) {
+            // This is really for when we're ingesting
+            List<String> path = []
+            try {
+                path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Messages", ".txaClass20"))
+            } catch (Exception e) {
+                path.addAll(DDHelperFunctions.getPath(otherProperties["baseUri"], "Web_Site_Content", ".txaClass20"))
+            }
+            path.removeAll {it.equalsIgnoreCase("Data_Sets")}
+            path.removeAll {it.equalsIgnoreCase("Content")}
 
-        if(name.startsWith("CDS")) {
-            path.add(0, "Commissioning Data Sets")
+            if(name.startsWith("CDS") && !(isRetired())) {
+                path.add(0, "Commissioning Data Sets")
+            }
+            if (isRetired()) {
+                path.add(0, "Retired")
+            }
+            path = path.collect {DDHelperFunctions.tidyLabel(it)}
+            return path
+        } else {
+            // otherwise, get the path from the folder hierarchy -
+            // TODO this with inheritance
+            if(this instanceof NhsDDDataSet) {
+                return ((NhsDDDataSet)this).path
+            }
         }
-        if (isRetired()) {
-            path.add(0, "Retired")
-        }
-        path = path.collect {DDHelperFunctions.tidyLabel(it)}
-        return path
     }
 
     /*
