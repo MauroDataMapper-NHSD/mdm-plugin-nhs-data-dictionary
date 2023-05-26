@@ -22,6 +22,8 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.xml.MarkupBuilder
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
@@ -64,7 +66,7 @@ class NhsDDDataSetElement{
 
         Metadata md = thisElementMetadata.find {it.key == "Web Order"}
         if(md) {
-            webOrder = Integer.parseInt(md.value())
+            webOrder = Integer.parseInt(md.value)
         } else {
             webOrder = dataElement.idx
         }
@@ -100,15 +102,30 @@ class NhsDDDataSetElement{
                 p mandation
             }
             entry {
-                if(reuseElement) {
-                    p {
-                        xRef (outputClass: "element", keyRef: reuseElement.getDitaKey(), scope: Scope.LOCAL)
-                    }
-                } else {
-                    p name
+                createEntry().each { paragraph ->
+                    p paragraph
                 }
             }
         }
+    }
+
+    List<P> createEntryParagraphs() {
+        List<P> response = []
+        if(reuseElement) {
+            response.add(P.build {
+                xRef (outputClass: "element", keyRef: reuseElement.getDitaKey(), scope: Scope.LOCAL)
+            })
+        } else {
+            response.add(P.build {
+                text name
+            })
+        }
+        if(maxMultiplicity == "-1") {
+            response.add(P.build {
+                text "Multiple occurrences of this item are permitted"
+            })
+        }
+        return response
     }
 
 }

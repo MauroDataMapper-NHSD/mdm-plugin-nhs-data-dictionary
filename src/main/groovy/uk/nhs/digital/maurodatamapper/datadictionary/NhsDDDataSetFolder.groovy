@@ -109,6 +109,9 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
             }
             response += "fo:${pathComponent}"
         }
+        if(response != "") {
+            response += "|"
+        }
         return response
     }
 

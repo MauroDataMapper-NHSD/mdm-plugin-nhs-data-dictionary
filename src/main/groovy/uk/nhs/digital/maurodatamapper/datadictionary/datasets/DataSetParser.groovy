@@ -263,11 +263,7 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            if(item instanceof DataElement) {
-                item.index = order
-            } else if(item instanceof DataClass) {
-                item.index = order
-            }
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Web Order", value: order.toString()))
         }
     }
 
@@ -325,7 +321,7 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Inclusive", value: "true"))
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "InclusiveOr", value: "true"))
         }
     }
 
