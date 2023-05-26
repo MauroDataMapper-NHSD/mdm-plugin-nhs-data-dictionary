@@ -124,7 +124,8 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
     NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(List<String> path, Folder catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDDataSetFolder folder = new NhsDDDataSetFolder()
         nhsDataDictionaryComponentFromItem(catalogueItem, folder, metadata)
-        folder.folderPath = path
+        folder.folderPath.addAll(path)
+        folder.folderPath.add(catalogueItem.label)
         folder.dataDictionary = dataDictionary
         return folder
     }

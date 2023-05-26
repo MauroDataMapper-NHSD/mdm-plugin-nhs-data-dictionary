@@ -34,7 +34,7 @@ class DataSetsWebsiteHelper {
                 linking Linking.NORMAL
                 dataDictionary.dataSetFolders.values().each { folders ->
                     folders.sort { it.name }.each { folder ->
-                        if (folder.ditaFolderPath.size() == 0 && !folder.isRetired()) {
+                        if (folder.ditaFolderPath.size() == 1 && !folder.isRetired()) {
                             topicSet.mapRef {
                                 toc Toc.YES
                                 keyRef folder.getDitaKey()

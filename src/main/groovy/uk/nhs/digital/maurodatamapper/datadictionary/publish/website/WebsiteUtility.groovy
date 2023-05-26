@@ -17,7 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.website
 
-import org.apache.commons.lang3.StringUtils
+import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -27,6 +27,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 
 import net.lingala.zip4j.ZipFile
 import org.apache.commons.io.FileUtils
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -39,6 +40,7 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 
+@Slf4j
 class WebsiteUtility {
 
     static final Map<String, String> allStereotypes = [
@@ -72,7 +74,6 @@ class WebsiteUtility {
             pathLookup[component.getMauroPath()] = component
         }
 
-
         dataDictionary.allComponents.each {component ->
             component.replaceLinksInDefinition(pathLookup)
         }
@@ -88,7 +89,7 @@ class WebsiteUtility {
             each {component ->
                 if(!(component instanceof NhsDDDataSet || component instanceof  NhsDDDataSetFolder)) {
                     if (publishOptions.isPublishableComponent(component)) {
-                        String path = "${component.stereotypeForPreview}/${component.nameWithoutNonAlphaNumerics.substring(0, 1)}/${component.getNameWithoutNonAlphaNumerics()}"
+                        String path = "${component.stereotypeForPreview}//${component.getDitaKey()}"
                         ditaProject.registerTopic(path, component.generateTopic())
                     }
                 }
@@ -111,8 +112,10 @@ class WebsiteUtility {
 
         String filename = dataDictionary.branchName + '-' + date + ".zip"
 
+        long startTime = System.currentTimeMillis()
         ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
         zipFile.addFolder(new File(ditaOutputDirectory))
+        log.info('Zip complete in {}', Utils.timeTaken(startTime))
 
         return zipFile.getFile()
     }

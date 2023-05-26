@@ -221,12 +221,6 @@ class NhsDataDictionary {
             newWebPath.removeLast()
             paths.add(newWebPath)
         }
-        webPages.each { key, webPage ->
-            System.err.println("Web Page: ${key}")
-        }
-        supportingInformation.each { key, webPage ->
-            System.err.println("SupportingInformation: ${key}")
-        }
         paths.add(["Commissioning Data Sets"])
         paths.add(["Retired"])
         paths.each {path ->
