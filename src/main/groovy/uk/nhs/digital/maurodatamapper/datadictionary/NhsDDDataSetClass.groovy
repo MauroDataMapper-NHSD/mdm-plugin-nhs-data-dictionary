@@ -17,15 +17,20 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TBody
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
 
+@Slf4j
 class NhsDDDataSetClass {
 
     String name
@@ -40,6 +45,11 @@ class NhsDDDataSetClass {
     Boolean isInclusiveOr
     Integer webOrder
     Boolean isAddress
+    Boolean isDataSetReference
+    String dataSetReferenceTo
+    String groupRepeats
+    String multiplicityText
+    String rules
 
     List<NhsDDDataSetClass> dataSetClasses = []
     List<NhsDDDataSetElement> dataSetElements = []
@@ -81,6 +91,15 @@ class NhsDDDataSetClass {
         }
         mandation = thisClassMetadata.find { it.key == "MRO" }?.value
         constraints = thisClassMetadata.find { it.key == "Rules" }?.value
+        isDataSetReference = thisClassMetadata.find {
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
+                    && it.key == "Data Set Reference"
+                    && it.value == "true")
+        }
+        dataSetReferenceTo = thisClassMetadata.find {it.key == "Data Set Reference To"}?.value
+        groupRepeats = thisClassMetadata.find {it.key == "Group Repeats"}?.value
+        multiplicityText = thisClassMetadata.find {it.key == "Multiplicity Text"}?.value
+        rules = thisClassMetadata.find { it.key == "Rules" }?.value
 
         Metadata md = thisClassMetadata.find {it.key == "Web Order"}
         if(md) {
@@ -127,7 +146,7 @@ class NhsDDDataSetClass {
         Div.build {
             if (isChoice && name.startsWith("Choice")) {
                 b "One of the following options must be used:"
-                dataSetClasses.eachWithIndex { NhsDDDataSetClass childDataClass, int i ->
+                dataSetClasses.eachWithIndex { childDataClass, idx ->
                     if (idx != 0) {
                         b "Or"
                     }
@@ -231,11 +250,11 @@ class NhsDDDataSetClass {
             XRef firstLink = paragraphs[0].getXRefs()[0]
             paragraphs.add(1, P.build {text "Or"})
             paragraphs[0].text " - "
-            paragraphs[0].xRef XRef.build(outputClass: "class", keyRef: "class_address_structured")
+            paragraphs[0].xRef (outputClass: "class", keyRef: "class_address_structured")
             paragraphs.add(P.build {
                 xRef firstLink
                 text " - "
-                xRef XRef.build(outputClass: "class", keyRef: "class_address_unstructured")
+                xRef (outputClass: "class", keyRef: "class_address_unstructured")
             })
             return paragraphs
         } else if (isChoice && name.startsWith("Choice")) {
@@ -289,4 +308,374 @@ class NhsDDDataSetClass {
         rows.addAll(addAllChildRows())
         return rows
     }
+
+    Div outputCDSClassAsDita(NhsDataDictionary dataDictionary) {
+
+        int totalDepth = calculateClassDepth()
+        /*if(totalDepth > 2) {
+            totalDepth = 2
+        } */
+
+        return Div.build {
+
+            if (isChoice && name.startsWith("Choice")) {
+                p {
+                    b "One of the following options must be used:"
+                }
+
+                dataSetClasses
+                        .eachWithIndex { childDataClass, idx ->
+                            if (idx != 0) {
+                                p {
+                                    b "Or"
+                                }
+                            }
+                            div childDataClass.outputCDSClassAsDita(dataDictionary)
+                        }
+            } else if (!dataSetClasses && !dataSetElements && isDataSetReference) {
+                // We've got a pointer to another dataset
+                //String linkedDataSetUrl = DataSetParser.getDataSetReferenceTo(dataClass)
+                //System.err.println(dataClass.label.replaceFirst("DATA GROUP: ", ""))
+                NhsDDDataSet linkedDataSet = dataDictionary.dataSets[dataSetReferenceTo]
+                if (!linkedDataSet) {
+                    this.log.error("Cannot link dataset: ${dataSetReferenceTo}")
+                } else {
+                    Table headerTable = addTopLevelCDSHeader(linkedDataSet.name, totalDepth, false)
+                    headerTable.tgroups[0].tBody {
+                        row {
+                            entry(align: Align.CENTER) {
+                                p mandation
+                            }
+                            entry(align: Align.CENTER) {
+                                p groupRepeats
+                            }
+                            entry(namest: "col3", nameend: "col${totalDepth * 2 + 4}") {
+                                p {
+                                    b "Data Group:"
+                                    xRef DitaHelper.getXRef(linkedDataSet)
+                                }
+                                p multiplicityText
+                            }
+                        }
+                    }
+                    table headerTable
+                }
+
+            } else {
+                String label = name
+                if (label.endsWith(" 1")) {
+                    label = label.replaceAll(" 1", "")
+                }
+                Table headerTable = addTopLevelCDSHeader(label, totalDepth, true)
+
+                headerTable.getTgroups()[0].tBody {
+                    addCDSClassContents(dataDictionary, totalDepth, 0).each {classRow ->
+                        row classRow
+                    }
+                }
+                table headerTable
+            }
+        }
+    }
+
+    Table addTopLevelCDSHeader(String groupName, int totalDepth, boolean includeMRO = true) {
+        List<String> columnWidths = []
+        for(int i=0;i<totalDepth*2;i++) {
+            columnWidths.add("1*")
+        }
+        columnWidths.addAll(["1*", "1*", "8*", "1*"])
+
+        return Table.build(outputClass: "table table-striped table-bordered") {
+            tgroup(cols: columnWidths.size()) {
+                columnWidths.eachWithIndex{ String colWidth, int i ->
+                    colspec(colnum: i+1, colName: "col${i+1}", colwidth: colWidth)
+                }
+                tHead {
+                    row {
+                        entry(namest: "col1", nameend: "col2", align: Align.CENTER) {
+                            xRef(keyRef: "supporting_information_commissioning_data_set_notation"){text "Notation" }
+                        }
+                        entry(namest: "col3", nameend: "col${totalDepth*2+4}", outputClass: "thead-light") {
+                            p {
+                                b "Data Group:"
+                                text groupName
+                            }
+                        }
+                    }
+                    row(outputClass: "thead-light") {
+                        entry(namest: "col1", nameend: "col1", align: Align.CENTER) {
+                            p "Group Status"
+                            if(includeMRO) {
+                                p mandation
+                            }
+                        }
+                        entry(namest: "col2", nameend: "col2", align: Align.CENTER) {
+                            p "Group Repeats"
+                            if(includeMRO) {
+                                p groupRepeats
+                            }
+                        }
+                        entry(namest: "col3", nameend: "col${totalDepth*2+4}") {
+                            p {
+                                b "Function: "
+                                text description
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    List<Row> addCDSClassContents(NhsDataDictionary dataDictionary, int totalDepth, int currentDepth) {
+        List<Row> rows = []
+        if (dataSetElements) {
+            if(isChoice) {
+                Row row = addCDSChildRow(totalDepth, currentDepth)
+                rows.add(row)
+            } else {
+                sortedChildren.each { child ->
+                    Row row = child.addCDSChildRow(totalDepth, currentDepth)
+                    rows.add(row)
+                }
+            }
+        } else { // no dataElements
+            if (dataSetClasses) {
+                if (isChoice) {
+                    rows.add(Row.build {
+                        entry(namest: "col${currentDepth * 2 + 1}", nameend: "col${totalDepth * 2 + 4}") {
+                            p {
+                                b "One of the following DATA GROUPS must be used:"
+                            }
+                        }
+                    })
+                }
+                sortedChildren.each { NhsDDDataSetClass childComponent ->
+                    if (childComponent instanceof NhsDDDataSetClass && childComponent.name.startsWith("And") && childComponent.isAnd) {
+                        childComponent.sortedChildren.each { NhsDDDataSetClass subChild ->
+                            rows.addAll(subChild.addCDSSubClass(dataDictionary, totalDepth, currentDepth + 1))
+                        }
+                    } else {
+                        int newCurrentDepth = currentDepth + 1
+                        if (newCurrentDepth > totalDepth) {
+                            newCurrentDepth = totalDepth
+                        }
+                        rows.addAll(childComponent.addCDSSubClass(dataDictionary, totalDepth, newCurrentDepth))
+                    }
+                    if (isChoice && childComponent != sortedChildren.last()) {
+                        rows.add(Row.build {
+                            entry (namest: "col${currentDepth * 2 + 1}",nameend: "col${totalDepth * 2 + 4}") {
+                                p {
+                                    b "Or"
+                                }
+                            }
+                        })
+                    }
+                }
+            } else {
+                log.error("No data elements or data classes... ")
+                log.error(name)
+            }
+        }
+        return rows
+    }
+
+    Row addCDSChildRow(int totalDepth, int currentDepth){
+        Row row = Row.build {
+            if (isChoice || isAnd) {
+                Entry mandationEntry = Entry.build(align: Align.CENTER) {}
+                Entry groupRepeatsEntry = Entry.build(align: Align.CENTER) {}
+                Entry xRefsEntry = Entry.build(namest: "col${currentDepth * 2 + 3}", nameend: "col${totalDepth * 2 + 3}") {}
+                Entry rulesEntry = Entry.build(align: Align.CENTER) {}
+                boolean rulesSet = false
+                if (this.rules) {
+                    rules.split(';').each {
+                        rulesEntry.p it
+                    }
+                    rulesSet = true
+                }
+                sortedChildren.eachWithIndex { childComponent, idx ->
+                    if (childComponent instanceof NhsDDDataSetElement) {
+                        NhsDDDataSetElement childDataElement = (NhsDDDataSetElement) childComponent
+                        if (idx != 0) {
+                            if (isChoice) {
+                                xRefsEntry.p "Or"
+                                mandationEntry.p "Or"
+                                groupRepeatsEntry.p "Or"
+                                if (!rulesSet) {
+                                    rulesEntry.p "&nbsp;"
+                                }
+                            } else if (isAnd) {
+                                xRefsEntry.p "And"
+                                mandationEntry.p "And"
+                                groupRepeatsEntry.p "And"
+                                if (!rulesSet) {
+                                    rulesEntry.p "&nbsp;"
+                                }
+
+                            }
+                        }
+                        if(childDataElement.mandation) {
+                            childDataElement.mandation.split(';').each {
+                                mandationEntry.p it
+                            }
+                        }
+                        if(childDataElement.groupRepeats) {
+                            childDataElement.groupRepeats.split(';').each {
+                                groupRepeatsEntry.p it
+                            }
+                        }
+                        if (!rulesSet) {
+                            if(childDataElement.rules) {
+                                childDataElement.rules.split(';').each {
+                                    rulesEntry.p it
+                                }
+                            }
+                        }
+                        if(childDataElement.reuseElement) {
+                            xRefsEntry.xRef DitaHelper.getXRef(childDataElement.reuseElement)
+                        } else {
+                             xRefsEntry.p childDataElement.name
+                        }
+                    } else {
+                        NhsDDDataSetClass childDataClass = (NhsDDDataSetClass) childComponent
+
+                        childDataClass.sortedChildren.eachWithIndex { NhsDDDataSetElement childDataElement, idx2 ->
+                            // Assume there are only children here
+                            if (idx != 0 && idx2 == 0) {
+                                xRefsEntry.p "OR"
+                                mandationEntry.p "OR"
+                                groupRepeatsEntry.p "OR"
+                                if (!rulesSet) {
+                                    rulesEntry.p "&nbsp;"
+                                }
+                            }
+
+                            if (idx2 != 0) {
+                                xRefsEntry.p "AND"
+                                mandationEntry.p "AND"
+                                groupRepeatsEntry.p "AND"
+                                if (!rulesSet) {
+                                    rulesEntry.p "&nbsp;"
+                                }
+                            }
+                            if(childDataElement.mandation) {
+                                childDataElement.mandation.split(";").each {
+                                    mandationEntry.p it
+                                }
+                            }
+                            if(childDataElement.groupRepeats) {
+                                childDataElement.groupRepeats.split(";").each {
+                                    groupRepeatsEntry.p it
+                                }
+                            }
+                            if (!rulesSet && rules) {
+                                childDataElement.rules.split(";").each {
+                                    rulesEntry.p it
+                                }
+                            }
+                            if(childDataElement.reuseElement) {
+                                xRefsEntry.xRef DitaHelper.getXRef(childDataElement.reuseElement)
+                            } else {
+                                xRefsEntry.p childDataElement.name
+                            }
+
+                        }
+                    }
+                }
+                entry mandationEntry
+                entry groupRepeatsEntry
+                entry xRefsEntry
+                entry rulesEntry
+            }
+        }
+        return row
+    }
+
+    List<Row> addCDSSubClass(NhsDataDictionary dataDictionary, int totalDepth, int currentDepth) {
+        List<Row> rows = []
+        Row row = addCDSClassHeader(dataDictionary, totalDepth, currentDepth)
+        if(row) {
+            rows.add(row)
+        }
+        rows.addAll(addCDSClassContents(dataDictionary, totalDepth, currentDepth))
+        return rows
+    }
+
+    Row addCDSClassHeader(NhsDataDictionary dataDictionary, int totalDepth, int currentDepth) {
+        if(name.startsWith("Choice") || name.startsWith("And")) {
+            return null
+        }
+        int moreRows = calculateClassRows()
+        return Row.build(outputClass: "thead-light table-primary") {
+            entry(align: Align.CENTER, morerows: moreRows) {
+                p mandation
+            }
+            entry(align: Align.CENTER, morerows: moreRows) {
+                p groupRepeats
+            }
+            entry(namest: "col${currentDepth*2+1}", nameend: "col${totalDepth*2+3}") {
+                p {
+                    b name.replace([" 1": "", " 2":"", " 3":""])
+                }
+                if(description) {
+                    p description
+                }
+            }
+            entry(align: Align.CENTER) {
+                p {
+                    xRef(keyRef: "supporting_information_commissioning_data_set_business_rules"){
+                        text "Rules"
+                    }
+                }
+            }
+        }
+    }
+
+    int calculateClassRows() {
+
+        if((isAnd || isChoice) && (!dataSetClasses || dataSetClasses.size() == 0)) {
+            return 0 // nominal header row will be added later on
+        }
+        // Specific rule for the 'Patient Identity' blocks
+        if(isChoice &&
+                dataSetClasses.size() == 1 &&
+                (!dataSetClasses.first().dataSetClasses || dataSetClasses.first().dataSetClasses.size() == 0) &&
+                (dataSetClasses.first().isAnd))
+        {
+            log.info("Found special case! " + name)
+            return 1
+        }
+        int total = 0
+        if(dataSetElements) {
+            total += dataSetElements.size()
+        }
+
+        dataSetClasses.each {
+            total += it.calculateClassRows() + 1
+        }
+        if(isChoice && dataSetClasses && dataSetClasses.size() > 0) {
+            // To cope with the 'or' rows
+            total += dataSetClasses.size()
+        }
+
+        log.debug("Data Class Rows: ${name} - ${total}")
+        return total
+    }
+
+
+    int calculateClassDepth() {
+        int maxDepth = 0
+        if(dataSetClasses) {
+            maxDepth = dataSetClasses.collect {it.calculateClassDepth()}.max()
+        }
+        if(isAnd || isChoice) {
+            return maxDepth
+        } else {
+            return maxDepth + 1
+        }
+
+    }
+
 }

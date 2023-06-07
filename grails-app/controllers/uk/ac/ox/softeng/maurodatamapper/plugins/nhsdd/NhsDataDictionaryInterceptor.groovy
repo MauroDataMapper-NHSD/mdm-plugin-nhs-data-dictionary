@@ -27,9 +27,18 @@ class NhsDataDictionaryInterceptor implements MdmInterceptor {
     public static final TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME = "Terminology Server Administrators"
     public static final WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME = "Website Preview Generators"
 
+    static final List<String> adminActions = [
+            'ingest'
+    ]
+
 
     boolean before() {
-        User currentUser = getCurrentUser()
+        //User currentUser = getCurrentUser()
+
+        if (actionName in adminActions) {
+            return currentUserSecurityPolicyManager.isApplicationAdministrator() ?: forbiddenDueToNotApplicationAdministrator()
+        }
+
 
         if(invalidUserGroup(["codeSystemValidateBundle","valueSetValidateBundle"],
                 TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME)) {

@@ -312,21 +312,46 @@ class NhsDataDictionaryService {
         log.error('Got models {}', Utils.timeTaken(totalStart))
 
 
-        addAttributesToDictionary(classesModel, dataDictionary)
-        log.error('Added to dictionary - attributes... {}', Utils.timeTaken(totalStart))
-        addClassesToDictionary(classesModel, dataDictionary)
-        log.error('Added to dictionary - classes... {}', Utils.timeTaken(totalStart))
-        addElementsToDictionary(elementsModel, dataDictionary)
-        log.error('Added to dictionary - elements... {}', Utils.timeTaken(totalStart))
-        addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
-        log.error('Added to dictionary - folders... {}', Utils.timeTaken(totalStart))
-        addDataSetsToDictionary(dataSetsFolder, dataDictionary)
-        log.error('Added to dictionary - data sets... {}', Utils.timeTaken(totalStart))
-        addBusDefsToDictionary(busDefTerminology, dataDictionary)
-        log.error('Added to dictionary - bus defs... {}', Utils.timeTaken(totalStart))
-        addSupDefsToDictionary(supDefTerminology, dataDictionary)
-        log.error('Added to dictionary - sup defs... {}', Utils.timeTaken(totalStart))
-        addDataSetConstraintsToDictionary(dataSetConstraintsTerminology, dataDictionary)
+        if(classesModel) {
+            addAttributesToDictionary(classesModel, dataDictionary)
+            log.info('Added to dictionary - attributes... {}', Utils.timeTaken(totalStart))
+            addClassesToDictionary(classesModel, dataDictionary)
+            log.info('Added to dictionary - classes... {}', Utils.timeTaken(totalStart))
+        } else {
+            log.error("No classes model found")
+        }
+        if(elementsModel) {
+            addElementsToDictionary(elementsModel, dataDictionary)
+            log.info('Added to dictionary - elements... {}', Utils.timeTaken(totalStart))
+        } else {
+            log.error("No elements model found")
+        }
+        if(dataSetsFolder) {
+            addDataSetFoldersToDictionary(dataSetsFolder, dataDictionary)
+            log.info('Added to dictionary - folders... {}', Utils.timeTaken(totalStart))
+            addDataSetsToDictionary(dataSetsFolder, dataDictionary)
+            log.info('Added to dictionary - data sets... {}', Utils.timeTaken(totalStart))
+        } else {
+            log.error("No datasets folder found")
+        }
+        if(busDefTerminology) {
+            addBusDefsToDictionary(busDefTerminology, dataDictionary)
+            log.info('Added to dictionary - bus defs... {}', Utils.timeTaken(totalStart))
+        } else {
+            log.error("No business definitions terminology found")
+        }
+        if(supDefTerminology) {
+            addSupDefsToDictionary(supDefTerminology, dataDictionary)
+            log.error('Added to dictionary - sup defs... {}', Utils.timeTaken(totalStart))
+        } else {
+            log.info("No supporting definitions terminology found")
+        }
+        if(dataSetConstraintsTerminology) {
+            addDataSetConstraintsToDictionary(dataSetConstraintsTerminology, dataDictionary)
+            log.info('Added to dictionary - data set constraints... {}', Utils.timeTaken(totalStart))
+        } else {
+            log.error("No dataset constraints terminology found")
+        }
 
         log.error('Added to dictionary... {}', Utils.timeTaken(totalStart))
 
@@ -677,8 +702,6 @@ class NhsDataDictionaryService {
             }
             validateAndSaveModel(classesDataModel)
         }
-
-        // We'll need this for persisting data sets, even if it's null
 
         DataModel elementDataModel = null
         if (publishOptions.publishElements) {

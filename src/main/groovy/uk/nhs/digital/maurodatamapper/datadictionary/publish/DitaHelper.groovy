@@ -175,7 +175,7 @@ class DitaHelper {
 
     static XRef getXRef(NhsDataDictionaryComponent component) {
         XRef.build (
-            outputClass: component.getStereotype(),
+            outputClass: component.getOutputClass(),
             keyRef: component.getDitaKey()
         ) {
             txt component.getNameWithRetired()

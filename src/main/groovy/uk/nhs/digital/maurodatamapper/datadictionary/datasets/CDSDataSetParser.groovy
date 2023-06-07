@@ -99,9 +99,11 @@ class CDSDataSetParser {
             DataSetParser.setGroupRepeats(currentClass, firstRow.td[1].text())
             DataSetParser.setDataSetReference(currentClass)
             if (firstRow.td[2].strong.a.size() > 0) {
-                DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].strong.a[0].@href)
+                String dataSetName = dataDictionary.dataSetNamesByDDUrl[firstRow.td[2].strong.a[0].@href]
+                DataSetParser.setDataSetReferenceTo(currentClass, dataSetName)
             } else {
-                DataSetParser.setDataSetReferenceTo(currentClass, firstRow.td[2].a[0].@href)
+                String dataSetName = dataDictionary.dataSetNamesByDDUrl[firstRow.td[2].a[0].@href]
+                DataSetParser.setDataSetReferenceTo(currentClass, dataSetName )
             }
 
             DataSetParser.setMultiplicityText(currentClass, firstRow.td[2].text())
@@ -141,7 +143,7 @@ class CDSDataSetParser {
         } else if (firstRow.td.size() == 1 && tableRows.size() == 1 && firstRow.td.strong.size() == 1) {
             // This is probably "One of the following two options must be used",
             // "OR", or similar.
-            log.debug("Ignoring: " + firstRow.td.strong.text())
+            log.error("Ignoring: " + firstRow.td.strong.text())
         } else if (firstRow.td.size() == 1 && firstRow.td.@bgcolor == "white"
             && firstRow.td.strong.size() == 0
             && tableRows[1].td.size() == 1) {
@@ -160,7 +162,7 @@ class CDSDataSetParser {
                                             {it ->
                                                 (it.td.size() == 1
                                                     && it.td.strong.size() == 1
-                                                    && (it.td.text() == "OR" || it.td.text() == "and"))
+                                                    && (it.td.text().trim() == "OR" || it.td.text().trim() == "and"))
                                             })
             //log.debug(partitions.size())
             partitions.eachWithIndex {part, idx ->
@@ -306,10 +308,11 @@ class CDSDataSetParser {
 
             } else if (component.name() == "table" && component.tbody.tr.size() >= 1 && currentClass) {
                 if (ors > 0 && component.tbody.tr.count {tr -> tr.td[0].@bgcolor == "#DCDCDC"} > 1) {
-                    log.debug("Found an exception: " + dataModel.label)
-                    log.debug(component.tbody.tr[0].td[1].text() + " " + component.tbody.tr[0].td[2].text())
+                    log.error("Found an exception: " + dataModel.label)
+                    log.error("" + component.tbody.tr[0].td[1])
+                    log.error("" + component.tbody.tr[0].td[2])
                     component.tbody.tr.findAll {tr -> tr.td[0].@bgcolor == "#DCDCDC"}.each {tr ->
-                        log.debug(tr.td[1].text() + " " + tr.td[2].text())
+                        log.error("" + tr.td[1] + " " + tr.td[2])
                     }
                     DataClass andClass = new DataClass(label: "And")
                     dataModel.addToDataClasses(andClass)
@@ -339,6 +342,7 @@ class CDSDataSetParser {
     static void parseCDSElement(DataModel dataModel, DataClass currentClass, Node tr, NhsDataDictionary dataDictionary, int position) {
         if (tr.td[2].a.size() == 6) {
             //
+            System.err.println("Here: ${dataModel.label} - ${currentClass.label}")
             DataSetParser.setChoice(currentClass)
             DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
 
@@ -351,7 +355,7 @@ class CDSDataSetParser {
             DataSetParser.setAnd(andClass)
             List<DataElement> deList = [dataElement1]
             for (int i = 1; i < 6; i++) {
-                DataElement dataElement = DataSetParser.getElementFromText(tr.td[2].a[i], dataModel, dataDictionary, currentClass)
+                DataElement dataElement = DataSetParser.getElementFromText(tr.td[2].a[i], dataModel, dataDictionary, andClass)
                 DataSetParser.setOrder(dataElement, i)
                 deList.add(dataElement)
             }
@@ -370,7 +374,7 @@ class CDSDataSetParser {
             } else {
                 DataSetParser.setAddress(choiceClass)
             }
-            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
+            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, choiceClass)
             DataSetParser.getAndSetMRO(tr.td[0], [dataElement1], choiceClass)
             DataSetParser.getAndSetRepeats(tr.td[1], [dataElement1], choiceClass)
             DataSetParser.getAndSetRules(tr.td[3], [dataElement1], choiceClass)
@@ -388,8 +392,8 @@ class CDSDataSetParser {
             dataModel.addToDataClasses(choiceClass)
             DataSetParser.setOrder(choiceClass, position)
             DataSetParser.setChoice(choiceClass)
-            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
-            DataElement dataElement2 = DataSetParser.getElementFromText(tr.td[2].a[1], dataModel, dataDictionary, currentClass)
+            DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, choiceClass)
+            DataElement dataElement2 = DataSetParser.getElementFromText(tr.td[2].a[1], dataModel, dataDictionary, choiceClass)
 
             DataSetParser.getAndSetMRO(tr.td[0], [dataElement1, dataElement2], choiceClass)
             DataSetParser.getAndSetRepeats(tr.td[1], [dataElement1, dataElement2], choiceClass)

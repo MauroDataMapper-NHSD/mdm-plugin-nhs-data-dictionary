@@ -139,13 +139,14 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
     Topic specificationTopic() {
-        Topic specificationTopic = Topic.build {
+        System.err.println("Generating specification for: ${name}")
+        Topic.build {
             title "Specification"
             id getDitaKey() + "_specification"
             body {
                 getDataSetClasses().sort { it.webOrder }.each { dataSetClass ->
                     if (name.startsWith("CDS")) {
-                        // div dataClass.outputCdsClassAsDita(dataDictionary)
+                        div dataSetClass.outputCDSClassAsDita(dataDictionary)
                     } else {
                         div dataSetClass.outputClassAsDita(dataDictionary)
                     }

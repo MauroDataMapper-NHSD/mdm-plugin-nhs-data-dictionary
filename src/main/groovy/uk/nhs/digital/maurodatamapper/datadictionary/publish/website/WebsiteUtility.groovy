@@ -64,8 +64,8 @@ class WebsiteUtility {
         DitaProject ditaProject = new DitaProject("NHS Data Model and Dictionary","nhs_data_dictionary")
         ditaProject.useTopicsFolder = false
 
-        //generateIndexTopics(dataDictionary, ditaProject, publishOptions)
-        //generateAllItemsIndex(dataDictionary, ditaProject, publishOptions)
+        generateIndexTopics(dataDictionary, ditaProject, publishOptions)
+        generateAllItemsIndex(dataDictionary, ditaProject, publishOptions)
 
         Map<String, NhsDataDictionaryComponent> pathLookup = [:]
 
@@ -73,15 +73,14 @@ class WebsiteUtility {
             ditaProject.addExternalKey(component.getDitaKey(), component.otherProperties["ddUrl"])
             pathLookup[component.getMauroPath()] = component
         }
-
         dataDictionary.allComponents.each {component ->
             component.replaceLinksInDefinition(pathLookup)
         }
 
-        //allStereotypes.each {name, stereotype ->
-        //
-        //    ditaProject.registerMap('', stereotype, "All ${name}", Toc.NO)
-        //}
+//        allStereotypes.each {name, stereotype ->
+//
+//            ditaProject.registerMap('', stereotype, "All ${name}", Toc.NO)
+//        }
 
 
         dataDictionary.allComponents.
@@ -89,7 +88,7 @@ class WebsiteUtility {
             each {component ->
                 if(!(component instanceof NhsDDDataSet || component instanceof  NhsDDDataSetFolder)) {
                     if (publishOptions.isPublishableComponent(component)) {
-                        String path = "${component.stereotypeForPreview}//${component.getDitaKey()}"
+                        String path = "${component.stereotypeForPreview}/${component.getDitaKey()}"
                         ditaProject.registerTopic(path, component.generateTopic())
                     }
                 }
@@ -233,11 +232,11 @@ class WebsiteUtility {
 
     static void generateAllItemsIndex(NhsDataDictionary dataDictionary, DitaProject ditaProject, PublishOptions publishOptions) {
 
-        TopicRef indexTopicRef = TopicRef.build(href: "../topics/allItems/allItems-index-overview.dita")
+        TopicRef indexTopicRef = TopicRef.build(href: "../allItems-index-overview.dita")
 
         dataDictionary.allComponentsByIndex(true).each {alphaIndex, components ->
             Topic indexPage = Topic.build (id: "allItems-index-${alphaIndex}") {
-                title "${alphaIndex}"
+                title "All Items: ${alphaIndex}"
                 body {
                     simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-sm") {
                         stHead(outputClass: "thead-light") {
@@ -255,7 +254,7 @@ class WebsiteUtility {
                     }
                 }
             }
-            indexTopicRef.topicRef(TopicRef.build(href: "../topics/allItems/allItems-index-${alphaIndex}.dita"))
+            indexTopicRef.topicRef(TopicRef.build(href: "../allItems/allItems-index-${alphaIndex}.dita"))
             ditaProject.registerTopic("allItems", indexPage)
         }
 
@@ -266,11 +265,30 @@ class WebsiteUtility {
             topicRef indexTopicRef
         }
         ditaProject.registerMap("", indexMap)
+
+        Topic allItemsOverview = Topic.build {
+            id 'allItems-index-overview'
+            title 'All Items Index'
+            shortdesc 'Lists all the items in the dictionary in alphabetical order'
+            body {
+                p TO_BE_OVERRIDDEN_TEXT
+            }
+        }
+        ditaProject.registerTopic("", allItemsOverview)
+
         ditaProject.mainMap.mapRef {
             toc Toc.YES
             keyRef 'allItems-index'
         }
     }
+
+    final static Map<String, String> shortDescMap = [
+            "Elements": "Data Elements are the data items used withing Data Sets.",
+            "Attributes": "The part of the data model describing the characteristics of Classes.  Attributes define the data within the model.",
+            "Classes": "The part of the data model describing the aspects of the health and care business with significant characteristics.",
+            "NHS Business Definitions":"The part of the data model that links the logical classes to the context of the health and care business.",
+            "Supporting Information": "Provides information to help users understand content in the NHS Data Model and Dictionary. In addition you can also find the COVID-19 Population Risk Assessment Code List and General Practice Data for Planning and Research (GPDPR)."
+    ]
 
     static void generateIndexMap(DitaProject ditaProject,
                      String lowercaseStereotype, String stereotype, NhsDataDictionary dataDictionary,
@@ -278,19 +296,30 @@ class WebsiteUtility {
         DitaMap indexMap = DitaMap.build(id: "${lowercaseStereotype}-index") {
             title stereotype
         }
-        TopicRef topicRef = TopicRef.build(href: "../topics/${lowercaseStereotype}/${lowercaseStereotype}.index.overview.dita",
+
+        Topic indexOverview = Topic.build {
+            id "${lowercaseStereotype}-index-overview"
+            title "${stereotype}"
+            shortdesc shortDescMap[stereotype]?:"List of ${stereotype}"
+            body {
+                p TO_BE_OVERRIDDEN_TEXT
+            }
+        }
+        ditaProject.registerTopic(lowercaseStereotype, indexOverview)
+
+
+        TopicRef topicRef = TopicRef.build(keyRef: "${lowercaseStereotype}-index-overview",
                                            chunk: ["to-content"],
                                            linking: Linking.NORMAL)
-
+        indexMap.topicRef(topicRef)
 
         List<Topic> indexTopics = getFlatIndexTopics(dataDictionary.componentsByIndex(components, false),
                                                             lowercaseStereotype, stereotype)
 
         indexTopics.each {topic ->
             ditaProject.registerTopic(lowercaseStereotype, topic)
-            topicRef.topicRef(href:"../topics/${lowercaseStereotype}/${topic.id}.dita", linking: Linking.NORMAL)
+            topicRef.topicRef(keyRef:topic.id, linking: Linking.NORMAL)
         }
-        indexMap.topicRef(topicRef)
         ditaProject.registerMap("", indexMap)
         ditaProject.mainMap.mapRef {
             toc Toc.YES
