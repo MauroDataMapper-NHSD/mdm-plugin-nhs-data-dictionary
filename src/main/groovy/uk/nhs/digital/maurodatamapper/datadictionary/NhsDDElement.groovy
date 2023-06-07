@@ -159,7 +159,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
-    @Override
+/*    @Override
     String getDescription() {
         if(dataDictionary && isRetired()) {
             return dataDictionary.retiredItemText
@@ -185,6 +185,31 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
             }
         }
     }
+*/
+
+    @Override
+    Topic descriptionTopic() {
+        Topic.build (id: getDitaKey() + "_description") {
+            title "Description"
+            body {
+                if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
+                    return otherProperties["attributeText"] + definition
+                } else {
+                    if(instantiatesAttributes.size() == 1) {
+                        p {
+                            xRef this.calculateXRef()
+                            text " is the same as attribute "
+                            xRef instantiatesAttributes[0].calculateXRef()
+                        }
+                    }
+                }
+                if(definition) {
+                    div HtmlHelper.replaceHtmlWithDita(definition)
+                }
+            }
+        }
+    }
+
 
 
     @Override

@@ -25,8 +25,11 @@ import groovy.xml.MarkupBuilder
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 class NhsDDDataSetElement{
 
@@ -40,6 +43,8 @@ class NhsDDDataSetElement{
     UUID elementId
     Integer webOrder
     boolean retired
+    String groupRepeats
+    String rules
 
     NhsDDElement reuseElement
     NhsDataDictionary dataDictionary
@@ -63,6 +68,8 @@ class NhsDDDataSetElement{
 
         mandation = thisElementMetadata.find { it.key == "MRO" }?.value
         constraints = thisElementMetadata.find { it.key == "Rules" }?.value
+        groupRepeats = thisElementMetadata.find { it.key == "Group Repeats" }?.value
+        rules = thisElementMetadata.find { it.key == "Rules" }?.value
 
         Metadata md = thisElementMetadata.find {it.key == "Web Order"}
         if(md) {
@@ -126,6 +133,39 @@ class NhsDDDataSetElement{
             })
         }
         return response
+    }
+
+    Row addCDSChildRow(int totalDepth, int currentDepth){
+        Row.build {
+            entry(align: Align.CENTER) {
+                if(mandation) {
+                    mandation.split(";").each {
+                        p it
+                    }
+                }
+            }
+            entry(align: Align.CENTER) {
+                if(groupRepeats) {
+                    groupRepeats.split(";").each {
+                        p it
+                    }
+                }
+            }
+            entry(namest: "col${currentDepth*2+3}", nameend: "col${totalDepth*2+3}") {
+                if(reuseElement) {
+                    xRef DitaHelper.getXRef(reuseElement)
+                } else {
+                    p name
+                }
+            }
+            entry(align: Align.CENTER) {
+                if(rules) {
+                    rules.split(";").each {
+                        p it
+                    }
+                }
+            }
+        }
     }
 
 }

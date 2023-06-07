@@ -29,6 +29,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 
 import groovy.util.logging.Slf4j
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
@@ -361,7 +362,7 @@ class DataSetParser {
         item.getMetadata().find {it.key == "Data Set Reference To"}.value
     }
 
-    static void setMultiplicityText(MetadataAware item, String multiplicity) {
+    static void setMultiplicityText(MetadataAware item, def multiplicity) {
         if(!item) {
             log.error("Setting multiplicity text on null element!")
         }
@@ -369,7 +370,7 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Multiplicity Text", value: multiplicity))
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Multiplicity Text", value: parsePossibleParagraphs(multiplicity)))
         }
     }
 
@@ -377,14 +378,14 @@ class DataSetParser {
         item.getMetadata().find {it.key == "Multiplicity Text"}.value
     }
 
-    static void setMRO(MetadataAware item, String mro) {
+    static void setMRO(MetadataAware item, def mro) {
         if(!item) {
             log.error("Setting MRO on null element!")
         }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "MRO", value: mro))
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "MRO", value: parsePossibleParagraphs(mro)))
         }
     }
 
@@ -396,14 +397,14 @@ class DataSetParser {
         }
     }
 
-    static void setRules(MetadataAware item, String rules) {
+    static void setRules(MetadataAware item, def rules) {
         if(!item) {
             log.error("Setting rules on null element!")
         }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Rules", value: rules))
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Rules", value: parsePossibleParagraphs(rules)))
         }
     }
 
@@ -411,14 +412,14 @@ class DataSetParser {
         item.getMetadata().find {it.key == "Rules"}?.value
     }
 
-    static void setGroupRepeats(MetadataAware item, String groupRepeats) {
+    static void setGroupRepeats(MetadataAware item, def groupRepeats) {
         if(!item) {
             log.error("Setting group repeats on null element!")
         }
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Group Repeats", value: groupRepeats))
+            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_NAMESPACE, key: "Group Repeats", value: parsePossibleParagraphs(groupRepeats)))
         }
     }
 
@@ -677,10 +678,10 @@ class DataSetParser {
         List<List<String>> params = getElementParameters(node)
 
         if (params.size() == 1 && elementList.size() > 1) {
-            setMRO(choiceClass, paramsToHtml(params[0]))
+            setMRO(choiceClass, params[0])
         } else if (params.size() == elementList.size()) {
             elementList.eachWithIndex {element, idx ->
-                setMRO(element, paramsToHtml(params[idx]))
+                setMRO(element, params[idx].join(';'))
             }
         } else {
             log.debug("Params error! {} {}\n{}",
@@ -700,20 +701,19 @@ class DataSetParser {
 
     static void getAndSetRepeats(Node node, List<DataElement> elementList, DataClass choiceClass = null) {
         List<List<String>> params = getElementParameters(node)
-
         if (params.size() == 1 && elementList.size() > 1) {
-            setGroupRepeats(choiceClass, paramsToHtml(params[0]))
+            setGroupRepeats(choiceClass, params[0])
         } else if (params.size() == elementList.size()) {
             elementList.eachWithIndex {element, idx ->
-                setGroupRepeats(element, paramsToHtml(params[idx]))
+                setGroupRepeats(element, params[idx].join(';'))
             }
         } else {
-            log.debug("Params error! ")
-            log.debug(elementList.toString())
+            log.warn("Params error! ")
+            log.warn(elementList.toString())
             elementList.each {DataElement entry ->
-                log.debug(entry.label)
+                log.warn(entry.label)
             }
-            log.debug(node.toString())
+            log.warn(node.toString())
         }
 
     }
@@ -723,10 +723,10 @@ class DataSetParser {
         List<List<String>> params = getElementParameters(node)
 
         if (choiceClass && params.size() == 1 && elementList.size() > 1) {
-            setRules(choiceClass, paramsToHtml(params[0]))
+            setRules(choiceClass, params[0])
         } else if (params.size() == elementList.size()) {
             elementList.eachWithIndex {element, idx ->
-                setRules(element, paramsToHtml(params[idx]))
+                setRules(element, params[idx].join(';'))
             }
         } else {
             log.debug("Params error! ")
@@ -740,34 +740,27 @@ class DataSetParser {
     }
 
 
-    static String paramsToHtml(List<String> params) {
-        String ret = ""
-        params.each {ret += "<p>${it}</p>"}
-        return ret
-    }
-
-
     static List<List<String>> getElementParameters(Node td) {
-        /*td.depthFirst().findAll {n ->
+        td.depthFirst().findAll {n ->
             n instanceof Node && (n.name() == "strong" || n.name() == "em" || n.name() == "p")
         }.each {
-            //n -> HtmlHelper.removeNodeKeepChildren(n)
+            n -> removeNodeKeepChildren(n)
         }
-        */
+
 
         // log.debug("getElementParameters")
         List<List<String>> allValues = []
         List<String> currentValues = []
         for (int i = 0; i < td.children().size(); i++) {
             if (!(td.children()[i] instanceof Node) &&
-                (td.children()[i].equalsIgnoreCase("or") || td.children()[i].equalsIgnoreCase("and"))) {
+                (td.children()[i].trim().equalsIgnoreCase("or") || td.children()[i].trim().equalsIgnoreCase("and"))) {
                 allValues.add(currentValues)
                 currentValues = []
             } else if (!(td.children()[i] instanceof Node) &&
                        td.children()[i] != "\u00a0" &&
-                       td.children()[i] != " ") {
+                       td.children()[i].trim().replace(" ", "") != "") {
                 // log.debug("Adding value: '${td.children()[i]}'")
-                currentValues.add(td.children()[i])
+                currentValues.add(td.children()[i].trim())
             } else if (isBr(td.children()[i]) && td.children()[i + 1] && isBr(td.children()[i + 1])) {
                 allValues.add(currentValues)
                 currentValues = []
@@ -781,21 +774,36 @@ class DataSetParser {
                 i += 2
             } else if (isBr(td.children()[i])) {
                 // skip
-            } else if (td.children()[i] instanceof Node && td.children()[i].name() == "strong") {
+            } else if (td.children()[i] instanceof Node && ["strong", "em", "p"].contains(td.children()[i].name()) ) {
                 // This should be a String...
-                currentValues.add(td.children()[i].children()[0])
+                if(td.children()[i].children()[0].toString().trim().replace(" ", "") != "") {
+                    currentValues.add(td.children()[i].children()[0].trim())
+                }
             } else {
                 log.error("Unknown node!!\n{}", td.children()[i])
             }
         }
         allValues.add(currentValues)
-
         return allValues
 
     }
 
     static boolean isBr(Object n) {
         return (n instanceof Node && n.name() == "br")
+    }
+
+    static void removeNodeKeepChildren(Node node) {
+        Node parent = node.parent()
+        if(!parent) {
+            log.error("null parent!")
+            log.error(node.name().toString())
+            log.error(node.toString())
+        }
+        int location = parent.children().indexOf(node)
+        List<Node> nodes = node.children()
+        parent.remove(node)
+        nodes.remove(node)
+        nodes.reverse().each { cn -> parent.children().add(location, cn)}
     }
 
 
@@ -844,5 +852,30 @@ class DataSetParser {
     static List<Node> tableRowCells(Node tr) {
         tr.children().findAll { it instanceof Node && (it.name() == "td" || it.name() == "th") }
     }
+
+    static String parsePossibleParagraphs(def input) {
+        if (input instanceof String) {
+            return input
+        }
+        if(input instanceof List) {
+            String output = ""
+            input.eachWithIndex {p, idx ->
+                if (idx != 0) {
+                    output += ";"
+                }
+                output += parsePossibleParagraphs(p)
+            }
+            return output
+        }
+        String output = ""
+        input.p.eachWithIndex { p, idx ->
+            if (idx != 0) {
+                ouptut += ";"
+            }
+            output += p.text()
+        }
+        return output
+    }
+
 
 }

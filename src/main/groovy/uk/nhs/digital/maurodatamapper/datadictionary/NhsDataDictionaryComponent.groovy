@@ -162,7 +162,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     abstract String getMauroPath()
 
     String getDitaKey() {
-        String key = getStereotype().replace(" ", "") + "_" + getNameWithoutNonAlphaNumerics()
+        String key = getStereotype().replace(" ", "_") + "_" + getNameWithoutNonAlphaNumerics()
         if(isRetired()) {
             key += "_retired"
         }
@@ -401,14 +401,16 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             Matcher matcher = NhsDataDictionary.pattern.matcher(source)
             while(matcher.find()) {
                 NhsDataDictionaryComponent component = pathLookup[matcher.group(1)]
+
                 if(component) {
                     String text = matcher.group(2).replaceAll("_"," ")
                     String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
                     source = source.replace(matcher.group(0), replacement)
-                    // System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
                     if(this != component) {
                         component.whereUsed.add(this)
                     }
+                } else {
+                    log.info("Cannot match component: ${matcher.group(1)}")
                 }
             }
         }

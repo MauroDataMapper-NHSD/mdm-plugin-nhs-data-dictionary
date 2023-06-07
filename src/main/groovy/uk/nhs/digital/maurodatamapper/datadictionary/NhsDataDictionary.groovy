@@ -41,7 +41,7 @@ class NhsDataDictionary {
 
     static final String FOLDER_NAME = "NHS Data Dictionary"
     static final String ELEMENTS_MODEL_NAME = "Data Elements"
-    static final String CLASSES_MODEL_NAME = "Data Model and Attributes"
+    static final String CLASSES_MODEL_NAME = "Data Classes and Attributes"
     @Deprecated static final String ATTRIBUTES_CLASS_NAME = "Attributes"
     @Deprecated static final String DATA_ELEMENTS_CLASS_NAME = "Data Elements"
     @Deprecated static final String DATA_CLASSES_CLASS_NAME = "Classes"
@@ -72,6 +72,7 @@ class NhsDataDictionary {
     Map<String, NhsDDAttribute> attributesByUin = [:]
     Map<String, NhsDDClass> classesByUin = [:]
     Map<String, NhsDDWebPage> webPagesByUin = [:]
+    Map<String, String> dataSetNamesByDDUrl = [:]
 
     // TODO:  Need to refactor this out sometime
     Map<String, DataElement> elementsByUrl = [:]
@@ -156,7 +157,7 @@ class NhsDataDictionary {
             if (releaseDate) {
                 folderName = "${FOLDER_NAME} (${releaseDate})"
             }
-
+            buildDataSetUrlMap(xml)
             componentClasses.each {componentClassName, map ->
                 String componentNameWithPackage = "${NhsDataDictionary.packageName}.${componentClassName}"
                 NhsDataDictionaryComponent dummyComponent = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
@@ -212,6 +213,13 @@ class NhsDataDictionary {
             "CDS V6-3": "Commissioning Data Set Version 6-3 Type List",
             //"Commissioning Data Sets": "Commissioning Data Sets (CDS) Introduction"
     ]
+
+    void buildDataSetUrlMap(def xml) {
+        xml.DDDataSet.each { it ->
+            dataSetNamesByDDUrl[it.DD_URL.text()] = it.name[0].text().replace("_", " ")
+        }
+    }
+
 
     void processDataSetFolders() {
         Set<List<String>> paths = []
