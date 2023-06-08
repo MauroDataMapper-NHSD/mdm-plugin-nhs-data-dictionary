@@ -34,8 +34,8 @@ class AllItemsHaveShortDescription implements IntegrityCheck {
         errors = dataDictionary.getAllComponents().findAll {component ->
             String shortDesc = component.otherProperties["shortDescription"]
             if(component instanceof NhsDDDataSetFolder) {
-                System.err.println(((NhsDDDataSetFolder)component).folderPath)
-                System.err.println("${component.name} : ${shortDesc}")
+                log.debug(((NhsDDDataSetFolder)component).folderPath.toString())
+                log.debug("${component.name} : ${shortDesc}")
             }
             return (shortDesc == null || shortDesc == "")
         }

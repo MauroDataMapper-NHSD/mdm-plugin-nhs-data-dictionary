@@ -233,8 +233,8 @@ class OtherDataSetParser {
                 } else {
                     CatalogueItem catalogueItem = parseDataElementRow(tr, dataModel, dataDictionary, currentClass)
                     if(!catalogueItem) {
-                        System.err.println("Cannot parse item from row:")
-                        System.err.println(tr)
+                        log.error("Cannot parse item from row:")
+                        log.error(tr.toString())
                     }
                     DataSetParser.setOrder(catalogueItem, elementWebOrder)
                     elementWebOrder++

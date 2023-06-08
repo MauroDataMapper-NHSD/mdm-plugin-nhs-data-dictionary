@@ -139,7 +139,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
     Topic specificationTopic() {
-        System.err.println("Generating specification for: ${name}")
+        log.info("Generating specification for: ${name}")
         Topic.build {
             title "Specification"
             id getDitaKey() + "_specification"

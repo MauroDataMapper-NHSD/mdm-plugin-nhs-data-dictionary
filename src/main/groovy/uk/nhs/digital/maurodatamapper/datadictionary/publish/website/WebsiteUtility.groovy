@@ -102,7 +102,7 @@ class WebsiteUtility {
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
-        System.err.println(ditaOutputDirectory)
+        log.error(ditaOutputDirectory)
         //overwriteGithubDir(ditaOutputDirectory)
 
 
