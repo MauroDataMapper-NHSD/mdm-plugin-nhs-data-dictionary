@@ -167,7 +167,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         then:
         dd
-        checkNovember2021(dd, false, 74, 921, 1116, 262)
+        checkNovember2021(dd, false, 75, 921, 1116, 263)
     }
 
     void 'I02 : test double ingest of November 2021'() {
@@ -186,7 +186,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         then:
         noExceptionThrown()
         dd
-        checkNovember2021(dd, false, 74, 921, 1116, 262)
+        checkNovember2021(dd, false, 75, 921, 1116, 263)
     }
 
     void 'F01 : Finalise Nov 2021 ingest'() {
@@ -197,12 +197,12 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         when: 'finalise'
         // finalise dictionary complete in 39 secs 787 ms
-        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null, 'main', new PublishOptions())
+        VersionedFolder dd = nhsDataDictionaryService.ingest(user, xml, 'November 2021', true, null, null, null, new PublishOptions())
 
         then:
         noExceptionThrown()
         dd
-        checkNovember2021(dd, true, 74, 921, 1116, 262)
+        checkNovember2021(dd, true, 75, 921, 1116, 263)
     }
 
     void 'B01 : Branch Nov 2021 ingest'() {
@@ -432,7 +432,8 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
     def loadXml(String filename) {
         Path testFilePath = resourcesPath.resolve(filename).toAbsolutePath()
         assert Files.exists(testFilePath)
-        def xml = xmlParser.parse(Files.newBufferedReader(testFilePath))
+        BufferedReader bufferedReader = Files.newBufferedReader(testFilePath)
+        def xml = xmlParser.parse(bufferedReader)
         xml
     }
 
@@ -549,6 +550,7 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         assertEquals 'NHSDD Folder finalisation', finalised, nhsdd.finalised
 
         if (totalFolders) {
+
             assertEquals('Total Folders', totalFolders, folderService.count())
             assertEquals('Total Terminologies', totalTerminologies, terminologyService.count())
             assertEquals('Total CodeSets', totalCodeSets, codeSetService.count())
@@ -561,20 +563,22 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
                      dataModelService.count())
         }
 
-        checkFolderContentsWithChildren(nhsdd, 3, 3, 0, 1, finalised)
+        checkFolderContentsWithChildren(nhsdd, 3, 3, 0, 2, finalised)
 
-        DataModel coreDataModel = dataModelService.findByLabel(NhsDataDictionary.CORE_MODEL_NAME)
-        assertNotNull(NhsDataDictionary.CORE_MODEL_NAME, coreDataModel)
-        assertEquals("NhsDataDictionary.CORE_MODEL_NAME dataclasses", 369, coreDataModel.dataClasses.size())
-        assertEquals("NhsDataDictionary.CORE_MODEL_NAME child dataclasses", 3, coreDataModel.childDataClasses.size())
-        checkModelItemIndexes(coreDataModel.childDataClasses, NhsDataDictionary.CORE_MODEL_NAME)
-        checkModelItemIndexes(coreDataModel.dataTypes, NhsDataDictionary.CORE_MODEL_NAME)
+        DataModel classesDataModel = dataModelService.findByLabel(NhsDataDictionary.CLASSES_MODEL_NAME)
+        DataModel elementsDataModel = dataModelService.findByLabel(NhsDataDictionary.ELEMENTS_MODEL_NAME)
+        assertNotNull(NhsDataDictionary.CLASSES_MODEL_NAME, classesDataModel)
+        assertNotNull(NhsDataDictionary.ELEMENTS_MODEL_NAME, elementsDataModel)
+        assertEquals("${NhsDataDictionary.CLASSES_MODEL_NAME} dataclasses", 364, classesDataModel.dataClasses.size())
+        //assertEquals("${NhsDataDictionary.ELEMENTS_MODEL_NAME} child dataclasses", 3, coreDataModel.childDataClasses.size())
+        checkModelItemIndexes(classesDataModel.childDataClasses, NhsDataDictionary.CLASSES_MODEL_NAME)
+        checkModelItemIndexes(elementsDataModel.childDataClasses, NhsDataDictionary.ELEMENTS_MODEL_NAME)
 
         // 'direct children'
         //        outputChildFolderContents(dd, 'dd')
         checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Attribute Terminologies'}, 24, finalised)
         checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Element CodeSets'}, 24, finalised)
-        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Sets'}, 8, finalised)
+        checkFolderContentsWithChildrenOnly(nhsdd.childFolders.find {it.label == 'Data Sets'}, 7, finalised)
 
 
         Folder dataSets = nhsdd.childFolders.find {it.label == 'Data Sets'}
@@ -638,8 +642,8 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
 
         // 'children of datasets'
         checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'Administrative Data Sets'}, 2, finalised)
-        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-2'}, 47, finalised)
-        checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-3'}, 15, finalised)
+        //checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-2'}, 47, finalised)
+        //checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'CDS V6-3'}, 15, finalised)
         checkFolderWithDataModelsOnly(dataSets.childFolders.find {it.label == 'Central Return Data Sets'}, 6, finalised)
         checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Clinical Content'}, 1, 0, 0, 1, finalised)
         checkFolderContentsWithChildren(dataSets.childFolders.find {it.label == 'Clinical Data Sets'}, 2, 0, 0, 13, finalised)
@@ -666,9 +670,9 @@ class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
         checkFolderContents(supportingDataSets.childFolders.find {it.label == 'PLICS Data Set'}, 0, 0, 10, finalised)
 
         // 'children of retired'
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-1'}, 27, finalised)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-2'}, 1, finalised)
-        checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6 Old Layout'}, 27, finalised)
+        //checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-1'}, 27, finalised)
+        //checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6-2'}, 1, finalised)
+        //checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'CDS V6 Old Layout'}, 27, finalised)
         checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Central Returns Data Sets'}, 29, finalised)
         checkFolderWithDataModelsOnly(retired.childFolders.find {it.label == 'Clinical Content'}, 2, finalised)
         checkFolderContentsWithChildren(retired.childFolders.find {it.label == 'Clinical Data Sets'}, 1, 0, 0, 13, finalised)
