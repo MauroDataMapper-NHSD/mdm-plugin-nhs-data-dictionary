@@ -35,7 +35,7 @@ class CDSDataSetParser {
 
         long startTime = System.currentTimeMillis()
         dataClasses = parseCDSDataSetWithHeaderTables(definition, dataModel, dataDictionary)
-        log.error('Initial parse data set complete in {}', Utils.timeTaken(startTime))
+        log.debug('Initial parse data set complete in {}', Utils.timeTaken(startTime))
         startTime = System.currentTimeMillis()
         dataClasses.eachWithIndex {dataClass, index ->
             dataModel.addToDataClasses(dataClass)
@@ -46,10 +46,10 @@ class CDSDataSetParser {
             }
             DataSetParser.setOrder(dataClass, index + 1)
         }
-        log.error('Add to DCs data set complete in {}', Utils.timeTaken(startTime))
+        log.debug('Add to DCs data set complete in {}', Utils.timeTaken(startTime))
         startTime = System.currentTimeMillis()
         DataSetParser.fixPotentialDuplicates(dataModel)
-        log.error('Fix duplicates complete in {}', Utils.timeTaken(startTime))
+        log.debug('Fix duplicates complete in {}', Utils.timeTaken(startTime))
     }
 
     static List<DataClass> parseCDSDataSetWithHeaderTables(Node definition, DataModel dataModel, NhsDataDictionary dataDictionary) {
@@ -226,7 +226,7 @@ class CDSDataSetParser {
         dataClass.label = label.replaceFirst("DATA GROUP:", '').trim()
 
         if (dataClass.label == " ") {
-            log.error("NBSP Found for DataClass name. Extracted Label:[{}]\nXML: {}", label, td)
+            log.debug("NBSP Found for DataClass name. Extracted Label:[{}]\nXML: {}", label, td)
         }
 
         return dataClass
@@ -279,8 +279,8 @@ class CDSDataSetParser {
                 mro = mro.replaceAll("Status", "")
                 DataSetParser.setMRO(currentClass, mro.trim())
                 if(!component.tbody.tr[1].td[1]) {
-                    System.err.println("unexpected row:")
-                    System.err.println(component.tbody.tr[1])
+                    log.error("unexpected row:")
+                    log.error(component.tbody.tr[1].toString())
                 } else {
                     String groupRepeats = component.tbody.tr[1].td[1].text()
                     groupRepeats = groupRepeats.replaceAll("Group", "")
@@ -342,7 +342,6 @@ class CDSDataSetParser {
     static void parseCDSElement(DataModel dataModel, DataClass currentClass, Node tr, NhsDataDictionary dataDictionary, int position) {
         if (tr.td[2].a.size() == 6) {
             //
-            System.err.println("Here: ${dataModel.label} - ${currentClass.label}")
             DataSetParser.setChoice(currentClass)
             DataElement dataElement1 = DataSetParser.getElementFromText(tr.td[2].a[0], dataModel, dataDictionary, currentClass)
 
@@ -423,8 +422,8 @@ class CDSDataSetParser {
                 } else if(tr.td[2].p.size() == 0 && tr.td[2].a.size() == 0 && tr.td[2].text()) {
                     dataElement = DataSetParser.getElementFromText(tr.td[2], dataModel, dataDictionary, currentClass)
                 } else {
-                    System.err.println("Cannot match pattern:")
-                    System.err.println(tr)
+                    log.error("Cannot match pattern:")
+                    log.error(tr.toString())
                 }
                 // assume 4
                 if(dataElement) {

@@ -285,14 +285,14 @@ class NhsDataDictionaryService {
 
 
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
-        log.error("Building Data Dictionary...")
+        log.debug("Building Data Dictionary...")
         long totalStart = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = newDataDictionary()
         dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
 
         buildWorkItemDetails(dataDictionary.containingVersionedFolder, dataDictionary)
 
-        log.error('Starting {}', Utils.timeTaken(totalStart))
+        log.debug('Starting {}', Utils.timeTaken(totalStart))
 
 
         List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
@@ -301,7 +301,7 @@ class NhsDataDictionaryService {
         Terminology supDefTerminology = terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
         Terminology dataSetConstraintsTerminology = terminologies.find {it.label == NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}
 
-        log.error('Got terminologies {}', Utils.timeTaken(totalStart))
+        log.debug('Got terminologies {}', Utils.timeTaken(totalStart))
 
 
         Folder dataSetsFolder = dataDictionary.containingVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
@@ -309,7 +309,7 @@ class NhsDataDictionaryService {
         DataModel classesModel = getClassesModel(versionedFolderId)
         DataModel elementsModel = getElementsModel(versionedFolderId)
 
-        log.error('Got models {}', Utils.timeTaken(totalStart))
+        log.debug('Got models {}', Utils.timeTaken(totalStart))
 
 
         if(classesModel) {
@@ -342,7 +342,7 @@ class NhsDataDictionaryService {
         }
         if(supDefTerminology) {
             addSupDefsToDictionary(supDefTerminology, dataDictionary)
-            log.error('Added to dictionary - sup defs... {}', Utils.timeTaken(totalStart))
+            log.debug('Added to dictionary - sup defs... {}', Utils.timeTaken(totalStart))
         } else {
             log.info("No supporting definitions terminology found")
         }
@@ -353,11 +353,11 @@ class NhsDataDictionaryService {
             log.error("No dataset constraints terminology found")
         }
 
-        log.error('Added to dictionary... {}', Utils.timeTaken(totalStart))
+        log.debug('Added to dictionary... {}', Utils.timeTaken(totalStart))
 
         dataDictionary.buildInternalLinks()
 
-        log.error('Data Dictionary built in {}', Utils.timeTaken(totalStart))
+        log.debug('Data Dictionary built in {}', Utils.timeTaken(totalStart))
 
         return dataDictionary
     }

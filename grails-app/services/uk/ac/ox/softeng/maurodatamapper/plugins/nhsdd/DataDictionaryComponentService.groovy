@@ -105,7 +105,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
         dataDictionary.allComponents.each {
             if(!it.definition) {
-                System.err.println("null definition!" + it.name)
+                log.error("null definition!" + it.name)
             }
         }
         NhsDataDictionaryComponent component = getByCatalogueItemId(UUID.fromString(id), dataDictionary)
@@ -375,7 +375,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
         if(!metadata) {
             if(component instanceof NhsDDElement) {
-                System.err.println("Building metadata for element!")
+                log.debug("Building metadata for element!")
             }
             metadata = Metadata
                     .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())

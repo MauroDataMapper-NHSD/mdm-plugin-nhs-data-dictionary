@@ -62,7 +62,6 @@ class ChangePaperPdfUtility {
                 pathLookup[it.getMauroPath()] = it
             }
         }
-        System.err.println(pathLookup)
 
         thisDataDictionary.getAllComponents().each {it ->
             it.replaceLinksInDefinition(pathLookup)
@@ -166,10 +165,8 @@ class ChangePaperPdfUtility {
                 if(matchedUrl) {
                     String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
                     html = html.replace(matcher.group(0), replacement)
-                    System.err.println("Replacing: " + matcher.group(0) + " with " + replacement)
-                    System.err.println(html)
                 } else {
-                    System.err.println("Cannot match: " + matcher.group(0))
+                    log.error("Cannot match: " + matcher.group(0))
                 }
             }
         }
@@ -204,7 +201,7 @@ class ChangePaperPdfUtility {
 
         stereotypedChange.changedItems.each {changedItem ->
             //String newDefinition = replaceLinksInDescription(changedItem.dictionaryComponent.description, pathLookup)
-            System.err.println(changedItem.dictionaryComponent.name)
+            //System.err.println(changedItem.dictionaryComponent.name)
 
             Topic subTopic = Topic.build(id: changedItem.dictionaryComponent.getDitaKey()) {
                 title changedItem.dictionaryComponent.name
