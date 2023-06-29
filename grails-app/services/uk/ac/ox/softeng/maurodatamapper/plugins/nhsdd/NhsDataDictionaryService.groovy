@@ -393,7 +393,9 @@ class NhsDataDictionaryService {
     }
 
     void addAttributesToDictionary(DataModel classesModel, NhsDataDictionary dataDictionary) {
-        Set<DataElement> attributeElements = classesModel.getAllDataElements()
+        Set<DataElement> attributeElements = classesModel.getAllDataElements().findAll {
+            !(it.dataType instanceof ReferenceType)
+        }
         dataDictionary.attributes = attributeService.collectNhsDataDictionaryComponents(attributeElements, dataDictionary)
         dataDictionary.attributes.values().each { ddAttribute ->
             dataDictionary.attributesByCatalogueId[ddAttribute.getCatalogueItem().id] = ddAttribute

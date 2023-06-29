@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicRef
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicSet
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Linking
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 
@@ -53,7 +54,7 @@ class WebsiteUtility {
             'Supporting Information': 'supportingInformation'
     ]
 
-    static final String GITHUB_BRANCH_URL = "https://github.com/jamesrwelch/DataDictionaryPublication/archive/refs/heads/master.zip"
+    static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
     static final Boolean TEST_GITHUB = true
     static final String TEST_GITHUB_DIR = "/Users/james/git/nhsd/james-fork/DataDictionaryPublication/Website"
 
@@ -64,8 +65,7 @@ class WebsiteUtility {
         DitaProject ditaProject = new DitaProject("NHS Data Model and Dictionary","nhs_data_dictionary")
         ditaProject.useTopicsFolder = false
 
-        generateIndexTopics(dataDictionary, ditaProject, publishOptions)
-        generateAllItemsIndex(dataDictionary, ditaProject, publishOptions)
+
 
         Map<String, NhsDataDictionaryComponent> pathLookup = [:]
 
@@ -83,21 +83,25 @@ class WebsiteUtility {
 //        }
 
 
+        if(publishOptions.publishDataSetFolders || publishOptions.publishDataSets) {
+            DataSetsWebsiteHelper.dataSetsIndex(dataDictionary, publishOptions, ditaProject)
+        }
+
+        generateIndexTopics(dataDictionary, ditaProject, publishOptions)
+        generateAllItemsIndex(dataDictionary, ditaProject, publishOptions)
+
         dataDictionary.allComponents.
             sort {it.name }.
             each {component ->
                 if(!(component instanceof NhsDDDataSet || component instanceof  NhsDDDataSetFolder)) {
                     if (publishOptions.isPublishableComponent(component)) {
-                        String path = "${component.stereotypeForPreview}/${component.getDitaKey()}"
+                        String path = "${component.getPluralStereotypeForWebsite()}/${component.getDitaKey()}"
                         ditaProject.registerTopic(path, component.generateTopic())
                     }
                 }
             }
 
 
-        if(publishOptions.publishDataSetFolders || publishOptions.publishDataSets) {
-            DataSetsWebsiteHelper.dataSetsIndex(dataDictionary, publishOptions, ditaProject)
-        }
 
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
@@ -211,12 +215,12 @@ class WebsiteUtility {
 
     static void generateIndexTopics(NhsDataDictionary dataDictionary, DitaProject ditaProject, PublishOptions publishOptions) {
 
-        if(publishOptions.isPublishAttributes()) {
-            generateIndexMap(ditaProject, "attributes", "Attributes", dataDictionary, dataDictionary.attributes.values())
-        }
         if(publishOptions.isPublishElements()) {
             generateIndexMap(ditaProject, "elements", "Elements", dataDictionary, dataDictionary.elements.values())
 
+        }
+        if(publishOptions.isPublishAttributes()) {
+            generateIndexMap(ditaProject, "attributes", "Attributes", dataDictionary, dataDictionary.attributes.values())
         }
         if(publishOptions.isPublishClasses()) {
             generateIndexMap(ditaProject, "classes", "Classes", dataDictionary, dataDictionary.classes.values())
@@ -232,7 +236,7 @@ class WebsiteUtility {
 
     static void generateAllItemsIndex(NhsDataDictionary dataDictionary, DitaProject ditaProject, PublishOptions publishOptions) {
 
-        TopicRef indexTopicRef = TopicRef.build(href: "../allItems-index-overview.dita")
+        TopicSet indexTopicSet = TopicSet.build( id: "allItems-index-topicset", keyRef: "allItems-index-overview", navTitle: "All Items Index")
 
         dataDictionary.allComponentsByIndex(true).each {alphaIndex, components ->
             Topic indexPage = Topic.build (id: "allItems-index-${alphaIndex}") {
@@ -254,15 +258,15 @@ class WebsiteUtility {
                     }
                 }
             }
-            indexTopicRef.topicRef(TopicRef.build(href: "../allItems/allItems-index-${alphaIndex}.dita"))
+            indexTopicSet.topicRef(TopicRef.build(keyRef: "allItems-index-${alphaIndex}"))
             ditaProject.registerTopic("allItems", indexPage)
         }
 
 
 
-        DitaMap indexMap = DitaMap.build(id: 'allItems-index', toc: Toc.YES, chunk: ["by-document"]) {
+        DitaMap indexMap = DitaMap.build(id: 'allItems-index', toc: Toc.YES) {
             title "All Items Index"
-            topicRef indexTopicRef
+            topicSet indexTopicSet
         }
         ditaProject.registerMap("", indexMap)
 
@@ -308,17 +312,19 @@ class WebsiteUtility {
         ditaProject.registerTopic(lowercaseStereotype, indexOverview)
 
 
-        TopicRef topicRef = TopicRef.build(keyRef: "${lowercaseStereotype}-index-overview",
-                                           chunk: ["to-content"],
-                                           linking: Linking.NORMAL)
-        indexMap.topicRef(topicRef)
+        TopicSet topicSet = TopicSet.build( id: "${lowercaseStereotype}-index-topicset",
+                                            keyRef: "${lowercaseStereotype}-index-overview",
+                                            chunk: ["to-content"],
+                                            linking: Linking.NORMAL,
+                                            navTitle: stereotype)
+        indexMap.topicSet(topicSet)
 
         List<Topic> indexTopics = getFlatIndexTopics(dataDictionary.componentsByIndex(components, false),
                                                             lowercaseStereotype, stereotype)
 
         indexTopics.each {topic ->
             ditaProject.registerTopic(lowercaseStereotype, topic)
-            topicRef.topicRef(keyRef:topic.id, linking: Linking.NORMAL)
+            topicSet.topicRef(keyRef:topic.id, linking: Linking.NORMAL)
         }
         ditaProject.registerMap("", indexMap)
         ditaProject.mainMap.mapRef {
