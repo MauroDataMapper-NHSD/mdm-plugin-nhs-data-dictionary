@@ -18,13 +18,17 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import groovy.xml.XmlParser
+import org.springframework.http.HttpStatus
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.ResourcelessMdmController
 import uk.ac.ox.softeng.maurodatamapper.security.User
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import uk.ac.ox.softeng.maurodatamapper.security.UserSecurityPolicyManager
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
 
@@ -35,6 +39,7 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
     static XmlParser xmlParser = new XmlParser(false, false)
 
     NhsDataDictionaryService nhsDataDictionaryService
+    AsyncJobService asyncJobService
 
     @Transactional
     def newVersion() {
@@ -55,10 +60,36 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
         def xml = xmlParser.parse(params.ingestFile.getInputStream())
         User currentUser = getCurrentUser()
         PublishOptions publishOptions = PublishOptions.fromParameters(params)
-        VersionedFolder newVersionedFolder = nhsDataDictionaryService.ingest(currentUser, xml, params.releaseDate, params.boolean('finalise'), params
-            .folderVersionNo, params.prevVersion, params.branchName, publishOptions, params.boolean('deletePrevious')?:false)
 
-        respond([newVersionedFolder.id.toString()])
+        Closure<VersionedFolder> ingestDD = { String releaseDate,
+                                              Boolean finalise,
+                                              String folderVersionNo,
+                                              String prevVersion,
+                                              String branchName,
+                                              PublishOptions pubOptions,
+                                              Boolean deletePrevious,
+                                              UUID jobId ->
+            nhsDataDictionaryService.ingest(currentUser, xml, releaseDate, finalise,
+                    folderVersionNo, prevVersion, branchName, pubOptions, deletePrevious)
+        }
+
+
+        if(params.boolean('async')) {
+            AsyncJob asyncJob = asyncJobService.createAndSaveAsyncJob(
+                    "Ingest Data Dictionary ${params.releaseDate}",
+                    currentUser.emailAddress,
+                    ingestDD.curry(params.releaseDate, params.boolean('finalise'),
+                        params.folderVersionNo, params.prevVersion, params.branchName, publishOptions, params.boolean('deletePrevious')?:false))
+
+
+            return respond(asyncJob, view: '/asyncJob/show', status: HttpStatus.ACCEPTED)
+
+        } else {
+            // Doing this synchronously
+            VersionedFolder versionedFolder = ingestDD(currentUser, xml, params.releaseDate, params.boolean('finalise'),
+                    params.folderVersionNo, params.prevVersion, params.branchName, publishOptions, params.boolean('deletePrevious')?:false)
+            return respond([versionedFolder: versionedFolder, userSecurityPolicyManager: currentUserSecurityPolicyManager], view: '/versionedFolder/show')
+        }
 
     }
 
