@@ -193,12 +193,12 @@ class NhsDataDictionary {
             processLinksFromXml()
             log.info("Links processed in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
 
-            componentStartTime = System.currentTimeMillis()
+/*            componentStartTime = System.currentTimeMillis()
             allComponents.each { component ->
                 component.setShortDescription()
             }
             log.info("Short descriptions calculated in ${Utils.getTimeString(System.currentTimeMillis() - componentStartTime)}")
-
+*/
             long endTime = System.currentTimeMillis()
             log.info("Data Dictionary build from XML complete in ${Utils.getTimeString(endTime - startTime)}")
         }
@@ -412,6 +412,7 @@ class NhsDataDictionary {
         "formatLength": "format-length",
         "formatLink": "format-link",
 
+            "isKey": "isKey",
 
         //"fhirItem": "FHIR_Item",
         //"definition": "definition",

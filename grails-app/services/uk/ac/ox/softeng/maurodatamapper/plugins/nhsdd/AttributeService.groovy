@@ -27,6 +27,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
@@ -61,34 +62,26 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     }
 
     Set<NhsDDAttribute> getAllForElement(UUID versionedFolderId, NhsDDElement nhsDDElement) {
-        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
-        List<DataElement> dataElements = DataElement.by().inList('dataClass.id', attributesClass.id).list()
-        List<String> linkedAttributeList = elementService.getLinkedAttributesFromMetadata(nhsDDElement.catalogueItem)
-        linkedAttributeList.collect {elementName ->
-            dataElements.find {it.label == elementName}
+        List<String> linkedAttributeList = elementService.getLinkedAttributes(nhsDDElement.catalogueItem)
+
+        nhsDDElement.catalogueItem.semanticLinks.collect {link ->
+            DataElement.get(link.targetMultiFacetAwareItemId)
         }.collect {
+            it.getMetadata().size() // For later getting retired property
             getNhsDataDictionaryComponentFromCatalogueItem(it, nhsDataDictionaryService.newDataDictionary())
         }
-
     }
 
 
     @Override
     Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
 
-        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
-
-        List<UUID> classIds = [attributesClass.id]
-        if(includeRetired) {
-            DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
-            classIds.add(retiredAttributesClass.id)
-        }
-        List<DataElement> attributes = DataElement.by().inList('dataClass.id', classIds).list()
-
+        DataModel classesModel = nhsDataDictionaryService.getClassesModel(versionedFolderId)
+        List<DataElement> attributes = DataElement.byDataModelId(classesModel.id).list()
         attributes.findAll {dataElement ->
-            includeRetired || !catalogueItemIsRetired(dataElement)
+            //dataElement.metadata.size()
+            !(dataElement.dataType instanceof ReferenceType) &&
+                    (includeRetired || !catalogueItemIsRetired(dataElement))
         }
 
     }

@@ -17,6 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets
 
+import org.springframework.beans.factory.annotation.Autowired
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLink
 import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLinkType
@@ -26,12 +27,16 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataTypeService
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 
 import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
+
+import javax.lang.model.type.ReferenceType
 
 @Slf4j
 class DataSetParser {
@@ -556,17 +561,25 @@ class DataSetParser {
         } else if (anchor && !anchor.@href) {
             originalDataElement = dataDictionary.elements[anchor.text()]
         }
-        DataType defaultDataType = dataModel.dataTypes.find {it.label == "DataType: Any"}
-        if (!defaultDataType) {
-            defaultDataType = new PrimitiveType(label: "DataType: Any")
-            dataModel.addToDataTypes(defaultDataType)
-        }
-        DataElement dataElement = new DataElement(label: DDHelperFunctions.tidyLabel(anchor.text()), dataType: defaultDataType)
-        currentClass.addToDataElements(dataElement)
-
+        DataElement dataElement
         if (!originalDataElement) {
             log.warn("Cannot find element: ${anchor} in class: ${currentClass.label}, model: ${dataModel.label}")
+            DataType defaultDataType = dataModel.dataTypes.find {it.label == "DataType: Any"}
+            if (!defaultDataType) {
+                defaultDataType = new PrimitiveType(label: "DataType: Any")
+                dataModel.addToDataTypes(defaultDataType)
+            }
+            dataElement = new DataElement(label: DDHelperFunctions.tidyLabel(anchor.text()), dataType: defaultDataType)
+            currentClass.addToDataElements(dataElement)
         } else {
+            DataType dataType = dataModel.dataTypes.find {it.label == originalDataElement.dataType.label }
+            if(!dataType) {
+                dataType = copyDataType(originalDataElement.dataType)
+                dataModel.addToDataTypes(dataType)
+            }
+
+            dataElement = new DataElement(label: DDHelperFunctions.tidyLabel(anchor.text()), dataType: dataType)
+            currentClass.addToDataElements(dataElement)
             SemanticLink semanticLink = new SemanticLink(
                     targetMultiFacetAwareItem: originalDataElement,
                     linkType: SemanticLinkType.REFINES,
@@ -574,6 +587,24 @@ class DataSetParser {
             dataElement.addToSemanticLinks(semanticLink)
         }
         return dataElement
+    }
+
+    static DataType copyDataType(DataType original) {
+        if(original instanceof PrimitiveType) {
+            return new PrimitiveType(
+                    label: original.label,
+                    description: original.description,
+                    units: original.units
+            )
+        } else if(original instanceof ModelDataType) {
+            return new ModelDataType(
+                    modelResourceDomainType: original.modelResourceDomainType,
+                    modelResourceId: original.modelResourceId,
+                    model: original.model,
+                    label: original.label,
+                    description: original.description
+            )
+        }
     }
 
     static final Map<String, String> fileNameFixes = [

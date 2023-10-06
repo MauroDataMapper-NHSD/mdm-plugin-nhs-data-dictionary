@@ -21,12 +21,14 @@ import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.model.Container
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
+import uk.ac.ox.softeng.maurodatamapper.core.path.PathService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
@@ -34,6 +36,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClassService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElementService
+import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.terminology.CodeSetService
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.TerminologyService
@@ -44,6 +47,7 @@ import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -65,6 +69,8 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     CodeSetService codeSetService
     FolderService folderService
     VersionedFolderService versionedFolderService
+
+    PathService pathService
 
     MetadataService metadataService
     AuthorityService authorityService
@@ -132,9 +138,10 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             ) {
                 // ignore
             } else {
+                System.err.println(matcher.group(1))
                 try {
                     String[] path = matcher.group(1).split("\\|")
-                    CatalogueItem foundCatalogueItem = getByPath(path)
+                    CatalogueItem foundCatalogueItem = getByPath(VersionedFolder.get(branchId), path)
                     if (foundCatalogueItem) {
                         String stereotype = getStereotypeByPath(path)
                         String catalogueId = foundCatalogueItem.id.toString()
@@ -143,10 +150,13 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                             matcher
                                 .group(2)}</a>"""
                         newDescription = newDescription.replace(matcher.group(0), replacementLink)
+                    } else {
+                        System.err.println("Cannot find domain item: ${matcher.group(1)}")
                     }
                 } catch(Exception e) {
-                    log.debug(e.message)
-                    log.debug(description)
+                    System.err.println(e.message)
+                    e.printStackTrace()
+                    System.err.println(description)
                 }
 
             }
@@ -163,7 +173,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         return output
     }
 
-    CatalogueItem getByPath(String[] path) {
+    CatalogueItem getByPath(VersionedFolder versionedFolder, String[] path) {
         if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
             Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
@@ -188,8 +198,8 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                 return t
             }
         }
-        if (path[0].startsWith("dm:${NhsDataDictionary.CORE_MODEL_NAME}")) {
-            DataModel dm = dataModelService.findByLabel(NhsDataDictionary.CORE_MODEL_NAME)
+        if (path[0].startsWith("dm:${NhsDataDictionary.CLASSES_MODEL_NAME}")) {
+            DataModel dm = dataModelService.findByLabel(NhsDataDictionary.CLASSES_MODEL_NAME)
             if (path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
                 DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_CLASSES_CLASS_NAME)
                 if (path[2] == "dc:Retired") {
@@ -228,9 +238,6 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             DataModel dm = dataModelService.findByLabel(path[0].replace("dm:", ""))
             return dm
         }
-        log.debug("Cannot find by path!")
-        log.debug(path.toString())
-        log.debug(path[1])
 
         return null
     }
@@ -401,9 +408,8 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     boolean catalogueItemIsRetired(CatalogueItem catalogueItem) {
         List<Metadata> allRelevantMetadata = Metadata
             .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
-            .eq('key', "isRetired")
+            .eq('key', 'isRetired')
             .list()
-
         return allRelevantMetadata.any{md -> md.value == "true"}
     }
 
@@ -430,7 +436,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                     code = term.code
                     definition = term.definition
                     publishDate = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'publishDate'}?.value
-                    webOrder = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value
+                    webOrder = Integer.parseInt(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webOrder'}?.value)
                     webPresentation = allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'webPresentation'}?.value
                     isDefault = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isDefault'}?.value)
                     isRetired = Boolean.valueOf(allRelevantMetadata.find {it.multiFacetAwareItemId == term.id && it.key == 'isRetired'}?.value)

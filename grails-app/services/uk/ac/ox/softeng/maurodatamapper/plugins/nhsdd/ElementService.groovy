@@ -62,7 +62,9 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         element.instantiatesAttributes.addAll(attributeService.getAllForElement(versionedFolderId, element))
         element.definition = convertLinksInDescription(versionedFolderId, element.getDescription())
         element.codes.each {code ->
-            code.webPresentation = convertLinksInDescription(versionedFolderId, code.webPresentation)
+            if(code.webPresentation) {
+                code.webPresentation = convertLinksInDescription(versionedFolderId, code.webPresentation)
+            }
         }
         return element
     }
@@ -158,54 +160,35 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
 
     @Override
     Set<DataElement> getAll(UUID versionedFolderId, boolean includeRetired = false) {
+        DataModel coreModel = nhsDataDictionaryService.getElementsModel(versionedFolderId)
 
-        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
-
-        List<UUID> classIds = [elementsClass.id]
-        if (includeRetired) {
-            DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
-            classIds.add(retiredElementsClass.id)
-        }
-        List<DataElement> dataElements = DataElement.by().inList('dataClass.id', classIds).list()
-
-        dataElements.findAll {dataElement ->
+        return coreModel.allDataElements.findAll {dataElement ->
             includeRetired || !catalogueItemIsRetired(dataElement)
         }
-
     }
 
     Set<NhsDDElement> getAllForAttribute(UUID versionedFolderId, NhsDDAttribute nhsDDAttribute) {
-        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
-        List<DataElement> dataElements = DataElement.by().inList('dataClass.id', elementsClass.id).list()
-        dataElements.findAll {dataElement ->
-            attributeListIncludesName(dataElement, nhsDDAttribute.name)
-        }.collect {
-            getNhsDataDictionaryComponentFromCatalogueItem(it, nhsDataDictionaryService.newDataDictionary())
+        SemanticLink.byTargetMultiFacetAwareItemId(nhsDDAttribute.catalogueItem.id).list().collect { link ->
+            DataElement.get(link.multiFacetAwareItemId)
+        }.collect { dataElement ->
+            dataElement.metadata.size() // For later conversion to stereotyped item and to find out if retired
+            getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
         }
     }
 
+    @Deprecated
     boolean attributeListIncludesName(CatalogueItem catalogueItem, String name) {
-        List<String> linkedAttributeList = getLinkedAttributesFromMetadata(catalogueItem)
+        List<String> linkedAttributeList = getLinkedAttributes(catalogueItem)
         if (!linkedAttributeList) {
             return false
         }
         return linkedAttributeList.contains(name)
     }
 
-    List<String> getLinkedAttributesFromMetadata(CatalogueItem catalogueItem) {
-        List<Metadata> allRelevantMetadata = Metadata
-            .byMultiFacetAwareItemIdAndNamespace(catalogueItem.id, getMetadataNamespace())
-            .eq('key', "linkedAttributes")
-            .list()
-        if (allRelevantMetadata) {
-            String stringList = allRelevantMetadata.first().value
-            return StringUtils.split(stringList, ';')
-        } else {
-            return []
+    List<String> getLinkedAttributes(CatalogueItem catalogueItem) {
+        catalogueItem.semanticLinks.collect {link ->
+            DataElement.get(link.targetMultiFacetAwareItemId).label
         }
-
     }
 
 
@@ -218,12 +201,10 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDElement element = new NhsDDElement()
         nhsDataDictionaryComponentFromItem(catalogueItem, element, metadata)
-        String linkedAttributeMetadata = element.otherProperties["linkedAttributes"]
-        if (linkedAttributeMetadata) {
-            String[] linkedAttributeNames = StringUtils.split(linkedAttributeMetadata, ';')
-            linkedAttributeNames.each {
-                NhsDDAttribute linkedAttribute = dataDictionary.attributes[it]
-                if (linkedAttribute) {
+        catalogueItem.semanticLinks.each {
+            if(it.linkType == SemanticLinkType.REFINES) {
+                NhsDDAttribute linkedAttribute = dataDictionary.attributesByCatalogueId[it.targetMultiFacetAwareItemId]
+                if(linkedAttribute) {
                     element.instantiatesAttributes.add(linkedAttribute)
                     linkedAttribute.instantiatedByElements.add(element)
                 }
@@ -318,7 +299,6 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
 
             addMetadataFromComponent(elementDataElement, element, currentUserEmailAddress)
 
-            String elementAttributes = StringUtils.join(element.instantiatesAttributes.collect {it.name}, ";")
 
             element.instantiatesAttributes.each {attribute ->
                 if(attribute.catalogueItem) {
@@ -331,7 +311,8 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
                 }
             }
 
-            addToMetadata(elementDataElement, "linkedAttributes", elementAttributes, currentUserEmailAddress)
+            //String elementAttributes = StringUtils.join(element.instantiatesAttributes.collect {it.name}, ";")
+            //addToMetadata(elementDataElement, "linkedAttributes", elementAttributes, currentUserEmailAddress)
 
             DataClass parentClass
             if (element.isRetired()) {

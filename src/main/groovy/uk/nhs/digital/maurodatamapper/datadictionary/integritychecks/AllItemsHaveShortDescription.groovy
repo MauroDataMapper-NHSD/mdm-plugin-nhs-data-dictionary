@@ -17,11 +17,12 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 
-
+import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
+@Slf4j
 class AllItemsHaveShortDescription implements IntegrityCheck {
 
     String name = "All items have a short description"
@@ -32,7 +33,7 @@ class AllItemsHaveShortDescription implements IntegrityCheck {
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
 
         errors = dataDictionary.getAllComponents().findAll {component ->
-            String shortDesc = component.otherProperties["shortDescription"]
+            String shortDesc = component.getShortDescription()
             if(component instanceof NhsDDDataSetFolder) {
                 log.debug(((NhsDDDataSetFolder)component).folderPath.toString())
                 log.debug("${component.name} : ${shortDesc}")

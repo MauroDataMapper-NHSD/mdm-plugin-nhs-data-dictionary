@@ -28,7 +28,7 @@ class NhsDDCode {
     String code
     String definition
     String publishDate
-    String webOrder
+    Integer webOrder
     String webPresentation
     Boolean isDefault
 
@@ -45,7 +45,7 @@ class NhsDDCode {
             "publishDate"       : publishDate,
             "isRetired"         : isRetired.toString(),
             "retiredDate"       : retiredDate,
-            "webOrder"          : webOrder,
+            "webOrder"          : "${webOrder}",
             "webPresentation"   : webPresentation,
             "isDefault"         : isDefault.toString()
         ]
@@ -80,7 +80,7 @@ class NhsDDCode {
         Topic.build (id: topicId) {
             title topicTitle
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"]), outputClass: "table table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"]), outputClass: "table table-sm table-striped") {
                     stHead (outputClass: "thead-light") {
                         stentry "Code"
                         stentry "Description"

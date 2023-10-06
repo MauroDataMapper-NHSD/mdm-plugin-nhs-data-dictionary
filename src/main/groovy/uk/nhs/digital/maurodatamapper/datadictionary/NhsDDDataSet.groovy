@@ -145,7 +145,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
             id getDitaKey() + "_specification"
             body {
                 getDataSetClasses().sort { it.webOrder }.each { dataSetClass ->
-                    if (name.startsWith("CDS")) {
+                    if (name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Care Data Set')) {
                         div dataSetClass.outputCDSClassAsDita(dataDictionary)
                     } else {
                         div dataSetClass.outputClassAsDita(dataDictionary)
@@ -162,7 +162,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
         markupBuilder.setEscapeAttributes(false)
         markupBuilder.setDoubleQuotes(true)
-        if(name.startsWith("CDS")) {
+        if(name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Caee Data Set')) {
             outputAsCdsHtml(markupBuilder)
         } else {
             outputAsHtml(markupBuilder)

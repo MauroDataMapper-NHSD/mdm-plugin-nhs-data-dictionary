@@ -84,13 +84,20 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
                 if(code.isRetired) {
                     code.retiredDate = concept.property.find {it.code[0].@value == "Retired Date"}?.valueDateTime[0]?.@value
                 }
-                code.webOrder = concept.property.find {it.code[0].@value == "Web Order"}?.valueInteger[0]?.@value
+                code.webOrder = Integer.parseInt(concept.property.find {it.code[0].@value == "Web Order"}?.valueInteger[0]?.@value)
                 code.webPresentation = unquoteString(concept.property.find {it.code[0].@value == "Web Presentation"}?.valueString?[0]?.@value)
-                code.isDefault = (code.webOrder == null || code.webOrder == "0")
+                code.isDefault = (code.webOrder == null || code.webOrder == 0)
 
 
                 codes.add(code)
             }
+            // now clear the web order field if we don't need it
+            if(codes.findAll { it.webOrder }.sort {it.code }.code == codes.findAll { it.webOrder }.sort {it.webOrder}.code) {
+                codes.each {
+                    it.webOrder == null
+                }
+            }
+
         }
         dataDictionary.attributesByUin[getUin()] = this
     }
@@ -176,6 +183,18 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Override
+    void updateWhereUsed() {
+        instantiatedByElements.each { NhsDDElement element ->
+            whereUsed[element] = "is the data element of $name".toString()
+        }
+        dataDictionary.classes.values().each {clazz ->
+            if(clazz.allAttributes().contains(this)) {
+                whereUsed[clazz] = "has an attribute $name of type $name".toString()
             }
         }
     }

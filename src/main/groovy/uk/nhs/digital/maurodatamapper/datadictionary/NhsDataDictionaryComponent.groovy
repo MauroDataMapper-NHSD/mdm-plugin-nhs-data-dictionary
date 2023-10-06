@@ -18,6 +18,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import groovy.sql.DataSet
+import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -52,7 +53,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     Map<String, String> otherProperties = [:]
 
-    HashSet<NhsDataDictionaryComponent> whereUsed = []
+    Map<NhsDataDictionaryComponent, String> whereUsed = [:]
 
     abstract String calculateShortDescription()
 
@@ -69,7 +70,11 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     String getShortDescription() {
-        otherProperties["shortDescription"]
+        if(otherProperties["shortDescription"]){
+            return otherProperties["shortDescription"]
+        } else {
+            return calculateShortDescription()
+        }
     }
 
     String getTitleCaseName() {
@@ -113,6 +118,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         definition = definition.replaceAll("\\s+", " ")
 */
         definition = (DDHelperFunctions.parseHtml(xml.definition[0])).replace("\u00a0", " ")
+
         NhsDataDictionary.METADATA_FIELD_MAPPING.entrySet().each {entry ->
             Node xmlValue = xml[entry.value][0]
             if((!xmlValue || xmlValue.text() == "") && xml."class"[entry.value]) {
@@ -304,10 +310,13 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     Topic generateTopic() {
+        String titleOutputClass = getOutputClass()
         Topic.build(
             id: getDitaKey()
         ) {
-            title getNameWithRetired()
+            title (outputClass: titleOutputClass)  {
+                text getNameWithRetired()
+            }
             shortdesc getShortDescription()
             getWebsiteTopics().each {
                 topic it
@@ -320,7 +329,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             title "Description"
             body {
                 if(definition) {
-                    div HtmlHelper.replaceHtmlWithDita(definition)
+                    div HtmlHelper.replaceHtmlWithDita(definition.replace('<table', '<table class=\"table-striped\"'))
                 }
             }
         }
@@ -330,17 +339,19 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         Topic.build (id: getDitaKey() + "_whereUsed") {
             title "Where Used"
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["3*","7*"]), outputClass: "table table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*","3*","2*"]), outputClass: "table table-sm table-striped") {
                     stHead (outputClass: "thead-light") {
                         stentry "Type"
                         stentry "Link"
+                        stentry "How used"
                     }
-                    whereUsed.sort {it.name}.each {component ->
+                    whereUsed.sort {it.key.name}.each {component, text ->
                         strow {
                             stentry component.stereotype
                             stentry {
                                 xRef component.calculateXRef()
                             }
+                            stentry text
                         }
                     }
 
@@ -354,7 +365,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             title "Also Known As"
             body {
                 p "This ${getStereotype()} is also known by these names:"
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"]), outputClass: "table table-sm") {
+                simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"]), outputClass: "table table-sm table-striped") {
                     stHead (outputClass: "thead-light") {
                         stentry "Context"
                         stentry "Alias"
@@ -407,7 +418,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
                     String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
                     source = source.replace(matcher.group(0), replacement)
                     if(this != component) {
-                        component.whereUsed.add(this)
+                        component.whereUsed[this] = "references in description ${this.name}".toString()
+
                     }
                 } else {
                     log.info("Cannot match component: ${matcher.group(1)}")
@@ -474,6 +486,9 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     String getSentence(String html = this.definition, int i) {
+        if(!html) {
+            return null
+        }
         String sentence = calculateSentences(html)[i]
         return tidyShortDescription(sentence) + "."
     }
@@ -526,6 +541,10 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     String getCatalogueItemDomainTypeAsString() {
         return catalogueItem.domainType.toString()
+    }
+
+    void updateWhereUsed() {
+
     }
 
 

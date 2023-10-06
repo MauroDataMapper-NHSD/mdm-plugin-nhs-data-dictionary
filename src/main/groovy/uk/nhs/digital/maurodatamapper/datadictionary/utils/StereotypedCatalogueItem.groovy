@@ -35,8 +35,7 @@ class StereotypedCatalogueItem {
     StereotypedCatalogueItem(MdmDomain catalogueItem, String stereotype) {
         this.catalogueItem = catalogueItem
         this.stereotype = stereotype
-        this.isRetired = catalogueItem.metadata.find {
-            it.namespace == NhsDataDictionary.METADATA_NAMESPACE &&
+        this.isRetired = catalogueItem.metadata.any {
             it.key == "isRetired" &&
             it.value == "true"
         }
