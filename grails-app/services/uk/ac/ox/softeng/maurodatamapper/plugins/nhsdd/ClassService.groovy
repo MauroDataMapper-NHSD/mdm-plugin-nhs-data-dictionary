@@ -207,18 +207,10 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
 */
     @Override
     Set<DataClass> getAll(UUID versionedFolderId, boolean includeRetired = false) {
-        DataModel coreModel = nhsDataDictionaryService.getCoreModel(versionedFolderId)
-        DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
+        DataModel coreModel = nhsDataDictionaryService.getClassesModel(versionedFolderId)
+        DataClass classesClass = DataClass.byDataModelId(coreModel.id)
 
-        List<DataClass> allClasses = []
-        allClasses.addAll(DataClass.byParentDataClassId(classesClass.id).list())
-
-        if(includeRetired) {
-            DataClass retiredClassesClass = allClasses.find {it.label == "Retired"}
-            allClasses.addAll(DataClass.byParentDataClassId(retiredClassesClass.id).list())
-        }
-
-        allClasses.findAll {dataClass ->
+        classesClass.findAll {dataClass ->
             dataClass.label != "Retired" && (
                 includeRetired || !catalogueItemIsRetired(dataClass))
         }
@@ -367,7 +359,8 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             "clientUin": classLink.clientUin,
             "relationSupplierExclusivity": classLink.relationSupplierExclusivity,
             "relationClientExclusivity": classLink.relationClientExclusivity,
-            "direction": classLink.direction
+            "direction": classLink.direction,
+            "isKey": classLink.partOfClientKey,
         ]
         metadata.each {key, value ->
             addToMetadata(dataElement, key, value, currentUserEmailAddress)

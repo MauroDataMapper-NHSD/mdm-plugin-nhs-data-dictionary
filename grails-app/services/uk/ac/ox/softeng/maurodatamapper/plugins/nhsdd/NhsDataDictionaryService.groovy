@@ -51,6 +51,7 @@ import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.hibernate.SessionFactory
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
@@ -270,7 +271,7 @@ class NhsDataDictionaryService {
             AllItemsHaveShortDescription,
             AllItemsHaveAlias,
             ReusedItemNames,
-            BrokenLinks
+            //BrokenLinks
         ]
 
         List<IntegrityCheck> integrityChecks = integrityCheckClasses.collect {checkClass ->
@@ -438,7 +439,16 @@ class NhsDataDictionaryService {
                         targetClass: dataDictionary.classes[referencedClass.label]
                     ).tap {
                         setDescription(dataElement)
+                        isKey = dataElement.metadata.find {it.key == "isKey"}
                     })
+                } else {
+                    NhsDDAttribute attribute = dataDictionary.attributesByCatalogueId[dataElement.id]
+                    if(attribute.otherProperties['isKey']) {
+                        dataClass.keyAttributes.add(attribute)
+                    } else {
+                        dataClass.otherAttributes.add(attribute)
+                    }
+
                 }
             }
             ((DataClass)dataClass.catalogueItem).getExtendedDataClasses().each { extendedDataClass ->
@@ -446,9 +456,8 @@ class NhsDataDictionaryService {
             }
 
             // TODO:  Sort key and non-key attributes here...
-            ((DataClass)dataClass.catalogueItem).getImportedDataElements().each { importedDataElement ->
-                dataClass.otherAttributes.add(dataDictionary.attributesByCatalogueId[importedDataElement.id])
-            }
+            //((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
+            //}
         }
 
     }

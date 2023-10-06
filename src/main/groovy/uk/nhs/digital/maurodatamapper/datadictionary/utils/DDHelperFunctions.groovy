@@ -59,10 +59,10 @@ class DDHelperFunctions {
         ret = ret.replaceAll("<title>[^<]*</title>", "")
         ret = ret.replaceAll("<body>", "")
         ret = ret.replaceAll("</body>", "")
-        ret = ret.replaceAll("\n", " ")
-        ret = ret.replaceAll("<definition>", " ")
-        ret = ret.replaceAll("</definition>", " ")
-        ret = ret.replaceAll("<definition/>", " ")
+        ret = ret.replaceAll("\n", "")
+        ret = ret.replaceAll("<definition>", "")
+        ret = ret.replaceAll("</definition>", "")
+        ret = ret.replaceAll("<definition/>", "")
         return ret.trim()
 
     }

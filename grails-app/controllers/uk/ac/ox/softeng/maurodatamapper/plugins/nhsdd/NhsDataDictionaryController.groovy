@@ -86,8 +86,8 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
         } else {
             // Doing this synchronously
-            VersionedFolder versionedFolder = ingestDD(currentUser, xml, params.releaseDate, params.boolean('finalise'),
-                    params.folderVersionNo, params.prevVersion, params.branchName, publishOptions, params.boolean('deletePrevious')?:false)
+            VersionedFolder versionedFolder = ingestDD.call(params.releaseDate, params.boolean('finalise'),
+                    params.folderVersionNo, params.prevVersion, params.branchName, publishOptions, params.boolean('deletePrevious')?:false, null)
             return respond([versionedFolder: versionedFolder, userSecurityPolicyManager: currentUserSecurityPolicyManager], view: '/versionedFolder/show')
         }
 

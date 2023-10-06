@@ -115,9 +115,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        if(allAttributes()) {
-            topics.add(classLinksTopic())
-        }
+        topics.add(classLinksTopic())
         if(classRelationships) {
             topics.add(classRelationshipsTopic())
         }
@@ -134,28 +132,32 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         Topic.build (id: getDitaKey() + "_attributes") {
             title "Attributes"
             body {
-                simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "9*"]), outputClass: "table table-sm") {
-                    stHead (outputClass: "thead-light") {
-                        stentry "Key"
-                        stentry "Attribute Name"
-                    }
-                    keyAttributes.sort {it.name.toLowerCase()}.each {attribute ->
-                        strow {
-                            stentry 'Key'
-                            stentry {
-                                xRef attribute.calculateXRef()
+                if(allAttributes().size() == 0) {
+                    p "This class has no attributes"
+                } else {
+                    simpletable(relColWidth: new SpaceSeparatedStringList(["1*", "9*"]), outputClass: "table table-sm") {
+                        stHead(outputClass: "thead-light") {
+                            stentry "Key"
+                            stentry "Attribute Name"
+                        }
+                        keyAttributes.sort { it.name.toLowerCase() }.each { attribute ->
+                            strow {
+                                stentry 'Key'
+                                stentry {
+                                    xRef attribute.calculateXRef()
+                                }
                             }
                         }
-                    }
-                    otherAttributes.sort {it.name.toLowerCase()}.each {attribute ->
-                        strow {
-                            stentry ''
-                            stentry {
-                                xRef attribute.calculateXRef()
+                        otherAttributes.sort { it.name.toLowerCase() }.each { attribute ->
+                            strow {
+                                stentry ''
+                                stentry {
+                                    xRef attribute.calculateXRef()
+                                }
                             }
                         }
-                    }
 
+                    }
                 }
             }
         }
@@ -164,13 +166,16 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         Topic.build(id: getDitaKey() + "_relationships") {
             title "Relationships"
             body {
+                p "Each $name:"
                 simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "5*", "5*"]), outputClass: "table table-sm") {
                     stHead(outputClass: "thead-light") {
                         stentry "Key"
                         stentry "Relationship"
                         stentry "Class"
                     }
-                    classRelationships.sort {it.targetClass.name.toLowerCase()}.each {relationship ->
+                    classRelationships.sort { a, b ->
+                        b.isKey <=> a.isKey ?: a.targetClass.name.toLowerCase() <=> b.targetClass.name.toLowerCase()
+                    }.each {relationship ->
                         strow {
                             stentry relationship.isKey?'Key':''
                             stentry relationship.relationshipDescription

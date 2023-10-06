@@ -557,7 +557,7 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         startTime = System.currentTimeMillis()
         Node definition = xmlParser.parseText(dataSet.definitionAsXml)
 
-        if (dataSet.name.startsWith("CDS")) {
+        if (dataSet.name.startsWith('CDS') || dataSet.name.startsWith('ECDS') || dataSet.name.startsWith('Emergency Care Data Set')) {
             CDSDataSetParser.parseCDSDataSet(definition, dataSetDataModel, nhsDataDictionary)
         } else {
             DataSetParser.parseDataSet(definition, dataSetDataModel, nhsDataDictionary)

@@ -56,7 +56,7 @@ class WebsiteUtility {
 
     static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
     static final Boolean TEST_GITHUB = true
-    static final String TEST_GITHUB_DIR = "/Users/james/git/nhsd/james-fork/DataDictionaryPublication/Website"
+    static final String TEST_GITHUB_DIR = "/Users/james/git/metadata-catalogue/DataDictionaryPublication/Website"
 
     static final String TO_BE_OVERRIDDEN_TEXT = "This text should be overridden by custom text stored in a GitHub library"
 
@@ -75,7 +75,9 @@ class WebsiteUtility {
         }
         dataDictionary.allComponents.each {component ->
             component.replaceLinksInDefinition(pathLookup)
+            component.updateWhereUsed()
         }
+
 
 //        allStereotypes.each {name, stereotype ->
 //
@@ -107,7 +109,7 @@ class WebsiteUtility {
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
         log.error(ditaOutputDirectory)
-        //overwriteGithubDir(ditaOutputDirectory)
+        overwriteGithubDir(ditaOutputDirectory)
 
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
@@ -117,7 +119,7 @@ class WebsiteUtility {
 
         long startTime = System.currentTimeMillis()
         ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
-        zipFile.addFolder(new File(ditaOutputDirectory))
+        //zipFile.addFolder(new File(ditaOutputDirectory))
         log.info('Zip complete in {}', Utils.timeTaken(startTime))
 
         return zipFile.getFile()
@@ -126,7 +128,8 @@ class WebsiteUtility {
     static void overwriteGithubDir(String outputPath){
 
         if(TEST_GITHUB) {
-            FileUtils.copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
+            //FileUtils.copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
+            moveDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
         } else {
             // Create a temporary directory for the downloaded zip
             Path tempPath = Files.createTempDirectory("ditaGeneration")
@@ -154,7 +157,7 @@ class WebsiteUtility {
             Topic.build (id: "${indexPrefix}-index-${alphaIndex}"){
                 title alphaIndex.toUpperCase()
                 body {
-                    simpletable(relColWidth: ["10*"], outputClass: "table table-sm") {
+                    simpletable(relColWidth: ["10*"], outputClass: "table table-sm table-striped") {
                         stHead(outputClass: "thead-light") {
                             stentry "Item Name"
                         }
@@ -242,7 +245,7 @@ class WebsiteUtility {
             Topic indexPage = Topic.build (id: "allItems-index-${alphaIndex}") {
                 title "All Items: ${alphaIndex}"
                 body {
-                    simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-sm") {
+                    simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-sm table-striped") {
                         stHead(outputClass: "thead-light") {
                             stentry "Item Name"
                             stentry "Item Type"
@@ -330,6 +333,25 @@ class WebsiteUtility {
         ditaProject.mainMap.mapRef {
             toc Toc.YES
             keyRef "${lowercaseStereotype}-index"
+        }
+    }
+
+    private static void moveDirectory(File parentFrom, File parentTo) {
+        log.warn("Moving " + parentFrom.toPath() + " to " + parentTo)
+
+        for (File file : parentFrom.listFiles()) {
+
+            // Is a regular file?
+            if (!file.isDirectory()) { // Is a regular file
+                File newName = new File(parentTo, file.getName())
+                file.renameTo(newName)
+                log.warn("Moved " + file.getAbsolutePath() + " to " + newName.getAbsolutePath())
+            } else { // Is a directory
+                File newName = new File(parentTo, file.getName())
+                newName.mkdirs()
+                log.warn("Moving dir " + file.getAbsolutePath() + " to " + newName.getAbsolutePath())
+                moveDirectory(file, newName)
+            }
         }
     }
 

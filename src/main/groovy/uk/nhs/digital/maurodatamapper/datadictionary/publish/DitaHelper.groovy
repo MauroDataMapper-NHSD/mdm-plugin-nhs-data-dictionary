@@ -74,7 +74,7 @@ class DitaHelper {
 
     static Topic generateWhereUsedTopic(NhsDataDictionaryComponent component) {
 
-        Set<NhsDataDictionaryComponent> whereMentionedNotRetired = component.whereUsed.findAll {!it.isRetired()}
+        Set<NhsDataDictionaryComponent> whereMentionedNotRetired = component.whereUsed.keySet().findAll {!it.isRetired()}
 
         if (whereMentionedNotRetired.size() == 0) {
             return null
@@ -165,7 +165,7 @@ class DitaHelper {
                             txt matcher.group(2)
                         }.toXmlString()
                     newDescription = newDescription.replace(matcher.group(0), replacement)
-                    matchedComponent.whereUsed.add(component)
+                    matchedComponent.whereUsed[component] = "References in description ${component.name}".toString()
                 }
             }
         }

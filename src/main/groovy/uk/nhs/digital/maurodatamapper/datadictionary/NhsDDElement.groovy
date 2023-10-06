@@ -61,10 +61,15 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         } else {
             try {
                 String firstSentence = getFirstSentence()
-                if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && instantiatesAttributes.size() == 1) {
-                    return instantiatesAttributes[0].otherProperties["shortDescription"]
+                if (!description && instantiatesAttributes.size() == 1) {
+                    return instantiatesAttributes[0].getShortDescription()
+                } else if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && instantiatesAttributes.size() == 1) {
+                    return instantiatesAttributes[0].getShortDescription()
                 } else if(firstSentence) {
                     return firstSentence
+                } else {
+                    System.err.println("Couldn't set short description: $stereotype $name")
+                    System.err.println("$description")
                 }
             } catch (Exception e) {
                 e.printStackTrace()
@@ -192,19 +197,20 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {
-                if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
-                    return otherProperties["attributeText"] + definition
+                if(otherProperties["attributeText"]) {
+                    div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
                 } else {
                     if(instantiatesAttributes.size() == 1) {
                         p {
                             xRef this.calculateXRef()
                             text " is the same as attribute "
                             xRef instantiatesAttributes[0].calculateXRef()
+                            text "."
                         }
                     }
                 }
                 if(definition) {
-                    div HtmlHelper.replaceHtmlWithDita(definition)
+                    div HtmlHelper.replaceHtmlWithDita(definition.replace('<table', '<table class=\"table-striped\"'))
                 }
             }
         }
@@ -215,11 +221,13 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     @Override
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
-        topics.add(descriptionTopic())
 
         if(otherProperties["formatLength"] || otherProperties["formatLink"]) {
             topics.add(getFormatLengthTopic())
         }
+
+        topics.add(descriptionTopic())
+
         if(!isPreparatory() && hasNationalCodes()) {
             topics.add(getNationalCodesTopic())
         }
@@ -279,8 +287,9 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
 
     Topic getAttributesTopic() {
+        String attributesTitle = instantiatesAttributes.size() > 1?"Attributes":"Attribute"
         Topic.build (id: getDitaKey() + "_attributes") {
-            title "Attribute"
+            title attributesTitle
             body {
                 ul {
                     instantiatesAttributes.each { NhsDDAttribute attribute ->
@@ -292,5 +301,14 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
             }
         }
     }
+
+    void updateWhereUsed() {
+        dataDictionary.dataSets.values().each {dataSet ->
+            if(dataSet.allElements.reuseElement.contains(this)) {
+                whereUsed[dataSet] = "references in description $name".toString()
+            }
+        }
+    }
+
 
 }

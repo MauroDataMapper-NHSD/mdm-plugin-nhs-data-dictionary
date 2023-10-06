@@ -51,6 +51,12 @@ class NhsDDDataSetElement{
 
     NhsDDDataSetElement(DataElement dataElement) {
         this.name = dataElement.label
+        if(this.name.endsWith(" 1")) {
+            this.name = this.name.replace(" 1", "")
+        }
+        if(this.name.endsWith(" 2")) {
+            this.name = this.name.replace(" 2", "")
+        }
         //this.elementId = dataElement.getSemanticLinks().first().multiFacetAwareItemId
         this.minMultiplicity = dataElement.minMultiplicity
         this.maxMultiplicity = dataElement.maxMultiplicity
@@ -61,7 +67,11 @@ class NhsDDDataSetElement{
 
         if(dataDictionary) {
             this.dataDictionary = dataDictionary
-            this.reuseElement = dataDictionary.elements[dataElement.label]
+            if(dataDictionary.elements[name]) {
+                this.reuseElement = dataDictionary.elements[name]
+            } else {
+                System.err.println("Cannot find element: ${dataElement.label}, $name!")
+            }
         }
 
         List<Metadata> thisElementMetadata = dataDictionary.dataSetsMetadata[dataElement.id]
