@@ -119,7 +119,7 @@ class WebsiteUtility {
 
         long startTime = System.currentTimeMillis()
         ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
-        //zipFile.addFolder(new File(ditaOutputDirectory))
+        zipFile.addFolder(new File(ditaOutputDirectory))
         log.info('Zip complete in {}', Utils.timeTaken(startTime))
 
         return zipFile.getFile()
@@ -129,7 +129,7 @@ class WebsiteUtility {
 
         if(TEST_GITHUB) {
             //FileUtils.copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
-            moveDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
+            copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
         } else {
             // Create a temporary directory for the downloaded zip
             Path tempPath = Files.createTempDirectory("ditaGeneration")
@@ -336,21 +336,22 @@ class WebsiteUtility {
         }
     }
 
-    private static void moveDirectory(File parentFrom, File parentTo) {
-        log.warn("Moving " + parentFrom.toPath() + " to " + parentTo)
+    private static void copyDirectory(File parentFrom, File parentTo) {
+        log.warn("Copying " + parentFrom.toPath() + " to " + parentTo)
 
         for (File file : parentFrom.listFiles()) {
 
             // Is a regular file?
             if (!file.isDirectory()) { // Is a regular file
                 File newName = new File(parentTo, file.getName())
-                file.renameTo(newName)
-                log.warn("Moved " + file.getAbsolutePath() + " to " + newName.getAbsolutePath())
+                FileUtils.copyFile(file, newName)
+                //file.renameTo(newName)
+                log.warn("Copied " + file.getAbsolutePath() + " to " + newName.getAbsolutePath())
             } else { // Is a directory
                 File newName = new File(parentTo, file.getName())
                 newName.mkdirs()
-                log.warn("Moving dir " + file.getAbsolutePath() + " to " + newName.getAbsolutePath())
-                moveDirectory(file, newName)
+                log.warn("Copying dir " + file.getAbsolutePath() + " to " + newName.getAbsolutePath())
+                copyDirectory(file, newName)
             }
         }
     }

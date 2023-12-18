@@ -19,6 +19,8 @@ package uk.ac.ox.softeng.maurodatamapper.plugins
 
 
 import grails.plugins.Plugin
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.ui.DataDictionaryStatisticsTabView
+import uk.ac.ox.softeng.maurodatamapper.ui.providers.TabViewUIProviderService
 
 class MdmPluginNhsDataDictionaryGrailsPlugin extends Plugin {
 
@@ -60,6 +62,7 @@ Endpoints to provide services for managing and reviewing the data dictionary
 
     Closure doWithSpring() {
         {->
+            dataDictionaryStatisticsTabView DataDictionaryStatisticsTabView
         }
     }
 
