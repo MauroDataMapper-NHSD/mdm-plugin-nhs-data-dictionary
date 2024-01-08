@@ -41,7 +41,7 @@ class NhsDataDictionary {
 
     static final String FOLDER_NAME = "NHS Data Dictionary"
     static final String ELEMENTS_MODEL_NAME = "Data Elements"
-    static final String CLASSES_MODEL_NAME = "Data Classes and Attributes"
+    static final String CLASSES_MODEL_NAME = "Classes and Attributes"
     @Deprecated static final String ATTRIBUTES_CLASS_NAME = "Attributes"
     @Deprecated static final String DATA_ELEMENTS_CLASS_NAME = "Data Elements"
     @Deprecated static final String DATA_CLASSES_CLASS_NAME = "Classes"
