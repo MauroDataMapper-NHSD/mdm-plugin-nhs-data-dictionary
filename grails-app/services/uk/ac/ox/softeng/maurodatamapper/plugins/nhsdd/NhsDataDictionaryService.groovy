@@ -695,7 +695,7 @@ class NhsDataDictionaryService {
 
             DataModel classesDataModel =
                     new DataModel(label: NhsDataDictionary.CLASSES_MODEL_NAME,
-                            description: "NHS Data Dictionary Data Model (Classes and Attributes",
+                            description: "NHS Data Dictionary Data Model (Classes and Attributes)",
                             folder: dictionaryFolder,
                             createdBy: currentUser.emailAddress,
                             authority: authorityService.defaultAuthority,
