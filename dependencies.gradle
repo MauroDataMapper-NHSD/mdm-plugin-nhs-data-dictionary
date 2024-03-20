@@ -41,7 +41,10 @@ dependencies {
     implementation "uk.ac.ox.softeng.maurodatamapper:iso11179-domain:1.0.0-SNAPSHOT"
     implementation 'com.sun.xml.bind:jaxb-impl:4.0.1'
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
-    implementation 'jakarta.activation:jakarta.activation-api:2.0.1'
+
+    // This has been removed because it causes a conflict with the Simple Java Mail library built into mdm-core
+    // If we discover we need it again, then an earlier version should probably be used.
+    //implementation 'jakarta.activation:jakarta.activation-api:2.0.1'
 
 
 }
