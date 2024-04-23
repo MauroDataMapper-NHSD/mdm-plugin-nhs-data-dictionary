@@ -91,6 +91,10 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                 } else {
                     otherAttributes.add(attribute)
                 }
+
+                // Must track in the DD attribute that this is the owner class, required by the
+                // attribute to understand hierarchical information in Mauro
+                attribute.parentClass = this
             } else {
                 log.debug("Cannot find attributeElement with Uin: " + attributeUin)
             }
@@ -105,10 +109,14 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
 
     String getMauroPath() {
         if(isRetired()) {
-            "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:Retired|dc:${name}"
+            "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:Retired|dc:${name}"
         } else {
-            return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}|dc:${name}"
+            return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${name}"
         }
+    }
+
+    String getMauroRootDomain() {
+        "dataModels"
     }
 
     @Override

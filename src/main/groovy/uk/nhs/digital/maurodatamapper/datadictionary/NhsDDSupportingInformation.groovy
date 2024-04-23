@@ -78,6 +78,8 @@ class NhsDDSupportingInformation implements NhsDataDictionaryComponent <Term> {
         return "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}|tm:${name}"
     }
 
-
+    String getMauroRootDomain() {
+        "terminologies"
+    }
 
 }
