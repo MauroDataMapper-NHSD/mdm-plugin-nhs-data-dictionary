@@ -102,17 +102,13 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
     }
 
     String getMauroPath() {
-        String response = ""
-        getFolderPath().each {pathComponent ->
-            if(pathComponent != getFolderPath().first()) {
-                response += "|"
-            }
-            response += "fo:${pathComponent}"
-        }
-        if(response != "") {
-            response += "|"
-        }
-        return response
+        folderPath
+            .collect { pathComponent -> "fo:${pathComponent}" }
+            .join("|")
+    }
+
+    String getMauroRootDomain() {
+        "folders"
     }
 
     Map<String, String> getUrlReplacements() {
@@ -122,11 +118,13 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
         String ddUrl = this.otherProperties["ddUrl"]
         String ddUrl2 = ddUrl.replace("introduction", "menu")
         String ddUrl3 = ddUrl.replace("introduction", "overview")
-        return [
-                (ddUrl) : this.getMauroPath(),
-                (ddUrl2) : this.getMauroPath(),
-                (ddUrl3) : this.getMauroPath()
 
+        String frontEndUrl = getMauroPathInFrontEndUrl()
+
+        return [
+            (ddUrl) : frontEndUrl,
+            (ddUrl2) : frontEndUrl,
+            (ddUrl3) : frontEndUrl
         ]
     }
 
