@@ -136,10 +136,16 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
     String getMauroPath() {
         if(isRetired()) {
-            "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
+            "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:Retired|de:${name}"
         } else {
-            return "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
+            // Match ingest structure of organising DD Elements alphabetically
+            String className = name.substring(0, 1).toUpperCase()
+            return "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:${className}|de:${name}"
         }
+    }
+
+    String getMauroRootDomain() {
+        "dataModels"
     }
 
     boolean hasNationalCodes() {

@@ -17,8 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-import groovy.sql.DataSet
-import groovy.xml.XmlUtil
+
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -156,9 +155,26 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     Map<String, String> getUrlReplacements() {
         String ddUrl = this.otherProperties["ddUrl"]
+
         return [
-            (ddUrl) : this.getMauroPath()
+            (ddUrl) : getMauroPathInFrontEndUrl()
         ]
+    }
+
+    String getMauroPathInFrontEndUrl() {
+        String domain = this.getMauroRootDomain()
+        String mauroPath = this.mauroPath
+
+        // URLEncoder encodes to application/x-www-form-urlencoded, so we must manually convert spaces
+        // (which the encoder will consider as "+") to the hex "%20" representation
+        String mauroPathEncoded = URLEncoder
+            .encode(mauroPath, "UTF-8")
+            .replace("+", "%20")
+
+        // The new URL maps to how the Mauro Data Mapper UI routing works
+        String newUrl = "#/catalogue/item/$domain/$mauroPathEncoded"
+
+        newUrl
     }
 
     String getNameWithoutNonAlphaNumerics() {
@@ -166,6 +182,12 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     abstract String getMauroPath()
+
+    /**
+     * Gets the root Mauro domain name for the component's Mauro path
+     * @return
+     */
+    abstract String getMauroRootDomain()
 
     String getDitaKey() {
         String key = getStereotype().replace(" ", "_") + "_" + getNameWithoutNonAlphaNumerics()

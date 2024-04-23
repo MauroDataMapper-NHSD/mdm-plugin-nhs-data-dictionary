@@ -115,10 +115,11 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
 
     String getMauroPath() {
-        String mauroPath = StringUtils.join(path.collect{"fo:${it}"}, "|")
+        "dm:${name}"
+    }
 
-        mauroPath += "dm:${name}"
-        return mauroPath
+    String getMauroRootDomain() {
+        "dataModels"
     }
 
     @Override

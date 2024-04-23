@@ -40,6 +40,13 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         "attributes"
     }
 
+    /**
+     * The {@link NhsDDClass} that this attribute belongs under. Must be set during ingest
+     * once all the attributes are mapped to the {@link NhsDataDictionary} and the classes
+     * are loaded.
+     */
+    NhsDDClass parentClass
+
     List<NhsDDCode> codes = []
 
     String codesVersion
@@ -130,10 +137,15 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
 
     String getMauroPath() {
         if (isRetired()) {
-            "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|dc:Retired|de:${name}"
+            "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:Retired|de:${name}"
         } else {
-            return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}|de:${name}"
+            String parentClassName = parentClass ? "dc:${parentClass.name}|" : ""
+            return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|${parentClassName}de:${name}"
         }
+    }
+
+    String getMauroRootDomain() {
+        "dataModels"
     }
 
     @Override
