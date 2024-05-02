@@ -73,8 +73,4 @@ class NhsDDBusinessDefinition implements NhsDataDictionaryComponent <Term> {
     String getMauroPath() {
         return "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}|tm:${name}"
     }
-
-    String getMauroRootDomain() {
-        "terminologies"
-    }
 }

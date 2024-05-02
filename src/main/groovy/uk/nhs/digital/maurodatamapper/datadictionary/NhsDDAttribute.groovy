@@ -144,10 +144,6 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
-    String getMauroRootDomain() {
-        "dataModels"
-    }
-
     @Override
     void replaceLinksInDefinition(Map<String, NhsDataDictionaryComponent> pathLookup) {
         NhsDataDictionaryComponent.super.replaceLinksInDefinition(pathLookup)

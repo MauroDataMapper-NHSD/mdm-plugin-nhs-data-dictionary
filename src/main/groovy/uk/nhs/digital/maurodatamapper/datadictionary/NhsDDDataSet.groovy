@@ -118,10 +118,6 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         "dm:${name}"
     }
 
-    String getMauroRootDomain() {
-        "dataModels"
-    }
-
     @Override
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
