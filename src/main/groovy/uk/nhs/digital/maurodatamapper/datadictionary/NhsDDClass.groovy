@@ -115,10 +115,6 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         }
     }
 
-    String getMauroRootDomain() {
-        "dataModels"
-    }
-
     @Override
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []

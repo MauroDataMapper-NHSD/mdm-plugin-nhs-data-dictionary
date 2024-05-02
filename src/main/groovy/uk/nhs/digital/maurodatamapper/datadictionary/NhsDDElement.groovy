@@ -144,10 +144,6 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
-    String getMauroRootDomain() {
-        "dataModels"
-    }
-
     boolean hasNationalCodes() {
         this.codes.find { !it.isDefault}
     }
