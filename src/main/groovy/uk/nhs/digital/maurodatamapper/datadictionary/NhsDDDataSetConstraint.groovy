@@ -67,8 +67,4 @@ class NhsDDDataSetConstraint implements NhsDataDictionaryComponent <Term> {
     String getMauroPath() {
         return "te:${NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}|tm:${name}"
     }
-
-    String getMauroRootDomain() {
-        "terminologies"
-    }
 }

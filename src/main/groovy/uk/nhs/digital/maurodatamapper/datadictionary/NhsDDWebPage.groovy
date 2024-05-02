@@ -68,8 +68,4 @@ class NhsDDWebPage implements NhsDataDictionaryComponent <Term> {
     String getMauroPath() {
         return ""
     }
-
-    String getMauroRootDomain() {
-        ""
-    }
 }

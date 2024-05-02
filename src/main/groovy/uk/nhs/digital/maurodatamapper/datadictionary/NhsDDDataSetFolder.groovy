@@ -107,10 +107,6 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
             .join("|")
     }
 
-    String getMauroRootDomain() {
-        "folders"
-    }
-
     Map<String, String> getUrlReplacements() {
         if(!this.otherProperties["ddUrl"]) {
             return [:]
@@ -119,7 +115,7 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
         String ddUrl2 = ddUrl.replace("introduction", "menu")
         String ddUrl3 = ddUrl.replace("introduction", "overview")
 
-        String frontEndUrl = getMauroPathInFrontEndUrl()
+        String frontEndUrl = this.mauroPath
 
         return [
             (ddUrl) : frontEndUrl,
