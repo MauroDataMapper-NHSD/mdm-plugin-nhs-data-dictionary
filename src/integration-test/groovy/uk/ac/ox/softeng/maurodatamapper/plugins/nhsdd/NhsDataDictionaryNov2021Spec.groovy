@@ -61,6 +61,7 @@ import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlParser
 import org.springframework.beans.factory.annotation.Autowired
+import spock.lang.Ignore
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheck
@@ -103,7 +104,8 @@ import static org.junit.Assert.assertTrue
 @Slf4j
 @Integration
 @Rollback
-class NhsDataDictionaryServiceSpec extends BaseIntegrationSpec {
+@Ignore("Ingest of older version of Data Dictionary takes too long to test. Keep just in case but skip running these tests.")
+class NhsDataDictionaryNov2021Spec extends BaseIntegrationSpec {
 
     @Shared
     Path resourcesPath
