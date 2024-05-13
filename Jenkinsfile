@@ -10,14 +10,14 @@ pipeline {
     }
 
     options {
-        skipDefaultCheckout(true) // we use git LFS so we cant use the default checkout
+//        skipDefaultCheckout(true) // we use git LFS so we cant use the default checkout
         timestamps()
 //        timeout(time: 30, unit: 'MINUTES')
         skipStagesAfterUnstable()
         buildDiscarder(logRotator(numToKeepStr: '30'))
     }
 
-    stages {
+/*    stages {
         // This stage is required to do the checkout of the code as we need to use git LFS (this does require git-lfs to have been installed on the jenkins server)
         stage('Checkout') {
             steps {
@@ -36,7 +36,7 @@ pipeline {
                 }
             }
         }
-
+*/
 
         stage('Clean') {
             // Only clean when the last build failed
