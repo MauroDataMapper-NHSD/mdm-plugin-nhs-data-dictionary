@@ -31,7 +31,7 @@ pipeline {
                          branches         : [[name: 'refs/heads/$BRANCH_NAME']],
                          extensions       : [[$class: 'GitLFSPull'], [$class: 'LocalBranch', localBranch: '**']],
                          gitTool          : 'git',
-                         userRemoteConfigs : [[credentialsId: "58b31599-1344-416d-8c14-66886fad260e", url: gitRemoteOriginUrl]]
+                         userRemoteConfigs : [[credentialsId: "eed134af-5e81-462c-9187-b667aa44035b", url: gitRemoteOriginUrl]]
                         ])
                 }
             }
