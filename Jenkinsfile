@@ -17,8 +17,8 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '30'))
     }
 
-/*    stages {
-        // This stage is required to do the checkout of the code as we need to use git LFS (this does require git-lfs to have been installed on the jenkins server)
+    stages {
+/*        // This stage is required to do the checkout of the code as we need to use git LFS (this does require git-lfs to have been installed on the jenkins server)
         stage('Checkout') {
             steps {
 //                // Clean workspace before build
