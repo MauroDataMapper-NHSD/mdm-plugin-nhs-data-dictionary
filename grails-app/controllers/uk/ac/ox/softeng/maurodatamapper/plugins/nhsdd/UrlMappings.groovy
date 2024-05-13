@@ -37,6 +37,8 @@ class UrlMappings {
 
                 get "/branches"(controller: 'NhsDataDictionary', action: 'branches')
 
+                get "/googlesheets/${dataElementName}"(controller: 'GoogleSheets', action: 'dataElement')
+
                 group "/$versionedFolderId", {
 
                     put '/newVersion'(controller: 'NhsDataDictionary', action: 'newVersion')

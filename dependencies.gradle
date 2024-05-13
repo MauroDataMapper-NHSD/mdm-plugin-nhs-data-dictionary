@@ -8,6 +8,8 @@ dependencies {
 
     implementation group: 'uk.ac.ox.softeng.maurodatamapper', name: 'dita-dsl', version: '1.0.0-SNAPSHOT'
 
+    implementation "org.grails:grails-plugin-interceptors"
+
     implementation group: 'org.apache.commons', name: 'commons-lang3'
     implementation group: 'commons-io', name: 'commons-io'
 
