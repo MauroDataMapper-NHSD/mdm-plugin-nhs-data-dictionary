@@ -1,0 +1,24 @@
+[
+  {
+    "sectionName": "DataSet Properties",
+    "sectionDescription": "DataSet Properties",
+    "fields": [
+      {
+        "fieldName": "Web Order",
+        "metadataPropertyName": "webOrder",
+        "description": "",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "int"
+      },
+      {
+        "fieldName": "MRO",
+        "metadataPropertyName": "mro",
+        "description": "",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  }
+]

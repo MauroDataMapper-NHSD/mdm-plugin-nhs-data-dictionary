@@ -28,7 +28,7 @@
         "dataType": "string"
       },
       {
-        "fieldName": "Web Order",
+        "fieldName": "Web Orda",
         "metadataPropertyName": "webOrder",
         "description": "The order that this term should appear in on the website (this field can be ignored when terms should appear in alphabetical order",
         "minMultiplicity": 0,
