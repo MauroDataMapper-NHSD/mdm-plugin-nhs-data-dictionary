@@ -10,6 +10,6 @@ json {
     branchName versionTreeModel.branchName
     modelVersion versionTreeModel.modelVersion
     modelVersionLabel versionTreeModel.versionAware.modelVersionTag
-
+    modelVersionFinalised versionTreeModel.versionAware.finalised
     versionDisplay versionTreeModel.versionAware.modelVersionTag?:versionTreeModel.modelVersion?:versionTreeModel.branchName?:versionTreeModel.label
 }
