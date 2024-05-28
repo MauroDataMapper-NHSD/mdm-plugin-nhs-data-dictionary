@@ -1,5 +1,26 @@
 [
   {
+    "sectionName": "Publication Status",
+    "sectionDescription": "These fields control the publication status of the item",
+    "fields": [
+      {
+        "fieldName": "Valid From",
+        "metadataPropertyName": "validFrom",
+        "description": "The start date from which this item is valid",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Valid To",
+        "metadataPropertyName": "validTo",
+        "description": "The end date from which this item is valid",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]},
+  {
     "sectionName": "Basic Properties",
     "sectionDescription": "Basic Properties",
     "fields": [
