@@ -14,7 +14,7 @@
       {
         "fieldName": "Valid To",
         "metadataPropertyName": "validTo",
-        "description": "The end date from which this item is valid",
+        "description": "The end date until this item is invalid",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
