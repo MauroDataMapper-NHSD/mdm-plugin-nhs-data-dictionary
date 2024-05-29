@@ -100,9 +100,6 @@ class NhsDataDictionaryService {
 
     static final String NHSDD_PROPERTY_CATEGORY = 'NHS Data Dictionary'
 
-    static final String TEST_OUTPUT_PATH = "/Users/james/Desktop/ditaTest/"
-
-
     TerminologyService terminologyService
     DataModelService dataModelService
     FolderService folderService
@@ -878,7 +875,7 @@ class NhsDataDictionaryService {
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 
-        Path outputPath = Paths.get(TEST_OUTPUT_PATH)
+        Path outputPath = Paths.get(getTestOutputPath())
         if(!isTest) {
             outputPath = Files.createTempDirectory('changePaper')
         }
@@ -891,7 +888,7 @@ class NhsDataDictionaryService {
 
         //Path outputPath = Files.createTempDirectory('website')
 
-        Path outputPath = Paths.get(TEST_OUTPUT_PATH)
+        Path outputPath = Paths.get(getTestOutputPath())
 
         return WebsiteUtility.generateWebsite(thisDataDictionary, outputPath, publishOptions)
     }
@@ -986,4 +983,16 @@ class NhsDataDictionaryService {
         log.info('Saved [{}] model complete in {}', dataModel.label, Utils.getTimeString(endTime - startTime))
     }
 
+    /**
+     * Prepare and get a test directory name under $TEMP - replaces the use of
+     * the user desktop which might not be present on a server.
+     */
+    static String getTestOutputPath() {
+        File ditaTestDir = new File(System.getProperty("java.io.tmpdir"), "ditaTest")
+
+        if (!ditaTestDir.exists()) {
+            ditaTestDir.mkdirs()
+        }
+        ditaTestDir.absolutePath
+    }
 }
