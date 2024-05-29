@@ -88,12 +88,22 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
         String capitalizedCodeSetName = xml.name[0].text()
+
+        instantiatesAttributes.addAll(xml."link".collect {link ->
+            link.participant.find{p -> p["@role"] == "Supplier"}["@referencedUin"]
+        }.collect {
+            dataDictionary.attributesByUin[it]
+        })
+        instantiatesAttributes.each {nhsDDAttribute ->
+            nhsDDAttribute.instantiatedByElements.add(this)
+        }
+
+
         if (xml."value-set".size() > 0 && !isRetired()) {
             String codeSetVersion = xml."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.version."@value".text()
-            String attributeUin = xml.link.participant.find {it -> it.@role == 'Supplier'}.@referencedUin
-            NhsDDAttribute linkedAttribute = dataDictionary.attributesByUin[attributeUin]
+            NhsDDAttribute linkedAttribute = instantiatesAttributes.find {it.codes.size() > 0 && !it.isRetired()}
             if(!linkedAttribute) {
-                log.error("No linked attribute with UIN ${attributeUin} found for element ${name}")
+                log.error("No suitable linked attribute found for element ${name}")
             } else {
                 xml."value-set".Bundle.entry.expansion.parameter.Bundle.entry.resource.CodeSystem.concept.each {concept ->
                     if (concept.property.find {Node property ->
@@ -107,14 +117,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
             }
 
         }
-        instantiatesAttributes.addAll(xml."link".collect {link ->
-            link.participant.find{p -> p["@role"] == "Supplier"}["@referencedUin"]
-        }.collect {
-            dataDictionary.attributesByUin[it]
-        })
-        instantiatesAttributes.each {nhsDDAttribute ->
-            nhsDDAttribute.instantiatedByElements.add(this)
-        }
+
         if(!isRetired()) {
             if (definition.find(regex)) {
                 definition = definition.replaceFirst(regex, "").trim()
