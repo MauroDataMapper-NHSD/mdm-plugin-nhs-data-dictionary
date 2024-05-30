@@ -9,7 +9,7 @@
         "description": "The start date from which this item is valid",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "date"
       },
       {
         "fieldName": "Valid To",
@@ -17,7 +17,7 @@
         "description": "The end date until this item is invalid",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "date"
       }
     ]
   },
