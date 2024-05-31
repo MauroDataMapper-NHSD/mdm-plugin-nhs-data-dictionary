@@ -212,8 +212,8 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
                     }
                     ddDataClass.dataSetElements.each {dataElement ->
                         markupBuilder.tr {
-                            td ""
-                            td {
+                            td (style: "width: 20%;") {}
+                            td (style: "width: 80%;") {
                                 dataElement.createLink(markupBuilder)
                             }
                         }

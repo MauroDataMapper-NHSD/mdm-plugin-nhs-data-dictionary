@@ -74,7 +74,13 @@ class NhsDDDataSetElement{
             }
         }
 
-        List<Metadata> thisElementMetadata = dataDictionary.dataSetsMetadata[dataElement.id]
+        List<Metadata> thisElementMetadata
+        if(dataDictionary) {
+            thisElementMetadata = dataDictionary.dataSetsMetadata[dataElement.id]
+        } else {
+            thisElementMetadata = Metadata.byMultiFacetAwareItemId(dataElement.id).list()
+        }
+
 
         mandation = thisElementMetadata.find { it.key == "MRO" }?.value
         constraints = thisElementMetadata.find { it.key == "Rules" }?.value
@@ -104,7 +110,7 @@ class NhsDDDataSetElement{
         } else {
             link = NhsDDElement.getPathFromName(name, false)
         }
-        
+
         markupBuilder.a (href: link) {
             mkp.yield(name)
         }

@@ -67,7 +67,12 @@ class NhsDDDataSetClass {
         this(dataClass)
         this.dataDictionary = dataDictionary
 
-        List<Metadata> thisClassMetadata = dataDictionary.dataSetsMetadata[dataClass.id]
+        List<Metadata> thisClassMetadata
+        if(dataDictionary) {
+             thisClassMetadata = dataDictionary.dataSetsMetadata[dataClass.id]
+        } else {
+            thisClassMetadata = Metadata.byMultiFacetAwareItemId(dataClass.id).list()
+        }
 
         isChoice = thisClassMetadata.find {
             (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
