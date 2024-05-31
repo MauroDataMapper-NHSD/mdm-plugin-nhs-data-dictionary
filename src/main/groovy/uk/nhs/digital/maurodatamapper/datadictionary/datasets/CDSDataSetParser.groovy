@@ -75,7 +75,10 @@ class CDSDataSetParser {
                     log.warn("Oh no!  More than one CDS class returned!")
                 } else {
                     choiceClass.addToDataClasses(classes1.get(0))
+                    DataSetParser.setOrder(classes1.get(0), 0)
+
                     choiceClass.addToDataClasses(classes2.get(0))
+                    DataSetParser.setOrder(classes2.get(0), 1)
                 }
                 returnDataClasses.add(choiceClass)
             } else {

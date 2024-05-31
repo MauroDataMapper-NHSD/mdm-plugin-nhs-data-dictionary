@@ -111,7 +111,7 @@ class NhsDataDictionary {
             supportingInformation.values() +
             dataSetConstraints.values() +
             webPages.values() +
-            dataSetFolders.values().flatten()) as List
+            dataSetFolders.values().flatten()) as List<NhsDataDictionaryComponent>
     }
 
     Map<String, List<NhsDataDictionaryComponent>> allComponentsByIndex(boolean includeRetired = false) {
@@ -171,6 +171,7 @@ class NhsDataDictionary {
                         if (component.isValidXmlNode(node)) {
                             component.fromXml(node, it)
                             NhsDataDictionaryComponent existingItem = map[component.name]
+                            // Insert into the map if it doesn't exist already, or if there's an existing one with the same name that's retired
                             if (!existingItem || existingItem.isRetired()) {
                                 map[component.name] = component
                             }

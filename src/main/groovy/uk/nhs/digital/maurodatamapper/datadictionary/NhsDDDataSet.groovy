@@ -59,7 +59,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
         NhsDataDictionaryComponent.super.fromXml(xml, dataDictionary)
         NhsDDWebPage explanatoryWebPage = dataDictionary.webPagesByUin[xml.explanatoryPage.text()]
-        if(explanatoryWebPage) {
+        if(explanatoryWebPage && !isRetired()) {
             definition = explanatoryWebPage.definition
         } else {
             if(isRetired()) {
@@ -159,7 +159,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
         markupBuilder.setEscapeAttributes(false)
         markupBuilder.setDoubleQuotes(true)
-        if(name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Caee Data Set')) {
+        if(name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Care Data Set')) {
             outputAsCdsHtml(markupBuilder)
         } else {
             outputAsHtml(markupBuilder)
