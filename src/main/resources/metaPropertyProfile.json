@@ -1,0 +1,95 @@
+[
+  {
+    "sectionName": "Other Properties",
+    "sectionDescription": "These fields control the properties not covered by other profiles",
+    "fields": [
+      {
+        "fieldName": "UIN",
+        "metadataPropertyName": "uin",
+        "description": "The unique identifier of this modeled content in Borland Together",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Metaclass",
+        "metadataPropertyName": "metaclass",
+        "description": "The metaclass of this modeled content in Borland Together",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Client Role",
+        "metadataPropertyName": "clientRole",
+        "description": "The role of the client in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Supplier Role",
+        "metadataPropertyName": "supplierRole",
+        "description": "The role of the supplier in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Client Cardinality",
+        "metadataPropertyName": "clientCardinality",
+        "description": "The cardinality of the client in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Supplier Cardinality",
+        "metadataPropertyName": "supplierCardinality",
+        "description": "The cardinality of the supplier in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Name",
+        "metadataPropertyName": "name",
+        "description": "The name of this modeled content in Borland Together",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Supplier UIN",
+        "metadataPropertyName": "supplierUin",
+        "description": "The unique identifier of the supplier in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Client UIN",
+        "metadataPropertyName": "clientUin",
+        "description": "The unique identifier of the client in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Relation Supplier Exclusivity",
+        "metadataPropertyName": "relation"
+        "description": "The exclusivity of the supplier in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Direction",
+        "metadataPropertyName": "direction",
+        "description": "The direction of this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+
