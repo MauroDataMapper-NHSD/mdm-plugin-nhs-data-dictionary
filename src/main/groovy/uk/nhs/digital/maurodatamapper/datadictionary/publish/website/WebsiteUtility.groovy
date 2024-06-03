@@ -119,7 +119,7 @@ class WebsiteUtility {
 
         long startTime = System.currentTimeMillis()
         ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
-        //zipFile.addFolder(new File(ditaOutputDirectory))
+        zipFile.addFolder(new File(ditaOutputDirectory))
         log.info('Zip complete in {}', Utils.timeTaken(startTime))
 
         return zipFile.getFile()
