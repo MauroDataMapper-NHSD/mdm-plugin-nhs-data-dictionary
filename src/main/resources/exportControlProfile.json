@@ -1,0 +1,24 @@
+[
+  {
+    "sectionName": "Export Control",
+    "sectionDescription": "These fields control their rendering output for DITA/Change Paper export",
+    "fields": [
+      {
+        "fieldName": "Web Order",
+        "metadataPropertyName": "webOrder",
+        "description": "The order in which this item should appear on the website",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "integer"
+      },
+      {
+        "fieldName": "MRO",
+        "metadataPropertyName": "mro",
+        "description": "The MRO of this item",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  }
+]
