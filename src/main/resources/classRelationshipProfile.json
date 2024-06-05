@@ -1,6 +1,6 @@
 [
   {
-    "sectionName": "Other Properties",
+    "sectionName": "Meta Properties",
     "sectionDescription": "These fields control the properties not covered by other profiles",
     "fields": [
       {
@@ -14,7 +14,7 @@
       {
         "fieldName": "Metaclass",
         "metadataPropertyName": "metaclass",
-        "description": "The metaclass of this modeled content in Borland Together",
+        "description": "The metaclass of this modeled content",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
@@ -77,7 +77,7 @@
       },
       {
         "fieldName": "Relation Supplier Exclusivity",
-        "metadataPropertyName": "relation"
+        "metadataPropertyName": "relation",
         "description": "The exclusivity of the supplier in this relationship",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
@@ -92,4 +92,5 @@
         "dataType": "string"
       }
     ]
-
+  }
+]
