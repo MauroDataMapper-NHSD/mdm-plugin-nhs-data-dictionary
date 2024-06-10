@@ -9,7 +9,7 @@
         "description": "The order in which this item should appear on the website",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "integer"
+        "dataType": "int"
       },
       {
         "fieldName": "MRO",

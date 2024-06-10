@@ -31,7 +31,7 @@ class DDExportControlProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getDisplayName() {
-        'NHS Data Dictionary - Export Control'
+        'NHS Data Dictionary - Data Set Rendering'
     }
 
     @Override
