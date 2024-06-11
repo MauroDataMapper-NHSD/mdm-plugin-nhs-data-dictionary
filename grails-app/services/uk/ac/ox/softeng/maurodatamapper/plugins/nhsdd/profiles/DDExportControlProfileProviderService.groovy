@@ -26,7 +26,7 @@ class DDExportControlProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getMetadataNamespace() {
-        'uk.nhs.datadictionary.data set'
+        'uk.nhs.datadictionary.dataSetExportControl'
     }
 
     @Override
