@@ -22,11 +22,11 @@ import uk.ac.ox.softeng.maurodatamapper.profile.provider.JsonProfileProviderServ
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class DDExportControlProfileProviderService extends JsonProfileProviderService {
+class DDDataSetRenderingProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getMetadataNamespace() {
-        'uk.nhs.datadictionary.datasetexport'
+        'uk.nhs.datadictionary.dataset.rendering'
     }
 
     @Override
@@ -41,7 +41,7 @@ class DDExportControlProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getJsonResourceFile() {
-        return 'exportControlProfile.json'
+        return 'dataSetRenderingProfile.json'
     }
 
     @Override
