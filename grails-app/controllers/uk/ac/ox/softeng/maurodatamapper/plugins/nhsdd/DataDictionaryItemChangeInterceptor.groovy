@@ -23,7 +23,9 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
+import grails.artefact.Interceptor
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  * An interceptor to detect when properties of an item change that will
@@ -36,7 +38,8 @@ import groovy.transform.CompileStatic
  * already being taken care of.
  */
 @CompileStatic
-class DataDictionaryItemChangeInterceptor implements MdmInterceptor {
+@Slf4j
+class DataDictionaryItemChangeInterceptor implements MdmInterceptor, Interceptor {
     /**
      * The "before" handler saves the original label value against the id.
      * The id is assumed to be unique across all objects and that (currently)

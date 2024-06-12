@@ -21,19 +21,35 @@ import grails.testing.web.interceptor.InterceptorUnitTest
 import spock.lang.Specification
 
 class DataDictionaryItemChangeInterceptorSpec extends Specification implements InterceptorUnitTest<DataDictionaryItemChangeInterceptor> {
-
-    def setup() {
-    }
-
-    def cleanup() {
-
-    }
-
-    void "Test dataDictionaryItemChange interceptor matching"() {
+    void "should match against the dataDictionaryItemChange interceptor"(String controller) {
         when:"A request matches the interceptor"
-        withRequest(controller:"dataDictionaryItemChange")
+        withRequest(controller: controller, action: "update")
 
         then:"The interceptor does match"
         interceptor.doesMatch()
+
+        where:
+        controller          | _
+        "versionedFolder"   | _
+        "folder"            | _
+        "dataModel"         | _
+        "dataClass"         | _
+        "dataElement"       | _
+    }
+
+    void "should match against the dataDictionaryItemChange interceptor"(String controller) {
+        when:"A request matches the interceptor"
+        withRequest(controller: controller, action: "update")
+
+        then:"The interceptor does not match"
+        !interceptor.doesMatch()
+
+        where:
+        controller          | _
+        "apiProperty"   | _
+        "tree"            | _
+        "asyncJob"         | _
+        "classifier"         | _
+        "domainExport"       | _
     }
 }
