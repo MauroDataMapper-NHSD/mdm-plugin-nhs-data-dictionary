@@ -1,5 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 
@@ -8,16 +10,20 @@ import grails.testing.mixin.integration.Integration
 import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import spock.lang.Shared
 
+import java.util.concurrent.CancellationException
+import java.util.concurrent.Future
+
 import static io.micronaut.http.HttpStatus.CREATED
-import static io.micronaut.http.HttpStatus.OK
 import static io.micronaut.http.HttpStatus.NO_CONTENT
+import static io.micronaut.http.HttpStatus.OK
 
 @Integration
 @Slf4j
 class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
+    AsyncJobService asyncJobService
+
     @Shared
     IntegrationTestGivens given
 
@@ -86,6 +92,52 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         response
     }
 
+    AsyncJob getAsyncJob() {
+        List<AsyncJob> asyncJobs = asyncJobService.list()
+        if (!asyncJobs || asyncJobs.size() == 0) {
+            return null
+        }
+
+        asyncJobs.first()
+    }
+
+    void waitForAsyncJobToComplete(AsyncJob job) {
+        log.info("Waiting to complete $job.id")
+        Future p = asyncJobService.getAsyncJobFuture(job.id)
+        try {
+            p.get()
+        } catch (CancellationException ignored) {
+        }
+        log.debug("Completed")
+    }
+
+    void "should update nothing when an NHS class has changed but not the label"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the item is modified but not the label"
+        def item = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$item.id", [
+            aliases: "test"
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        and: "the links to the original item have not been updated"
+        // TODO
+
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
     void "should update all links when an NHS class label has changed"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
@@ -101,10 +153,17 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
 
         when: "waiting for the background job to complete"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob != null
+        }
+        waitForAsyncJobToComplete(asyncJob)
 
         then: "the response should be OK"
+        // TODO
 
         and: "the links to the original item have been updated"
+        // TODO
 
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
@@ -125,10 +184,17 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         verifyResponse(OK, response)
 
         when: "waiting for the background job to complete"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob != null
+        }
+        waitForAsyncJobToComplete(asyncJob)
 
         then: "the response should be OK"
+        // TODO
 
         and: "the links to the original item have been updated"
+        // TODO
 
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
