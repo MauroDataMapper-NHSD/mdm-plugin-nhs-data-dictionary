@@ -658,7 +658,7 @@ class NhsDataDictionaryService {
         long startTime = System.currentTimeMillis()
         long originalStartTime = startTime
         long endTime
-        String dictionaryFolderName = "NHS Data Dictionary (${releaseDate})"
+        String dictionaryFolderName = "NHS Data Dictionary"
         if (deletePrevious || (!finalise && !folderVersionNo && !prevVersion)) {
             deleteOriginalFolder(dictionaryFolderName)
             endTime = System.currentTimeMillis()
