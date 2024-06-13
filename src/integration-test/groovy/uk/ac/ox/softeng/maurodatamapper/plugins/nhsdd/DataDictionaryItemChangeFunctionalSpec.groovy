@@ -8,11 +8,12 @@ import grails.testing.mixin.integration.Integration
 import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import spock.lang.Shared
 
 import static io.micronaut.http.HttpStatus.CREATED
-import static io.micronaut.http.HttpStatus.NO_CONTENT
 import static io.micronaut.http.HttpStatus.OK
+import static io.micronaut.http.HttpStatus.NO_CONTENT
 
 @Integration
 @Slf4j
@@ -38,7 +39,28 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
     @Transactional
     def cleanupSpec() {
         log.debug('CleanupSpec DataDictionaryItemChangeFunctionalSpec')
-        cleanUpData(rootFolder.id.toString())
+        loginUser('admin@maurodatamapper.com', 'password')
+        cleanUpFolder(rootFolder.id.toString())
+    }
+
+    void cleanUpFolder(String id) {
+        if (!id) {
+            return
+        }
+
+        DELETE("folders/$id?permanent=true", MAP_ARG, true)
+        assert response.status() == NO_CONTENT
+        log.info("Deleted folder [$id]")
+    }
+
+    void cleanUpVersionedFolder(String id) {
+        if (!id) {
+            return
+        }
+
+        DELETE("folders/$rootFolder.id/versionedFolders/$id?permanent=true", MAP_ARG, true)
+        assert response.status() == NO_CONTENT
+        log.info("Deleted versioned folder [$id]")
     }
 
     @Override
@@ -64,13 +86,37 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         response
     }
 
+    void "should update all links when an NHS class label has changed"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the label is modified"
+        def item = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$item.id", [
+            label: "$item.label MODIFIED"
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        when: "waiting for the background job to complete"
+
+        then: "the response should be OK"
+
+        and: "the links to the original item have been updated"
+
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
     void "should update all links when an NHS data set constraint label has changed"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
         def dataDictionary =  createNhsDataDictionaryStructure()
 
         when: "the label is modified"
-        def item = dataDictionary.dataSetConstraints.terms.first()
+        def item = dataDictionary.dataSetConstraints.terms.find { it.code == "DSC01" }
         PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$item.id", [
             definition: "$item.definition MODIFIED"
         ], MAP_ARG, true)
@@ -85,7 +131,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         and: "the links to the original item have been updated"
 
         cleanup:
-        cleanUpData(dataDictionary.id)
+        cleanUpVersionedFolder(dataDictionary.id)
     }
 
     NhsDataDictionaryModel createNhsDataDictionaryStructure() {
@@ -103,7 +149,13 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         // TODO
 
         // -- Classes and Attributes --------------------
-        // TODO
+        dataDictionaryModel.classesAndAttributes.classes = [
+            new DataClassModel("APPOINTMENT", [new DataElementModel("APPOINTMENT DATE")]),
+            new DataClassModel("CLINICAL TRIAL", [new DataElementModel("CLINICAL TRIAL NAME")])
+        ]
+
+        createDataModel(dataDictionaryModel.id, dataDictionaryModel.classesAndAttributes)
+        createDataClasses(dataDictionaryModel.classesAndAttributes)
 
         // -- Data Elements --------------------
         // TODO
@@ -126,6 +178,46 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         dataDictionaryModel
     }
 
+    void createDataModel(String dataDictionaryId, DataModelModel model) {
+        POST("folders/$dataDictionaryId/dataModels", [
+            label: model.label
+        ], MAP_ARG, true)
+        verifyResponse(CREATED, response)
+        model.id = responseBody().id
+        log.info("Created '$model.label' data model [$model.id]")
+
+        POST("dataModels/$model.id/dataTypes", [
+            domainType: "PrimitiveType",
+            label: "String"
+        ], MAP_ARG, true)
+        verifyResponse(CREATED, response)
+        model.dataTypeId = responseBody().id
+        log.info("Added data type [$model.dataTypeId]")
+    }
+
+    void createDataClasses(DataModelModel model) {
+        model.classes.forEach { dataClass ->
+            POST("dataModels/$model.id/dataClasses", [
+                label: dataClass.label,
+                description: "" // TODO
+            ], MAP_ARG, true)
+            verifyResponse(CREATED, response)
+            dataClass.id = responseBody().id
+            log.info("Added data class '$dataClass.label' [$dataClass.id]")
+
+            dataClass.elements.forEach { dataElement ->
+                POST("dataModels/$model.id/dataClasses/$dataClass.id/dataElements", [
+                    label: dataElement.label,
+                    dataType: model.dataTypeId,
+                    description: "" // TODO
+                ], MAP_ARG, true)
+                verifyResponse(CREATED, response)
+                dataElement.id = responseBody().id
+                log.info("Added data element '$dataElement.label' [$dataElement.id]")
+            }
+        }
+    }
+
     void createTerminology(String dataDictionaryId, TerminologyModel model) {
         POST("folders/$dataDictionaryId/terminologies", [
             label: model.label
@@ -144,7 +236,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             ], MAP_ARG, true)
             verifyResponse(CREATED, response)
             term.id = responseBody().id
-            log.info("Adding term '$term.code: $term.definition' [$term.id]")
+            log.info("Added term '$term.code: $term.definition' [$term.id]")
         }
     }
 }
