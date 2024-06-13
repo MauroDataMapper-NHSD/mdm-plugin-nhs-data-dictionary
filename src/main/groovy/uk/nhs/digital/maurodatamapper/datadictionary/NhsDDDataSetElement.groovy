@@ -18,18 +18,16 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.xml.MarkupBuilder
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
+
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
-import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
+
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
-import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 class NhsDDDataSetElement{
 
@@ -45,6 +43,7 @@ class NhsDDDataSetElement{
     boolean retired
     String groupRepeats
     String rules
+    String uin
 
     NhsDDElement reuseElement
     NhsDataDictionary dataDictionary
@@ -86,6 +85,7 @@ class NhsDDDataSetElement{
         constraints = thisElementMetadata.find { it.key == "Rules" }?.value
         groupRepeats = thisElementMetadata.find { it.key == "Group Repeats" }?.value
         rules = thisElementMetadata.find { it.key == "Rules" }?.value
+        uin = thisElementMetadata.find { it.key == "uin" }?.value
 
         Metadata md = thisElementMetadata.find {it.key == "Web Order"}
         if(md) {

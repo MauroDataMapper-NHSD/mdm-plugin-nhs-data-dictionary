@@ -15,7 +15,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.nhs.digital.maurodatamapper.datadictionary.datasets
+package uk.nhs.digital.maurodatamapper.datadictionary.datasets.parser
 
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
