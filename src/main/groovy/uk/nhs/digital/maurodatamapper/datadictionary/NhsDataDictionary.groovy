@@ -42,14 +42,10 @@ class NhsDataDictionary {
     static final String FOLDER_NAME = "NHS Data Dictionary"
     static final String ELEMENTS_MODEL_NAME = "Data Elements"
     static final String CLASSES_MODEL_NAME = "Classes and Attributes"
-    @Deprecated static final String ATTRIBUTES_CLASS_NAME = "Attributes"
-    @Deprecated static final String DATA_ELEMENTS_CLASS_NAME = "Data Elements"
-    @Deprecated static final String DATA_CLASSES_CLASS_NAME = "Classes"
     static final String DATA_SETS_FOLDER_NAME = "Data Sets"
     static final String BUSINESS_DEFINITIONS_TERMINOLOGY_NAME = "NHS Business Definitions"
     static final String SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME = "Supporting Information"
     static final String DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME = "Data Set Constraints"
-    static final String WEB_PAGES_TERMINOLOGY_NAME = "Web Pages"
 
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 

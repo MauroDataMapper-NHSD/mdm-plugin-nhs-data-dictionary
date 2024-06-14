@@ -200,39 +200,17 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         }
         if (path[0].startsWith("dm:${NhsDataDictionary.CLASSES_MODEL_NAME}")) {
             DataModel dm = dataModelService.findByLabel(NhsDataDictionary.CLASSES_MODEL_NAME)
-            if (path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_CLASSES_CLASS_NAME)
-                if (path[2] == "dc:Retired") {
-                    DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
-                    DataClass dc3 = dataClassService.findByParentAndLabel(dc2, path[3].replace("dc:", ""))
-                    return dc3
-                } else {
-                    DataClass dc2 = dataClassService.findByParentAndLabel(dc1, path[2].replace("dc:", ""))
-                    return dc2
-                }
+            DataClass dc = dataClassService.findByParentAndLabel(dm, path[1].replace("dc:", ""))
+            if(path.size() == 3) {
+                DataElement de = dataElementService.findByParentAndLabel(dc2, path[2].replace("de:", ""))
+                return de
+            } else {
+                return dc
             }
-            if (path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.ATTRIBUTES_CLASS_NAME)
-                if (path[2] == "dc:Retired") {
-                    DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
-                    DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
-                    return de3
-                } else {
-                    DataElement de2 = dataElementService.findByParentAndLabel(dc1, path[2].replace("de:", ""))
-                    return de2
-                }
-            }
-            if (path[1] == "dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}") {
-                DataClass dc1 = dataClassService.findByParentAndLabel(dm, NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME)
-                if (path[2] == "dc:Retired") {
-                    DataClass dc2 = dataClassService.findByParentAndLabel(dc1, "Retired")
-                    DataElement de3 = dataElementService.findByParentAndLabel(dc2, path[3].replace("de:", ""))
-                    return de3
-                } else {
-                    DataElement de2 = dataElementService.findByParentAndLabel(dc1, path[2].replace("de:", ""))
-                    return de2
-                }
-            }
+        }
+        if (path[0] == "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}") {
+            DataClass dc = dataClassService.findByParentAndLabel(dm, path[1].replace("dc:", ""))
+            DataElement de = dataElementService.findByParentAndLabel(dc, path[2].replace("de:", ""))
         }
         if (path.length == 1 && path[0].startsWith("dm:")) {
             DataModel dm = dataModelService.findByLabel(path[0].replace("dm:", ""))
@@ -252,16 +230,14 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         if (path[0] == "te:${NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}") {
             return "dataSetConstraint"
         }
-        if (path[0] == "dm:${NhsDataDictionary.CORE_MODEL_NAME}") {
-            if (path[1] == "dc:${NhsDataDictionary.DATA_CLASSES_CLASS_NAME}") {
-                return "class"
-            }
-            if (path[1] == "dc:${NhsDataDictionary.ATTRIBUTES_CLASS_NAME}") {
+        if (path[0] == "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}") {
+            if(path[path.size() -1].startsWith("de:")) {
                 return "attribute"
             }
-            if (path[1] == "dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}") {
-                return "element"
-            }
+            return "class"
+        }
+        if (path[0] == "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}") {
+            return "element"
         }
         if (path.length == 1 && path[0].startsWith("dm:")) {
             return "dataSet"

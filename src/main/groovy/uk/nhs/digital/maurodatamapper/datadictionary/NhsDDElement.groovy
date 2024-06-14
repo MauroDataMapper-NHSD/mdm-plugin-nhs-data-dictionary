@@ -135,13 +135,19 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     final String regex = "<a[^>]*>[^<]*</a>\\W+is\\s+the\\s+same\\s+as\\s+attribute\\W+<a[^>]*>[^<]*</a>\\s*\\."
 
     String getMauroPath() {
-        if(isRetired()) {
+        return getPathFromName(name, isRetired())
+    }
+
+    static String getPathFromName(String name, Boolean retired = false) {
+        if(retired) {
             "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:Retired|de:${name}"
         } else {
             // Match ingest structure of organising DD Elements alphabetically
             String className = name.substring(0, 1).toUpperCase()
             return "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}|dc:${className}|de:${name}"
         }
+
+
     }
 
     boolean hasNationalCodes() {

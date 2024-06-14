@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicMeta
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
@@ -48,6 +49,7 @@ class ChangePaperPdfUtility {
             ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
             pathLookup[it.getMauroPath()] = it
         }
+        System.err.println(pathLookup)
 
 
 
@@ -98,9 +100,16 @@ class ChangePaperPdfUtility {
 
 
 
-        // ditaProject.addTopic("", createBackgroundTopic(changePaper), Toc.YES)
-        // ditaProject.addTopic("", summaryOfChangesTopic, Toc.YES)
-        // ditaProject.addTopic("", changesTopic, Toc.YES)
+        ditaProject.registerTopic("", createBackgroundTopic(changePaper))
+        ditaProject.registerTopic("", summaryOfChangesTopic)
+        ditaProject.registerTopic("", changesTopic)
+
+        ["background", "summary", "changes"].each { topicId ->
+            ditaProject.mainMap.topicRef(TopicRef.build {
+                keyRef topicId
+                toc Toc.YES
+            })
+        }
 
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))

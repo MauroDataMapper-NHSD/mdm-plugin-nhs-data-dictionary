@@ -139,6 +139,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         if (isRetired()) {
             "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:Retired|de:${name}"
         } else {
+            System.err.println("parentClass: $parentClass")
             String parentClassName = parentClass ? "dc:${parentClass.name}|" : ""
             return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|${parentClassName}de:${name}"
         }

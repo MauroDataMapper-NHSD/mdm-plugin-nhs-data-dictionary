@@ -17,6 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
+import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
 import org.outerj.daisy.diff.helper.NekoHtmlParser
 import org.outerj.daisy.diff.html.HTMLDiffer
 import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
@@ -33,7 +34,8 @@ import javax.xml.transform.stream.StreamResult
 class DaisyDiffHelper {
 
     static String diff(String first, String second) throws Exception {
-
+        System.err.println("First: $first")
+        System.err.println("Second: $second")
         StringWriter finalResult = new StringWriter()
         //SAXTransformerFactory tf = new org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl()
         SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance()
@@ -81,7 +83,14 @@ class DaisyDiffHelper {
         //End of debug code
 
         HTMLDiffer differ = new HTMLDiffer(output)
-        differ.diff(leftComparator, rightComparator)
+        System.err.println(leftComparator)
+        System.err.println(rightComparator)
+        try{
+            differ.diff(leftComparator, rightComparator)
+        } catch(Exception e) {
+            System.err.println("Failed comparison: " + e.message)
+            return ""
+        }
 
         return finalResult.toString().replaceAll(" changes=\"[^\"]*\"", "")
 

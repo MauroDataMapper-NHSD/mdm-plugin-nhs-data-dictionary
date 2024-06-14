@@ -253,7 +253,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
                     div (outputClass: "new") {
                         div HtmlHelper.replaceHtmlWithDita(this.description)
                         if(this instanceof NhsDDDataSet) {
-                            div HtmlHelper.replaceHtmlWithDita(this.outputAsHtml(markupBuilder))
+                            div HtmlHelper.replaceHtmlWithDita(((NhsDDDataSet)this).outputAsHtml(markupBuilder))
                         }
                     }
                 }
