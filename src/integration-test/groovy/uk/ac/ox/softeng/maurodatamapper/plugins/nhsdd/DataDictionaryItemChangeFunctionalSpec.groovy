@@ -150,11 +150,16 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         when: "the item is modified but not the label"
         def item = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
         PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$item.id", [
-            aliases: "test"
+            aliases: ["test"]
         ], MAP_ARG, true)
 
         then: "the response should be OK"
         verifyResponse(OK, response)
+
+        and: "the response contains the expected changes"
+        verifyAll(responseBody()) {
+            aliases == ["test"]
+        }
 
         and: "there were no background jobs started"
         AsyncJob asyncJob = getAsyncJob()
@@ -176,12 +181,18 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         when: "the label is modified"
         def item = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        String newLabel = "$item.label MODIFIED"
         PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$item.id", [
-            label: "$item.label MODIFIED"
+            label: newLabel
         ], MAP_ARG, true)
 
         then: "the response should be OK"
         verifyResponse(OK, response)
+
+        and: "the label should be modified"
+        verifyAll(responseBody()) {
+            label == newLabel
+        }
 
         when: "waiting for the background job to complete"
         AsyncJob asyncJob = getAsyncJob()
@@ -206,13 +217,21 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         def dataDictionary =  createNhsDataDictionaryStructure()
 
         when: "the label is modified"
-        def item = dataDictionary.dataSetConstraints.terms.find { it.code == "DSC01" }
+        def item = dataDictionary.dataSetConstraints.terms.find { it.code == "Data Set Constraint 1" }
+        String newDefinition = "$item.definition MODIFIED"
         PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$item.id", [
-            definition: "$item.definition MODIFIED"
+            code: newDefinition,
+            definition: newDefinition
         ], MAP_ARG, true)
 
         then: "the response should be OK"
         verifyResponse(OK, response)
+
+        and: "the label should be modified"
+        verifyAll(responseBody()) {
+            code == newDefinition
+            definition == newDefinition
+        }
 
         when: "waiting for the background job to complete"
         AsyncJob asyncJob = getAsyncJob()
@@ -265,7 +284,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Data Set Constraints --------------------
         dataDictionaryModel.dataSetConstraints.terms = [
-            new TermModel("DSC01", "Data Set Constraint 1")
+            new TermModel("Data Set Constraint 1", "Data Set Constraint 1")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.dataSetConstraints)
@@ -273,7 +292,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- NHS Business Definitions --------------------
         dataDictionaryModel.nhsBusinessDefinitions.terms = [
-            new TermModel("NHSBD01", "NHS Business Definition 1")
+            new TermModel("NHS Business Definition 1", "NHS Business Definition 1")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.nhsBusinessDefinitions)
@@ -281,7 +300,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Supporting Information --------------------
         dataDictionaryModel.supportingInformation.terms = [
-            new TermModel("SI01", "Supporting Information 1")
+            new TermModel("Supporting Information 1", "Supporting Information 1")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.supportingInformation)
