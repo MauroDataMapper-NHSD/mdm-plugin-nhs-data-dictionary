@@ -111,6 +111,37 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         log.debug("Completed")
     }
 
+    void "should update nothing when a data class is updated but not inside an NHS data dictionary branch"() {
+        given: "there is a data model not in an NHS data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+
+        def dataModel = new DataModelModel("Test Data Model")
+        dataModel.classes = [
+            new DataClassModel("Test Data Class", [new DataElementModel("Test Data Element")])
+        ]
+
+        createDataModel(rootFolder.id.toString(), dataModel)
+        createDataClasses(dataModel)
+
+        when: "the label is modified"
+        def item = dataModel.classes.first()
+        PUT("dataModels/$dataModel.id/dataClasses/$item.id", [
+            label: "$item.label MODIFIED"
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        and: "the links to the original item have not been updated"
+        // TODO
+    }
+
     void "should update nothing when an NHS class has changed but not the label"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
@@ -224,7 +255,13 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         createDataClasses(dataDictionaryModel.classesAndAttributes)
 
         // -- Data Elements --------------------
-        // TODO
+        dataDictionaryModel.dataElements.classes = [
+            new DataClassModel("B", [new DataElementModel("BIRTH ORDER")]),
+            new DataClassModel("D", [new DataElementModel("DATA SET VERSION NUMBER")])
+        ]
+
+        createDataModel(dataDictionaryModel.id, dataDictionaryModel.dataElements)
+        createDataClasses(dataDictionaryModel.dataElements)
 
         // -- Data Set Constraints --------------------
         dataDictionaryModel.dataSetConstraints.terms = [
@@ -235,10 +272,20 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         createTerms(dataDictionaryModel.dataSetConstraints)
 
         // -- NHS Business Definitions --------------------
-        // TODO
+        dataDictionaryModel.nhsBusinessDefinitions.terms = [
+            new TermModel("NHSBD01", "NHS Business Definition 1")
+        ]
+
+        createTerminology(dataDictionaryModel.id, dataDictionaryModel.nhsBusinessDefinitions)
+        createTerms(dataDictionaryModel.nhsBusinessDefinitions)
 
         // -- Supporting Information --------------------
-        // TODO
+        dataDictionaryModel.supportingInformation.terms = [
+            new TermModel("SI01", "Supporting Information 1")
+        ]
+
+        createTerminology(dataDictionaryModel.id, dataDictionaryModel.supportingInformation)
+        createTerms(dataDictionaryModel.supportingInformation)
 
         // Return all the details the test needs
         dataDictionaryModel

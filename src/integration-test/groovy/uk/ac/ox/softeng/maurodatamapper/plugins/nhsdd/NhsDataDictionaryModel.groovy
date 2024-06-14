@@ -1,6 +1,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import groovy.transform.CompileStatic
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 /**
  * Basic/simplified model of the NHS Data Dictionary for testing
@@ -14,15 +15,21 @@ class NhsDataDictionaryModel {
     String label
 
     DataModelModel classesAndAttributes
+    DataModelModel dataElements
 
     TerminologyModel dataSetConstraints
+    TerminologyModel nhsBusinessDefinitions
+    TerminologyModel supportingInformation
 
     NhsDataDictionaryModel() {
         this.label = "NHS Data Dictionary"
 
-        this.classesAndAttributes = new DataModelModel("Classes and Attributes")
+        this.classesAndAttributes = new DataModelModel(NhsDataDictionary.CLASSES_MODEL_NAME)
+        this.dataElements = new DataModelModel(NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME)
 
-        this.dataSetConstraints = new TerminologyModel("Data Set Constraints")
+        this.dataSetConstraints = new TerminologyModel(NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
+        this.nhsBusinessDefinitions = new TerminologyModel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
+        this.supportingInformation = new TerminologyModel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
     }
 }
 

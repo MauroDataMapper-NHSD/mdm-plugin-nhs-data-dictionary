@@ -35,6 +35,7 @@ class DataDictionaryItemChangeInterceptorSpec extends Specification implements I
         "dataModel"         | _
         "dataClass"         | _
         "dataElement"       | _
+        "term"              | _
     }
 
     void "should match against the dataDictionaryItemChange interceptor"(String controller) {
@@ -46,10 +47,12 @@ class DataDictionaryItemChangeInterceptorSpec extends Specification implements I
 
         where:
         controller          | _
-        "apiProperty"   | _
-        "tree"            | _
-        "asyncJob"         | _
-        "classifier"         | _
-        "domainExport"       | _
+        "apiProperty"       | _
+        "tree"              | _
+        "asyncJob"          | _
+        "classifier"        | _
+        "domainExport"      | _
+        "codeSet"           | _
+        "terminology"       | _
     }
 }
