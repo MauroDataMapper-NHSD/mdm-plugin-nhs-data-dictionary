@@ -18,6 +18,7 @@ import java.util.concurrent.Future
 import static io.micronaut.http.HttpStatus.CREATED
 import static io.micronaut.http.HttpStatus.NO_CONTENT
 import static io.micronaut.http.HttpStatus.OK
+import static io.micronaut.http.HttpStatus.UNPROCESSABLE_ENTITY
 
 @Integration
 @Slf4j
@@ -131,6 +132,31 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         then: "the response should be OK"
         verifyResponse(OK, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        and: "the links to the original item have not been updated"
+        // TODO
+    }
+
+    void "should update nothing when a data class is updated but HTTP response status was not OK"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the item is modified"
+        def item = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        def otherItem = dataDictionary.classesAndAttributes.classes.find { it.label == "CLINICAL TRIAL" }
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$item.id", [
+            label: otherItem.label  // Cannot be the same label as another item
+        ], MAP_ARG, true)
+
+        then: "the response should not be OK"
+        verifyResponse(UNPROCESSABLE_ENTITY, response)
 
         and: "there were no background jobs started"
         AsyncJob asyncJob = getAsyncJob()
