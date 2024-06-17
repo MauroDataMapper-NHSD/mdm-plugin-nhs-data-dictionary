@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
@@ -46,6 +47,7 @@ import org.springframework.http.HttpStatus
 @Slf4j
 class DataDictionaryItemChangeInterceptor implements MdmInterceptor, Interceptor {
     TreeItemService treeItemService
+    PathChangeService pathChangeService
 
     DataDictionaryItemChangeInterceptor() {
         match controller: ~/(versionedFolder|folder|dataModel|dataClass|dataElement|term)/, action: 'update'
@@ -96,7 +98,18 @@ class DataDictionaryItemChangeInterceptor implements MdmInterceptor, Interceptor
         }
 
         log.info("after: Starting async job to fix paths in data dictionary. Original path: $itemChangeStatePrevious.path, New path: $itemChangeStateNext.path")
-        // TODO: trigger async job to fix all links
+        AsyncJob asyncJob = pathChangeService.asyncModifyRelatedItemsAfterPathChange(
+            itemChangeStatePrevious.versionedFolderId,
+            itemChangeStatePrevious.path,
+            itemChangeStateNext.path,
+            currentUser)
+
+        if (!asyncJob) {
+            log.error("after: Failed to create async job")
+        }
+        else {
+            log.info("after: Created path change async job [$asyncJob.id] - status: $asyncJob.status")
+        }
 
         true
     }

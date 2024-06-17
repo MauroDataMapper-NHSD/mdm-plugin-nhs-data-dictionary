@@ -37,6 +37,7 @@ class NhsDataDictionaryModel {
 class DataModelModel {
     String id
     String label
+    String path
 
     /**
      * Represents the single data type required for data elements
@@ -54,11 +55,14 @@ class DataModelModel {
 class DataClassModel {
     String id
     String label
+    String description
+    String path
 
     List<DataElementModel> elements = []
 
-    DataClassModel(String label, List<DataElementModel> elements) {
+    DataClassModel(String label, String description, List<DataElementModel> elements) {
         this.label = label
+        this.description = description
         this.elements = elements
     }
 }
@@ -67,9 +71,12 @@ class DataClassModel {
 class DataElementModel {
     String id
     String label
+    String description
+    String path
 
-    DataElementModel(String label) {
+    DataElementModel(String label, String description) {
         this.label = label
+        this.description = description
     }
 }
 
@@ -77,6 +84,7 @@ class DataElementModel {
 class TerminologyModel {
     String id
     String label
+    String path
     List<TermModel> terms = []
 
     TerminologyModel(String label) {
@@ -89,9 +97,12 @@ class TermModel {
     String id
     String code
     String definition
+    String description
+    String path
 
-    TermModel(String code, String definition) {
+    TermModel(String code, String definition, String description) {
         this.code = code
         this.definition = definition
+        this.description = description
     }
 }

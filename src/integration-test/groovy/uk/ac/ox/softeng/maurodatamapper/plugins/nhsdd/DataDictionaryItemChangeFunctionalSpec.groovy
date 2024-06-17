@@ -112,13 +112,13 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         log.debug("Completed")
     }
 
-    void "should update nothing when a data class is updated but not inside an NHS data dictionary branch"() {
+    void "NHS classes: should update nothing when item is updated but not inside an NHS data dictionary branch"() {
         given: "there is a data model not in an NHS data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
 
         def dataModel = new DataModelModel("Test Data Model")
         dataModel.classes = [
-            new DataClassModel("Test Data Class", [new DataElementModel("Test Data Element")])
+            new DataClassModel("Test Data Class", "", [new DataElementModel("Test Data Element", "")])
         ]
 
         createDataModel(rootFolder.id.toString(), dataModel)
@@ -138,12 +138,9 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         verifyAll {
             asyncJob == null
         }
-
-        and: "the links to the original item have not been updated"
-        // TODO
     }
 
-    void "should update nothing when a data class is updated but HTTP response status was not OK"() {
+    void "NHS classes: should update nothing when item is updated but HTTP response status was not OK"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
         def dataDictionary =  createNhsDataDictionaryStructure()
@@ -166,9 +163,12 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         and: "the links to the original item have not been updated"
         // TODO
+
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
     }
 
-    void "should update nothing when an NHS class has changed but not the label"() {
+    void "NHS classes: should update nothing when item has changed but not the label"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
         def dataDictionary =  createNhsDataDictionaryStructure()
@@ -200,15 +200,26 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         cleanUpVersionedFolder(dataDictionary.id)
     }
 
-    void "should update all links when an NHS class label has changed"() {
+    void "NHS classes: should update all links when the label has changed"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
         def dataDictionary =  createNhsDataDictionaryStructure()
 
+        and: "there is an item to modify"
+        DataClassModel dataClassItemToModify = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+
+        // This data class is referenced in these other items description fields. These should all have the same description as
+        // set in createNhsDataDictionaryStructure()
+        DataElementModel relatedDataElement = dataClassItemToModify.elements.find { it.label == "APPOINTMENT DATE" }
+        DataClassModel relatedDataClass = dataDictionary.classesAndAttributes.classes.find { it.label == "CLINICAL TRIAL" }
+        TermModel relatedTerm = dataDictionary.nhsBusinessDefinitions.terms.find { it.definition == "NHS Business Definition 1" }
+
         when: "the label is modified"
-        def item = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
-        String newLabel = "$item.label MODIFIED"
-        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$item.id", [
+        String originalLabel = dataClassItemToModify.label
+        String newLabel = "$originalLabel MODIFIED"
+        String expectedNewDescription = "Refers to dm:Classes and Attributes|dc:APPOINTMENT MODIFIED"
+
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClassItemToModify.id", [
             label: newLabel
         ], MAP_ARG, true)
 
@@ -218,6 +229,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         and: "the label should be modified"
         verifyAll(responseBody()) {
             label == newLabel
+            path != dataClassItemToModify.path
         }
 
         when: "waiting for the background job to complete"
@@ -227,27 +239,61 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         }
         waitForAsyncJobToComplete(asyncJob)
 
-        then: "the response should be OK"
-        // TODO
+        then: "the links to the original item have been updated"
+        GET(
+            "dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClassItemToModify.id/dataElements/$relatedDataElement.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
 
-        and: "the links to the original item have been updated"
-        // TODO
+        then: "the links to the original item have been updated"
+        GET(
+            "dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$relatedDataClass.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
+
+        then: "the links to the original item have been updated"
+        GET(
+            "terminologies/$dataDictionary.nhsBusinessDefinitions.id/terms/$relatedTerm.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
 
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
     }
 
-    void "should update all links when an NHS data set constraint label has changed"() {
+    void "NHS data set constraint: should update all links when the label has changed"() {
         given: "there is an initial data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
         def dataDictionary =  createNhsDataDictionaryStructure()
 
+        and: "there is an item to modify"
+        TermModel termToModify = dataDictionary.dataSetConstraints.terms.find { it.code == "Data Set Constraint 1" }
+
+        // This term is referenced in these other items description fields. These should all have the same description as
+        // set in createNhsDataDictionaryStructure()
+        DataClassModel relatedDataClass = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        TermModel relatedTerm = dataDictionary.supportingInformation.terms.find { it.code == "Supporting Information 1" }
+
         when: "the label is modified"
-        def item = dataDictionary.dataSetConstraints.terms.find { it.code == "Data Set Constraint 1" }
-        String newDefinition = "$item.definition MODIFIED"
-        PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$item.id", [
-            code: newDefinition,
-            definition: newDefinition
+        String originalCode = termToModify.code
+        String newCode = "$originalCode MODIFIED"
+        String expectedNewDescription = "Refers to te:Data Set Constraints|tm:Data Set Constraint 1 MODIFIED"
+
+        PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$termToModify.id", [
+            code: newCode,
+            definition: newCode
         ], MAP_ARG, true)
 
         then: "the response should be OK"
@@ -255,8 +301,9 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         and: "the label should be modified"
         verifyAll(responseBody()) {
-            code == newDefinition
-            definition == newDefinition
+            code == newCode
+            definition == newCode
+            path != termToModify.path
         }
 
         when: "waiting for the background job to complete"
@@ -266,11 +313,25 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         }
         waitForAsyncJobToComplete(asyncJob)
 
-        then: "the response should be OK"
-        // TODO
+        then: "the links to the original item have been updated"
+        GET(
+            "dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$relatedDataClass.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
 
-        and: "the links to the original item have been updated"
-        // TODO
+        then: "the links to the original item have been updated"
+        GET(
+            "terminologies/$dataDictionary.supportingInformation.id/terms/$relatedTerm.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
 
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
@@ -292,8 +353,14 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Classes and Attributes --------------------
         dataDictionaryModel.classesAndAttributes.classes = [
-            new DataClassModel("APPOINTMENT", [new DataElementModel("APPOINTMENT DATE")]),
-            new DataClassModel("CLINICAL TRIAL", [new DataElementModel("CLINICAL TRIAL NAME")])
+            new DataClassModel(
+                "APPOINTMENT",
+                "Refers to te:Data Set Constraints|tm:Data Set Constraint 1",
+                [new DataElementModel("APPOINTMENT DATE", "Refers to dm:Classes and Attributes|dc:APPOINTMENT")]),
+            new DataClassModel(
+                "CLINICAL TRIAL",
+                "Refers to dm:Classes and Attributes|dc:APPOINTMENT",
+                [new DataElementModel("CLINICAL TRIAL NAME", "")])
         ]
 
         createDataModel(dataDictionaryModel.id, dataDictionaryModel.classesAndAttributes)
@@ -301,8 +368,8 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Data Elements --------------------
         dataDictionaryModel.dataElements.classes = [
-            new DataClassModel("B", [new DataElementModel("BIRTH ORDER")]),
-            new DataClassModel("D", [new DataElementModel("DATA SET VERSION NUMBER")])
+            new DataClassModel("B", "", [new DataElementModel("BIRTH ORDER", "")]),
+            new DataClassModel("D", "", [new DataElementModel("DATA SET VERSION NUMBER", "")])
         ]
 
         createDataModel(dataDictionaryModel.id, dataDictionaryModel.dataElements)
@@ -310,7 +377,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Data Set Constraints --------------------
         dataDictionaryModel.dataSetConstraints.terms = [
-            new TermModel("Data Set Constraint 1", "Data Set Constraint 1")
+            new TermModel("Data Set Constraint 1", "Data Set Constraint 1", "")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.dataSetConstraints)
@@ -318,7 +385,10 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- NHS Business Definitions --------------------
         dataDictionaryModel.nhsBusinessDefinitions.terms = [
-            new TermModel("NHS Business Definition 1", "NHS Business Definition 1")
+            new TermModel(
+                "NHS Business Definition 1",
+                "NHS Business Definition 1",
+                "Refers to dm:Classes and Attributes|dc:APPOINTMENT")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.nhsBusinessDefinitions)
@@ -326,7 +396,10 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Supporting Information --------------------
         dataDictionaryModel.supportingInformation.terms = [
-            new TermModel("Supporting Information 1", "Supporting Information 1")
+            new TermModel(
+                "Supporting Information 1",
+                "Supporting Information 1",
+                "Refers to te:Data Set Constraints|tm:Data Set Constraint 1")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.supportingInformation)
@@ -342,6 +415,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         ], MAP_ARG, true)
         verifyResponse(CREATED, response)
         model.id = responseBody().id
+        model.path = responseBody().path
         log.info("Created '$model.label' data model [$model.id]")
 
         POST("dataModels/$model.id/dataTypes", [
@@ -357,20 +431,22 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         model.classes.forEach { dataClass ->
             POST("dataModels/$model.id/dataClasses", [
                 label: dataClass.label,
-                description: "" // TODO
+                description: dataClass.description
             ], MAP_ARG, true)
             verifyResponse(CREATED, response)
             dataClass.id = responseBody().id
+            dataClass.path = responseBody().path
             log.info("Added data class '$dataClass.label' [$dataClass.id]")
 
             dataClass.elements.forEach { dataElement ->
                 POST("dataModels/$model.id/dataClasses/$dataClass.id/dataElements", [
                     label: dataElement.label,
                     dataType: model.dataTypeId,
-                    description: "" // TODO
+                    description: dataElement.description
                 ], MAP_ARG, true)
                 verifyResponse(CREATED, response)
                 dataElement.id = responseBody().id
+                dataElement.path = responseBody().path
                 log.info("Added data element '$dataElement.label' [$dataElement.id]")
             }
         }
@@ -382,6 +458,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         ], MAP_ARG, true)
         verifyResponse(CREATED, response)
         model.id = responseBody().id
+        model.path = responseBody().path
         log.info("Created '$model.label' terminology [$model.id]")
     }
 
@@ -390,10 +467,11 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             POST("terminologies/$model.id/terms", [
                 code: term.code,
                 definition: term.definition,
-                description: "" // TODO
+                description: term.description
             ], MAP_ARG, true)
             verifyResponse(CREATED, response)
             term.id = responseBody().id
+            term.path = responseBody().path
             log.info("Added term '$term.code: $term.definition' [$term.id]")
         }
     }
