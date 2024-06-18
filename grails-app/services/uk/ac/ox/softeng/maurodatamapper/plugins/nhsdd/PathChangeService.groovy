@@ -2,6 +2,8 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -25,40 +27,55 @@ class PathChangeService {
     AsyncJobService asyncJobService
     NhsDataDictionaryService nhsDataDictionaryService
 
+    FolderService folderService
     DataModelService dataModelService
     DataClassService dataClassService
     DataElementService dataElementService
     TermService termService
 
-    AsyncJob asyncModifyRelatedItemsAfterPathChange(UUID versionedFolderId, Path originalPath, Path updatedPath, User startedByUser) {
+    AsyncJob asyncModifyRelatedItemsAfterPathChange(
+        UUID versionedFolderId,
+        String originalLabel,
+        Path originalPath,
+        String updatedLabel,
+        Path updatedPath,
+        User startedByUser) {
         asyncJobService.createAndSaveAsyncJob(
             "Path change update from $originalPath to $updatedPath",
             startedByUser,
             {
-                modifyRelatedItemsAfterPathChange(versionedFolderId, originalPath, updatedPath)
+                modifyRelatedItemsAfterPathChange(versionedFolderId, originalLabel, originalPath, updatedLabel, updatedPath)
             })
     }
 
-    void modifyRelatedItemsAfterPathChange(UUID versionedFolderId, Path originalPath, Path updatedPath) {
+    void modifyRelatedItemsAfterPathChange(
+        UUID versionedFolderId,
+        String originalLabel,
+        Path originalPath,
+        String updatedLabel,
+        Path updatedPath) {
         // The NHS data dictionary ingest will have added paths without model identifiers (e.g. branches like "$main"),
         // remove these so that we'll find the correct substrings to update
         Path originalPathWithoutBranches = originalPath.clone()
         originalPathWithoutBranches.pathNodes.forEach { it.modelIdentifier = "" }
-        String originalPathWithoutBranchesString = originalPathWithoutBranches.toString()
 
         Path updatedPathWithoutBranches = updatedPath.clone()
         updatedPathWithoutBranches.pathNodes.forEach { it.modelIdentifier = "" }
-        String updatedPathWithoutBranchesString = updatedPathWithoutBranches.toString()
 
-        log.info("Original path: $originalPathWithoutBranchesString")
-        log.info("Updated path: $updatedPathWithoutBranchesString")
+        String originalHyperlink = "<a href=\"$originalPathWithoutBranches\">$originalLabel</a>"
+        log.info("Original path: $originalPathWithoutBranches")
+        log.info("Original hyperlink: $originalHyperlink")
+
+        String updatedHyperlink = "<a href=\"$updatedPathWithoutBranches\">$updatedLabel</a>"
+        log.info("Updated path: $updatedPathWithoutBranches")
+        log.info("Updated hyperlink: $updatedHyperlink")
 
         log.debug("Building Data Dictionary...")
         long startTime = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
-        log.info("Loaded Data Dictionary in ${Utils.timeTaken(startTime)}")
 
         log.info("Scanning '$dataDictionary.containingVersionedFolder.label' [$dataDictionary.containingVersionedFolder.id]")
+        List<Folder> folders = []
         List<DataModel> dataModels = []
         List<DataClass> dataClasses = []
         List<DataElement> dataElements = []
@@ -70,23 +87,28 @@ class PathChangeService {
         // - gh-18 - Improve performance of hyperlink modification using backlinks
         scanNhsDataDictionary(
             dataDictionary,
-            originalPathWithoutBranchesString,
+            originalHyperlink,
+            folders,
             dataModels,
             dataClasses,
             dataElements,
             terms)
 
-        updateMauroDataModels(dataModels, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
-        updateMauroDataClasses(dataClasses, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
-        updateMauroDataElements(dataElements, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
-        updateMauroTerms(terms, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
+        // Update all the collected Mauro catalogue items to update their descriptions. Replace the old hyperlink
+        // with the new one so nothing is broken
+        updateMauroFolders(folders, originalHyperlink, updatedHyperlink)
+        updateMauroDataModels(dataModels, originalHyperlink, updatedHyperlink)
+        updateMauroDataClasses(dataClasses, originalHyperlink, updatedHyperlink)
+        updateMauroDataElements(dataElements, originalHyperlink, updatedHyperlink)
+        updateMauroTerms(terms, originalHyperlink, updatedHyperlink)
 
         log.info("Path update in data dictionary completed in ${Utils.timeTaken(startTime)}")
     }
 
     static void scanNhsDataDictionary(
         NhsDataDictionary dataDictionary,
-        String originalPath,
+        String originalHyperlink,
+        List<Folder> folders,
         List<DataModel> dataModels,
         List<DataClass> dataClasses,
         List<DataElement> dataElements,
@@ -97,9 +119,17 @@ class PathChangeService {
         components.each { component ->
             def catalogueItem = component.catalogueItem
 
+            if (catalogueItem instanceof Folder) {
+                Folder folder = (Folder)catalogueItem
+                if (folder.description && folder.description.contains(originalHyperlink)) {
+                    log.info("Requires update: Folder '$folder.label' [$folder.id]")
+                    folders.add(folder)
+                }
+            }
+
             if (catalogueItem instanceof DataModel) {
                 DataModel dataModel = (DataModel)catalogueItem
-                if (dataModel.description && dataModel.description.contains(originalPath)) {
+                if (dataModel.description && dataModel.description.contains(originalHyperlink)) {
                     log.info("Requires update: DataModel '$dataModel.label' [$dataModel.id]")
                     dataModels.add(dataModel)
                 }
@@ -107,7 +137,7 @@ class PathChangeService {
 
             if (catalogueItem instanceof DataClass) {
                 DataClass dataClass = (DataClass)catalogueItem
-                if (dataClass.description && dataClass.description.contains(originalPath)) {
+                if (dataClass.description && dataClass.description.contains(originalHyperlink)) {
                     log.info("Requires update: DataClass '$dataClass.label' [$dataClass.id]")
                     dataClasses.add(dataClass)
                 }
@@ -115,7 +145,7 @@ class PathChangeService {
 
             if (catalogueItem instanceof DataElement) {
                 DataElement dataElement = (DataElement)catalogueItem
-                if (dataElement.description && dataElement.description.contains(originalPath)) {
+                if (dataElement.description && dataElement.description.contains(originalHyperlink)) {
                     log.info("Requires update: DataElement '$dataElement.label' [$dataElement.id]")
                     dataElements.add(dataElement)
                 }
@@ -123,7 +153,7 @@ class PathChangeService {
 
             if (catalogueItem instanceof Term) {
                 Term term = (Term)catalogueItem
-                if (term.description && term.description.contains(originalPath)) {
+                if (term.description && term.description.contains(originalHyperlink)) {
                     log.info("Requires update: Term '$term.label' [$term.id]")
                     terms.add(term)
                 }
@@ -131,13 +161,31 @@ class PathChangeService {
         }
     }
 
-    void updateMauroDataModels(List<DataModel> dataModels, String originalPath, String updatedPath) {
+    void updateMauroFolders(List<Folder> folders, String original, String updated) {
+        if (folders.empty) {
+            return
+        }
+
+        folders.each { folder ->
+            folder.description = folder.description.replace(original, updated)
+
+            try {
+                folderService.save([flush: true, validate: true], folder)
+                log.info("Updated Folder '$folder.label' [$folder.id]")
+            }
+            catch (Exception exception) {
+                log.error("Exception occurred updating Folder '$folder.label' [$folder.id]: $exception.message")
+            }
+        }
+    }
+
+    void updateMauroDataModels(List<DataModel> dataModels, String original, String updated) {
         if (dataModels.empty) {
             return
         }
 
         dataModels.each { dataModel ->
-            dataModel.description = dataModel.description.replace(originalPath, updatedPath)
+            dataModel.description = dataModel.description.replace(original, updated)
 
             try {
                 dataModelService.save([flush: true, validate: true], dataModel)
@@ -149,13 +197,13 @@ class PathChangeService {
         }
     }
 
-    void updateMauroDataClasses(List<DataClass> dataClasses, String originalPath, String updatedPath) {
+    void updateMauroDataClasses(List<DataClass> dataClasses, String original, String updated) {
         if (dataClasses.empty) {
             return
         }
 
         dataClasses.each { dataClass ->
-            dataClass.description = dataClass.description.replace(originalPath, updatedPath)
+            dataClass.description = dataClass.description.replace(original, updated)
 
             try {
                 dataClassService.save([flush: true, validate: true], dataClass)
@@ -167,13 +215,13 @@ class PathChangeService {
         }
     }
 
-    void updateMauroDataElements(List<DataElement> dataElements, String originalPath, String updatedPath) {
+    void updateMauroDataElements(List<DataElement> dataElements, String original, String updated) {
         if (dataElements.empty) {
             return
         }
 
         dataElements.each { dataElement ->
-            dataElement.description = dataElement.description.replace(originalPath, updatedPath)
+            dataElement.description = dataElement.description.replace(original, updated)
 
             try {
                 dataElementService.save([flush: true, validate: true], dataElement)
@@ -185,13 +233,13 @@ class PathChangeService {
         }
     }
 
-    void updateMauroTerms(List<Term> terms, String originalPath, String updatedPath) {
+    void updateMauroTerms(List<Term> terms, String original, String updated) {
         if (terms.empty) {
             return
         }
 
         terms.each { term ->
-            term.description = term.description.replace(originalPath, updatedPath)
+            term.description = term.description.replace(original, updated)
 
             try {
                 termService.save([flush: true, validate: true], term)

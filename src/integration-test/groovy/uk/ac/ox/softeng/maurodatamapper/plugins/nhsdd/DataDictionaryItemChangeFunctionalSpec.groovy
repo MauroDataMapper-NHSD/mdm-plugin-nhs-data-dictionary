@@ -451,7 +451,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         when: "the label is modified"
         String originalLabel = dataModelToModify.label
         String newLabel = "$originalLabel MODIFIED"
-        String expectedNewDescription = "Refers to dm:Critical Care Minimum Data Set MODIFIED"
+        String expectedNewDescription = "Refers to <a href=\"dm:Critical Care Minimum Data Set MODIFIED\">Critical Care Minimum Data Set MODIFIED</a>"
 
         PUT("dataModels/$dataModelToModify.id", [
             label: newLabel
@@ -514,7 +514,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         when: "the label is modified"
         String originalLabel = dataClassItemToModify.label
         String newLabel = "$originalLabel MODIFIED"
-        String expectedNewDescription = "Refers to dm:Classes and Attributes|dc:APPOINTMENT MODIFIED"
+        String expectedNewDescription = "Refers to <a href=\"dm:Classes and Attributes|dc:APPOINTMENT MODIFIED\">APPOINTMENT MODIFIED</a>"
 
         PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClassItemToModify.id", [
             label: newLabel
@@ -584,11 +584,12 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         DataClassModel relatedDataClass = dataDictionary.dataElements.classes.find { it.label == "D" }
         DataElementModel relatedDataElement = relatedDataClass.elements.find { it.label == "DATA SET VERSION NUMBER" }
         TermModel relatedTerm = dataDictionary.dataSetConstraints.terms.find { it.definition == "Data Set Constraint 1" }
+        String relatedFolderId = dataDictionary.dataSetsChildFolderId
 
         when: "the label is modified"
         String originalLabel = dataElementToModify.label
         String newLabel = "$originalLabel MODIFIED"
-        String expectedNewDescription = "Refers to dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME MODIFIED"
+        String expectedNewDescription = "Refers to <a href=\"dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME MODIFIED\">CLINICAL TRIAL NAME MODIFIED</a>"
 
         PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClass.id/dataElements/$dataElementToModify.id", [
             label: newLabel
@@ -630,6 +631,16 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             description == expectedNewDescription
         }
 
+        then: "the links to the original item have been updated"
+        GET(
+            "folders/$relatedFolderId",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
+
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
     }
@@ -651,7 +662,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         when: "the label is modified"
         String originalCode = termToModify.code
         String newCode = "$originalCode MODIFIED"
-        String expectedNewDescription = "Refers to te:Data Set Constraints|tm:Data Set Constraint 1 MODIFIED"
+        String expectedNewDescription = "Refers to <a href=\"te:Data Set Constraints|tm:Data Set Constraint 1 MODIFIED\">Data Set Constraint 1 MODIFIED</a>"
 
         PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$termToModify.id", [
             code: newCode,
@@ -729,7 +740,8 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         log.info("Created 'Data Sets' folder [$dataDictionaryModel.dataSetsFolderId]")
 
         POST("folders/$dataDictionaryModel.dataSetsFolderId/folders", [
-            label: 'Sample Data Sets'
+            label: "Sample Data Sets",
+            description: "Refers to <a href=\"dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME\">CLINICAL TRIAL NAME</a>"
         ], MAP_ARG, true)
         verifyResponse(CREATED, response)
         dataDictionaryModel.dataSetsChildFolderId = responseBody().id
@@ -737,7 +749,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         DataModelModel dataSet = new DataModelModel(
             "Critical Care Minimum Data Set",
-            "Refers to te:Data Set Constraints|tm:Data Set Constraint 1")
+            "Refers to <a href=\"te:Data Set Constraints|tm:Data Set Constraint 1\">Data Set Constraint 1</a>")
         dataSet.classes = [
             new DataClassModel("Data Set Elements", "", [
                 new DataElementModel("CRITICAL CARE ADMISSION TYPE", ""),
@@ -753,14 +765,14 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         dataDictionaryModel.classesAndAttributes.classes = [
             new DataClassModel(
                 "APPOINTMENT",
-                "Refers to te:Data Set Constraints|tm:Data Set Constraint 1",
+                "Refers to <a href=\"te:Data Set Constraints|tm:Data Set Constraint 1\">Data Set Constraint 1</a>",
                 [
-                    new DataElementModel("APPOINTMENT DATE", "Refers to dm:Classes and Attributes|dc:APPOINTMENT"),
-                    new DataElementModel("APPOINTMENT TIME", "Refers to dm:Critical Care Minimum Data Set")
+                    new DataElementModel("APPOINTMENT DATE", "Refers to <a href=\"dm:Classes and Attributes|dc:APPOINTMENT\">APPOINTMENT</a>"),
+                    new DataElementModel("APPOINTMENT TIME", "Refers to <a href=\"dm:Critical Care Minimum Data Set\">Critical Care Minimum Data Set</a>")
                 ]),
             new DataClassModel(
                 "CLINICAL TRIAL",
-                "Refers to dm:Classes and Attributes|dc:APPOINTMENT",
+                "Refers to <a href=\"dm:Classes and Attributes|dc:APPOINTMENT\">APPOINTMENT</a>",
                 [new DataElementModel("CLINICAL TRIAL NAME", "")])
         ]
 
@@ -773,7 +785,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             new DataClassModel("D", "", [
                 new DataElementModel(
                     "DATA SET VERSION NUMBER",
-                    "Refers to dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME")
+                    "Refers to <a href=\"dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME\">CLINICAL TRIAL NAME</a>")
             ])
         ]
 
@@ -785,11 +797,11 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             new TermModel(
                 "Data Set Constraint 1",
                 "Data Set Constraint 1",
-                "Refers to dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME"),
+                "Refers to <a href=\"dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME\">CLINICAL TRIAL NAME</a>"),
             new TermModel(
                 "Data Set Constraint 2",
                 "Data Set Constraint 2",
-                "Refers to dm:Critical Care Minimum Data Set")
+                "Refers to <a href=\"dm:Critical Care Minimum Data Set\">Critical Care Minimum Data Set</a>")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.dataSetConstraints)
@@ -800,7 +812,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             new TermModel(
                 "NHS Business Definition 1",
                 "NHS Business Definition 1",
-                "Refers to dm:Classes and Attributes|dc:APPOINTMENT")
+                "Refers to <a href=\"dm:Classes and Attributes|dc:APPOINTMENT\">APPOINTMENT</a>")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.nhsBusinessDefinitions)
@@ -811,7 +823,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             new TermModel(
                 "Supporting Information 1",
                 "Supporting Information 1",
-                "Refers to te:Data Set Constraints|tm:Data Set Constraint 1")
+                "Refers to <a href=\"te:Data Set Constraints|tm:Data Set Constraint 1\">Data Set Constraint 1</a>")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.supportingInformation)

@@ -100,7 +100,9 @@ class DataDictionaryItemChangeInterceptor implements MdmInterceptor, Interceptor
         log.info("after: Starting async job to fix paths in data dictionary. Original path: $itemChangeStatePrevious.path, New path: $itemChangeStateNext.path")
         AsyncJob asyncJob = pathChangeService.asyncModifyRelatedItemsAfterPathChange(
             itemChangeStatePrevious.versionedFolderId,
+            itemChangeStatePrevious.label,
             itemChangeStatePrevious.path,
+            itemChangeStateNext.label,
             itemChangeStateNext.path,
             currentUser)
 
