@@ -74,6 +74,26 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         log.info("Deleted versioned folder [$id]")
     }
 
+    void cleanUpDataModel(String id) {
+        if (!id) {
+            return
+        }
+
+        DELETE("dataModels/$id?permanent=true", MAP_ARG, true)
+        assert response.status() == NO_CONTENT
+        log.info("Deleted data model [$id]")
+    }
+
+    void cleanUpTerminology(String id) {
+        if (!id) {
+            return
+        }
+
+        DELETE("terminologies/$id?permanent=true", MAP_ARG, true)
+        assert response.status() == NO_CONTENT
+        log.info("Deleted terminology [$id]")
+    }
+
     void cleanUpAsyncJobs() {
         List<AsyncJob> asyncJobs = asyncJobService.list()
         asyncJobs.each { asyncJobService.delete(it) }
@@ -136,8 +156,9 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         when: "the label is modified"
         def item = dataModel.classes.first()
+        String newLabel = "$item.label MODIFIED"
         PUT("dataModels/$dataModel.id/dataClasses/$item.id", [
-            label: "$item.label MODIFIED"
+            label: newLabel
         ], MAP_ARG, true)
 
         then: "the response should be OK"
@@ -148,6 +169,75 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         verifyAll {
             asyncJob == null
         }
+
+        cleanup:
+        cleanUpDataModel(dataModel.id)
+    }
+
+    void "NHS attributes: should update nothing when item is updated but not inside an NHS data dictionary branch"() {
+        given: "there is a data model not in an NHS data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+
+        def dataModel = new DataModelModel("Test Data Model")
+        dataModel.classes = [
+            new DataClassModel("Test Data Class", "", [new DataElementModel("Test Data Element", "")])
+        ]
+
+        createDataModel(rootFolder.id.toString(), dataModel)
+        createDataClasses(dataModel)
+
+        when: "the label is modified"
+        def dataClass = dataModel.classes.first()
+        def item = dataClass.elements.first()
+        String newLabel = "$item.label MODIFIED"
+        PUT("dataModels/$dataModel.id/dataClasses/$dataClass.id/dataElements/$item.id", [
+            label: newLabel
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        cleanup:
+        cleanUpDataModel(dataModel.id)
+    }
+
+    void "NHS data set constraint: should update nothing when item is updated but not inside an NHS data dictionary branch"() {
+        given: "there is a terminology not in an NHS data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+
+        def terminology = new TerminologyModel("Test Terminology")
+        terminology.terms = [
+            new TermModel("Test Term", "Test Term", "")
+        ]
+
+        createTerminology(rootFolder.id.toString(), terminology)
+        createTerms(terminology)
+
+        when: "the label is modified"
+        def item = terminology.terms.first()
+        String newCode = "$item.code MODIFIED"
+        PUT("terminologies/$terminology.id/terms/$item.id", [
+            code: newCode,
+            definition: newCode
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        cleanup:
+        cleanUpTerminology(terminology.id)
     }
 
     void "NHS classes: should update nothing when item is updated but HTTP response status was not OK"() {
@@ -171,8 +261,56 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             asyncJob == null
         }
 
-        and: "the links to the original item have not been updated"
-        // TODO
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
+    void "NHS attributes: should update nothing when item is updated but HTTP response status was not OK"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the item is modified"
+        def dataClass = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        def item = dataClass.elements.find { it.label == "APPOINTMENT DATE" }
+        def otherItem = dataClass.elements.find { it.label == "APPOINTMENT TIME" }
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClass.id/dataElements/$item.id", [
+            label: otherItem.label  // Cannot be the same label as another item
+        ], MAP_ARG, true)
+
+        then: "the response should not be OK"
+        verifyResponse(UNPROCESSABLE_ENTITY, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
+    void "NHS data set constraints: should update nothing when item is updated but HTTP response status was not OK"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the item is modified"
+        def item = dataDictionary.dataSetConstraints.terms.find { it.code == "Data Set Constraint 1" }
+        def otherItemCode = "Data Set Constraint 2"
+        PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$item.id", [
+            code: otherItemCode  // Cannot be the same code as another item
+        ], MAP_ARG, true)
+
+        then: "the response should not be OK"
+        verifyResponse(UNPROCESSABLE_ENTITY, response)
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
 
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
@@ -203,8 +341,64 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             asyncJob == null
         }
 
-        and: "the links to the original item have not been updated"
-        // TODO
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
+    void "NHS attributes: should update nothing when item has changed but not the label"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the item is modified but not the label"
+        def dataClass = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
+        def item = dataClass.elements.find { it.label == "APPOINTMENT DATE" }
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClass.id/dataElements/$item.id", [
+            aliases: ["test"]
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected changes"
+        verifyAll(responseBody()) {
+            aliases == ["test"]
+        }
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
+
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
+    void "NHS data set constraint: should update nothing when item has changed but not the label"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        when: "the item is modified but not the label"
+        def item = dataDictionary.dataSetConstraints.terms.find { it.code == "Data Set Constraint 1" }
+        PUT("terminologies/$dataDictionary.dataSetConstraints.id/terms/$item.id", [
+            aliases: ["test"]
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected changes"
+        verifyAll(responseBody()) {
+            aliases == ["test"]
+        }
+
+        and: "there were no background jobs started"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob == null
+        }
 
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
@@ -272,6 +466,70 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         then: "the links to the original item have been updated"
         GET(
             "terminologies/$dataDictionary.nhsBusinessDefinitions.id/terms/$relatedTerm.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
+
+        cleanup:
+        cleanUpVersionedFolder(dataDictionary.id)
+    }
+
+    void "NHS attributes: should update all links when the label has changed"() {
+        given: "there is an initial data dictionary"
+        loginUser('admin@maurodatamapper.com', 'password')
+        def dataDictionary =  createNhsDataDictionaryStructure()
+
+        and: "there is an item to modify"
+        DataClassModel dataClass = dataDictionary.classesAndAttributes.classes.find { it.label == "CLINICAL TRIAL" }
+        DataElementModel dataElementToModify = dataClass.elements.find { it.label == "CLINICAL TRIAL NAME" }
+
+        // This data element is referenced in these other items description fields. These should all have the same description as
+        // set in createNhsDataDictionaryStructure()
+        DataClassModel relatedDataClass = dataDictionary.dataElements.classes.find { it.label == "D" }
+        DataElementModel relatedDataElement = relatedDataClass.elements.find { it.label == "DATA SET VERSION NUMBER" }
+        TermModel relatedTerm = dataDictionary.dataSetConstraints.terms.find { it.definition == "Data Set Constraint 1" }
+
+        when: "the label is modified"
+        String originalLabel = dataElementToModify.label
+        String newLabel = "$originalLabel MODIFIED"
+        String expectedNewDescription = "Refers to dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME MODIFIED"
+
+        PUT("dataModels/$dataDictionary.classesAndAttributes.id/dataClasses/$dataClass.id/dataElements/$dataElementToModify.id", [
+            label: newLabel
+        ], MAP_ARG, true)
+
+        then: "the response should be OK"
+        verifyResponse(OK, response)
+
+        and: "the label should be modified"
+        verifyAll(responseBody()) {
+            label == newLabel
+            path != dataElementToModify.path
+        }
+
+        when: "waiting for the background job to complete"
+        AsyncJob asyncJob = getAsyncJob()
+        verifyAll {
+            asyncJob != null
+        }
+        waitForAsyncJobToComplete(asyncJob)
+
+        then: "the links to the original item have been updated"
+        GET(
+            "dataModels/$dataDictionary.dataElements.id/dataClasses/$relatedDataClass.id/dataElements/$relatedDataElement.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
+
+        then: "the links to the original item have been updated"
+        GET(
+            "terminologies/$dataDictionary.dataSetConstraints.id/terms/$relatedTerm.id",
             MAP_ARG,
             true)
         verifyResponse(OK, response)
@@ -366,7 +624,10 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             new DataClassModel(
                 "APPOINTMENT",
                 "Refers to te:Data Set Constraints|tm:Data Set Constraint 1",
-                [new DataElementModel("APPOINTMENT DATE", "Refers to dm:Classes and Attributes|dc:APPOINTMENT")]),
+                [
+                    new DataElementModel("APPOINTMENT DATE", "Refers to dm:Classes and Attributes|dc:APPOINTMENT"),
+                    new DataElementModel("APPOINTMENT TIME", "")
+                ]),
             new DataClassModel(
                 "CLINICAL TRIAL",
                 "Refers to dm:Classes and Attributes|dc:APPOINTMENT",
@@ -379,7 +640,11 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         // -- Data Elements --------------------
         dataDictionaryModel.dataElements.classes = [
             new DataClassModel("B", "", [new DataElementModel("BIRTH ORDER", "")]),
-            new DataClassModel("D", "", [new DataElementModel("DATA SET VERSION NUMBER", "")])
+            new DataClassModel("D", "", [
+                new DataElementModel(
+                    "DATA SET VERSION NUMBER",
+                    "Refers to dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME")
+            ])
         ]
 
         createDataModel(dataDictionaryModel.id, dataDictionaryModel.dataElements)
@@ -387,7 +652,14 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // -- Data Set Constraints --------------------
         dataDictionaryModel.dataSetConstraints.terms = [
-            new TermModel("Data Set Constraint 1", "Data Set Constraint 1", "")
+            new TermModel(
+                "Data Set Constraint 1",
+                "Data Set Constraint 1",
+                "Refers to dm:Classes and Attributes|dc:CLINICAL TRIAL|de:CLINICAL TRIAL NAME"),
+            new TermModel(
+                "Data Set Constraint 2",
+                "Data Set Constraint 2",
+                "")
         ]
 
         createTerminology(dataDictionaryModel.id, dataDictionaryModel.dataSetConstraints)
