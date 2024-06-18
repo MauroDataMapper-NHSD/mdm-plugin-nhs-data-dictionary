@@ -230,11 +230,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
                     mkp.yieldUnescaped(this.description)
                 }*/
 
-                div {
                     mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
-                }
-
-
             }
 
             changeList += new Change(

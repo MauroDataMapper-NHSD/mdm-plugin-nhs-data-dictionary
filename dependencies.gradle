@@ -36,6 +36,8 @@ dependencies {
     implementation 'org.cyberneko:html:1.9.8'
     implementation 'xerces:xercesImpl:2.12.0'
     implementation "xml-apis:xml-apis:1.4.01"
+
+    // Required for Daisy Diff (NPE when using Saxon)
     implementation group: 'xalan', name: 'xalan', version: '2.7.1'
 
     implementation("uk.ac.ox.softeng.maurodatamapper:iso11179-domain:1.0.0-SNAPSHOT") {

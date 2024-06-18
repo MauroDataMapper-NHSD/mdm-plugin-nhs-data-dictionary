@@ -49,7 +49,6 @@ class ChangePaperPdfUtility {
             ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
             pathLookup[it.getMauroPath()] = it
         }
-        System.err.println(pathLookup)
 
 
 

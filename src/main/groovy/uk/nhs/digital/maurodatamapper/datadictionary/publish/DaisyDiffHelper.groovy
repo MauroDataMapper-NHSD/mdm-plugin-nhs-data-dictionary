@@ -34,8 +34,6 @@ import javax.xml.transform.stream.StreamResult
 class DaisyDiffHelper {
 
     static String diff(String first, String second) throws Exception {
-        System.err.println("First: $first")
-        System.err.println("Second: $second")
         StringWriter finalResult = new StringWriter()
         //SAXTransformerFactory tf = new org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl()
         SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance()
