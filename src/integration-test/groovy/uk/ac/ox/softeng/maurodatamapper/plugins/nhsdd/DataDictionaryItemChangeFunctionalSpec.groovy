@@ -43,6 +43,10 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         sessionFactory.currentSession.flush()
     }
 
+    def cleanup() {
+        cleanUpAsyncJobs()
+    }
+
     @Transactional
     def cleanupSpec() {
         log.debug('CleanupSpec DataDictionaryItemChangeFunctionalSpec')
@@ -68,6 +72,12 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         DELETE("folders/$rootFolder.id/versionedFolders/$id?permanent=true", MAP_ARG, true)
         assert response.status() == NO_CONTENT
         log.info("Deleted versioned folder [$id]")
+    }
+
+    void cleanUpAsyncJobs() {
+        List<AsyncJob> asyncJobs = asyncJobService.list()
+        asyncJobs.each { asyncJobService.delete(it) }
+        log.info("Deleted all async jobs")
     }
 
     @Override
