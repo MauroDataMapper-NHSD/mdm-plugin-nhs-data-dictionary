@@ -2,6 +2,8 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClassService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
@@ -10,6 +12,7 @@ import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -22,6 +25,7 @@ class PathChangeService {
     AsyncJobService asyncJobService
     NhsDataDictionaryService nhsDataDictionaryService
 
+    DataModelService dataModelService
     DataClassService dataClassService
     DataElementService dataElementService
     TermService termService
@@ -50,28 +54,40 @@ class PathChangeService {
         log.info("Updated path: $updatedPathWithoutBranchesString")
 
         log.debug("Building Data Dictionary...")
+        long startTime = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
+        log.info("Loaded Data Dictionary in ${Utils.timeTaken(startTime)}")
 
         log.info("Scanning '$dataDictionary.containingVersionedFolder.label' [$dataDictionary.containingVersionedFolder.id]")
+        List<DataModel> dataModels = []
         List<DataClass> dataClasses = []
         List<DataElement> dataElements = []
         List<Term> terms = []
 
+        // This is a brute-force approach, loading the entire data dictionary into memory is not ideal and will be slow,
+        // but is the only effective way at the moment. There are future tasks aimed at optimising this to be more efficient:
+        // - gh-17 - Trace backlinks of Mauro items
+        // - gh-18 - Improve performance of hyperlink modification using backlinks
         scanNhsDataDictionary(
             dataDictionary,
             originalPathWithoutBranchesString,
+            dataModels,
             dataClasses,
             dataElements,
             terms)
 
+        updateMauroDataModels(dataModels, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
         updateMauroDataClasses(dataClasses, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
         updateMauroDataElements(dataElements, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
         updateMauroTerms(terms, originalPathWithoutBranchesString, updatedPathWithoutBranchesString)
+
+        log.info("Path update in data dictionary completed in ${Utils.timeTaken(startTime)}")
     }
 
     static void scanNhsDataDictionary(
         NhsDataDictionary dataDictionary,
         String originalPath,
+        List<DataModel> dataModels,
         List<DataClass> dataClasses,
         List<DataElement> dataElements,
         List<Term> terms) {
@@ -80,6 +96,14 @@ class PathChangeService {
 
         components.each { component ->
             def catalogueItem = component.catalogueItem
+
+            if (catalogueItem instanceof DataModel) {
+                DataModel dataModel = (DataModel)catalogueItem
+                if (dataModel.description && dataModel.description.contains(originalPath)) {
+                    log.info("Requires update: DataModel '$dataModel.label' [$dataModel.id]")
+                    dataModels.add(dataModel)
+                }
+            }
 
             if (catalogueItem instanceof DataClass) {
                 DataClass dataClass = (DataClass)catalogueItem
@@ -103,6 +127,24 @@ class PathChangeService {
                     log.info("Requires update: Term '$term.label' [$term.id]")
                     terms.add(term)
                 }
+            }
+        }
+    }
+
+    void updateMauroDataModels(List<DataModel> dataModels, String originalPath, String updatedPath) {
+        if (dataModels.empty) {
+            return
+        }
+
+        dataModels.each { dataModel ->
+            dataModel.description = dataModel.description.replace(originalPath, updatedPath)
+
+            try {
+                dataModelService.save([flush: true, validate: true], dataModel)
+                log.info("Updated DataModel '$dataModel.label' [$dataModel.id]")
+            }
+            catch (Exception exception) {
+                log.error("Exception occurred updating DataModel '$dataModel.label' [$dataModel.id]: $exception.message")
             }
         }
     }

@@ -11,6 +11,7 @@ import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
 import io.micronaut.http.HttpResponse
 import spock.lang.Shared
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import java.util.concurrent.CancellationException
 import java.util.concurrent.Future
@@ -146,7 +147,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         given: "there is a data model not in an NHS data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
 
-        def dataModel = new DataModelModel("Test Data Model")
+        def dataModel = new DataModelModel("Test Data Model", "")
         dataModel.classes = [
             new DataClassModel("Test Data Class", "", [new DataElementModel("Test Data Element", "")])
         ]
@@ -178,7 +179,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         given: "there is a data model not in an NHS data dictionary"
         loginUser('admin@maurodatamapper.com', 'password')
 
-        def dataModel = new DataModelModel("Test Data Model")
+        def dataModel = new DataModelModel("Test Data Model", "")
         dataModel.classes = [
             new DataClassModel("Test Data Class", "", [new DataElementModel("Test Data Element", "")])
         ]
@@ -551,6 +552,7 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
 
         // This term is referenced in these other items description fields. These should all have the same description as
         // set in createNhsDataDictionaryStructure()
+        DataModelModel relatedDataModel = dataDictionary.dataSets.first()
         DataClassModel relatedDataClass = dataDictionary.classesAndAttributes.classes.find { it.label == "APPOINTMENT" }
         TermModel relatedTerm = dataDictionary.supportingInformation.terms.find { it.code == "Supporting Information 1" }
 
@@ -580,6 +582,16 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
             asyncJob != null
         }
         waitForAsyncJobToComplete(asyncJob)
+
+        then: "the links to the original item have been updated"
+        GET(
+            "dataModels/$relatedDataModel.id",
+            MAP_ARG,
+            true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            description == expectedNewDescription
+        }
 
         then: "the links to the original item have been updated"
         GET(
@@ -617,7 +629,33 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         log.info("Created '$dataDictionaryModel.label' versioned folder [$dataDictionaryModel.id]")
 
         // -- Data Sets --------------------
-        // TODO
+        POST("folders/$dataDictionaryModel.id/folders", [
+            label: NhsDataDictionary.DATA_SETS_FOLDER_NAME
+        ], MAP_ARG, true)
+        verifyResponse(CREATED, response)
+        dataDictionaryModel.dataSetsFolderId = responseBody().id
+        log.info("Created 'Data Sets' folder [$dataDictionaryModel.dataSetsFolderId]")
+
+        POST("folders/$dataDictionaryModel.dataSetsFolderId/folders", [
+            label: 'Sample Data Sets'
+        ], MAP_ARG, true)
+        verifyResponse(CREATED, response)
+        dataDictionaryModel.dataSetsChildFolderId = responseBody().id
+        log.info("Created 'Data Sets' child folder [$dataDictionaryModel.dataSetsFolderId]")
+
+        DataModelModel dataSet = new DataModelModel(
+            "Critical Care Minimum Data Set",
+            "Refers to te:Data Set Constraints|tm:Data Set Constraint 1")
+        dataSet.classes = [
+            new DataClassModel("Data Set Elements", "", [
+                new DataElementModel("CRITICAL CARE ADMISSION TYPE", ""),
+                new DataElementModel("CRITICAL CARE START DATE", "")
+            ])
+        ]
+
+        dataDictionaryModel.dataSets.add(dataSet)
+        createDataModel(dataDictionaryModel.dataSetsChildFolderId, dataSet)
+        createDataClasses(dataSet)
 
         // -- Classes and Attributes --------------------
         dataDictionaryModel.classesAndAttributes.classes = [
@@ -691,9 +729,10 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         dataDictionaryModel
     }
 
-    void createDataModel(String dataDictionaryId, DataModelModel model) {
-        POST("folders/$dataDictionaryId/dataModels", [
-            label: model.label
+    void createDataModel(String folderId, DataModelModel model) {
+        POST("folders/$folderId/dataModels", [
+            label: model.label,
+            description: model.description
         ], MAP_ARG, true)
         verifyResponse(CREATED, response)
         model.id = responseBody().id
@@ -734,8 +773,8 @@ class DataDictionaryItemChangeFunctionalSpec extends BaseFunctionalSpec {
         }
     }
 
-    void createTerminology(String dataDictionaryId, TerminologyModel model) {
-        POST("folders/$dataDictionaryId/terminologies", [
+    void createTerminology(String folderId, TerminologyModel model) {
+        POST("folders/$folderId/terminologies", [
             label: model.label
         ], MAP_ARG, true)
         verifyResponse(CREATED, response)

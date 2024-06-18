@@ -14,6 +14,10 @@ class NhsDataDictionaryModel {
     String id
     String label
 
+    List<DataModelModel> dataSets = []
+    String dataSetsFolderId
+    String dataSetsChildFolderId
+
     DataModelModel classesAndAttributes
     DataModelModel dataElements
 
@@ -24,8 +28,8 @@ class NhsDataDictionaryModel {
     NhsDataDictionaryModel() {
         this.label = "NHS Data Dictionary"
 
-        this.classesAndAttributes = new DataModelModel(NhsDataDictionary.CLASSES_MODEL_NAME)
-        this.dataElements = new DataModelModel(NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME)
+        this.classesAndAttributes = new DataModelModel(NhsDataDictionary.CLASSES_MODEL_NAME, "")
+        this.dataElements = new DataModelModel(NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME, "")
 
         this.dataSetConstraints = new TerminologyModel(NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
         this.nhsBusinessDefinitions = new TerminologyModel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
@@ -37,6 +41,7 @@ class NhsDataDictionaryModel {
 class DataModelModel {
     String id
     String label
+    String description
     String path
 
     /**
@@ -46,8 +51,9 @@ class DataModelModel {
 
     List<DataClassModel> classes = []
 
-    DataModelModel(String label) {
+    DataModelModel(String label, String description) {
         this.label = label
+        this.description = description
     }
 }
 
