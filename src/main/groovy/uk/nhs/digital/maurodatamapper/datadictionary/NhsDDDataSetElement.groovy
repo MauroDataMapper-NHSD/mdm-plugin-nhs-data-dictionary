@@ -99,14 +99,12 @@ class NhsDDDataSetElement{
 
     def createLink(MarkupBuilder markupBuilder) {
         String link
-
-        if(isRetired()) {
-            link = "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|dc:Retired|de:${name}"
+        if(this.reuseElement) {
+            link = reuseElement.getMauroPath()
         } else {
-            link = "dm:${NhsDataDictionary.CORE_MODEL_NAME}|dc:${NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}|de:${name}"
+            link = NhsDDElement.getPathFromName(name, false)
         }
-
-
+        
         markupBuilder.a (href: link) {
             mkp.yield(name)
         }

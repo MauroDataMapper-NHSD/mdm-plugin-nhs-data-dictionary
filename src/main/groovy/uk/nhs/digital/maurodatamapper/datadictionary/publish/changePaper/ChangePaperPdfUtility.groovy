@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicMeta
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
@@ -40,13 +41,8 @@ class ChangePaperPdfUtility {
 
     static File generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, Path outputPath, boolean includeDataSets = false) {
 
-        DitaProject ditaProject = new DitaProject().tap {
-            title = thisDataDictionary.workItemDetails['subject'] ?: 'NHS England and NHS Improvement'
-            topicMeta = TopicMeta.build() {
-                otherMeta(name: 'changePaperId', content: thisDataDictionary.workItemDetails['reference'] ?: 'CRXXXX')
-            }
-            filename = 'changePaper'
-        }
+        DitaProject ditaProject = new DitaProject("NHS Data Model and Dictionary","nhs_data_dictionary")
+        ditaProject.useTopicsFolder = false
 
         Map<String, NhsDataDictionaryComponent> pathLookup = [:]
         thisDataDictionary.getAllComponents().each { it ->
@@ -103,9 +99,16 @@ class ChangePaperPdfUtility {
 
 
 
-        ditaProject.addTopic("", createBackgroundTopic(changePaper), Toc.YES)
-        ditaProject.addTopic("", summaryOfChangesTopic, Toc.YES)
-        ditaProject.addTopic("", changesTopic, Toc.YES)
+        ditaProject.registerTopic("", createBackgroundTopic(changePaper))
+        ditaProject.registerTopic("", summaryOfChangesTopic)
+        ditaProject.registerTopic("", changesTopic)
+
+        ["background", "summary", "changes"].each { topicId ->
+            ditaProject.mainMap.topicRef(TopicRef.build {
+                keyRef topicId
+                toc Toc.YES
+            })
+        }
 
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))

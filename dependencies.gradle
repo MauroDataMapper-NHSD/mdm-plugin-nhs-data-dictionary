@@ -31,12 +31,14 @@ dependencies {
 
 
     // Daisy Diff and transitive dependencies.  Used in the generation of change requests
-    implementation group: 'org.outerj.daisy', name: 'daisydiff', version: '1.2.2-atlassian-hosted'
+    implementation group: 'org.outerj.daisy', name: 'daisydiff', version: '1.2.3-atlassian-hosted'
 
     implementation 'org.cyberneko:html:1.9.8'
     implementation 'xerces:xercesImpl:2.12.0'
     implementation "xml-apis:xml-apis:1.4.01"
-    //implementation group: 'xalan', name: 'xalan', version: '2.7.1'
+
+    // Required for Daisy Diff (NPE when using Saxon)
+    implementation group: 'xalan', name: 'xalan', version: '2.7.1'
 
     implementation("uk.ac.ox.softeng.maurodatamapper:iso11179-domain:1.0.0-SNAPSHOT") {
         exclude group: "com.sun.xml.bind", module: "jaxb-impl"

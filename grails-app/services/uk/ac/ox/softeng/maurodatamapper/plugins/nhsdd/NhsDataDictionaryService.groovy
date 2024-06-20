@@ -440,6 +440,7 @@ class NhsDataDictionaryService {
                     })
                 } else {
                     NhsDDAttribute attribute = dataDictionary.attributesByCatalogueId[dataElement.id]
+                    attribute.parentClass = dataClass
                     if(attribute.otherProperties['isKey']) {
                         dataClass.keyAttributes.add(attribute)
                     } else {
@@ -531,6 +532,7 @@ class NhsDataDictionaryService {
                                                                   dataDictionary)
     }
 
+/*
     Set<DataClass> getDataClasses(includeRetired = false) {
         DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
 
@@ -548,32 +550,22 @@ class NhsDataDictionaryService {
     }
 
     Set<DataElement> getDataElements(includeRetired = false) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.ELEMENTS_MODEL_NAME)
 
-        DataClass elementsClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME}
-
-        Set<DataElement> elementElements = []
-        elementElements.addAll(elementsClass.dataElements)
-        if (includeRetired) {
-            DataClass retiredElementsClass = elementsClass.dataClasses.find {it.label == "Retired"}
-            elementElements.addAll(retiredElementsClass.dataElements)
+        return coreModel.getAllDataElements().findAll{
+            includeRetired || it.parent.label == "Retired"
         }
-        return elementElements
     }
 
     Set<DataElement> getAttributes(includeRetired = false) {
-        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CORE_MODEL_NAME)
+        DataModel coreModel = dataModelService.findCurrentMainBranchByLabel(NhsDataDictionary.CLASSES_MODEL_NAME)
 
-        DataClass attributesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.ATTRIBUTES_CLASS_NAME}
-
-        Set<DataElement> attributeElements = []
-        attributeElements.addAll(attributesClass.dataElements)
-        if (includeRetired) {
-            DataClass retiredAttributesClass = attributesClass.dataClasses.find {it.label == "Retired"}
-            attributeElements.addAll(retiredAttributesClass.dataElements)
+        return coreModel.getAllDataElements().findAll{
+            includeRetired || it.parent.label == "Retired"
         }
-        return attributeElements
+
     }
+*/
 
     List<StereotypedCatalogueItem> allItemsIndex(UUID versionedFolderId) {
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
