@@ -23,7 +23,6 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 /**
  * Basic/simplified model of the NHS Data Dictionary for testing
  */
-@CompileStatic
 class NhsDataDictionaryModel {
     /**
      * The ID of the root versioned folder for the data dictionary.
@@ -54,7 +53,6 @@ class NhsDataDictionaryModel {
     }
 }
 
-@CompileStatic
 class DataModelModel {
     String id
     String label
@@ -74,7 +72,6 @@ class DataModelModel {
     }
 }
 
-@CompileStatic
 class DataClassModel {
     String id
     String label
@@ -90,7 +87,6 @@ class DataClassModel {
     }
 }
 
-@CompileStatic
 class DataElementModel {
     String id
     String label
@@ -103,7 +99,6 @@ class DataElementModel {
     }
 }
 
-@CompileStatic
 class TerminologyModel {
     String id
     String label
@@ -115,7 +110,6 @@ class TerminologyModel {
     }
 }
 
-@CompileStatic
 class TermModel {
     String id
     String code
