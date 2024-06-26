@@ -23,6 +23,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 /**
  * Basic/simplified model of the NHS Data Dictionary for testing
  */
+@CompileStatic
 class NhsDataDictionaryModel {
     /**
      * The ID of the root versioned folder for the data dictionary.
@@ -45,7 +46,7 @@ class NhsDataDictionaryModel {
         this.label = "NHS Data Dictionary"
 
         this.classesAndAttributes = new DataModelModel(NhsDataDictionary.CLASSES_MODEL_NAME, "")
-        this.dataElements = new DataModelModel(NhsDataDictionary.DATA_ELEMENTS_CLASS_NAME, "")
+        this.dataElements = new DataModelModel(NhsDataDictionary.ELEMENTS_MODEL_NAME, "")
 
         this.dataSetConstraints = new TerminologyModel(NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
         this.nhsBusinessDefinitions = new TerminologyModel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
@@ -53,6 +54,7 @@ class NhsDataDictionaryModel {
     }
 }
 
+@CompileStatic
 class DataModelModel {
     String id
     String label
@@ -72,6 +74,7 @@ class DataModelModel {
     }
 }
 
+@CompileStatic
 class DataClassModel {
     String id
     String label
@@ -87,6 +90,7 @@ class DataClassModel {
     }
 }
 
+@CompileStatic
 class DataElementModel {
     String id
     String label
@@ -99,6 +103,7 @@ class DataElementModel {
     }
 }
 
+@CompileStatic
 class TerminologyModel {
     String id
     String label
@@ -110,6 +115,7 @@ class TerminologyModel {
     }
 }
 
+@CompileStatic
 class TermModel {
     String id
     String code
