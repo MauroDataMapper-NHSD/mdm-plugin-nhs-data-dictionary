@@ -27,7 +27,6 @@ class CDSDataSetToHtml {
     void outputCDSClassAsHtml(NhsDDDataSetClass dataClass) {
 
         int totalDepth = calculateClassDepth(dataClass)
-        System.err.println("Total Depth: " + dataClass.name + ': ' + totalDepth)
         if(dataClass.isChoice && dataClass.name.startsWith("Choice")) {
             markupBuilder.p {
                 b 'One of the following options must be used:'
@@ -146,16 +145,11 @@ class CDSDataSetToHtml {
     }
 
     void addCDSClassContents(NhsDDDataSetClass dataClass, int totalDepth, int currentDepth) {
-        System.err.println("addCDSClassContents ${dataClass.name}")
         if (dataClass.dataSetElements) {
-            System.err.println("addCDSClassContents ${dataClass.name} 1")
             if(dataClass.isChoice) {
-                System.err.println("addCDSClassContents ${dataClass.name} 2")
                 addCDSChildRow(dataClass, totalDepth, currentDepth)
             } else {
-                System.err.println("addCDSClassContents ${dataClass.name} 3")
                 dataClass.sortedChildren.each { child ->
-                    System.err.println("addCDSClassContents ${dataClass.name} 4")
                     addCDSChildRow(child, totalDepth, currentDepth)
                 }
             }
@@ -181,7 +175,7 @@ class CDSDataSetToHtml {
                     }
                     if (dataClass.isChoice && childDataClass != dataClass.sortedChildren.last()) {
                         markupBuilder.tr {
-                            td (class: 'orText', colspan: (totalDepth * 2 + 4) - (currentDepth * 2 + 1)) {
+                            td (class: 'or-header', colspan: (totalDepth * 2 + 4) - (currentDepth * 2 + 1)) {
                                 p {
                                     b 'Or'
                                 }
@@ -214,10 +208,10 @@ class CDSDataSetToHtml {
         markupBuilder.tr(class: 'thead-light table-primary') {
             td(class: 'mandation', rowspan: moreRows, dataClass.mandation)
             td(class: 'groupRepeats', rowspan: moreRows, dataClass.groupRepeats)
-            td(class: 'elementBox', colspan: (totalDepth*2+3) - (currentDepth*2+1)) {
+            td(class: 'cds-element-header', colspan: (totalDepth*2+3) - (currentDepth*2+1)) {
                 b name
                 if (dataClass.description) {
-                    p dataClass.description
+                    markupBuilder.p dataClass.description
                 }
             }
             td (class: 'rules') {
@@ -241,7 +235,6 @@ class CDSDataSetToHtml {
                 (!dataClass.childDataClasses[1].childDataClasses || dataClass.childDataClasses[1].childDataClasses.size() == 0) &&
                 DataSetParser.isAnd(dataClass.childDataClasses[1] */)
         {
-            System.err.println("Found special case! " + dataClass.name)
             return 1
         }
         int total = 0

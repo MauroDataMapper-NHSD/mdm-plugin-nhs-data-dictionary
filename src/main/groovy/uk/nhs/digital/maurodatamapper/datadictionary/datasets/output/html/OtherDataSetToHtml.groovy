@@ -24,30 +24,22 @@ class OtherDataSetToHtml {
 
     void outputClassAsHtml(NhsDDDataSetClass ddDataClass) {
         if (ddDataClass.isChoice && ddDataClass.name.startsWith("Choice")) {
-            markupBuilder.b {
-                "One of the following options must be used:"
-            }
+            markupBuilder.b 'One of the following options must be used:'
             ddDataClass.dataSetClasses.sort {it.webOrder}.
                 eachWithIndex{childDataClass, int idx ->
                     if (idx != 0) {
-                        markupBuilder.b {
-                            "Or"
-                        }
+                        markupBuilder.b 'Or'
                     }
                     outputClassAsHtml(childDataClass)
                 }
         } else {
-            markupBuilder.table (class:"simpletable table table-sm") {
+            markupBuilder.table (class: "simpletable table table-sm") {
                 thead {
                     tr {
-                        th(colspan: 2, class: "thead-light", align: 'center') {
-                            b {
-                                ddDataClass.name
-                            }
+                        th(colspan: 2, class: "thead-light", 'text-align': 'center') {
+                            b ddDataClass.name
                             if (ddDataClass.description) {
-                                p {
-                                    ddDataClass.description
-                                }
+                                p ddDataClass.description
                             }
                         }
                     }
@@ -55,15 +47,12 @@ class OtherDataSetToHtml {
                 tbody {
                     if (ddDataClass.dataSetElements) {
                         markupBuilder.tr {
-                            td(style: "width: 20%; text-align: center;") {
-                                b {
-                                    "Mandation"
-                                }
+                            td(width: '20%', class: 'mandation-header') {
+                                b "Mandation"
+
                             }
-                            td(style: "width: 80%; text-align: center;") {
-                                b {
-                                    "Data Elements"
-                                }
+                            td(width: '80%', class: 'elements-header') {
+                                b "Data Elements"
                             }
                         }
                     }
@@ -82,12 +71,10 @@ class OtherDataSetToHtml {
             }
         } else { // No data elements
             ddDataClass.dataSetClasses.sort {it.webOrder}.eachWithIndex {childClass, idx ->
-                if (childClass.isChoice && idx != 0) {
+                if (ddDataClass.isChoice && idx != 0) {
                     markupBuilder.tr {
-                        td(colspan: 2, align: 'center') {
-                            b {
-                                'Or'
-                            }
+                        td(colspan: 2, class: 'or-header') {
+                            b 'Or'
                         }
                     }
                 } else if (idx != 0) {
@@ -102,13 +89,15 @@ class OtherDataSetToHtml {
 
     void addChildRow(NhsDDDataSetElement dataSetElement) {
         markupBuilder.tr {
-            td (width: '20%', align: 'center') {
-                p {
-                    dataSetElement.mandation
-                }
+            td (width: '20%', class: 'mandation') {
+                p dataSetElement.mandation
+
             }
             td (width: '80%') {
                 dataSetElement.createLink(markupBuilder)
+                if(dataSetElement.maxMultiplicity == '-1') {
+                    p 'Multiple occurrences of this item are permitted'
+                }
             }
         }
     }
@@ -116,24 +105,20 @@ class OtherDataSetToHtml {
     void addSubClass(NhsDDDataSetClass dataSetClass) {
         if(dataSetClass.name != 'Choice') {
             markupBuilder.tr(class: 'table-primary') {
-                td(style: "width: 20%;") {b "Mandation"}
-                td(style: "width: 80%;") {
+                td(width: '20%', class: 'mandation-header') {
+                    b 'Mandation'
+                }
+                td(width: '80%') {
                     p {
-                        b {
-                            dataSetClass.name
-                        }
+                        b dataSetClass.name
                     }
                     if(dataSetClass.description) {
-                        markupBuilder.p {
-                            dataSetClass.description
-                        }
+                        markupBuilder.p dataSetClass.description
                     }
                 }
             }
         }
         addAllChildRows(dataSetClass)
     }
-
-
 
 }
