@@ -75,6 +75,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     MetadataService metadataService
     AuthorityService authorityService
 
+    @Autowired
     NhsDataDictionaryService nhsDataDictionaryService
 
     @Autowired
@@ -198,20 +199,30 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                 return t
             }
         }
-        if (path[0].startsWith("dm:${NhsDataDictionary.CLASSES_MODEL_NAME}")) {
-            DataModel dm = dataModelService.findByLabel(NhsDataDictionary.CLASSES_MODEL_NAME)
-            DataClass dc = dataClassService.findByParentAndLabel(dm, path[1].replace("dc:", ""))
-            if(path.size() == 3) {
-                DataElement de = dataElementService.findByParentAndLabel(dc2, path[2].replace("de:", ""))
+        if (path[0] == "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}".toString()) {
+            DataModel dm = dataModelService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.CLASSES_MODEL_NAME)
+            if (path[1] == "dc:Retired") {
+                DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, "Retired")
+                DataClass dc2 = dataClassService.findByParentAndLabel(dc2, path[2].replace("dc:", ""))
+                return dc2
+            } else {
+                DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, path[1].replace("dc:", ""))
+                return dc1
+            }
+        } else if (path[0] == "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}") {
+            DataModel dm = dataModelService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.ELEMENTS_MODEL_NAME)
+            if (path[1] == "dc:Retired") {
+                DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, "Retired")
+                DataElement de = dataElementService.findByParentAndLabel(dc1, path[2].replace("de:", ""))
                 return de
             } else {
-                return dc
+                DataClass dc = dataClassService.findByDataModelIdAndLabel(dm.id, path[1].replace("dc:", ""))
+                DataElement de = dataElementService.findByParentAndLabel(dc, path[2].replace("de:", ""))
+                return de
             }
+
         }
-        if (path[0] == "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}") {
-            DataClass dc = dataClassService.findByParentAndLabel(dm, path[1].replace("dc:", ""))
-            DataElement de = dataElementService.findByParentAndLabel(dc, path[2].replace("de:", ""))
-        }
+
         if (path.length == 1 && path[0].startsWith("dm:")) {
             DataModel dm = dataModelService.findByLabel(path[0].replace("dm:", ""))
             return dm
@@ -239,6 +250,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         if (path[0] == "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}") {
             return "element"
         }
+
         if (path.length == 1 && path[0].startsWith("dm:")) {
             return "dataSet"
         }

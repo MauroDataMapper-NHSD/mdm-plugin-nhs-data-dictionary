@@ -15,9 +15,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.nhs.digital.maurodatamapper.datadictionary.datasets
+package uk.nhs.digital.maurodatamapper.datadictionary.datasets.parser
 
-import org.springframework.beans.factory.annotation.Autowired
+
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLink
 import uk.ac.ox.softeng.maurodatamapper.core.facet.SemanticLinkType
@@ -27,16 +27,12 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataTypeService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ModelDataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 
 import groovy.util.logging.Slf4j
-import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
-
-import javax.lang.model.type.ReferenceType
 
 @Slf4j
 class DataSetParser {

@@ -24,6 +24,9 @@ import org.apache.commons.lang3.StringUtils
 import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.CDSDataSetToHtml
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.OtherDataSetToHtml
+
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
@@ -159,70 +162,17 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
         markupBuilder.setEscapeAttributes(false)
         markupBuilder.setDoubleQuotes(true)
-        if(name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Caee Data Set')) {
-            outputAsCdsHtml(markupBuilder)
+        if(name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Care Data Set')) {
+            new CDSDataSetToHtml(markupBuilder).outputAsCdsHtml(this)
         } else {
-            outputAsHtml(markupBuilder)
+            new OtherDataSetToHtml(markupBuilder).outputAsHtml(this)
         }
-
         return stringWriter.toString().replaceAll(">\\s+<", "><").trim()
     }
 
-    void outputAsHtml(MarkupBuilder markupBuilder) {
-        dataSetClasses.each {ddDataClass ->
-            outputClassAsHtml(ddDataClass, markupBuilder)
-        }
-    }
 
-    void outputAsCdsHtml(MarkupBuilder markupBuilder) {
-        dataSetClasses.each {dataSetClass ->
-            dataSetClass.outputAsCdsHtml(markupBuilder)
-        }
-    }
 
-    void outputClassAsHtml(NhsDDDataSetClass ddDataClass, MarkupBuilder markupBuilder) {
-        if (ddDataClass.isChoice && ddDataClass.name.startsWith("Choice")) {
-            markupBuilder.b "One of the following options must be used:"
-            ddDataClass.dataSetClasses.
-                eachWithIndex{childDataClass, int idx ->
-                    if (idx != 0) {
-                        markupBuilder.b "Or"
-                    }
-                    outputClassAsHtml(childDataClass, markupBuilder)
-                }
-        } else {
 
-            markupBuilder.table (class:"simpletable table table-sm") {
-                thead {
-                    tr {
-                        th(colspan: 2, class: "thead-light") {
-                            b ddDataClass.name
-                            if (ddDataClass.description) {
-                                p ddDataClass.description
-                            }
-                        }
-                    }
-                }
-                tbody {
-                    if (ddDataClass.dataSetElements) {
-                        markupBuilder.tr {
-                            td(style: "width: 20%;") {p "Mandation"}
-                            td(style: "width: 80%;") {p "Data Elements"}
-                        }
-                    }
-                    ddDataClass.dataSetElements.each {dataElement ->
-                        markupBuilder.tr {
-                            td ""
-                            td {
-                                dataElement.createLink(markupBuilder)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
 
     List<String> getDitaFolderPath() {
         webPath.collect {

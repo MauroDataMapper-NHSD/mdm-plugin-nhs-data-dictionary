@@ -32,8 +32,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
-import uk.nhs.digital.maurodatamapper.datadictionary.datasets.CDSDataSetParser
-import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.parser.CDSDataSetParser
+import uk.nhs.digital.maurodatamapper.datadictionary.datasets.parser.DataSetParser
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -53,11 +53,11 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
 
     @Override
     NhsDDDataSet show(UUID versionedFolderId, String id) {
-        NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        //NhsDataDictionary nhsDataDictionary = nhsDataDictionaryService.newDataDictionary()
         DataModel dataModel = dataModelService.get(id)
         VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
-        nhsDataDictionary.containingVersionedFolder = thisVersionedFolder
-        NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, dataDictionary)
+        //nhsDataDictionary.containingVersionedFolder = thisVersionedFolder
+        NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, null)
         dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
         dataSet.htmlStructure = convertLinksInDescription(versionedFolderId, dataSet.getStructureAsHtml())
         return dataSet
