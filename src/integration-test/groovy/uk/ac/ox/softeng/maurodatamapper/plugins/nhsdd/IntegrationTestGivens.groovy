@@ -10,6 +10,8 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.DataType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.test.unit.security.TestUser
 import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
@@ -34,14 +36,18 @@ class IntegrationTestGivens {
         user
     }
 
-    Folder "there is a folder"(String label, String description = "") {
+    Folder "there is a folder"(String label, String description = "", Folder parentFolder = null) {
         Folder folder = Folder.findByLabel(label)
         if (folder) {
             return folder
         }
 
         log.debug("Creating folder '$label'")
-        folder = new Folder(label: label, createdBy: FUNCTIONAL_TEST, description: description)
+        folder = new Folder(
+            label: label,
+            createdBy: FUNCTIONAL_TEST,
+            description: description,
+            parentFolder: parentFolder)
 
         if (!folder.metadata) {
             folder.metadata = new LinkedHashSet<>()
@@ -176,7 +182,60 @@ class IntegrationTestGivens {
         dataType
     }
 
-    // TODO: create terminology and terms
+    Terminology "there is a terminology"(String label, Folder folder, String description = "") {
+        Terminology terminology = Terminology.findByLabel(label)
+        if (terminology) {
+            return terminology
+        }
+
+        log.debug("Creating terminology '$label'")
+        Authority authority = Authority.findByDefaultAuthority(true)
+
+        terminology = new Terminology(
+            createdBy: FUNCTIONAL_TEST,
+            label: label,
+            description: description,
+            folder: folder,
+            authority: authority,
+            aliasesString: label)
+
+        if (!terminology.metadata) {
+            terminology.metadata = new LinkedHashSet<>()
+        }
+
+        checkAndSave(terminology)
+
+        terminology
+    }
+
+    Term "there is a term"(String code, String definition, Terminology terminology, String description = "") {
+        Term term = Term.findByCodeAndDefinition(code, definition)
+        if (term) {
+            return term
+        }
+
+        log.debug("Creating term ['$code'] '$definition'")
+        term = new Term(
+            createdBy: FUNCTIONAL_TEST,
+            code: code,
+            definition: definition,
+            description: description,
+            terminology: terminology)
+
+        if (!terminology.terms) {
+            terminology.terms = new LinkedHashSet<>()
+        }
+
+        terminology.terms.add(term)
+
+        if (!term.metadata) {
+            term.metadata = new LinkedHashSet<>()
+        }
+
+        checkAndSave(term)
+
+        term
+    }
 
     void checkAndSave(GormEntity domainObj) {
         try {
