@@ -33,7 +33,7 @@ class GraphNode {
     }
 
     void addSuccessor(Path path) {
-        successors.add(path.toString())
+        addSuccessor(path.toString())
     }
 
     void addPredecessor(String path) {
@@ -41,6 +41,22 @@ class GraphNode {
     }
 
     void addPredecessor(Path path) {
-        predecessors.add(path.toString())
+        addPredecessor(path.toString())
+    }
+
+    void removeSuccessor(String path) {
+        successors.remove(path)
+    }
+
+    void removeSuccessor(Path path) {
+        removeSuccessor(path.toString())
+    }
+
+    void removePredecessor(String path) {
+        predecessors.remove(path)
+    }
+
+    void removePredecessor(Path path) {
+        removePredecessor(path.toString())
     }
 }

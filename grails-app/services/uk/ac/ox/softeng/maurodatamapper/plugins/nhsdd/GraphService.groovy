@@ -52,13 +52,28 @@ class GraphService {
         T item) {
         GraphNode graphNode = getGraphNode(item)
 
-        Set<String> successorPaths = getSuccessorPathsFromHtml(item.description)
+        Set<String> descriptionSuccessorPaths = getSuccessorPathsFromHtml(item.description)
 
-        successorPaths.forEach { successorPath ->
+        // Locate all successors that have now been removed from the description and
+        // update all of them to remove this predecessor
+        graphNode.successors
+            .findAll { successorPath -> !descriptionSuccessorPaths.contains(successorPath) }
+            .forEach { successorPath ->
+                updatePredecessorGraphNode(rootBranch, successorPath, item, true)
+
+                log.info("Removing successor '$successorPath' from '$item.path' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
+                graphNode.removeSuccessor(successorPath)
+            }
+
+        // Locate all new successors added to the description and update all of them to track
+        // their new predecessor
+        descriptionSuccessorPaths
+            .findAll { successorPath -> !graphNode.hasSuccessor(successorPath) }
+            .forEach { successorPath ->
             log.info("Adding successor '$successorPath' to '$item.path' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
             graphNode.addSuccessor(successorPath)
 
-            updatePredecessorGraphNode(rootBranch, successorPath, item)
+            updatePredecessorGraphNode(rootBranch, successorPath, item, false)
         }
 
         saveGraphNode(item, graphNode)
@@ -67,16 +82,24 @@ class GraphService {
     private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorGraphNode(
         VersionedFolder rootBranch,
         String successorPath,
-        T predecessorItem) {
+        T predecessorItem,
+        boolean removing) {
         T successorItem = pathService.findResourceByPathFromRootResource(rootBranch, Path.from(successorPath)) as T
         if (!successorItem) {
             log.warn("Cannot find '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
             return
         }
 
-        log.info("Adding predecessor '$predecessorItem.path' to '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
         GraphNode successorGraphNode = getGraphNode(successorItem)
-        successorGraphNode.addPredecessor(predecessorItem.path)
+        if (removing) {
+            log.info("Removing predecessor '$predecessorItem.path' from '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
+            successorGraphNode.removePredecessor(predecessorItem.path)
+        }
+        else {
+            log.info("Adding predecessor '$predecessorItem.path' to '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
+            successorGraphNode.addPredecessor(predecessorItem.path)
+        }
+
         saveGraphNode(successorItem, successorGraphNode)
     }
 

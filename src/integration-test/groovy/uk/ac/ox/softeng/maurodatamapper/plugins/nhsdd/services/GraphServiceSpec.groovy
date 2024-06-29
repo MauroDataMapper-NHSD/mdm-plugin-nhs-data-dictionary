@@ -117,6 +117,30 @@ class GraphServiceSpec extends BaseIntegrationSpec {
         throw new Exception("Unrecognised domain type '$domainType'")
     }
 
+    <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> T getItemToUpdate(String domainType) {
+        if (domainType == "dataModel") {
+            return dataModel2 as T
+        }
+
+        if (domainType == "dataClass") {
+            return dataClass2 as T
+        }
+
+        if (domainType == "dataElement") {
+            return dataElement2 as T
+        }
+
+        if (domainType == "term") {
+            return term1 as T
+        }
+
+        if (domainType == "folder") {
+            return folder as T
+        }
+
+        throw new Exception("Unrecognised domain type '$domainType'")
+    }
+
     void "should build the graph node of a new #domainType"(String domainType) {
         given: "there is initial test data"
         setupData()
@@ -153,6 +177,83 @@ class GraphServiceSpec extends BaseIntegrationSpec {
             dataModel1GraphNode.hasPredecessor(newItem.path)
             dataClass1GraphNode.hasPredecessor(newItem.path)
             dataElement1GraphNode.hasPredecessor(newItem.path)
+        }
+
+        where:
+        domainType      | _
+        "dataModel"     | _
+        "dataClass"     | _
+        "dataElement"   | _
+        "term"          | _
+        "folder"        | _
+    }
+
+    void "should build the graph node when updating a #domainType"(String domainType) {
+        given: "there is initial test data"
+        setupData()
+        def updateItem = getItemToUpdate(domainType)
+
+        when: "a description is originally set"
+        String originalDescription = """<a href=\"$dataModel1.path\">Model</a>, 
+<a href=\"$dataClass1.path\">Class</a>"""
+        updateItem.description = originalDescription
+        updateItem.save([flush: true])
+
+        and: "an existing graph node was built"
+        sut.buildGraphNode(dictionaryBranch, updateItem)
+
+        then: "successors are configured"
+        GraphNode updateItemGraphNode = sut.getGraphNode(updateItem)
+        verifyAll {
+            updateItemGraphNode
+            updateItemGraphNode.hasSuccessor(dataModel1.path)
+            updateItemGraphNode.hasSuccessor(dataClass1.path)
+            !updateItemGraphNode.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors are configured"
+        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNode
+            dataClass1GraphNode
+            dataElement1GraphNode
+            dataModel1GraphNode.hasPredecessor(updateItem.path)
+            dataClass1GraphNode.hasPredecessor(updateItem.path)
+            !dataElement1GraphNode.hasPredecessor(updateItem.path)
+        }
+
+        when: "the description is changed"
+        // Keep one path (model), add a new one (element), remove another (class)
+        String updatedDescription = """<a href=\"$dataModel1.path\">Model</a>, 
+<a href=\"$dataElement1.path\">Element</a>"""
+        updateItem.description = updatedDescription
+        updateItem.save([flush: true])
+
+        and: "the graph node is rebuilt"
+        sut.buildGraphNode(dictionaryBranch, updateItem)
+
+        then: "successors were updated"
+        GraphNode updateItemGraphNodeUpdated = sut.getGraphNode(updateItem)
+        verifyAll {
+            updateItemGraphNodeUpdated
+            updateItemGraphNodeUpdated.hasSuccessor(dataModel1.path)
+            !updateItemGraphNodeUpdated.hasSuccessor(dataClass1.path)
+            updateItemGraphNodeUpdated.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors were updated"
+        GraphNode dataModel1GraphNodeUpdated = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNodeUpdated = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNodeUpdated = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNodeUpdated
+            dataClass1GraphNodeUpdated
+            dataElement1GraphNodeUpdated
+            dataModel1GraphNodeUpdated.hasPredecessor(updateItem.path)
+            !dataClass1GraphNodeUpdated.hasPredecessor(updateItem.path)
+            dataElement1GraphNodeUpdated.hasPredecessor(updateItem.path)
         }
 
         where:
