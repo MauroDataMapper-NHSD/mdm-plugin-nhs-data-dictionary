@@ -34,11 +34,11 @@ class GraphService {
         jsonSlurper.parseText(metadata.value) as GraphNode
     }
 
-    <T extends MetadataAware & GormEntity> void saveGraphNode(T item, GraphNode graphNode) {
+    <T extends MdmDomain & MetadataAware & GormEntity> void saveGraphNode(T item, GraphNode graphNode) {
         Metadata metadata = item.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY)
 
         if (!metadata) {
-            item.addToMetadata(METADATA_NAMESPACE, METADATA_KEY, graphNode.toJson())
+            item.addToMetadata(METADATA_NAMESPACE, METADATA_KEY, graphNode.toJson(), item.createdBy)
             item.save([flush: true])
             return
         }
