@@ -6,9 +6,9 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphNode
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.IntegrationTestGivens
-import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.ReferencedItemsService
 import uk.ac.ox.softeng.maurodatamapper.security.User
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
@@ -76,17 +76,41 @@ class GraphServiceSpec extends BaseIntegrationSpec {
         given: "there is initial test data"
         setupData()
 
-        when: "adding a new data class"
+        and: "adding a new data class"
         String description = """<a href=\"$dataModel1.path\">Model</a>, 
 <a href=\"$dataClass1.path\">Class</a>, 
 <a href=\"$dataElement1.path\">Element</a>, 
 <a href=\"https://www.google.com\">Website</a>"""
         
-        DataClass newDataClass = given."there is a data class"("New Data Class", dataModel2, dataClass2, description)
+        DataClass newDataClass = given."there is a data class"(
+            "New Data Class",
+            dataModel2,
+            dataClass2,
+            description)
 
-        then:
-        with {
-            newDataClass
+        when: "building the graph"
+        sut.buildGraphNode(dictionaryBranch, newDataClass)
+
+        then: "successors were updated"
+        GraphNode newDataClassGraphNode = sut.getGraphNode(newDataClass)
+        verifyAll {
+            newDataClassGraphNode
+            newDataClassGraphNode.hasSuccessor(dataModel1.path)
+            newDataClassGraphNode.hasSuccessor(dataClass1.path)
+            newDataClassGraphNode.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors were updated"
+        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNode
+            dataClass1GraphNode
+            dataElement1GraphNode
+            dataModel1GraphNode.hasPredecessor(newDataClass.path)
+            dataClass1GraphNode.hasPredecessor(newDataClass.path)
+            dataElement1GraphNode.hasPredecessor(newDataClass.path)
         }
     }
 }
