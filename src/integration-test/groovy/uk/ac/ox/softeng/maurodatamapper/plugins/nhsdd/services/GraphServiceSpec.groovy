@@ -117,7 +117,7 @@ class GraphServiceSpec extends BaseIntegrationSpec {
         throw new Exception("Unrecognised domain type '$domainType'")
     }
 
-    <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> T getItemToUpdate(String domainType) {
+    <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> T getItemToUpdateOrDelete(String domainType) {
         if (domainType == "dataModel") {
             return dataModel2 as T
         }
@@ -191,7 +191,7 @@ class GraphServiceSpec extends BaseIntegrationSpec {
     void "should build the graph node when updating a #domainType"(String domainType) {
         given: "there is initial test data"
         setupData()
-        def updateItem = getItemToUpdate(domainType)
+        def updateItem = getItemToUpdateOrDelete(domainType)
 
         when: "a description is originally set"
         String originalDescription = """<a href=\"$dataModel1.path\">Model</a>, 
@@ -254,6 +254,85 @@ class GraphServiceSpec extends BaseIntegrationSpec {
             dataModel1GraphNodeUpdated.hasPredecessor(updateItem.path)
             !dataClass1GraphNodeUpdated.hasPredecessor(updateItem.path)
             dataElement1GraphNodeUpdated.hasPredecessor(updateItem.path)
+        }
+
+        where:
+        domainType      | _
+        "dataModel"     | _
+        "dataClass"     | _
+        "dataElement"   | _
+        "term"          | _
+        "folder"        | _
+    }
+
+    void "should update the successor graph nodes when deleting a #domainType"(String domainType) {
+        given: "there is initial test data"
+        setupData()
+        def deleteItem = getItemToUpdateOrDelete(domainType)
+
+        when: "a description is originally set"
+        String description = """<a href=\"$dataModel1.path\">Model</a>, 
+<a href=\"$dataClass1.path\">Class</a>, 
+<a href=\"$dataElement1.path\">Element</a>, 
+<a href=\"https://www.google.com\">Website</a>"""
+        deleteItem.description = description
+        deleteItem.save([flush: true])
+
+        and: "an existing graph node was built"
+        sut.buildGraphNode(dictionaryBranch, deleteItem)
+
+        then: "successors are configured"
+        GraphNode updateItemGraphNode = sut.getGraphNode(deleteItem)
+        verifyAll {
+            updateItemGraphNode
+            updateItemGraphNode.hasSuccessor(dataModel1.path)
+            updateItemGraphNode.hasSuccessor(dataClass1.path)
+            updateItemGraphNode.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors are configured"
+        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNode
+            dataClass1GraphNode
+            dataElement1GraphNode
+            dataModel1GraphNode.hasPredecessor(deleteItem.path)
+            dataClass1GraphNode.hasPredecessor(deleteItem.path)
+            dataElement1GraphNode.hasPredecessor(deleteItem.path)
+        }
+
+        when: "the item is removed"
+        // Need to simulate a "deletion" of a Mauro item without actually deleting it.
+        // Before the item is deleted, the graph nodes of the successors must be updated, which
+        // is what this test proves. If properly deleting the item, then the graph node pointing to
+        // the successors will be lost, so this must happen first
+        String originalPath = deleteItem.path.toString()
+        GraphNode deleteItemGraphNodeBeforeDelete = sut.getGraphNode(deleteItem)
+        sut.removePredecessorFromSuccessorGraphNodes(dictionaryBranch, originalPath, deleteItemGraphNodeBeforeDelete)
+        // Technically in real life the Mauro item would have been deleted after this so the graph node would
+        // also have been deleted - but we need it still for this test to track the end state for assertions
+        sut.saveGraphNode(deleteItem, deleteItemGraphNodeBeforeDelete)
+
+        then: "successors are updated"
+        GraphNode deleteItemGraphNodeAfterDelete = sut.getGraphNode(deleteItem)
+        verifyAll {
+            deleteItemGraphNodeAfterDelete
+            deleteItemGraphNodeAfterDelete.successors.empty
+        }
+
+        and: "predecessors are updated"
+        GraphNode dataModel1GraphNodeUpdated = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNodeUpdated = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNodeUpdated = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNodeUpdated
+            dataClass1GraphNodeUpdated
+            dataElement1GraphNodeUpdated
+            !dataModel1GraphNodeUpdated.hasPredecessor(deleteItem.path)
+            !dataClass1GraphNodeUpdated.hasPredecessor(deleteItem.path)
+            !dataElement1GraphNodeUpdated.hasPredecessor(deleteItem.path)
         }
 
         where:

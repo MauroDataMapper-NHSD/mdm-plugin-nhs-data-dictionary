@@ -59,4 +59,12 @@ class GraphNode {
     void removePredecessor(Path path) {
         removePredecessor(path.toString())
     }
+
+    void clearSuccessors() {
+        successors.clear()
+    }
+
+    void clearPredecessaors() {
+        predecessors.clear()
+    }
 }

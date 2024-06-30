@@ -79,10 +79,29 @@ class GraphService {
         saveGraphNode(item, graphNode)
     }
 
+    void removePredecessorFromSuccessorGraphNodes(
+        VersionedFolder rootBranch,
+        String predecessorPath,
+        GraphNode predecessorGraphNode) {
+        predecessorGraphNode.successors.forEach { successorPath ->
+            updatePredecessorGraphNode(rootBranch, successorPath, predecessorPath, true)
+        }
+
+        predecessorGraphNode.clearSuccessors()
+    }
+
     private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorGraphNode(
         VersionedFolder rootBranch,
         String successorPath,
         T predecessorItem,
+        boolean removing) {
+        updatePredecessorGraphNode(rootBranch, successorPath, predecessorItem.path.toString(), removing)
+    }
+
+    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorGraphNode(
+        VersionedFolder rootBranch,
+        String successorPath,
+        String predecessorPath,
         boolean removing) {
         T successorItem = pathService.findResourceByPathFromRootResource(rootBranch, Path.from(successorPath)) as T
         if (!successorItem) {
@@ -92,12 +111,12 @@ class GraphService {
 
         GraphNode successorGraphNode = getGraphNode(successorItem)
         if (removing) {
-            log.info("Removing predecessor '$predecessorItem.path' from '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
-            successorGraphNode.removePredecessor(predecessorItem.path)
+            log.info("Removing predecessor '$predecessorPath' from '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
+            successorGraphNode.removePredecessor(predecessorPath)
         }
         else {
-            log.info("Adding predecessor '$predecessorItem.path' to '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
-            successorGraphNode.addPredecessor(predecessorItem.path)
+            log.info("Adding predecessor '$predecessorPath' to '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
+            successorGraphNode.addPredecessor(predecessorPath)
         }
 
         saveGraphNode(successorItem, successorGraphNode)
