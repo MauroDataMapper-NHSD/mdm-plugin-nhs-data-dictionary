@@ -343,4 +343,98 @@ class GraphServiceSpec extends BaseIntegrationSpec {
         "term"          | _
         "folder"        | _
     }
+
+    void "should update the successor graph nodes when moving or renaming a #domainType"(String domainType) {
+        given: "there is initial test data"
+        setupData()
+        def updateItem = getItemToUpdateOrDelete(domainType)
+
+        when: "a description is originally set"
+        String description = """<a href=\"$dataModel1.path\">Model</a>, 
+<a href=\"$dataClass1.path\">Class</a>, 
+<a href=\"$dataElement1.path\">Element</a>, 
+<a href=\"https://www.google.com\">Website</a>"""
+        updateItem.description = description
+        updateItem.save([flush: true])
+
+        and: "an existing graph node was built"
+        sut.buildGraphNode(dictionaryBranch, updateItem)
+
+        then: "successors are configured"
+        GraphNode updateItemGraphNode = sut.getGraphNode(updateItem)
+        verifyAll {
+            updateItemGraphNode
+            updateItemGraphNode.hasSuccessor(dataModel1.path)
+            updateItemGraphNode.hasSuccessor(dataClass1.path)
+            updateItemGraphNode.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors are configured"
+        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNode
+            dataClass1GraphNode
+            dataElement1GraphNode
+            dataModel1GraphNode.hasPredecessor(updateItem.path)
+            dataClass1GraphNode.hasPredecessor(updateItem.path)
+            dataElement1GraphNode.hasPredecessor(updateItem.path)
+        }
+
+        when: "changing the path to an item"
+        String originalPath = updateItem.path.toString()
+        // Change the label (or code for Terms) of a Mauro item will change it's path
+        if (domainType == "term") {
+            updateItem.code = "Renamed code"
+        }
+        else {
+            updateItem.label = "Renamed item"
+        }
+        updateItem.save([flush: true])
+        verifyAll {
+            originalPath != updateItem.path.toString()
+        }
+
+        and: "updating the graph nodes"
+        GraphNode updateItemGraphNodeBeforeUpdate = sut.getGraphNode(updateItem)
+        sut.updatePredecessorFromSuccessorGraphNodes(
+            dictionaryBranch,
+            originalPath,
+            updateItem.path.toString(),
+            updateItemGraphNodeBeforeUpdate)
+
+        then: "successors are unchanged"
+        GraphNode updateItemGraphNodeAfterUpdate = sut.getGraphNode(updateItem)
+        verifyAll {
+            updateItemGraphNodeAfterUpdate
+            updateItemGraphNodeAfterUpdate.hasSuccessor(dataModel1.path)
+            updateItemGraphNodeAfterUpdate.hasSuccessor(dataClass1.path)
+            updateItemGraphNodeAfterUpdate.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors are updated"
+        GraphNode dataModel1GraphNodeUpdated = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNodeUpdated = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNodeUpdated = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNodeUpdated
+            dataClass1GraphNodeUpdated
+            dataElement1GraphNodeUpdated
+            !dataModel1GraphNodeUpdated.hasPredecessor(originalPath)
+            !dataClass1GraphNodeUpdated.hasPredecessor(originalPath)
+            !dataElement1GraphNodeUpdated.hasPredecessor(originalPath)
+            dataModel1GraphNodeUpdated.hasPredecessor(updateItem.path)
+            dataClass1GraphNodeUpdated.hasPredecessor(updateItem.path)
+            dataElement1GraphNodeUpdated.hasPredecessor(updateItem.path)
+        }
+
+        where:
+        domainType      | _
+        "dataModel"     | _
+        "dataClass"     | _
+        "dataElement"   | _
+        "term"          | _
+        "folder"        | _
+    }
 }

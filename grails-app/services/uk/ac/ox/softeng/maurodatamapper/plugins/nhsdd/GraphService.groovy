@@ -59,7 +59,7 @@ class GraphService {
         graphNode.successors
             .findAll { successorPath -> !descriptionSuccessorPaths.contains(successorPath) }
             .forEach { successorPath ->
-                updatePredecessorGraphNode(rootBranch, successorPath, item, true)
+                updatePredecessorInSuccessorGraphNode(rootBranch, successorPath, item, true)
 
                 log.info("Removing successor '$successorPath' from '$item.path' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
                 graphNode.removeSuccessor(successorPath)
@@ -73,7 +73,7 @@ class GraphService {
             log.info("Adding successor '$successorPath' to '$item.path' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
             graphNode.addSuccessor(successorPath)
 
-            updatePredecessorGraphNode(rootBranch, successorPath, item, false)
+            updatePredecessorInSuccessorGraphNode(rootBranch, successorPath, item, false)
         }
 
         saveGraphNode(item, graphNode)
@@ -84,25 +84,51 @@ class GraphService {
         String predecessorPath,
         GraphNode predecessorGraphNode) {
         predecessorGraphNode.successors.forEach { successorPath ->
-            updatePredecessorGraphNode(rootBranch, successorPath, predecessorPath, true)
+            updatePredecessorInSuccessorGraphNode(
+                rootBranch,
+                successorPath,
+                predecessorPath,
+                null,
+                ModificationType.REMOVE)
         }
 
         predecessorGraphNode.clearSuccessors()
     }
 
-    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorGraphNode(
+    void updatePredecessorFromSuccessorGraphNodes(
+        VersionedFolder rootBranch,
+        String originalPredecessorPath,
+        String replacementPredecessorPath,
+        GraphNode predecessorGraphNode) {
+        predecessorGraphNode.successors.forEach { successorPath ->
+            updatePredecessorInSuccessorGraphNode(
+                rootBranch,
+                successorPath,
+                originalPredecessorPath,
+                replacementPredecessorPath,
+                ModificationType.UPDATE)
+        }
+    }
+
+    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorInSuccessorGraphNode(
         VersionedFolder rootBranch,
         String successorPath,
         T predecessorItem,
         boolean removing) {
-        updatePredecessorGraphNode(rootBranch, successorPath, predecessorItem.path.toString(), removing)
+        updatePredecessorInSuccessorGraphNode(
+            rootBranch,
+            successorPath,
+            predecessorItem.path.toString(),
+            null,
+            removing ? ModificationType.REMOVE : ModificationType.ADD)
     }
 
-    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorGraphNode(
+    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void updatePredecessorInSuccessorGraphNode(
         VersionedFolder rootBranch,
         String successorPath,
         String predecessorPath,
-        boolean removing) {
+        String replacementPredecessorPath,
+        ModificationType modificationType) {
         T successorItem = pathService.findResourceByPathFromRootResource(rootBranch, Path.from(successorPath)) as T
         if (!successorItem) {
             log.warn("Cannot find '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
@@ -110,9 +136,13 @@ class GraphService {
         }
 
         GraphNode successorGraphNode = getGraphNode(successorItem)
-        if (removing) {
+        if (modificationType == ModificationType.REMOVE) {
             log.info("Removing predecessor '$predecessorPath' from '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
             successorGraphNode.removePredecessor(predecessorPath)
+        }
+        else if (modificationType == ModificationType.UPDATE) {
+            log.info("Updating predecessor '$predecessorPath' to '$replacementPredecessorPath' in '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
+            successorGraphNode.replacePredecessor(predecessorPath, replacementPredecessorPath)
         }
         else {
             log.info("Adding predecessor '$predecessorPath' to '$successorPath' under root '$rootBranch.label$rootBranch.branchName' [$rootBranch.id]")
@@ -140,5 +170,11 @@ class GraphService {
         }
 
         mauroPaths
+    }
+
+    enum ModificationType {
+        ADD,
+        REMOVE,
+        UPDATE
     }
 }
