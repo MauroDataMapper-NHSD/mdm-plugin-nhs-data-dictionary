@@ -43,6 +43,10 @@ class UrlMappings {
                     get '/statistics'(controller: 'NhsDataDictionary', action: 'statistics')
                     get '/integrityChecks'(controller: 'NhsDataDictionary', action: 'integrityChecks')
 
+                    group "/graph/", {
+                        get "$securableResourceDomainType/$securableResourceId"(controller: 'graph', action: 'show')
+                        put "$securableResourceDomainType/$securableResourceId"(controller: 'graph', action: 'buildGraphNode')
+                    }
 
                     group '/publish', {
 
