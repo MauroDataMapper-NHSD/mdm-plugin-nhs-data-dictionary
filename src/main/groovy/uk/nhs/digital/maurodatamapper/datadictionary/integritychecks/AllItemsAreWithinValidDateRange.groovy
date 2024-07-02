@@ -39,7 +39,7 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
         //does a companant have access to profile stuff? where is that?
         errors = dataDictionary.getAllComponents().findAll {component ->
            return !component.isRetired() &&
-             validateDateRange(component)
+             !validateDateRange(component)
         }
 
         return errors
@@ -65,8 +65,13 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
         // 2. if to date is set, from date must be set else false
         // 3. if from date is set, it must be before to date else false
 
-       String fromDate =  component.getFromDate()
-       String toDate =  component.getToDate()
+        if (component.catalogueItemIdAsString == "9df3500b-b435-4ac8-bdb6-68a4effd5faa") {
+        String fromDate = component.getFromDate()
+        String toDate = component.getToDate()
+        return false
+
+            //so its getting dates correctly for stuff from the component catalog, do I need to handel the other stuff?
+        }
        return true
 
     }

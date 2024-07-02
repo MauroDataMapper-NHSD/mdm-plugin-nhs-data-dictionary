@@ -291,11 +291,15 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
    String getToDate() {
-        return otherProperties["validTo"]
+       if (otherProperties["validTo"]) {
+           return otherProperties["validTo"]
+       }
     }
 
    String getFromDate() {
-        return otherProperties["validFrom"]
+      if(otherProperties["validFrom"]) {
+          return otherProperties["validFrom"]
+      }
     }
 
     List<Topic> getWebsiteTopics() {
