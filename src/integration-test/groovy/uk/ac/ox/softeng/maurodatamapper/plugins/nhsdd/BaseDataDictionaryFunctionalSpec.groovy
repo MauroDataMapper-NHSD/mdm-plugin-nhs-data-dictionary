@@ -210,7 +210,7 @@ class BaseDataDictionaryFunctionalSpec extends BaseFunctionalSpec {
         responseModel.domainType = responseBody().domainType
         responseModel.label = responseBody().label
         responseModel.path = responseBody().path
-        log.info("Created $responseModel.domainType '$responseModel.label' [$responseModel.id]")
+        log.info("Created $responseModel.domainType '$responseModel.label' [$responseModel.id] - $responseModel.path")
         responseModel
     }
 }
