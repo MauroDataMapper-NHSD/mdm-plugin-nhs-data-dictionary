@@ -44,8 +44,9 @@ class UrlMappings {
                     get '/integrityChecks'(controller: 'NhsDataDictionary', action: 'integrityChecks')
 
                     group "/graph/", {
-                        get "$securableResourceDomainType/$securableResourceId"(controller: 'graph', action: 'show')
-                        put "$securableResourceDomainType/$securableResourceId"(controller: 'graph', action: 'buildGraphNode')
+                        get "$graphResourceDomainType/$graphResourceId"(controller: 'graph', action: 'show')
+                        put "$graphResourceDomainType/$graphResourceId"(controller: 'graph', action: 'buildGraphNode')
+                        delete "$graphResourceDomainType/$graphResourceId"(controller: 'graph', action: 'removeGraphNode')
                     }
 
                     group '/publish', {

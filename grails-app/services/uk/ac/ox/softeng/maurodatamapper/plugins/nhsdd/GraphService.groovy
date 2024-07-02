@@ -1,17 +1,26 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
+import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.path.PathService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
+import uk.ac.ox.softeng.maurodatamapper.core.traits.service.MdmDomainService
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.path.Path
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.validator.routines.UrlValidator
 import org.grails.datastore.gorm.GormEntity
+import org.springframework.beans.factory.annotation.Autowired
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -21,9 +30,32 @@ class GraphService {
     public static final String METADATA_NAMESPACE = "uk.nhs.datadictionary.graph"
     public static final String METADATA_KEY = "graphNode"
 
+    private static List<Class> ACCEPTED_RESOURCE_CLASSES = [DataModel.class, DataClass.class, DataElement.class, Folder.class, Term.class]
+
     JsonSlurper jsonSlurper = new JsonSlurper()
 
     PathService pathService
+    MetadataService metadataService
+
+    @Autowired(required = false)
+    List<MdmDomainService> domainServices
+
+    boolean isAcceptableGraphResourceClass(Class resourceClass) {
+        resourceClass in ACCEPTED_RESOURCE_CLASSES
+    }
+
+    <T extends MdmDomain & MetadataAware & GormEntity> T findGraphResource(Class resourceClass, UUID resourceId) {
+        if (!isAcceptableGraphResourceClass(resourceClass)) {
+            throw new ApiBadRequestException("GS01", "Unacceptable graph resource '$resourceClass.simpleName'")
+        }
+
+        MdmDomainService domainService = domainServices.find { service -> service.handles(resourceClass) }
+        if (!domainService) {
+            throw new ApiBadRequestException("GS02", "No domain service available to handle graph resource '$resourceClass.simpleName'")
+        }
+
+        domainService.get(resourceId) as T
+    }
 
     GraphNode getGraphNode(MetadataAware item) {
         Metadata metadata = item.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY)
@@ -47,7 +79,15 @@ class GraphService {
         metadata.save([flush: true])
     }
 
-    <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void buildGraphNode(
+    <T extends MdmDomain & MetadataAware & GormEntity> void deleteGraphNode(T item) {
+        Metadata metadata = item.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY)
+        if (metadata) {
+            item.metadata.remove(metadata)
+            metadataService.delete(metadata, true)
+        }
+    }
+
+    <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> GraphNode buildGraphNode(
         VersionedFolder rootBranch,
         T item) {
         GraphNode graphNode = getGraphNode(item)
@@ -77,6 +117,8 @@ class GraphService {
         }
 
         saveGraphNode(item, graphNode)
+
+        graphNode
     }
 
     void removePredecessorFromSuccessorGraphNodes(

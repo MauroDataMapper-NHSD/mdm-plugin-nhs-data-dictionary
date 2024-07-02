@@ -14,7 +14,9 @@ import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
+import spock.lang.Shared
 
+import static io.micronaut.http.HttpStatus.NO_CONTENT
 import static io.micronaut.http.HttpStatus.OK
 
 @Integration
@@ -22,16 +24,27 @@ import static io.micronaut.http.HttpStatus.OK
 @Rollback
 class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
     // Trace the item layout of a test data dictionary
+    @Shared
     VersionedFolder dictionaryBranch
+    @Shared
     DataModel dataModel1
+    @Shared
     PrimitiveType dataType1
+    @Shared
     DataClass dataClass1
+    @Shared
     DataElement dataElement1
+    @Shared
     DataModel dataModel2
+    @Shared
     PrimitiveType dataType2
+    @Shared
     DataClass dataClass2
+    @Shared
     DataElement dataElement2
+    @Shared
     Terminology terminology1
+    @Shared
     Term term1
 
     @RunOnce
@@ -55,38 +68,105 @@ class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
         sessionFactory.currentSession.flush()
     }
 
-//    @Transactional
-//    def cleanupSpec() {
-//        log.debug('CleanupSpec GraphControllerFunctionalSpec')
-//        cleanUpResources(VersionedFolder)
-//    }
+    void "should build a graph node for a Mauro item: #predecessorDomainType"(
+        String predecessorDomainType,
+        Closure getPredecessorId,
+        Closure getPredecessorPath,
+        Closure getPredecessorUpdateEndpoint) {
+        given: "a user is logged in"
+        loginUser('admin@maurodatamapper.com', 'password')
 
-    void "should build a graph node for a Mauro item"() {
-        given: "an item has a description set"
-        String domain = "dataModels"
+        and: "an item has a description set"
         String description = """<a href=\"$dataModel1.path\">Model</a>, 
 <a href=\"$dataClass1.path\">Class</a>, 
 <a href=\"$dataElement1.path\">Element</a>, 
 <a href=\"https://www.google.com\">Website</a>"""
 
-        dataModel2.description = description
-        dataModel2.save([flush: true])
+        String predecessorUpdateEndpoint = getPredecessorUpdateEndpoint.call()
+        PUT(predecessorUpdateEndpoint, [description: description], MAP_ARG, true)
+        verifyResponse(OK, response)
 
         when: "the graph node is built"
-        PUT("nhsdd/$dictionaryBranch.id/graph/$domain/$dataModel2.id", [:], MAP_ARG, true)
+        UUID predecessorId = getPredecessorId.call() as UUID
+        String predecessorPath = getPredecessorPath()
+        PUT("nhsdd/$dictionaryBranch.id/graph/$predecessorDomainType/$predecessorId", [:], MAP_ARG, true)
 
         then: "the response is OK"
         verifyResponse(OK, response)
 
         and: "the response contains the expected graph node"
-        // TODO
+        verifyAll(responseBody()) {
+            successors ==~ [this.dataModel1.path.toString(), this.dataClass1.path.toString(), this.dataElement1.path.toString()]
+            predecessors ==~ []
+        }
 
-        when: "the graph node is fetched"
-        GET("nhsdd/$dictionaryBranch.id/graph/$domain/$dataModel2.id", MAP_ARG, true)
+        when: "the graph node is fetched for the predecessor item"
+        GET("nhsdd/$dictionaryBranch.id/graph/$predecessorDomainType/$predecessorId", MAP_ARG, true)
 
         then: "the response is OK"
+        verifyResponse(OK, response)
 
         and: "the response contains the expected graph node"
-        // TODO
+        verifyAll(responseBody()) {
+            successors ==~ [this.dataModel1.path.toString(), this.dataClass1.path.toString(), this.dataElement1.path.toString()]
+            predecessors ==~ []
+        }
+
+        when: "the graph node is fetched for a successor item"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataModel1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [predecessorPath]
+        }
+
+        when: "the graph node is fetched for a successor item"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$dataClass1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [predecessorPath]
+        }
+
+        when: "the graph node is fetched for a successor item"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataElements/$dataElement1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [predecessorPath]
+        }
+
+        cleanup:
+        // Remove existing graph nodes
+        DELETE("nhsdd/$dictionaryBranch.id/graph/$predecessorDomainType/$predecessorId", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataModel1.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/dataClasses/$dataClass1.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/dataElements/$dataElement1.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        where:
+        predecessorDomainType   | getPredecessorId      | getPredecessorPath                | getPredecessorUpdateEndpoint
+        "dataModels"            | { dataModel2.id }     | { dataModel2.path.toString() }    | { "dataModels/$dataModel2.id" }
+        "dataClasses"           | { dataClass2.id }     | { dataClass2.path.toString() }    | { "dataModels/$dataModel2.id/dataClasses/$dataClass2.id" }
+        "dataElements"          | { dataElement2.id }   | { dataElement2.path.toString() }  | { "dataModels/$dataModel2.id/dataClasses/$dataClass2.id/dataElements/$dataElement2.id" }
+        "terms"                 | { term1.id }          | { term1.path.toString() }         | { "terminologies/$terminology1.id/terms/$term1.id" }
     }
 }

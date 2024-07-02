@@ -5,16 +5,25 @@ import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.MdmInterceptor
 import grails.artefact.Interceptor
 
 class GraphInterceptor implements MdmInterceptor, Interceptor {
+    GraphService graphService
+
     @Override
     boolean before() {
-        mapDomainTypeToClass("catalogueItem", true)
+        mapDomainTypeToClass("graphResource", true)
+
+        if (!graphService.isAcceptableGraphResourceClass(params.graphResourceClass)) {
+            return notFound(params.graphResourceClass, params.graphResourceId)
+        }
 
         params.versionedFolderId = UUID.fromString(params.versionedFolderId)
 
-        if (params.containsKey("catalogueItemResourceId")) {
-            return currentUserSecurityPolicyManager.userCanReadSecuredResourceId(params.securableResourceClass, params.securableResourceId)
-                ?: notFound(params.securableResourceClass, params.securableResourceId)
+        if (!params.containsKey("graphResourceClass") || !params.containsKey("graphResourceId")) {
+            return notFound(params.graphResourceClass, params.graphResourceId)
         }
+
+        // TODO: return to this, how do I set proper security checks on this interceptor?
+//        return currentUserSecurityPolicyManager.userCanReadSecuredResourceId(params.graphResourceClass, params.graphResourceId)
+//            ?: notFound(params.graphResourceClass, params.graphResourceId)
 
         true
     }
