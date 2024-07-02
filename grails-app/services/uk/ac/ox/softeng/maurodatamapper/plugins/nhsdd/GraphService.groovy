@@ -121,6 +121,35 @@ class GraphService {
         graphNode
     }
 
+    <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> List<GraphNode> buildAllGraphNodes(
+        VersionedFolder rootBranch,
+        List<T> items) {
+        List<GraphNode> graphNodes = []
+
+        items.forEach { item -> {
+            try {
+                log.info("Removing graph node for $item.domainType '$item.label' [$item.id]")
+                deleteGraphNode(item)
+            }
+            catch (Exception exception) {
+                log.error("Error removing graph node: $exception.message", exception)
+            }
+        }}
+
+        items.forEach { item ->
+            try {
+                log.info("Rebuilding graph node for $item.domainType '$item.label' [$item.id]")
+                GraphNode graphNode = buildGraphNode(rootBranch, item)
+                graphNodes.add(graphNode)
+            }
+            catch (Exception exception) {
+                log.error("Error removing graph node: $exception.message", exception)
+            }
+        }
+
+        graphNodes
+    }
+
     void removePredecessorFromSuccessorGraphNodes(
         VersionedFolder rootBranch,
         String predecessorPath,

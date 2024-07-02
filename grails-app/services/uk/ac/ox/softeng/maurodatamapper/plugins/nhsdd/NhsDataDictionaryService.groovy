@@ -17,6 +17,7 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiInvalidModelException
 import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiProperty
 import uk.ac.ox.softeng.maurodatamapper.core.authority.AuthorityService
@@ -281,19 +282,27 @@ class NhsDataDictionaryService {
         return integrityChecks
     }
 
-
     NhsDataDictionary buildDataDictionary(UUID versionedFolderId) {
+        VersionedFolder versionedFolder = versionedFolderService.get(versionedFolderId)
+        if (!versionedFolder) {
+            throw new ApiBadRequestException("NHSDD01", "Cannot find versioned folder [$versionedFolderId]")
+        }
+
+        buildDataDictionary(versionedFolder)
+    }
+
+    NhsDataDictionary buildDataDictionary(VersionedFolder versionedFolder) {
         log.debug("Building Data Dictionary...")
         long totalStart = System.currentTimeMillis()
         NhsDataDictionary dataDictionary = newDataDictionary()
-        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+        dataDictionary.containingVersionedFolder = versionedFolder
 
         buildWorkItemDetails(dataDictionary.containingVersionedFolder, dataDictionary)
 
         log.debug('Starting {}', Utils.timeTaken(totalStart))
 
 
-        List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolderId)
+        List<Terminology> terminologies = terminologyService.findAllByFolderId(versionedFolder.id)
 
         Terminology busDefTerminology = terminologies.find {it.label == NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}
         Terminology supDefTerminology = terminologies.find {it.label == NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}
@@ -304,8 +313,8 @@ class NhsDataDictionaryService {
 
         Folder dataSetsFolder = dataDictionary.containingVersionedFolder.childFolders.find {it.label == NhsDataDictionary.DATA_SETS_FOLDER_NAME}
 
-        DataModel classesModel = getClassesModel(versionedFolderId)
-        DataModel elementsModel = getElementsModel(versionedFolderId)
+        DataModel classesModel = getClassesModel(versionedFolder.id)
+        DataModel elementsModel = getElementsModel(versionedFolder.id)
 
         log.debug('Got models {}', Utils.timeTaken(totalStart))
 

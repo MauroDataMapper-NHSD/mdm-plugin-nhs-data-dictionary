@@ -169,4 +169,97 @@ class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
         "dataElements"          | { dataElement2.id }   | { dataElement2.path.toString() }  | { "dataModels/$dataModel2.id/dataClasses/$dataClass2.id/dataElements/$dataElement2.id" }
         "terms"                 | { term1.id }          | { term1.path.toString() }         | { "terminologies/$terminology1.id/terms/$term1.id" }
     }
+
+    void "should build a full graph for a Mauro versioned folder"() {
+        given: "a user is logged in"
+        loginUser('admin@maurodatamapper.com', 'password')
+
+        and: "a description is set"
+        String description = """<a href=\"$dataModel1.path\">Model</a>,
+<a href=\"$dataClass1.path\">Class</a>,
+<a href=\"$dataElement1.path\">Element</a>,
+<a href=\"https://www.google.com\">Website</a>"""
+
+        PUT("dataModels/$dataModel2.id", [description: description], MAP_ARG, true)
+        verifyResponse(OK, response)
+
+        and: "a description is set"
+        description = """<a href=\"$dataClass1.path\">Class</a>,
+<a href=\"$dataElement1.path\">Element</a>,
+<a href=\"https://www.google.com\">Website</a>"""
+
+        PUT("terminologies/$terminology1.id/terms/$term1.id", [description: description], MAP_ARG, true)
+        verifyResponse(OK, response)
+
+        when: "the full graph is built"
+        PUT("nhsdd/$dictionaryBranch.id/graph", [:], MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        when: "the graph node is fetched for data model 1"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataModel1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [this.dataModel2.path.toString()]
+        }
+
+        when: "the graph node is fetched for data class 1"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$dataClass1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [this.dataModel2.path.toString(), this.term1.path.toString()]
+        }
+
+        when: "the graph node is fetched for data element 1"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataElements/$dataElement1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [this.dataModel2.path.toString(), this.term1.path.toString()]
+        }
+
+        when: "the graph node is fetched for data model 2"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataModel2.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ [this.dataModel1.path.toString(), this.dataClass1.path.toString(), this.dataElement1.path.toString()]
+            predecessors ==~ []
+        }
+
+        when: "the graph node is fetched for term 1"
+        GET("nhsdd/$dictionaryBranch.id/graph/terms/$term1.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ [this.dataClass1.path.toString(), this.dataElement1.path.toString()]
+            predecessors ==~ []
+        }
+
+        //cleanup:
+        // TODO: endpoint - clear all
+
+        // TODO: where - async yes/no
+    }
 }
