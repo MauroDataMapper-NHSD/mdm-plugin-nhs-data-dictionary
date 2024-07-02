@@ -21,10 +21,6 @@ class GraphInterceptor implements MdmInterceptor, Interceptor {
             return notFound(params.graphResourceClass, params.graphResourceId)
         }
 
-        // TODO: return to this, how do I set proper security checks on this interceptor?
-//        return currentUserSecurityPolicyManager.userCanReadSecuredResourceId(params.graphResourceClass, params.graphResourceId)
-//            ?: notFound(params.graphResourceClass, params.graphResourceId)
-
         true
     }
 }

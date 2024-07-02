@@ -3,7 +3,6 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.MdmController
-import uk.ac.ox.softeng.maurodatamapper.security.SecurableResource
 
 import grails.artefact.Controller
 import grails.artefact.controller.RestResponder
