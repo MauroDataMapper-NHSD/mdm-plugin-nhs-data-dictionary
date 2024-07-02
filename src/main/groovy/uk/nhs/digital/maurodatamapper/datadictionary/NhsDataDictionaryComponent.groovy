@@ -190,7 +190,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         } else {
             return this.name
         }
-    }
+}
 
     String getDataDictionaryUrl() {
         return """${NhsDataDictionary.WEBSITE_URL}/${getPluralStereotypeForWebsite()}/${getNameWithoutNonAlphaNumerics().toLowerCase()}.html"""
@@ -290,6 +290,13 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         }
     }
 
+   String getToDate() {
+        return otherProperties["validTo"]
+    }
+
+   String getFromDate() {
+        return otherProperties["validFrom"]
+    }
 
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
