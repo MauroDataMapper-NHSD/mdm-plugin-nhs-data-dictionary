@@ -20,7 +20,11 @@ package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 
+import java.time.LocalDate
+
 class AllItemsAreWithinValidDateRangeSpec extends Specification {
+
+    LocalDate testDateNow = LocalDate.of(2024, 12, 31)
 
     def "validateDateRange returns false for valid dates"() {
         given:
@@ -30,7 +34,8 @@ class AllItemsAreWithinValidDateRangeSpec extends Specification {
         component.otherProperties = ["validFrom": "3030-12-31", "validTo": "3040-01-01"]
 
         expect:
-        checker.validateDateRange(component) == false
+        //False means it has not been added to the errors list as it did not fail the check
+        checker.validateDateRange(component, testDateNow) == false
     }
 
     def "validateDateRange returns true for todate set before fromdate "() {
@@ -40,7 +45,7 @@ class AllItemsAreWithinValidDateRangeSpec extends Specification {
         component.otherProperties = ["validFrom": "2030-12-31", "validTo": "2030-12-01"]
 
         expect:
-        checker.validateDateRange(component) == true
+        checker.validateDateRange(component, testDateNow) == true
     }
 
     def "validateDateRange returns true when todate is set and fromdate is not"() {
@@ -50,7 +55,7 @@ class AllItemsAreWithinValidDateRangeSpec extends Specification {
         component.otherProperties = ["validTo": "2030-12-01"]
 
         expect:
-        checker.validateDateRange(component) == true
+        checker.validateDateRange(component, testDateNow) == true
     }
 
     def "validateDateRange returns true when todate has expired"() {
@@ -60,6 +65,6 @@ class AllItemsAreWithinValidDateRangeSpec extends Specification {
         component.otherProperties = ["validFrom": "2020-12-31", "validTo": "2020-01-01"]
 
         expect:
-        checker.validateDateRange(component) == true
+        checker.validateDateRange(component, testDateNow) == true
     }
 }

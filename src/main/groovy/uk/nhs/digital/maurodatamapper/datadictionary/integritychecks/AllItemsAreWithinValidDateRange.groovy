@@ -30,14 +30,14 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
         errors = dataDictionary.getAllComponents().findAll {component ->
-           return !component.isRetired() && validateDateRange(component)
+           return !component.isRetired() && validateDateRange(component, LocalDate.now())
         }
 
         return errors
     }
 
     //there's a test set for this that runs through the various scenarios, see: AllItemsAreWithinValidDateRangeSpec
-    private Boolean validateDateRange(NhsDataDictionaryComponent component) {
+    static Boolean validateDateRange(NhsDataDictionaryComponent component, LocalDate dateNow){
 
         if (component.fromDate && component.toDate) {
             {
@@ -45,7 +45,7 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
                     return true
                 }
 
-                if (component.toDate.isBefore(LocalDate.now())) {
+                if (component.toDate.isBefore(dateNow)) {
                     return true
                 }
             }
