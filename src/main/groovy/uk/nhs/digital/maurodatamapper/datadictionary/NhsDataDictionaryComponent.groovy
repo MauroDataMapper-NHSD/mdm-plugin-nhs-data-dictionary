@@ -32,6 +32,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.regex.Matcher
 
 @Slf4j
@@ -290,16 +292,20 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         }
     }
 
-   String getToDate() {
-       if (otherProperties["validTo"]) {
-           return otherProperties["validTo"]
-       }
+    LocalDate getToDate() {
+        if(otherProperties["validTo"]) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            return LocalDate.parse(otherProperties["validTo"] as CharSequence, formatter);
+        }
+        return null
     }
 
-   String getFromDate() {
-      if(otherProperties["validFrom"]) {
-          return otherProperties["validFrom"]
-      }
+    LocalDate getFromDate() {
+        if(otherProperties["validFrom"]) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            return LocalDate.parse(otherProperties["validFrom"] as CharSequence, formatter);
+        }
+        return null
     }
 
     List<Topic> getWebsiteTopics() {

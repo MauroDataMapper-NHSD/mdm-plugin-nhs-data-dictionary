@@ -17,12 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 
-import groovy.util.logging.Slf4j
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
-
+import java.time.LocalDate
 class AllItemsAreWithinValidDateRange implements IntegrityCheck {
 
     String name = "All items are within their validity dates"
@@ -31,12 +28,6 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
-
-        // get current date
-        // get all items
-        // filter items that are within the date range
-        // return the rest
-        //does a companant have access to profile stuff? where is that?
         errors = dataDictionary.getAllComponents().findAll {component ->
            return !component.isRetired() &&
              !validateDateRange(component)
@@ -45,35 +36,24 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
         return errors
     }
 
-    /*#
-    items with dates:
-    Attributes
-    Business Definition
-    Classes
-    Code Sets
-    Data Sets and Data Elements
-    Supporting Definition
-    Terminologies
-    Terms
-    Web Page
-    Work Item
-    */
-
+    //there's a test set for this that runs through the various scenarios, see: AllItemsAreWithinValidDateRangeSpec
     private Boolean validateDateRange(NhsDataDictionaryComponent component) {
-        // date rules
-        // 1. if from date is set, to date must be set else false
-        // 2. if to date is set, from date must be set else false
-        // 3. if from date is set, it must be before to date else false
 
-        if (component.catalogueItemIdAsString == "9df3500b-b435-4ac8-bdb6-68a4effd5faa") {
-        String fromDate = component.getFromDate()
-        String toDate = component.getToDate()
-        return false
+        if (component.fromDate && component.toDate) {
+            {
+                if (component.toDate.isBefore(component.fromDate)) {
+                    return true
+                }
 
-            //so its getting dates correctly for stuff from the component catalog, do I need to handel the other stuff?
+                if (component.toDate.isBefore(LocalDate.now())) {
+                    return true
+                }
+            }
         }
-       return true
+            if (component.toDate && !component.fromDate){
+                return true}
 
+       return false
     }
 
 }
