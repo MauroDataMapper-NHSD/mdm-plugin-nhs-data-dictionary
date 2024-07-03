@@ -29,8 +29,7 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
         errors = dataDictionary.getAllComponents().findAll {component ->
-           return !component.isRetired() &&
-             !validateDateRange(component)
+           return !component.isRetired() && validateDateRange(component)
         }
 
         return errors
@@ -51,7 +50,8 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
             }
         }
             if (component.toDate && !component.fromDate){
-                return true}
+                return true
+            }
 
        return false
     }
