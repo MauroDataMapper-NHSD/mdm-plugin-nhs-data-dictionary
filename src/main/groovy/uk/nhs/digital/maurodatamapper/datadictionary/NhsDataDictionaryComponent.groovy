@@ -294,7 +294,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     LocalDate getToDate() {
         if(otherProperties["validTo"]) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             return LocalDate.parse(otherProperties["validTo"] as CharSequence, formatter);
         }
         return null
@@ -302,7 +302,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     LocalDate getFromDate() {
         if(otherProperties["validFrom"]) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             return LocalDate.parse(otherProperties["validFrom"] as CharSequence, formatter);
         }
         return null

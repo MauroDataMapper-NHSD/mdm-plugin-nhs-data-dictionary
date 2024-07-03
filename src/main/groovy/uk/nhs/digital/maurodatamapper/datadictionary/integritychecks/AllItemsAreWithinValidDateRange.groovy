@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 import java.time.LocalDate
+
 class AllItemsAreWithinValidDateRange implements IntegrityCheck {
 
     String name = "All items are within their validity dates"

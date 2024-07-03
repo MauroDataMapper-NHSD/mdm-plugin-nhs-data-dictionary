@@ -393,6 +393,8 @@ class NhsDataDictionary {
         "isPreparatory": "isPrepatory",
         "isRetired": "isRetired",
         "retiredDate": "retiredDate",
+        "validFrom": "validFrom",
+        "validTo": "validTo",
 
         // Legacy
         "uin": "uin",
