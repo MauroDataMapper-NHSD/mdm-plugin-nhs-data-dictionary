@@ -32,6 +32,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.regex.Matcher
 
 @Slf4j
@@ -190,7 +192,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         } else {
             return this.name
         }
-    }
+}
 
     String getDataDictionaryUrl() {
         return """${NhsDataDictionary.WEBSITE_URL}/${getPluralStereotypeForWebsite()}/${getNameWithoutNonAlphaNumerics().toLowerCase()}.html"""
@@ -290,6 +292,21 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         }
     }
 
+    LocalDate getToDate() {
+        if(otherProperties["validTo"]) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            return LocalDate.parse(otherProperties["validTo"] as CharSequence, formatter);
+        }
+        return null
+    }
+
+    LocalDate getFromDate() {
+        if(otherProperties["validFrom"]) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            return LocalDate.parse(otherProperties["validFrom"] as CharSequence, formatter);
+        }
+        return null
+    }
 
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
