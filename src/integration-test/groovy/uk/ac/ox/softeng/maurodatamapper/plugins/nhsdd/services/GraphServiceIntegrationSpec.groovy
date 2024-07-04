@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 @Integration
 @Slf4j
 @Rollback
-class GraphServiceSpec extends BaseIntegrationSpec {
+class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
     private GraphService sut
 
     IntegrationTestGivens given
@@ -141,6 +141,38 @@ class GraphServiceSpec extends BaseIntegrationSpec {
         throw new Exception("Unrecognised domain type '$domainType'")
     }
 
+    void "should not build the graph node of a #domainType when there is no description"(String domainType, String description) {
+        given: "there is initial test data"
+        setupData()
+
+        and: "a new item is created"
+        def newItem = createNewItem(domainType, description)
+
+        when: "building the graph"
+        sut.buildGraphNode(dictionaryBranch, newItem)
+
+        then: "the graph node is empty"
+        GraphNode newItemGraphNode = sut.getGraphNode(newItem)
+        verifyAll {
+            newItemGraphNode
+            newItemGraphNode.successors.empty
+            newItemGraphNode.predecessors.empty
+        }
+
+        where:
+        domainType      | description
+        "dataModel"     | null
+        "dataClass"     | null
+        "dataElement"   | null
+        "term"          | null
+        "folder"        | null
+        "dataModel"     | ""
+        "dataClass"     | ""
+        "dataElement"   | ""
+        "term"          | ""
+        "folder"        | ""
+    }
+
     void "should build the graph node of a new #domainType"(String domainType) {
         given: "there is initial test data"
         setupData()
@@ -158,12 +190,12 @@ class GraphServiceSpec extends BaseIntegrationSpec {
         sut.buildGraphNode(dictionaryBranch, newItem)
 
         then: "successors were updated"
-        GraphNode newDataClassGraphNode = sut.getGraphNode(newItem)
+        GraphNode newItemGraphNode = sut.getGraphNode(newItem)
         verifyAll {
-            newDataClassGraphNode
-            newDataClassGraphNode.hasSuccessor(dataModel1.path)
-            newDataClassGraphNode.hasSuccessor(dataClass1.path)
-            newDataClassGraphNode.hasSuccessor(dataElement1.path)
+            newItemGraphNode
+            newItemGraphNode.hasSuccessor(dataModel1.path)
+            newItemGraphNode.hasSuccessor(dataClass1.path)
+            newItemGraphNode.hasSuccessor(dataElement1.path)
         }
 
         and: "predecessors were updated"
