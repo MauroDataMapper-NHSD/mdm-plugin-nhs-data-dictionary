@@ -1,6 +1,8 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.services
 
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
+import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.path.PathService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
@@ -16,6 +18,8 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
+import uk.ac.ox.softeng.maurodatamapper.version.Version
+import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
@@ -48,6 +52,9 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
 
     @Autowired
     PathService pathService
+
+    @Autowired
+    VersionedFolderService versionedFolderService
 
     def setup() {
         given = new IntegrationTestGivens(messageSource)
@@ -468,5 +475,61 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
         "dataElement"   | _
         "term"          | _
         "folder"        | _
+    }
+
+    void "should build the graph node of an item when the root branch is not 'main'"() {
+        given: "there is initial test data"
+        setupData()
+
+        and: "there is a new versioned folder with a different branch name"
+        String branchName = "test-branch"
+
+        // Simulate a branch change for now
+        dictionaryBranch.branchName = branchName
+        dictionaryBranch.save([flush: true])
+        dataModel1.branchName = branchName
+        dataModel1.save([flush: true])
+        dataModel2.branchName = branchName
+        dataModel2.save([flush: true])
+
+        verifyAll {
+            dictionaryBranch.path.toString() == "vf:NHS Data Dictionary\$$branchName"
+            dataModel1.path.toString() == "dm:Data Model 1\$$branchName"
+            dataModel2.path.toString() == "dm:Data Model 2\$$branchName"
+        }
+
+//        and: "a description is prepared"
+//        String description = """<a href=\"$dataModel1.path\">Model</a>,
+//<a href=\"$dataClass1.path\">Class</a>,
+//<a href=\"$dataElement1.path\">Element</a>,
+//<a href=\"https://www.google.com\">Website</a>"""
+//
+//        and: "a new item is created"
+//        def newItem = createNewItem(domainType, description)
+//
+//        when: "building the graph"
+//        sut.buildGraphNode(dictionaryBranch, newItem)
+//
+//        then: "successors were updated"
+//        GraphNode newItemGraphNode = sut.getGraphNode(newItem)
+//        verifyAll {
+//            newItemGraphNode
+//            newItemGraphNode.hasSuccessor(dataModel1.path)
+//            newItemGraphNode.hasSuccessor(dataClass1.path)
+//            newItemGraphNode.hasSuccessor(dataElement1.path)
+//        }
+//
+//        and: "predecessors were updated"
+//        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+//        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
+//        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
+//        verifyAll {
+//            dataModel1GraphNode
+//            dataClass1GraphNode
+//            dataElement1GraphNode
+//            dataModel1GraphNode.hasPredecessor(newItem.path)
+//            dataClass1GraphNode.hasPredecessor(newItem.path)
+//            dataElement1GraphNode.hasPredecessor(newItem.path)
+//        }
     }
 }
