@@ -1,6 +1,6 @@
 [
   {
-    "sectionName": "Rendering",
+    "sectionName": "Table",
     "sectionDescription": "These fields control their rendering output for DITA/Change Paper export",
     "fields": [
       {
