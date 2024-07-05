@@ -20,12 +20,13 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.profiles
 import uk.ac.ox.softeng.maurodatamapper.profile.provider.JsonProfileProviderService
 
 import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
 class DDDataSetTableProfileProviderService extends JsonProfileProviderService {
     @Override
     String getMetadataNamespace() {
-        'uk.nhs.datadictionary.dataset.table'
+        NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
     }
 
     @Override

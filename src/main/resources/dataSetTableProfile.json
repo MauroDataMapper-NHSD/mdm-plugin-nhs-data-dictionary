@@ -1,7 +1,7 @@
 [
   {
-    "sectionName": "Table",
-    "sectionDescription": "These fields control their rendering output for DITA/Change Paper export",
+    "sectionName": "Ordering",
+    "sectionDescription": "To order the table or table elements",
     "fields": [
       {
         "fieldName": "Web Order",
@@ -9,12 +9,118 @@
         "description": "The order in which this item should appear on the website",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "int"
-      },
+        "dataType": "string"
+      }
+    ]
+  },
+  {
+    "sectionName": "Values",
+    "sectionDescription": "Values",
+    "fields": [
       {
         "fieldName": "MRO",
         "metadataPropertyName": "mro",
-        "description": "The MRO of this item",
+        "description": "Define the mandation of a table element",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Group repeats",
+        "metadataPropertyName": "groupRepeats",
+        "description": "Group repeats",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Rules",
+        "metadataPropertyName": "rules",
+        "description": "TODO",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Multiplicity text",
+        "metadataPropertyName": "multiplicityText",
+        "description": "TODO",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  },
+  {
+    "sectionName": "Choice",
+    "sectionDescription": "Choice",
+    "fields": [
+      {
+        "fieldName": "Choice",
+        "metadataPropertyName": "choice",
+        "description": "true or false value for stating this table element presents a choice with the child elements below",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "And",
+        "metadataPropertyName": "and",
+        "description": "And",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Inclusive or",
+        "metadataPropertyName": "inclusiveOr",
+        "description": "Inclusive OR",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Not option",
+        "metadataPropertyName": "notOption",
+        "description": "Not option",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  },
+  {
+    "sectionName": "unknown",
+    "sectionDescription": "unknown",
+    "fields": [
+      {
+        "fieldName": "Address Choice",
+        "metadataPropertyName": "addressChoice",
+        "description": "Address choice",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Name Choice",
+        "metadataPropertyName": "nameChoice",
+        "description": "Name choice",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Data Set Reference",
+        "metadataPropertyName": "dataSetReference",
+        "description": "Data Set Reference",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Data Set Reference To",
+        "metadataPropertyName": "dataSetReferenceTo",
+        "description": "Data Set Reference To",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
