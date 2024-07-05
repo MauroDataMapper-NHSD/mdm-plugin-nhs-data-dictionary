@@ -9,7 +9,7 @@
         "description": "The order in which this item should appear on the website",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "int"
       }
     ]
   },
@@ -23,12 +23,13 @@
         "description": "Define the mandation of a table element",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "enumeration",
+        "allowedValues": ["M", "R", "O"]
       },
       {
         "fieldName": "Group repeats",
         "metadataPropertyName": "groupRepeats",
-        "description": "Group repeats",
+        "description": "Defines the multiplicity of a group e.g. \"0..1\"",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
@@ -36,7 +37,7 @@
       {
         "fieldName": "Rules",
         "metadataPropertyName": "rules",
-        "description": "TODO",
+        "description": "defines the values in a \"Rules\" column. This is a semi-colon separated list e.g. \"F;I2\"",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
@@ -44,7 +45,7 @@
       {
         "fieldName": "Multiplicity text",
         "metadataPropertyName": "multiplicityText",
-        "description": "TODO",
+        "description": "Multiplicity text",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
@@ -61,7 +62,7 @@
         "description": "true or false value for stating this table element presents a choice with the child elements below",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "boolean"
       },
       {
         "fieldName": "And",
@@ -69,7 +70,7 @@
         "description": "And",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "boolean"
       },
       {
         "fieldName": "Inclusive or",
@@ -77,7 +78,7 @@
         "description": "Inclusive OR",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "boolean"
       },
       {
         "fieldName": "Not option",
@@ -85,13 +86,13 @@
         "description": "Not option",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "boolean"
       }
     ]
   },
   {
-    "sectionName": "unknown",
-    "sectionDescription": "unknown",
+    "sectionName": "Miscellaneous",
+    "sectionDescription": "Miscellaneous",
     "fields": [
       {
         "fieldName": "Address Choice",
