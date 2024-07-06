@@ -10,7 +10,10 @@ class GraphInterceptor implements MdmInterceptor, Interceptor {
 
     @Override
     boolean before() {
+        params.asynchronous = params.containsKey('asynchronous') ? params.boolean('asynchronous') : false
+
         params.versionedFolderId = UUID.fromString(params.versionedFolderId)
+
         def canContinue = currentUserSecurityPolicyManager.userCanReadSecuredResourceId(VersionedFolder.class, params.versionedFolderId)
             ?: notFound(params.graphResourceClass, params.graphResourceId)
 

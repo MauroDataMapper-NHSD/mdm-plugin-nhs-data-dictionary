@@ -1,6 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -17,6 +17,7 @@ import groovy.util.logging.Slf4j
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
+import static io.micronaut.http.HttpStatus.ACCEPTED
 import static io.micronaut.http.HttpStatus.NO_CONTENT
 import static io.micronaut.http.HttpStatus.OK
 
@@ -171,7 +172,7 @@ class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
         "terms"                 | { term1.id }          | { term1.path.toString() }         | { "terminologies/$terminology1.id/terms/$term1.id" }
     }
 
-    void "should build a full graph for a data dictionary"() {
+    void "should build a full graph for a data dictionary: async = #async"(boolean async) {
         given: "a user is logged in"
         loginUser('admin@maurodatamapper.com', 'password')
 
@@ -210,12 +211,17 @@ class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
             "Refers to <a href=\"dm:Classes and Attributes\$main|dc:APPOINTMENT\">item</a>")
 
         when: "the full graph is built"
-        PUT("nhsdd/$dataDictionary.id/graph", [:], MAP_ARG, true)
+        PUT("nhsdd/$dataDictionary.id/graph?asynchronous=$async", [:], MAP_ARG, true)
 
-        then: "the response is OK"
-        verifyResponse(OK, response)
+        then: "the response status is correct"
+        verifyResponse(async ? ACCEPTED : OK, response)
 
         when: "the graph node is fetched for data set"
+        if (async) {
+            AsyncJob asyncJob = getLastAsyncJob()
+            waitForAsyncJobToComplete(asyncJob)
+        }
+
         GET("nhsdd/$dataDictionary.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
 
         then: "the response is OK"
@@ -278,6 +284,9 @@ class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
         cleanup:
         cleanUpVersionedFolder(dataDictionary.id)
 
-        // TODO: where - async yes/no
+        where:
+        async | _
+        false | _
+        true  | _
     }
 }

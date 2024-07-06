@@ -51,6 +51,15 @@ class BaseDataDictionaryFunctionalSpec extends BaseFunctionalSpec {
         cleanUpAsyncJobs()
     }
 
+    AsyncJob getLastAsyncJob() {
+        List<AsyncJob> asyncJobs = asyncJobService.list()
+        if (!asyncJobs || asyncJobs.size() == 0) {
+            return null
+        }
+
+        asyncJobs.last()
+    }
+
     void waitForAsyncJobToComplete(AsyncJob job) {
         log.info("Waiting to complete $job.id")
         Future p = asyncJobService.getAsyncJobFuture(job.id)
