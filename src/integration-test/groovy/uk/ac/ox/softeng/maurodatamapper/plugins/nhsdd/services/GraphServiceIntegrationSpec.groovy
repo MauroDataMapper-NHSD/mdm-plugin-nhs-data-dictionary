@@ -1,8 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.services
 
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.path.PathService
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
@@ -10,6 +8,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
+import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphNode
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.IntegrationTestGivens
@@ -18,8 +17,6 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.test.integration.BaseIntegrationSpec
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
-import uk.ac.ox.softeng.maurodatamapper.version.Version
-import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
@@ -52,9 +49,6 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
 
     @Autowired
     PathService pathService
-
-    @Autowired
-    VersionedFolderService versionedFolderService
 
     def setup() {
         given = new IntegrationTestGivens(messageSource)
@@ -185,9 +179,19 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
         setupData()
 
         and: "a description is prepared"
-        String description = """<a href=\"$dataModel1.path\">Model</a>, 
-<a href=\"$dataClass1.path\">Class</a>, 
-<a href=\"$dataElement1.path\">Element</a>, 
+        // *Don't* include the branch name in paths to match what MDM UI would do when
+        // saving the description
+        String dataModel1Path = getPathStringWithoutBranchName(dataModel1.path, dictionaryBranch.branchName)
+        String dataClass1Path = getPathStringWithoutBranchName(dataClass1.path, dictionaryBranch.branchName)
+        String dataElement1Path = getPathStringWithoutBranchName(dataElement1.path, dictionaryBranch.branchName)
+        verifyAll {
+            dataModel1Path == "dm:Data Model 1"
+            dataClass1Path == "dm:Data Model 1|dc:Data Class 1"
+            dataElement1Path == "dm:Data Model 1|dc:Data Class 1|de:Data Element 1"
+        }
+        String description = """<a href=\"$dataModel1Path\">Model</a>, 
+<a href=\"$dataClass1Path\">Class</a>, 
+<a href=\"$dataElement1Path\">Element</a>, 
 <a href=\"https://www.google.com\">Website</a>"""
 
         and: "a new item is created"
@@ -233,8 +237,18 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
         def updateItem = getItemToUpdateOrDelete(domainType)
 
         when: "a description is originally set"
-        String originalDescription = """<a href=\"$dataModel1.path\">Model</a>, 
-<a href=\"$dataClass1.path\">Class</a>"""
+        // *Don't* include the branch name in paths to match what MDM UI would do when
+        // saving the description
+        String dataModel1Path = getPathStringWithoutBranchName(dataModel1.path, dictionaryBranch.branchName)
+        String dataClass1Path = getPathStringWithoutBranchName(dataClass1.path, dictionaryBranch.branchName)
+        String dataElement1Path = getPathStringWithoutBranchName(dataElement1.path, dictionaryBranch.branchName)
+        verifyAll {
+            dataModel1Path == "dm:Data Model 1"
+            dataClass1Path == "dm:Data Model 1|dc:Data Class 1"
+            dataElement1Path == "dm:Data Model 1|dc:Data Class 1|de:Data Element 1"
+        }
+        String originalDescription = """<a href=\"$dataModel1Path\">Model</a>, 
+<a href=\"$dataClass1Path\">Class</a>"""
         updateItem.description = originalDescription
         updateItem.save([flush: true])
 
@@ -265,8 +279,8 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
 
         when: "the description is changed"
         // Keep one path (model), add a new one (element), remove another (class)
-        String updatedDescription = """<a href=\"$dataModel1.path\">Model</a>, 
-<a href=\"$dataElement1.path\">Element</a>"""
+        String updatedDescription = """<a href=\"$dataModel1Path\">Model</a>, 
+<a href=\"$dataElement1Path\">Element</a>"""
         updateItem.description = updatedDescription
         updateItem.save([flush: true])
 
@@ -310,9 +324,19 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
         def deleteItem = getItemToUpdateOrDelete(domainType)
 
         when: "a description is originally set"
-        String description = """<a href=\"$dataModel1.path\">Model</a>, 
-<a href=\"$dataClass1.path\">Class</a>, 
-<a href=\"$dataElement1.path\">Element</a>, 
+        // *Don't* include the branch name in paths to match what MDM UI would do when
+        // saving the description
+        String dataModel1Path = getPathStringWithoutBranchName(dataModel1.path, dictionaryBranch.branchName)
+        String dataClass1Path = getPathStringWithoutBranchName(dataClass1.path, dictionaryBranch.branchName)
+        String dataElement1Path = getPathStringWithoutBranchName(dataElement1.path, dictionaryBranch.branchName)
+        verifyAll {
+            dataModel1Path == "dm:Data Model 1"
+            dataClass1Path == "dm:Data Model 1|dc:Data Class 1"
+            dataElement1Path == "dm:Data Model 1|dc:Data Class 1|de:Data Element 1"
+        }
+        String description = """<a href=\"$dataModel1Path\">Model</a>, 
+<a href=\"$dataClass1Path\">Class</a>, 
+<a href=\"$dataElement1Path\">Element</a>, 
 <a href=\"https://www.google.com\">Website</a>"""
         deleteItem.description = description
         deleteItem.save([flush: true])
@@ -389,9 +413,19 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
         def updateItem = getItemToUpdateOrDelete(domainType)
 
         when: "a description is originally set"
-        String description = """<a href=\"$dataModel1.path\">Model</a>, 
-<a href=\"$dataClass1.path\">Class</a>, 
-<a href=\"$dataElement1.path\">Element</a>, 
+        // *Don't* include the branch name in paths to match what MDM UI would do when
+        // saving the description
+        String dataModel1Path = getPathStringWithoutBranchName(dataModel1.path, dictionaryBranch.branchName)
+        String dataClass1Path = getPathStringWithoutBranchName(dataClass1.path, dictionaryBranch.branchName)
+        String dataElement1Path = getPathStringWithoutBranchName(dataElement1.path, dictionaryBranch.branchName)
+        verifyAll {
+            dataModel1Path == "dm:Data Model 1"
+            dataClass1Path == "dm:Data Model 1|dc:Data Class 1"
+            dataElement1Path == "dm:Data Model 1|dc:Data Class 1|de:Data Element 1"
+        }
+        String description = """<a href=\"$dataModel1Path\">Model</a>, 
+<a href=\"$dataClass1Path\">Class</a>, 
+<a href=\"$dataElement1Path\">Element</a>, 
 <a href=\"https://www.google.com\">Website</a>"""
         updateItem.description = description
         updateItem.save([flush: true])
@@ -498,38 +532,91 @@ class GraphServiceIntegrationSpec extends BaseIntegrationSpec {
             dataModel2.path.toString() == "dm:Data Model 2\$$branchName"
         }
 
-//        and: "a description is prepared"
-//        String description = """<a href=\"$dataModel1.path\">Model</a>,
-//<a href=\"$dataClass1.path\">Class</a>,
-//<a href=\"$dataElement1.path\">Element</a>,
-//<a href=\"https://www.google.com\">Website</a>"""
-//
-//        and: "a new item is created"
-//        def newItem = createNewItem(domainType, description)
-//
-//        when: "building the graph"
-//        sut.buildGraphNode(dictionaryBranch, newItem)
-//
-//        then: "successors were updated"
-//        GraphNode newItemGraphNode = sut.getGraphNode(newItem)
-//        verifyAll {
-//            newItemGraphNode
-//            newItemGraphNode.hasSuccessor(dataModel1.path)
-//            newItemGraphNode.hasSuccessor(dataClass1.path)
-//            newItemGraphNode.hasSuccessor(dataElement1.path)
-//        }
-//
-//        and: "predecessors were updated"
-//        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
-//        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
-//        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
-//        verifyAll {
-//            dataModel1GraphNode
-//            dataClass1GraphNode
-//            dataElement1GraphNode
-//            dataModel1GraphNode.hasPredecessor(newItem.path)
-//            dataClass1GraphNode.hasPredecessor(newItem.path)
-//            dataElement1GraphNode.hasPredecessor(newItem.path)
-//        }
+        and: "a description is prepared"
+        // *Don't* include the branch name in paths to match what MDM UI would do when
+        // saving the description
+        String dataModel1Path = getPathStringWithoutBranchName(dataModel1.path, branchName)
+        verifyAll {
+            dataModel1Path == "dm:Data Model 1"
+        }
+        String description = """<a href=\"$dataModel1Path\">Model</a>,
+<a href=\"https://www.google.com\">Website</a>"""
+
+        dataModel2.description = description
+        dataModel2.save([flush: true])
+
+        when: "building the graph"
+        sut.buildGraphNode(dictionaryBranch, dataModel2)
+
+        then: "successors were updated"
+        GraphNode dataModel2GraphNode = sut.getGraphNode(dataModel2)
+        verifyAll {
+            dataModel2GraphNode
+            dataModel2GraphNode.hasSuccessor(dataModel1.path)
+        }
+
+        and: "predecessors were updated"
+        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+        verifyAll {
+            dataModel1GraphNode
+            dataModel1GraphNode.hasPredecessor(dataModel2.path)
+        }
+    }
+
+    void "should build the graph node of a new #domainType when the description paths contain a direct branch name"(String domainType) {
+        given: "there is initial test data"
+        setupData()
+
+        and: "a description is prepared"
+        // This time, *do* include the branch name in paths in the description to test that explicit references can be made
+        verifyAll {
+            dataModel1.path.toString() == "dm:Data Model 1\$main"
+            dataClass1.path.toString() == "dm:Data Model 1\$main|dc:Data Class 1"
+            dataElement1.path.toString() == "dm:Data Model 1\$main|dc:Data Class 1|de:Data Element 1"
+        }
+        String description = """<a href=\"$dataModel1.path\">Model</a>, 
+<a href=\"$dataClass1.path\">Class</a>, 
+<a href=\"$dataElement1.path\">Element</a>, 
+<a href=\"https://www.google.com\">Website</a>"""
+
+        and: "a new item is created"
+        def newItem = createNewItem(domainType, description)
+
+        when: "building the graph"
+        sut.buildGraphNode(dictionaryBranch, newItem)
+
+        then: "successors were updated"
+        GraphNode newItemGraphNode = sut.getGraphNode(newItem)
+        verifyAll {
+            newItemGraphNode
+            newItemGraphNode.hasSuccessor(dataModel1.path)
+            newItemGraphNode.hasSuccessor(dataClass1.path)
+            newItemGraphNode.hasSuccessor(dataElement1.path)
+        }
+
+        and: "predecessors were updated"
+        GraphNode dataModel1GraphNode = sut.getGraphNode(dataModel1)
+        GraphNode dataClass1GraphNode = sut.getGraphNode(dataClass1)
+        GraphNode dataElement1GraphNode = sut.getGraphNode(dataElement1)
+        verifyAll {
+            dataModel1GraphNode
+            dataClass1GraphNode
+            dataElement1GraphNode
+            dataModel1GraphNode.hasPredecessor(newItem.path)
+            dataClass1GraphNode.hasPredecessor(newItem.path)
+            dataElement1GraphNode.hasPredecessor(newItem.path)
+        }
+
+        where:
+        domainType      | _
+        "dataModel"     | _
+        "dataClass"     | _
+        "dataElement"   | _
+        "term"          | _
+        "folder"        | _
+    }
+
+    private static String getPathStringWithoutBranchName(Path path, String branchName) {
+        path.toString().replace("\$$branchName", "")
     }
 }

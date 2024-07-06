@@ -13,6 +13,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.path.Path
+import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
@@ -97,7 +98,9 @@ class GraphService {
             return graphNode
         }
 
-        Set<String> descriptionSuccessorPaths = getSuccessorPathsFromHtml(item.description)
+        Set<String> descriptionSuccessorPaths = getSuccessorPathsFromHtml(
+            item.description,
+            rootBranch.branchName)
 
         // Locate all successors that have now been removed from the description and
         // update all of them to remove this predecessor
@@ -205,7 +208,10 @@ class GraphService {
         String predecessorPath,
         String replacementPredecessorPath,
         ModificationType modificationType) {
-        T successorItem = pathService.findResourceByPathFromRootResource(rootBranch, Path.from(successorPath)) as T
+        // Need to locate the object via the path first. That means we need to know what resource class to search under
+        Path successorPathObject = Path.from(successorPath)
+        Class<Object> successorPathClass = identifyResourceClassFromPath(successorPathObject)
+        T successorItem = pathService.findResourceByPathFromRootClass(successorPathClass, successorPathObject) as T
         if (!successorItem) {
             log.warn("Cannot find '$successorPath' under root '$rootBranch.label\$$rootBranch.branchName' [$rootBranch.id]")
             return
@@ -228,7 +234,7 @@ class GraphService {
         saveGraphNode(successorItem, successorGraphNode)
     }
 
-    private static Set<String> getSuccessorPathsFromHtml(String source) {
+    private static Set<String> getSuccessorPathsFromHtml(String source, String branchName) {
         Pattern pattern = ~/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/
         Matcher matcher = pattern.matcher(source)
 
@@ -241,11 +247,40 @@ class GraphService {
 
             // Assume that non-valid URLs are actually Mauro paths
             if (!urlValidator.isValid(hrefValue)) {
-                mauroPaths.add(hrefValue)
+                // It is possible that the path listed in the description is not well defined i.e. does not specify
+                // a direct model branch and is implicit. We want to guarantee that the path is referring to
+                // a model/item that is a direct descendant of a versioned folder, so modify the path to match the
+                // same branch name
+                Path path = createPathAimedAtBranch(hrefValue, branchName)
+                mauroPaths.add(path.toString())
             }
         }
 
         mauroPaths
+    }
+
+    private static Path createPathAimedAtBranch(String pathString, String branchName) {
+        Path path = Path.from(pathString)
+
+        // Manually adjust the branch name of the path given for model types
+        path.pathNodes
+            .findAll { pathNode -> pathNode.prefix == "dm" || pathNode.prefix == "te" }
+            .forEach { pathNode -> pathNode.modelIdentifier = branchName }
+
+        path
+    }
+
+    private static <T> Class<T> identifyResourceClassFromPath(Path path) {
+        String prefix = path.first().prefix
+        if (prefix == "dm") {
+            return DataModel.class
+        }
+
+        if (prefix == "te") {
+            return Terminology.class
+        }
+
+        throw new Exception("Cannot identify resource class from path prefix '$prefix' for the path '$path'")
     }
 
     enum ModificationType {

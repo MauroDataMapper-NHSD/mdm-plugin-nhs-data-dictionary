@@ -227,18 +227,17 @@ class GraphControllerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
             predecessors ==~ []
         }
 
-        // TODO: revisit this - why can't I find the data set model by path in GraphService?
-//        when: "the graph node is fetched for data set element"
-//        GET("nhsdd/$dataDictionary.id/graph/dataElements/$dataSetElement.id", MAP_ARG, true)
-//
-//        then: "the response is OK"
-//        verifyResponse(OK, response)
-//
-//        and: "the response contains the expected graph node"
-//        verifyAll(responseBody()) {
-//            successors ==~ []
-//            predecessors ==~ [nhsClass.path]
-//        }
+        when: "the graph node is fetched for data set element"
+        GET("nhsdd/$dataDictionary.id/graph/dataElements/$dataSetElement.id", MAP_ARG, true)
+
+        then: "the response is OK"
+        verifyResponse(OK, response)
+
+        and: "the response contains the expected graph node"
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [nhsClass.path]
+        }
 
         when: "the graph node is fetched for nhs class"
         GET("nhsdd/$dataDictionary.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
