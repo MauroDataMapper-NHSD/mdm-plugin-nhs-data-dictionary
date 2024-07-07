@@ -1,5 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -22,9 +23,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import static io.micronaut.http.HttpStatus.CREATED
 import static io.micronaut.http.HttpStatus.NO_CONTENT
-import static io.micronaut.http.HttpStatus.NO_CONTENT
-import static io.micronaut.http.HttpStatus.NO_CONTENT
-import static io.micronaut.http.HttpStatus.NO_CONTENT
+import static io.micronaut.http.HttpStatus.OK
 
 @Integration
 @Slf4j
@@ -130,7 +129,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
 
         and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
-        verifyResponse(HttpStatus.OK, response)
+        verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
             predecessors ==~ [newItemPath]
@@ -138,7 +137,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
 
         and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/terms/$nhsBusinessTerm.id", MAP_ARG, true)
-        verifyResponse(HttpStatus.OK, response)
+        verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
             predecessors ==~ [newItemPath]
@@ -146,7 +145,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
 
         and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
-        verifyResponse(HttpStatus.OK, response)
+        verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
             predecessors ==~ [newItemPath]
@@ -159,9 +158,15 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         then: "the response is correct"
         verifyResponse(NO_CONTENT, response)
 
+        and: "wait for the async job to finish"
+        log.info("Wait 2 seconds to catchup...")
+        Thread.sleep(2000)
+        AsyncJob asyncJob = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob)
+
         and: "the predecessors were updated"
         GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
-        verifyResponse(HttpStatus.OK, response)
+        verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
             predecessors ==~ []
@@ -169,7 +174,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
 
         and: "the predecessors were updated"
         GET("nhsdd/$dictionaryBranch.id/graph/terms/$nhsBusinessTerm.id", MAP_ARG, true)
-        verifyResponse(HttpStatus.OK, response)
+        verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
             predecessors ==~ []
@@ -177,7 +182,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
 
         and: "the predecessors were updated"
         GET("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
-        verifyResponse(HttpStatus.OK, response)
+        verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
             predecessors ==~ []

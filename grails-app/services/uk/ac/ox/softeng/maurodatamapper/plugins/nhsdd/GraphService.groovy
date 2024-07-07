@@ -118,7 +118,7 @@ class GraphService {
         descriptionSuccessorPaths
             .findAll { successorPath -> !graphNode.hasSuccessor(successorPath) }
             .forEach { successorPath ->
-            log.info("Adding successor '$successorPath' to '$item.path' under root '$rootBranch.label\$rootBranch.branchName' [$rootBranch.id]")
+            log.info("Adding successor '$successorPath' to '$item.path' under root '$rootBranch.label\$$rootBranch.branchName' [$rootBranch.id]")
             graphNode.addSuccessor(successorPath)
 
             updatePredecessorInSuccessorGraphNode(rootBranch, successorPath, item, false)

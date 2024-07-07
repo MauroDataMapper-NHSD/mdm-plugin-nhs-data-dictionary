@@ -1,5 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
@@ -14,6 +15,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.tree.TreeItemService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryItemTrackerService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphNode
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphService
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
@@ -34,6 +36,7 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
     GraphService graphService
     TreeItemService treeItemService
     VersionedFolderService versionedFolderService
+    DataDictionaryItemTrackerService dataDictionaryItemTrackerService
 
     DataDictionaryItemDeletedInterceptor() {
         match controller: CONTROLLER_PATTERN, action: 'delete'
@@ -67,7 +70,19 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
             return true
         }
 
-        updateSuccessorGraphNodes(deleteItemState)
+        log.info("after: Starting update of graph node successors to remove '$deleteItemState.path' under root branch [$deleteItemState.versionedFolderId]")
+        AsyncJob asyncJob = dataDictionaryItemTrackerService.asyncUpdateSuccessorGraphNodesAfterItemDeleted(
+            deleteItemState.versionedFolderId,
+            deleteItemState.path,
+            deleteItemState.graphNode,
+            currentUser)
+
+        if (!asyncJob) {
+            log.error("after: Failed to create async job")
+        }
+        else {
+            log.info("after: Created item deleted and graph node update async job [$asyncJob.id] - status: $asyncJob.status")
+        }
 
         true
     }
@@ -93,28 +108,6 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
         }
         catch (Exception exception) {
             log.error("Cannot get graph node for '$item.label' [$item.id]: $exception.message", exception)
-        }
-    }
-
-    @Transactional
-    private void updateSuccessorGraphNodes(DeleteItemState deleteItemState) {
-        try {
-            VersionedFolder rootBranch = versionedFolderService.get(deleteItemState.versionedFolderId)
-            if (!rootBranch) {
-                log.warn("Cannot find versioned folder [$deleteItemState.versionedFolderId]")
-                return
-            }
-
-            log.info("after: Starting update of graph node successors to remove '$deleteItemState.path' under root branch '$rootBranch.label\$$rootBranch.branchName' [$rootBranch.id]")
-            graphService.removePredecessorFromSuccessorGraphNodes(
-                rootBranch,
-                deleteItemState.path,
-                deleteItemState.graphNode)
-        }
-        catch (Exception exception) {
-            log.error(
-                "Cannot update successor graph nodes to remove predecessor '$deleteItemState.path': $exception.message",
-                exception)
         }
     }
 

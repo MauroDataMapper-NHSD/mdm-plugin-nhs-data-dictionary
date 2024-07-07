@@ -55,6 +55,8 @@ class DataDictionaryItemCreatedInterceptor implements MdmInterceptor, Intercepto
 
         try {
             VersionedFolder rootBranch = versionedFolderService.get(versionedFolderTreeItem.id)
+
+            log.info("after: Creating graph node for '$item.path' under root branch '$rootBranch.label\$$rootBranch.branchName' [$rootBranch.id]")
             graphService.buildGraphNode(rootBranch, item)
         }
         catch (Exception exception) {
