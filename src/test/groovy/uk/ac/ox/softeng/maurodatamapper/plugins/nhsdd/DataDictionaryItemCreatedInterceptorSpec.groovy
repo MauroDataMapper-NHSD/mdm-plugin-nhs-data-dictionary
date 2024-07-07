@@ -3,7 +3,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import grails.testing.web.interceptor.InterceptorUnitTest
 import spock.lang.Specification
 
-class DataDictionaryBacklinkInterceptorSpec extends Specification implements InterceptorUnitTest<DataDictionaryBacklinkInterceptor> {
+class DataDictionaryItemCreatedInterceptorSpec extends Specification implements InterceptorUnitTest<DataDictionaryItemCreatedInterceptor> {
     void "should match against '#controller' and the '#action' action"(String controller, String action) {
         when:
         withRequest(controller: controller, action: action)
@@ -18,11 +18,6 @@ class DataDictionaryBacklinkInterceptorSpec extends Specification implements Int
         "dataClass"     | "save"
         "dataElement"   | "save"
         "term"          | "save"
-        "folder"        | "update"
-        "dataModel"     | "update"
-        "dataClass"     | "update"
-        "dataElement"   | "update"
-        "term"          | "update"
     }
 
     void "should not match against '#controller' and the '#action' action"(String controller, String action) {
@@ -34,6 +29,11 @@ class DataDictionaryBacklinkInterceptorSpec extends Specification implements Int
 
         where:
         controller      | action
+        "folder"        | "update"
+        "dataModel"     | "update"
+        "dataClass"     | "update"
+        "dataElement"   | "update"
+        "term"          | "update"
         "folder"        | "delete"
         "dataModel"     | "delete"
         "dataClass"     | "delete"
