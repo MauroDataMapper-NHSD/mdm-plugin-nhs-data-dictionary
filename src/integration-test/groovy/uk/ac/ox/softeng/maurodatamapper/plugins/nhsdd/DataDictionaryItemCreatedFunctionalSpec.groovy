@@ -20,6 +20,7 @@ import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import static io.micronaut.http.HttpStatus.CREATED
+import static io.micronaut.http.HttpStatus.NO_CONTENT
 
 @Integration
 @Slf4j
@@ -88,7 +89,9 @@ class DataDictionaryItemCreatedFunctionalSpec extends BaseDataDictionaryFunction
         path.toString().replace("\$$branchName", "")
     }
 
-    void "should build a graph node for new #domainType"(String domainType, Closure getCreateEndpoint) {
+    void "should automatically build a graph node after creating #domainType"(
+        String domainType,
+        Closure getCreateEndpoint) {
         given: "a user is logged in"
         loginUser('admin@maurodatamapper.com', 'password')
 
@@ -110,10 +113,8 @@ class DataDictionaryItemCreatedFunctionalSpec extends BaseDataDictionaryFunction
 
         when: "a new domain item is created"
         String createEndpoint = getCreateEndpoint()
-        POST(createEndpoint, [
-            label: "New Item",
-            description: description
-        ], MAP_ARG, true)
+        Map requestBody = buildNewItemRequestBody(domainType, "New Item", description)
+        POST(createEndpoint, requestBody, MAP_ARG, true)
 
         then: "the response is correct"
         verifyResponse(CREATED, response)
@@ -161,11 +162,52 @@ class DataDictionaryItemCreatedFunctionalSpec extends BaseDataDictionaryFunction
             predecessors ==~ [newItemPath]
         }
 
+        cleanup:
+        // Remove existing graph nodes
+        DELETE("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/terms/$nhsBusinessTerm.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
         where:
-        domainType      | getCreateEndpoint
-        "dataModels"     | { "folders/$dataSetsSubFolder.id/dataModels" }
-        // "dataClass"     | _
-        // "dataElement"   | _
-        // "term"          | _
+        domainType          | getCreateEndpoint
+        "dataModels"        | { "folders/$dataSetsSubFolder.id/dataModels" }
+        "dataClasses"       | { "dataModels/$dataSetModel.id/dataClasses" }
+        "dataElements"      | { "dataModels/$dataSetModel.id/dataClasses/$dataSetClass.id/dataElements" }
+        "terms"             | { "terminologies/$nhsBusinessDefinitions.id/terms" }
+        "folders"           | { "folders/$dataSetsSubFolder.id/folders" }
+    }
+
+    private Map buildNewItemRequestBody(
+        String domainType,
+        String label,
+        String description) {
+        if (domainType == "terms") {
+            return [
+                code: label,
+                definition: label,
+                description: description
+            ]
+        }
+
+        if (domainType == "dataElements") {
+            return [
+                label: label,
+                dataType: dataSetType.id,   // Assume that the data element is being created under the Critical Care Data Set
+                description: description
+            ]
+        }
+
+        return [
+            label: label,
+            description: description
+        ]
     }
 }

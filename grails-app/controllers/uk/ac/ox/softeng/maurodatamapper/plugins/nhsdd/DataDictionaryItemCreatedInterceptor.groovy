@@ -3,6 +3,8 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
+import uk.ac.ox.softeng.maurodatamapper.core.model.Container
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.ContainerTreeItem
 import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.TreeItem
@@ -12,6 +14,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.tree.TreeItemService
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.artefact.Interceptor
+import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormEntity
 
@@ -31,7 +34,7 @@ class DataDictionaryItemCreatedInterceptor implements MdmInterceptor, Intercepto
 
     @Override
     boolean after() {
-        if (model.containsKey(controllerName)) {
+        if (model && model.containsKey(controllerName)) {
             def mauroItem = model[controllerName]
             handleItem(mauroItem)
         }
@@ -39,12 +42,10 @@ class DataDictionaryItemCreatedInterceptor implements MdmInterceptor, Intercepto
         true
     }
 
+    @Transactional
     private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void handleItem(T item) {
         // Must check if the catalogue item is within a versioned folder (NHS Data Dictionary branch)
-        ContainerTreeItem ancestors = treeItemService.buildCatalogueItemTreeWithAncestors(
-            Folder.class,
-            item,
-            currentUserSecurityPolicyManager)
+        ContainerTreeItem ancestors = getAncestors(item)
         TreeItem versionedFolderTreeItem = getAncestorVersionedFolder(ancestors)
         if (!versionedFolderTreeItem) {
             log.debug("'$item.label' [$item.id] is not within a versioned folder, ignoring change tracking")
@@ -58,6 +59,19 @@ class DataDictionaryItemCreatedInterceptor implements MdmInterceptor, Intercepto
         catch (Exception exception) {
             log.error("Cannot build graph node for '$item.label' [$item.id]: $exception.message", exception)
         }
+    }
+
+    private ContainerTreeItem getAncestors(MdmDomain item) {
+        if (item.class == Folder.class) {
+            return treeItemService.buildContainerTreeWithAncestors(
+                item as Container,
+                currentUserSecurityPolicyManager)
+        }
+
+        treeItemService.buildCatalogueItemTreeWithAncestors(
+            Folder.class,
+            item as CatalogueItem,
+            currentUserSecurityPolicyManager)
     }
 
     private TreeItem getAncestorVersionedFolder(TreeItem treeItem) {
