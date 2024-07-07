@@ -1,4 +1,4 @@
-package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
+package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
@@ -11,6 +11,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.TreeItem
 import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.MdmInterceptor
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.core.tree.TreeItemService
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphService
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.artefact.Interceptor

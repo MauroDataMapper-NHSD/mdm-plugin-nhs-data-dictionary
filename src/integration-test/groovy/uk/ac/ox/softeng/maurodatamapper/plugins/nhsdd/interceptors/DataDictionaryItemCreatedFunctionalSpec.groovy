@@ -1,4 +1,4 @@
-package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
+package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
@@ -7,6 +7,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
 import uk.ac.ox.softeng.maurodatamapper.path.Path
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.BaseDataDictionaryFunctionalSpec
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
@@ -78,11 +79,6 @@ class DataDictionaryItemCreatedFunctionalSpec extends BaseDataDictionaryFunction
         nhsBusinessTerm = given."there is a term"("ABO System", "ABO System", nhsBusinessDefinitions)
 
         sessionFactory.currentSession.flush()
-    }
-
-    @Override
-    String getResourcePath() {
-        ''
     }
 
     private static String getPathStringWithoutBranchName(Path path, String branchName) {
