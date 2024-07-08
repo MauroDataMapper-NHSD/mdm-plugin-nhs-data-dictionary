@@ -83,6 +83,12 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         sessionFactory.currentSession.flush()
     }
 
+    @Transactional
+    def cleanupSpec() {
+        log.debug("Cleanup specification")
+        cleanUpResources(DataModel, PrimitiveType, DataClass, DataElement, Terminology, Term, Folder, VersionedFolder)
+    }
+
     private static String getPathStringWithoutBranchName(Path path, String branchName) {
         path.toString().replace("\$$branchName", "")
     }
@@ -112,7 +118,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
 
         when: "a new domain item is created"
         String createEndpoint = getCreateEndpoint()
-        Map requestBody = buildNewItemRequestBody(domainType, "New Item", description)
+        Map requestBody = buildNewItemRequestBody(domainType, "Item to Delete", description)
         POST(createEndpoint, requestBody, MAP_ARG, true)
 
         then: "the response is correct"
@@ -159,6 +165,9 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         verifyResponse(NO_CONTENT, response)
 
         and: "wait for the async job to finish"
+        // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
+        // these tests to pass, annoyingly. I think multiple threads are in play between the test, the backend controller and
+        // the interceptor, all confusing things
         log.info("Wait 2 seconds to catchup...")
         Thread.sleep(2000)
         AsyncJob asyncJob = getLastAsyncJob()

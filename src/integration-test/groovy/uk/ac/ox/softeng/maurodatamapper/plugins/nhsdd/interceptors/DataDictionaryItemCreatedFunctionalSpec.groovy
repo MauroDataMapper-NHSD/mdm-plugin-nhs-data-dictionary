@@ -81,6 +81,12 @@ class DataDictionaryItemCreatedFunctionalSpec extends BaseDataDictionaryFunction
         sessionFactory.currentSession.flush()
     }
 
+    @Transactional
+    def cleanupSpec() {
+        log.debug("Cleanup specification")
+        cleanUpResources(DataModel, PrimitiveType, DataClass, DataElement, Terminology, Term, Folder, VersionedFolder)
+    }
+
     private static String getPathStringWithoutBranchName(Path path, String branchName) {
         path.toString().replace("\$$branchName", "")
     }
