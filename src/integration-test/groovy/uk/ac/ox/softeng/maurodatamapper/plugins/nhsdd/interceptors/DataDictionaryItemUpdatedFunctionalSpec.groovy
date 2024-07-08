@@ -28,7 +28,7 @@ import static io.micronaut.http.HttpStatus.OK
 @Integration
 @Slf4j
 @Rollback
-class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
+class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
     // Trace the item layout of a test data dictionary
     @Shared
     VersionedFolder dictionaryBranch
@@ -93,10 +93,10 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         path.toString().replace("\$$branchName", "")
     }
 
-    void "should automatically remove paths from successor graph nodes after deleting #domainType"(
+    void "should automatically update a graph node after updating the description of #domainType"(
         String domainType,
         Closure getCreateEndpoint,
-        Closure getDeleteEndpoint) {
+        Closure getUpdateEndpoint) {
         given: "a user is logged in"
         loginUser('admin@maurodatamapper.com', 'password')
 
@@ -111,14 +111,14 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
             nhsBusinessTermPath == "te:NHS Business Definitions|tm:ABO System"
             nhsAttributePath == "dm:Classes and Attributes|dc:APPOINTMENT|de:APPOINTMENT DATE"
         }
-        String description = """<a href=\"$dataSetModelPath\">Model</a>, 
+        String originalDescription = """<a href=\"$dataSetModelPath\">Model</a>, 
 <a href=\"$nhsBusinessTermPath\">Term</a>, 
 <a href=\"$nhsAttributePath\">Element</a>, 
 <a href=\"https://www.google.com\">Website</a>"""
 
         when: "a new domain item is created"
         String createEndpoint = getCreateEndpoint()
-        Map requestBody = buildNewItemRequestBody(domainType, "Item to Delete", description)
+        Map requestBody = buildNewItemRequestBody(domainType, "Item to Update", originalDescription)
         POST(createEndpoint, requestBody, MAP_ARG, true)
 
         then: "the response is correct"
@@ -133,6 +133,14 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
             newItemPath
         }
 
+        and: "the successors are correct"
+        GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ [this.dataSetModel.path.toString(), this.nhsBusinessTerm.path.toString(), this.nhsAttribute.path.toString()]
+            predecessors ==~ []
+        }
+
         and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
         verifyResponse(OK, response)
@@ -157,12 +165,33 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
             predecessors ==~ [newItemPath]
         }
 
-        when: "the item is deleted"
-        String deleteEndpoint = getDeleteEndpoint(newItemId)
-        DELETE(deleteEndpoint, MAP_ARG, true)
+        and: "the predecessors were updated"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ []
+        }
+
+        when: "an updated description is prepared"
+        // *Don't* include the branch name in paths to match what MDM UI would do when
+        // saving the description
+        String nhsClassPath = getPathStringWithoutBranchName(nhsClass.path, dictionaryBranch.branchName)
+        verifyAll {
+            nhsClassPath == "dm:Classes and Attributes|dc:APPOINTMENT"
+        }
+        String updatedDescription = """<a href=\"$nhsClassPath\">Class</a>, 
+<a href=\"$nhsBusinessTermPath\">Term</a>, 
+<a href=\"https://www.google.com\">Website</a>"""
+
+        and: "the item is updated"
+        String updateEndpoint = getUpdateEndpoint(newItemId)
+        PUT(updateEndpoint, [
+            description: updatedDescription
+        ],MAP_ARG, true)
 
         then: "the response is correct"
-        verifyResponse(NO_CONTENT, response)
+        verifyResponse(OK, response)
 
         and: "wait for the async job to finish"
         // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
@@ -173,6 +202,14 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         AsyncJob asyncJob = getLastAsyncJob()
         waitForAsyncJobToComplete(asyncJob)
 
+        and: "the successors are correct"
+        GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ [this.nhsClass.path.toString(), this.nhsBusinessTerm.path.toString()]
+            predecessors ==~ []
+        }
+
         and: "the predecessors were updated"
         GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
         verifyResponse(OK, response)
@@ -186,7 +223,7 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
-            predecessors ==~ []
+            predecessors ==~ [newItemPath]
         }
 
         and: "the predecessors were updated"
@@ -197,8 +234,19 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
             predecessors ==~ []
         }
 
+        and: "the predecessors were updated"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ []
+            predecessors ==~ [newItemPath]
+        }
+
         cleanup:
         // Remove existing graph nodes
+        DELETE("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
         DELETE("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
         verifyResponse(NO_CONTENT, response)
 
@@ -209,12 +257,12 @@ class DataDictionaryItemDeletedFunctionalSpec extends BaseDataDictionaryFunction
         verifyResponse(NO_CONTENT, response)
 
         where:
-        domainType          | getCreateEndpoint                                                             | getDeleteEndpoint
-        "dataModels"        | { "folders/$dataSetsSubFolder.id/dataModels" }                                | { id -> "dataModels/$id?permanent=true" }
+        domainType          | getCreateEndpoint                                                             | getUpdateEndpoint
+        "dataModels"        | { "folders/$dataSetsSubFolder.id/dataModels" }                                | { id -> "dataModels/$id" }
         "dataClasses"       | { "dataModels/$dataSetModel.id/dataClasses" }                                 | { id -> "dataModels/$dataSetModel.id/dataClasses/$id" }
         "dataElements"      | { "dataModels/$dataSetModel.id/dataClasses/$dataSetClass.id/dataElements" }   | { id -> "dataModels/$dataSetModel.id/dataClasses/$dataSetClass.id/dataElements/$id" }
         "terms"             | { "terminologies/$nhsBusinessDefinitions.id/terms" }                          | { id -> "terminologies/$nhsBusinessDefinitions.id/terms/$id" }
-        "folders"           | { "folders/$dataSetsSubFolder.id/folders" }                                   | { id ->  "folders/$id?permanent=true" }
+        "folders"           | { "folders/$dataSetsSubFolder.id/folders" }                                   | { id ->  "folders/$id" }
     }
 
     private Map buildNewItemRequestBody(

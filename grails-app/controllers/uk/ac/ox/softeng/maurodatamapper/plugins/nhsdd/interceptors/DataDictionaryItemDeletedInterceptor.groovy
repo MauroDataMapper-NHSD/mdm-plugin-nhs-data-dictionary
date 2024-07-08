@@ -22,7 +22,6 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.artefact.Interceptor
-import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormEntity
 import org.springframework.http.HttpStatus

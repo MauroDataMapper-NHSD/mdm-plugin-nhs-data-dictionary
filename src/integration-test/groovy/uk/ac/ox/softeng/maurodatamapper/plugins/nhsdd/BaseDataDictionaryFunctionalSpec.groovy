@@ -61,6 +61,11 @@ class BaseDataDictionaryFunctionalSpec extends BaseFunctionalSpec {
     }
 
     void waitForAsyncJobToComplete(AsyncJob job) {
+        if (!job) {
+            log.debug("No async job to wait for - continue")
+            return
+        }
+
         log.info("Waiting to complete $job.id")
         Future p = asyncJobService.getAsyncJobFuture(job.id)
         try {
