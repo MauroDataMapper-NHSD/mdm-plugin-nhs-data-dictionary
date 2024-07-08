@@ -17,7 +17,6 @@ import grails.gorm.transactions.Transactional
 import grails.testing.mixin.integration.Integration
 import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
-import io.micronaut.http.HttpStatus
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
@@ -254,6 +253,9 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryFunction
         verifyResponse(NO_CONTENT, response)
 
         DELETE("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
+        verifyResponse(NO_CONTENT, response)
+
+        DELETE("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
         verifyResponse(NO_CONTENT, response)
 
         where:

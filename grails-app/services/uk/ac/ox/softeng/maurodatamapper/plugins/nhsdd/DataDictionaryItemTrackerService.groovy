@@ -2,9 +2,15 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
+import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.security.User
+import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
@@ -15,6 +21,62 @@ class DataDictionaryItemTrackerService {
     GraphService graphService
     VersionedFolderService versionedFolderService
     AsyncJobService asyncJobService
+
+    MdmDomain getMauroItem(String domainName, UUID id) {
+        if (domainName in ["folder", "Folder"]) {
+            return Folder.get(id)
+        }
+
+        if (domainName in ["dataModel", "DataModel"]) {
+            return DataModel.get(id)
+        }
+
+        if (domainName in ["dataClass", "DataClass"]) {
+            return DataClass.get(id)
+        }
+        if (domainName in ["dataElement", "DataElement"]) {
+            return DataElement.get(id)
+        }
+
+        if (domainName in ["term", "Term"]) {
+            return Term.get(id)
+        }
+
+        null
+    }
+
+    AsyncJob asyncBuildGraphNode(UUID versionedFolderId, String domainName, UUID id, User startedByUser) {
+        asyncJobService.createAndSaveAsyncJob(
+            "Item tracker: update graph node for item '$domainName' [$id] under root branch [$versionedFolderId]",
+            startedByUser) {
+            buildGraphNode(versionedFolderId, domainName, id)
+        }
+    }
+
+    GraphNode buildGraphNode(UUID versionedFolderId, String domainName, UUID id) {
+        try {
+            VersionedFolder rootBranch = versionedFolderService.get(versionedFolderId)
+            if (!rootBranch) {
+                log.warn("Cannot find versioned folder [$versionedFolderId]")
+                return null
+            }
+
+            MdmDomain item = getMauroItem(domainName, id)
+            if (!item) {
+                log.warn("Cannot find item '$domainName' [$id]")
+                return null
+            }
+
+            return graphService.buildGraphNode(rootBranch, item)
+        }
+        catch (Exception exception) {
+            log.error(
+                "Cannot build graph node for '$predecessorPath': $exception.message",
+                exception)
+
+            return null
+        }
+    }
 
     AsyncJob asyncUpdateSuccessorGraphNodesAfterItemDeleted(
         UUID versionedFolderId,

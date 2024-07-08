@@ -56,6 +56,11 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
 
     @Override
     boolean after() {
+        if (response.status != HttpStatus.NO_CONTENT.value()) {
+            log.warn("after: Ignoring item change for '$controllerName' [$params.id] - not deleted - HttpStatus: $request")
+            return true
+        }
+
         // Check if the before() interceptor method was tracking a Mauro item for an item change. If not then this
         // interceptor doesn't need to do anything
         DeleteItemState deleteItemState = request.deleteItemState
@@ -64,12 +69,7 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
             return true
         }
 
-        if (response.status != HttpStatus.NO_CONTENT.value()) {
-            log.warn("after: Ignoring item change for '$controllerName' [$params.id] - not deleted - HttpStatus: $request")
-            return true
-        }
-
-        log.info("after: Starting update of graph node successors to remove '$deleteItemState.path' under root branch [$deleteItemState.versionedFolderId]")
+        log.info("after: Starting async job to update graph node successors to remove '$deleteItemState.path' under root branch [$deleteItemState.versionedFolderId]")
         AsyncJob asyncJob = dataDictionaryItemTrackerService.asyncUpdateSuccessorGraphNodesAfterItemDeleted(
             deleteItemState.versionedFolderId,
             deleteItemState.path,
