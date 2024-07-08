@@ -112,4 +112,54 @@ class DataDictionaryItemTrackerService {
                 exception)
         }
     }
+
+    AsyncJob asyncUpdatePredecessorFromSuccessorGraphNodesAfterItemMoved(
+        UUID versionedFolderId,
+        String domainName,
+        UUID id,
+        String originalPredecessorPath,
+        String replacementPredecessorPath,
+        User startedByUser) {
+        asyncJobService.createAndSaveAsyncJob(
+            "Item tracker: update successor graph nodes under root branch [$versionedFolderId] to replace predecessor '$originalPredecessorPath' with '$replacementPredecessorPath'",
+            startedByUser) {
+            updatePredecessorFromSuccessorGraphNodesAfterItemMoved(versionedFolderId, domainName, id, originalPredecessorPath, replacementPredecessorPath)
+        }
+    }
+
+    GraphNode updatePredecessorFromSuccessorGraphNodesAfterItemMoved(
+        UUID versionedFolderId,
+        String domainName,
+        UUID id,
+        String originalPredecessorPath,
+        String replacementPredecessorPath) {
+        try {
+            VersionedFolder rootBranch = versionedFolderService.get(versionedFolderId)
+            if (!rootBranch) {
+                log.warn("Cannot find versioned folder [$versionedFolderId]")
+                return null
+            }
+
+            MdmDomain item = getMauroItem(domainName, id)
+            if (!item) {
+                log.warn("Cannot find item '$domainName' [$id]")
+                return null
+            }
+
+            GraphNode predecessorGraphNode = graphService.getGraphNode(item)
+
+            graphService.updatePredecessorFromSuccessorGraphNodes(
+                rootBranch,
+                originalPredecessorPath,
+                replacementPredecessorPath,
+                predecessorGraphNode)
+        }
+        catch (Exception exception) {
+            log.error(
+                "Cannot update successor graph nodes to change predecessor path '$originalPredecessorPath' with '$replacementPredecessorPath': $exception.message",
+                exception)
+
+            return null
+        }
+    }
 }

@@ -57,20 +57,32 @@ class DataDictionaryItemUpdatedInterceptor extends DataDictionaryItemTrackerInte
         }
 
         boolean descriptionHasChanged = updateItemStateNext.description.compareTo(updateItemStatePrevious.description) != 0
+        boolean pathHasChanged = updateItemStateNext.path != updateItemStatePrevious.path
 
-        // TODO: compare paths - was an item moved/renamed?
-
-        if (!descriptionHasChanged) {
+        if (!descriptionHasChanged && !pathHasChanged) {
             log.info("after: Ignoring item change for $updateItemStateNext.domainType '$updateItemStateNext.label' [$updateItemStateNext.id] - $updateItemStateNext.path - no significant changes found")
             return true
         }
 
         log.info("after: Starting async job to update graph node of $updateItemStateNext.domainType '$updateItemStateNext.label' [$updateItemStateNext.id] - $updateItemStateNext.path. (Original path: $updateItemStatePrevious.path)")
-        AsyncJob asyncJob = dataDictionaryItemTrackerService.asyncBuildGraphNode(
+        AsyncJob asyncJob = null
+        if (pathHasChanged) {
+            asyncJob = dataDictionaryItemTrackerService.asyncUpdatePredecessorFromSuccessorGraphNodesAfterItemMoved(
+                updateItemStateNext.versionedFolderId,
+                updateItemStateNext.domainType,
+                updateItemStateNext.id,
+                updateItemStatePrevious.path.toString(),
+                updateItemStateNext.path.toString(),
+                currentUser
+            )
+        }
+        else {
+            asyncJob = dataDictionaryItemTrackerService.asyncBuildGraphNode(
             updateItemStateNext.versionedFolderId,
             updateItemStateNext.domainType,
             updateItemStateNext.id,
             currentUser)
+        }
 
         if (!asyncJob) {
             log.error("after: Failed to create async job")
