@@ -54,6 +54,13 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
     @Shared
     Term nhsBusinessTerm
 
+    @Shared
+    String nhsClassDescription
+    @Shared
+    String nhsAttributeDescription
+    @Shared
+    String nhsBusinessTermDescription
+
     @RunOnce
     @Transactional
     def setup() {
@@ -85,9 +92,9 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
         String nhsAttributePath = getPathStringWithoutBranchName(nhsAttribute.path, dictionaryBranch.branchName)
         String nhsBusinessTermPath = getPathStringWithoutBranchName(nhsBusinessTerm.path, dictionaryBranch.branchName)
 
-        String nhsClassDescription = "Refers to <\"$nhsBusinessTermPath\"></a>"
-        String nhsAttributeDescription = "Refers to <\"$nhsClassPath\"></a>"
-        String nhsBusinessTermDescription = "Refers to <\"$nhsAttributePath\"></a>"
+        nhsClassDescription = "Refers to <a href=\"$nhsBusinessTermPath\">something</a>"
+        nhsAttributeDescription = "Refers to <a href=\"$nhsClassPath\">something</a>"
+        nhsBusinessTermDescription = "Refers to <a href=\"$nhsAttributePath\">something</a>"
 
         nhsClass.description = nhsClassDescription
         nhsClass.save([flush: true])
@@ -123,6 +130,22 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
         throw new Exception("Unknown domain type: $domainType")
     }
 
+    String getOriginalDescription(String domainType) {
+        if (domainType == "dataClasses") {
+            return nhsClassDescription
+        }
+
+        if (domainType == "dataElements") {
+            return nhsAttributeDescription
+        }
+
+        if (domainType == "terms") {
+            return nhsBusinessTermDescription
+        }
+
+        throw new Exception("Unknown domain type: $domainType")
+    }
+
     void "should automatically update the descriptions of predecessor items when a path has changed for #domainType"(
         String domainType,
         String referencedDomainType,
@@ -136,6 +159,30 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
 
         then: "the response status is correct"
         verifyResponse(OK, response)
+
+        and: "the predecessors are correct"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ [this.nhsBusinessTerm.path.toString()]
+            predecessors ==~ [this.nhsAttribute.path.toString()]
+        }
+
+        and: "the predecessors are correct"
+        GET("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ [this.nhsClass.path.toString()]
+            predecessors ==~ [this.nhsBusinessTerm.path.toString()]
+        }
+
+        and: "the predecessors are correct"
+        GET("nhsdd/$dictionaryBranch.id/graph/terms/$nhsBusinessTerm.id", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ [this.nhsAttribute.path.toString()]
+            predecessors ==~ [this.nhsClass.path.toString()]
+        }
 
         when: "an item is renamed"
         def itemToRename = getItemToTrack(domainType)
@@ -165,8 +212,6 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
         and: "wait for the async job to finish"
         waitForLastAsyncJobToComplete()
 
-        // TODO: wait for a second async job to complete??
-
         when: "the referenced item is fetched"
         String referencedItemEndpoint = getReferencedEndpoint(referencedItem.id)
         GET(referencedItemEndpoint, MAP_ARG, true)
@@ -176,12 +221,24 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
 
         and: "the links in the referenced item have been updated"
         String expectedUpdatedPath = getPathStringWithoutBranchName(itemToRename.path, dictionaryBranch.branchName).replace(originalLabel, updatedLabel)
-        String expectedUpdatedDescription = "Refers to <\"$expectedUpdatedPath\"></a>"
+        String expectedUpdatedDescription = "Refers to <a href=\"$expectedUpdatedPath\">something</a>"
 
         def referencedItemResponseBody = responseBody()
         verifyAll(referencedItemResponseBody) {
             description == expectedUpdatedDescription
         }
+
+        cleanup:
+        // Put the label back to how it was
+        log.info("Cleanup of label and description")
+        String cleanupUpdateEndpoint = getUpdateEndpoint(itemToRename.id)
+        Map cleanupUpdateRequestBody = buildUpdateItemRequestBodyWithDescription(
+            domainType,
+            originalLabel,
+            getOriginalDescription(domainType))
+        PUT(cleanupUpdateEndpoint, cleanupUpdateRequestBody, MAP_ARG, true)
+        verifyResponse(OK, response)
+        waitForLastAsyncJobToComplete()
 
         where:
         domainType      | referencedDomainType  | getUpdateEndpoint                                                                             | getReferencedEndpoint
@@ -202,6 +259,24 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
 
         return [
             label: label
+        ]
+    }
+
+    Map buildUpdateItemRequestBodyWithDescription(
+        String domainType,
+        String label,
+        String description) {
+        if (domainType == "terms") {
+            return [
+                code: label,
+                definition: label,
+                description: description
+            ]
+        }
+
+        return [
+            label: label,
+            description: description
         ]
     }
 }

@@ -59,6 +59,18 @@ class GraphService {
         domainService.get(resourceId) as T
     }
 
+    <T extends MdmDomain & MetadataAware & GormEntity> T findGraphResourceByPath(String path) {
+        Path pathObject = Path.from(path)
+        Class<Object> resourceClass = identifyResourceClassFromPath(pathObject)
+        T item = pathService.findResourceByPathFromRootClass(resourceClass, pathObject) as T
+        if (!item) {
+            log.warn("Cannot find graph resource using path '$path'")
+            return null
+        }
+
+        item
+    }
+
     GraphNode getGraphNode(MetadataAware item) {
         Metadata metadata = item.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY)
         if (!metadata || !metadata.value) {
@@ -214,9 +226,7 @@ class GraphService {
         String replacementPredecessorPath,
         ModificationType modificationType) {
         // Need to locate the object via the path first. That means we need to know what resource class to search under
-        Path successorPathObject = Path.from(successorPath)
-        Class<Object> successorPathClass = identifyResourceClassFromPath(successorPathObject)
-        T successorItem = pathService.findResourceByPathFromRootClass(successorPathClass, successorPathObject) as T
+        T successorItem = findGraphResourceByPath(successorPath)
         if (!successorItem) {
             log.warn("Cannot find '$successorPath' under root '$rootBranch.label\$$rootBranch.branchName' [$rootBranch.id]")
             return
@@ -262,6 +272,12 @@ class GraphService {
         }
 
         mauroPaths
+    }
+
+    static Path createPathWithoutBranchName(Path path) {
+        Path copy = path.clone()
+        copy.pathNodes.forEach { node -> node.modelIdentifier = "" }
+        copy
     }
 
     private static Path createPathAimedAtBranch(String pathString, String branchName) {
