@@ -1,5 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
@@ -129,6 +130,15 @@ class DataDictionaryItemCreatedFunctionalSpec extends BaseDataDictionaryFunction
             newItemId
             newItemPath
         }
+
+        and: "wait for the async job to finish"
+        // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
+        // these tests to pass, annoyingly. I think multiple threads are in play between the test, the backend controller and
+        // the interceptor, all confusing things
+        log.warn("Wait 2 seconds to catchup...")
+        Thread.sleep(2000)
+        AsyncJob asyncJob = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob)
 
         and: "there is a graph node for the new item"
         GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)

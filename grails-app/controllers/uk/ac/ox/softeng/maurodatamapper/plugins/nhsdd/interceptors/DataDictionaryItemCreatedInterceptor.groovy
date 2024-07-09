@@ -1,91 +1,56 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
-import uk.ac.ox.softeng.maurodatamapper.core.model.Container
-import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
-import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.ContainerTreeItem
-import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.TreeItem
-import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.MdmInterceptor
+import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
-import uk.ac.ox.softeng.maurodatamapper.core.tree.TreeItemService
-import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphService
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.artefact.Interceptor
-import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import org.grails.datastore.gorm.GormEntity
-
-import java.util.regex.Pattern
 
 @Slf4j
-class DataDictionaryItemCreatedInterceptor implements MdmInterceptor, Interceptor {
-    static Pattern CONTROLLER_PATTERN = ~/(folder|dataModel|dataClass|dataElement|term)/
-
-    GraphService graphService
-    TreeItemService treeItemService
-    VersionedFolderService versionedFolderService
-
+class DataDictionaryItemCreatedInterceptor extends DataDictionaryItemTrackerInterceptor implements Interceptor {
     DataDictionaryItemCreatedInterceptor() {
         match controller: CONTROLLER_PATTERN, action: 'save'
     }
 
     @Override
     boolean after() {
-        if (model && model.containsKey(controllerName)) {
-            def mauroItem = model[controllerName]
-            handleItem(mauroItem)
+        MdmDomain item = getMauroItemFromModel()
+        if (!item) {
+            return true
+        }
+
+        UUID versionedFolderId = getRootVersionedFolderId(item)
+        if (!versionedFolderId) {
+            // Won't track this item - assume not part of the NHS Data Dictionary
+            return true
+        }
+
+        log.info("after: Creating graph node for '$item.path'")
+        AsyncJob asyncJob = dataDictionaryItemTrackerService.asyncBuildGraphNode(versionedFolderId, item.domainType, item.id, currentUser)
+
+        if (!asyncJob) {
+            log.error("after: Failed to create async job")
+        }
+        else {
+            log.info("after: Created new item and graph node build async job [$asyncJob.id] - status: $asyncJob.status")
         }
 
         true
     }
 
-    @Transactional
-    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void handleItem(T item) {
-        // Must check if the catalogue item is within a versioned folder (NHS Data Dictionary branch)
-        ContainerTreeItem ancestors = getAncestors(item)
-        TreeItem versionedFolderTreeItem = getAncestorVersionedFolder(ancestors)
-        if (!versionedFolderTreeItem) {
-            log.debug("'$item.label' [$item.id] is not within a versioned folder, ignoring change tracking")
-            return
+    private <T extends MdmDomain & InformationAware> T getMauroItemFromModel() {
+        if (!model) {
+            log.warn("View has not returned a model!")
+            return null
         }
 
-        try {
-            VersionedFolder rootBranch = versionedFolderService.get(versionedFolderTreeItem.id)
-
-            log.info("after: Creating graph node for '$item.path' under root branch '$rootBranch.label\$$rootBranch.branchName' [$rootBranch.id]")
-            graphService.buildGraphNode(rootBranch, item)
-        }
-        catch (Exception exception) {
-            log.error("Cannot build graph node for '$item.label' [$item.id]: $exception.message", exception)
-        }
-    }
-
-    private ContainerTreeItem getAncestors(MdmDomain item) {
-        if (item.class == Folder.class) {
-            return treeItemService.buildContainerTreeWithAncestors(
-                item as Container,
-                currentUserSecurityPolicyManager)
+        if (!model.containsKey(controllerName)) {
+            log.warn("Cannot find model matching controller name '$controllerName'")
+            return null
         }
 
-        treeItemService.buildCatalogueItemTreeWithAncestors(
-            Folder.class,
-            item as CatalogueItem,
-            currentUserSecurityPolicyManager)
-    }
-
-    private TreeItem getAncestorVersionedFolder(TreeItem treeItem) {
-        if (treeItem.domainType == VersionedFolder.class.simpleName) {
-            return treeItem
-        }
-
-        if (treeItem.children.size() == 1) {
-            return getAncestorVersionedFolder(treeItem.children.first())
-        }
-
-        null
+        T item = model[controllerName] as T
+        item
     }
 }

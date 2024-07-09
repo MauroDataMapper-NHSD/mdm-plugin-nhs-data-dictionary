@@ -132,6 +132,15 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryFunction
             newItemPath
         }
 
+        and: "wait for the async job to finish"
+        // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
+        // these tests to pass, annoyingly. I think multiple threads are in play between the test, the backend controller and
+        // the interceptor, all confusing things
+        log.warn("Wait 2 seconds to catchup...")
+        Thread.sleep(2000)
+        AsyncJob asyncJob = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob)
+
         and: "the successors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
         verifyResponse(OK, response)
@@ -198,8 +207,8 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryFunction
         // the interceptor, all confusing things
         log.warn("Wait 2 seconds to catchup...")
         Thread.sleep(2000)
-        AsyncJob asyncJob = getLastAsyncJob()
-        waitForAsyncJobToComplete(asyncJob)
+        AsyncJob asyncJob2 = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob2)
 
         and: "the successors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
@@ -307,6 +316,15 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryFunction
             newItemPath
         }
 
+        and: "wait for the async job to finish"
+        // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
+        // these tests to pass, annoyingly. I think multiple threads are in play between the test, the backend controller and
+        // the interceptor, all confusing things
+        log.warn("Wait 2 seconds to catchup...")
+        Thread.sleep(2000)
+        AsyncJob asyncJob = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob)
+
         and: "the successors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
         verifyResponse(OK, response)
@@ -364,8 +382,8 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryFunction
         // the interceptor, all confusing things
         log.warn("Wait 2 seconds to catchup...")
         Thread.sleep(2000)
-        AsyncJob asyncJob = getLastAsyncJob()
-        waitForAsyncJobToComplete(asyncJob)
+        AsyncJob asyncJob2 = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob2)
 
         and: "the successors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
