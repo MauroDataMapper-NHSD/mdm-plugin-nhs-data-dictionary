@@ -4,7 +4,6 @@ import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
-import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.artefact.Interceptor
 import groovy.util.logging.Slf4j
@@ -117,33 +116,11 @@ class DataDictionaryItemUpdatedInterceptor extends DataDictionaryItemTrackerInte
             item.description)
     }
 
-    private UUID getId() {
-        if (!params.containsKey('id')) {
-            return null
-        }
-
-        def id = params.id
-
-        // Sometimes the domain interceptors have stored "id" from the URL route as UUIDs, sometimes as strings...
-        if (id instanceof UUID) {
-            return id as UUID
-        }
-
-        return UUID.fromString(id)
-    }
-
     private <T extends MdmDomain & InformationAware> UpdateItemState getUpdateItemStateFromModel(UUID versionedFolderId) {
-        if (!model) {
-            log.warn("View has not returned a model!")
+        T item = getMauroItemFromModel()
+        if (!item) {
             return null
         }
-
-        if (!model.containsKey(controllerName)) {
-            log.warn("Cannot find model matching controller name '$controllerName'")
-            return null
-        }
-
-        T item = model[controllerName] as T
 
         new UpdateItemState(
             versionedFolderId,

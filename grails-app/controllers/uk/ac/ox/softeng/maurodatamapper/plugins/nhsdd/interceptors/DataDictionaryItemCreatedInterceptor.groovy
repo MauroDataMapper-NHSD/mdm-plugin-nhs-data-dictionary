@@ -1,7 +1,6 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
-import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.artefact.Interceptor
@@ -37,20 +36,5 @@ class DataDictionaryItemCreatedInterceptor extends DataDictionaryItemTrackerInte
         }
 
         true
-    }
-
-    private <T extends MdmDomain & InformationAware> T getMauroItemFromModel() {
-        if (!model) {
-            log.warn("View has not returned a model!")
-            return null
-        }
-
-        if (!model.containsKey(controllerName)) {
-            log.warn("Cannot find model matching controller name '$controllerName'")
-            return null
-        }
-
-        T item = model[controllerName] as T
-        item
     }
 }

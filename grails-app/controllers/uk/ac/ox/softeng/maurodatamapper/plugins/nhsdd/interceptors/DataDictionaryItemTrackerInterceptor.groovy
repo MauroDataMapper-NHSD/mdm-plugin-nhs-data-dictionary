@@ -12,16 +12,47 @@ import uk.ac.ox.softeng.maurodatamapper.core.tree.TreeItemService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryItemTrackerService
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
+import grails.artefact.Interceptor
 import groovy.util.logging.Slf4j
 
 import java.util.regex.Pattern
 
 @Slf4j
-abstract class DataDictionaryItemTrackerInterceptor implements MdmInterceptor {
+abstract class DataDictionaryItemTrackerInterceptor implements MdmInterceptor, Interceptor {
     static Pattern CONTROLLER_PATTERN = ~/(folder|dataModel|dataClass|dataElement|term)/
 
     DataDictionaryItemTrackerService dataDictionaryItemTrackerService
     TreeItemService treeItemService
+
+    protected UUID getId() {
+        if (!params.containsKey('id')) {
+            return null
+        }
+
+        def id = params.id
+
+        // Sometimes the domain interceptors have stored "id" from the URL route as UUIDs, sometimes as strings...
+        if (id instanceof UUID) {
+            return id as UUID
+        }
+
+        return UUID.fromString(id)
+    }
+
+    protected <T extends MdmDomain & InformationAware> T getMauroItemFromModel() {
+        if (!model) {
+            log.warn("View has not returned a model!")
+            return null
+        }
+
+        if (!model.containsKey(controllerName)) {
+            log.warn("Cannot find model matching controller name '$controllerName'")
+            return null
+        }
+
+        T item = model[controllerName] as T
+        item
+    }
 
     protected <T extends MdmDomain & InformationAware> UUID getRootVersionedFolderId(T item) {
         ContainerTreeItem ancestors = getAncestors(item)

@@ -1,24 +1,10 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
-import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
-import uk.ac.ox.softeng.maurodatamapper.core.model.Container
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
-import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.ContainerTreeItem
-import uk.ac.ox.softeng.maurodatamapper.core.rest.transport.tree.TreeItem
-import uk.ac.ox.softeng.maurodatamapper.core.traits.controller.MdmInterceptor
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
-import uk.ac.ox.softeng.maurodatamapper.core.tree.TreeItemService
-import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryItemTrackerService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphNode
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.GraphService
-import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import grails.artefact.Interceptor
@@ -26,16 +12,9 @@ import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormEntity
 import org.springframework.http.HttpStatus
 
-import java.util.regex.Pattern
-
 @Slf4j
-class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Interceptor {
-    static Pattern CONTROLLER_PATTERN = ~/(folder|dataModel|dataClass|dataElement|term)/
-
+class DataDictionaryItemDeletedInterceptor extends DataDictionaryItemTrackerInterceptor implements Interceptor {
     GraphService graphService
-    TreeItemService treeItemService
-    VersionedFolderService versionedFolderService
-    DataDictionaryItemTrackerService dataDictionaryItemTrackerService
 
     DataDictionaryItemDeletedInterceptor() {
         match controller: CONTROLLER_PATTERN, action: 'delete'
@@ -43,7 +22,7 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
 
     @Override
     boolean before() {
-        MdmDomain itemBeingDeleted = getItem()
+        MdmDomain itemBeingDeleted = dataDictionaryItemTrackerService.getMauroItem(controllerName, getId())
         if (!itemBeingDeleted) {
             // Ignore
             return true
@@ -87,10 +66,9 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
     }
 
     private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void trackItemGraphNode(T item) {
-        ContainerTreeItem ancestors = getAncestors(item)
-        TreeItem versionedFolderTreeItem = getAncestorVersionedFolder(ancestors)
-        if (!versionedFolderTreeItem) {
-            log.debug("'$item.label' [$item.id] is not within a versioned folder, ignoring change tracking")
+        UUID versionedFolderId = getRootVersionedFolderId(item)
+        if (!versionedFolderId) {
+            // Won't track this item - assume not part of the NHS Data Dictionary
             return
         }
 
@@ -100,7 +78,7 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
             // Track the graph node to use in the after() interceptor method
             log.info("before: tracking item change - $item.domainType '$item.label' [$item.id] - $item.path")
             DeleteItemState deleteItemState = new DeleteItemState(
-                versionedFolderTreeItem.id,
+                versionedFolderId,
                 item.path.toString(),
                 graphNode)
             request.deleteItemState = deleteItemState
@@ -108,56 +86,6 @@ class DataDictionaryItemDeletedInterceptor implements MdmInterceptor, Intercepto
         catch (Exception exception) {
             log.error("Cannot get graph node for '$item.label' [$item.id]: $exception.message", exception)
         }
-    }
-
-    private MdmDomain getItem() {
-        String id = params.id
-
-        if (controllerName == "folder") {
-            return Folder.get(id)
-        }
-
-        if (controllerName == "dataModel") {
-            return DataModel.get(id)
-        }
-
-        if (controllerName == "dataClass") {
-            return DataClass.get(id)
-        }
-        if (controllerName == "dataElement") {
-            return DataElement.get(id)
-        }
-
-        if (controllerName == "term") {
-            return Term.get(id)
-        }
-
-        null
-    }
-
-    private ContainerTreeItem getAncestors(MdmDomain item) {
-        if (item.class == Folder.class) {
-            return treeItemService.buildContainerTreeWithAncestors(
-                item as Container,
-                currentUserSecurityPolicyManager)
-        }
-
-        treeItemService.buildCatalogueItemTreeWithAncestors(
-            Folder.class,
-            item as CatalogueItem,
-            currentUserSecurityPolicyManager)
-    }
-
-    private TreeItem getAncestorVersionedFolder(TreeItem treeItem) {
-        if (treeItem.domainType == VersionedFolder.class.simpleName) {
-            return treeItem
-        }
-
-        if (treeItem.children.size() == 1) {
-            return getAncestorVersionedFolder(treeItem.children.first())
-        }
-
-        null
     }
 
     class DeleteItemState {
