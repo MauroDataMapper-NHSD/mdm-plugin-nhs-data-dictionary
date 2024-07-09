@@ -1,19 +1,17 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.interceptors
 
-import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
+
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.PrimitiveType
-import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.BaseDataDictionaryFunctionalSpec
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import grails.gorm.transactions.Transactional
-import grails.testing.mixin.integration.Integration
 import grails.testing.spock.RunOnce
 import groovy.util.logging.Slf4j
 import spock.lang.Shared
@@ -72,33 +70,13 @@ abstract class BaseDataDictionaryItemTrackerFunctionalSpec extends BaseDataDicti
         nhsBusinessDefinitions = given."there is a terminology"(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME, dictionaryBranch)
         nhsBusinessTerm = given."there is a term"("ABO System", "ABO System", nhsBusinessDefinitions)
 
-        postSetup()
-
         sessionFactory.currentSession.flush()
-    }
-
-    void postSetup() {
-        // Nothing to do by default
     }
 
     @Transactional
     def cleanupSpec() {
         log.debug("Cleanup specification")
         cleanUpResources(DataModel, PrimitiveType, DataClass, DataElement, Terminology, Term, Folder, VersionedFolder)
-    }
-
-    void waitForLastAsyncJobToComplete() {
-        // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
-        // these tests to pass, annoyingly. I think multiple threads are in play between the test, the backend controller and
-        // the interceptor, all confusing things
-        log.warn("Wait 2 seconds to catchup...")
-        Thread.sleep(2000)
-        AsyncJob asyncJob = getLastAsyncJob()
-        waitForAsyncJobToComplete(asyncJob)
-    }
-
-    static String getPathStringWithoutBranchName(Path path, String branchName) {
-        path.toString().replace("\$$branchName", "")
     }
 
     Map buildNewItemRequestBody(

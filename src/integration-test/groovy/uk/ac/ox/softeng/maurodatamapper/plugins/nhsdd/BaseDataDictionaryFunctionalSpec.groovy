@@ -3,6 +3,7 @@ package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJob
 import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
+import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.test.functional.BaseFunctionalSpec
 
 import grails.gorm.transactions.Transactional
@@ -73,6 +74,20 @@ class BaseDataDictionaryFunctionalSpec extends BaseFunctionalSpec {
         } catch (CancellationException ignored) {
         }
         log.debug("Completed")
+    }
+
+    void waitForLastAsyncJobToComplete() {
+        // Why do we need to sleep for a period of time to make sure that async jobs exist? This is the only way I could
+        // these tests to pass, annoyingly. I think multiple threads are in play between the test, the backend controller and
+        // the interceptor, all confusing things
+        log.warn("Wait 2 seconds to catchup...")
+        Thread.sleep(2000)
+        AsyncJob asyncJob = getLastAsyncJob()
+        waitForAsyncJobToComplete(asyncJob)
+    }
+
+    static String getPathStringWithoutBranchName(Path path, String branchName) {
+        path.toString().replace("\$$branchName", "")
     }
 
     void logout() {

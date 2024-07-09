@@ -16,6 +16,7 @@ import uk.ac.ox.softeng.maurodatamapper.path.Path
 import uk.ac.ox.softeng.maurodatamapper.terminology.Terminology
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
+import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
@@ -134,6 +135,8 @@ class GraphService {
         List<T> items) {
         List<GraphNode> graphNodes = []
 
+        long startTime = System.currentTimeMillis()
+
         items.forEach { item -> {
             try {
                 log.info("Removing graph node for $item.domainType '$item.label' [$item.id]")
@@ -154,6 +157,8 @@ class GraphService {
                 log.error("Error removing graph node: $exception.message", exception)
             }
         }
+
+        log.info("Built all graph nodes under '$rootBranch\$$rootBranch.branchName' [$rootBranch.id] in ${Utils.timeTaken(startTime)}")
 
         graphNodes
     }
