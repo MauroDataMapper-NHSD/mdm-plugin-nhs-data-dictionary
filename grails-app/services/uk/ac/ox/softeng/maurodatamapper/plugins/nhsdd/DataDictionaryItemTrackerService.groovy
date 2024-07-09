@@ -47,7 +47,7 @@ class DataDictionaryItemTrackerService {
 
     AsyncJob asyncBuildGraphNode(UUID versionedFolderId, String domainName, UUID id, User startedByUser) {
         asyncJobService.createAndSaveAsyncJob(
-            "Item tracker: update graph node for item '$domainName' [$id] under root branch [$versionedFolderId]",
+            "Item tracker: update graph node for item '$domainName' [$id] under VF [$versionedFolderId]",
             startedByUser) {
             buildGraphNode(versionedFolderId, domainName, id)
         }
@@ -84,7 +84,7 @@ class DataDictionaryItemTrackerService {
         GraphNode predecessorGraphNode,
         User startedByUser) {
         asyncJobService.createAndSaveAsyncJob(
-            "Item tracker: remove deleted item '$predecessorPath' from successor graph nodes under root branch [$versionedFolderId]",
+            "Item tracker: remove deleted item '$predecessorPath' from graph nodes under VF [$versionedFolderId]",
             startedByUser) {
             updateSuccessorGraphNodesAfterItemDeleted(versionedFolderId, predecessorPath, predecessorGraphNode)
         }
@@ -121,7 +121,7 @@ class DataDictionaryItemTrackerService {
         String replacementPredecessorPath,
         User startedByUser) {
         asyncJobService.createAndSaveAsyncJob(
-            "Item tracker: update successor graph nodes under root branch [$versionedFolderId] to replace predecessor '$originalPredecessorPath' with '$replacementPredecessorPath'",
+            "Item tracker: update successor graph nodes under VF [$versionedFolderId] to replace predecessor",
             startedByUser) {
             updatePredecessorFromSuccessorGraphNodesAfterItemMoved(versionedFolderId, domainName, id, originalPredecessorPath, replacementPredecessorPath)
         }
