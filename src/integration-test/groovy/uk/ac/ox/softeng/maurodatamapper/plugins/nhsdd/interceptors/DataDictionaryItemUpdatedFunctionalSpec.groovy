@@ -335,19 +335,4 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryItemTrac
         "terms"             | { "terminologies/$nhsBusinessDefinitions.id/terms" }                          | { id -> "terminologies/$nhsBusinessDefinitions.id/terms/$id" }
         "folders"           | { "folders/$dataSetsSubFolder.id/folders" }                                   | { id ->  "folders/$id" }
     }
-
-    private Map buildUpdateItemRequestBody(
-        String domainType,
-        String label) {
-        if (domainType == "terms") {
-            return [
-                code: label,
-                definition: label
-            ]
-        }
-
-        return [
-            label: label
-        ]
-    }
 }

@@ -72,7 +72,13 @@ abstract class BaseDataDictionaryItemTrackerFunctionalSpec extends BaseDataDicti
         nhsBusinessDefinitions = given."there is a terminology"(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME, dictionaryBranch)
         nhsBusinessTerm = given."there is a term"("ABO System", "ABO System", nhsBusinessDefinitions)
 
+        postSetup()
+
         sessionFactory.currentSession.flush()
+    }
+
+    void postSetup() {
+        // Nothing to do by default
     }
 
     @Transactional
@@ -118,6 +124,21 @@ abstract class BaseDataDictionaryItemTrackerFunctionalSpec extends BaseDataDicti
         return [
             label: label,
             description: description
+        ]
+    }
+
+    Map buildUpdateItemRequestBody(
+        String domainType,
+        String label) {
+        if (domainType == "terms") {
+            return [
+                code: label,
+                definition: label
+            ]
+        }
+
+        return [
+            label: label
         ]
     }
 }
