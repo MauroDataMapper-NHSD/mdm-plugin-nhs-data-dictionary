@@ -228,6 +228,13 @@ class DataDictionaryItemPathChangedFunctionalSpec extends BaseDataDictionaryFunc
             description == expectedUpdatedDescription
         }
 
+        and: "the referenced item graph node was updated"
+        GET("nhsdd/$dictionaryBranch.id/graph/$referencedDomainType/$referencedItem.id", MAP_ARG, true)
+        verifyResponse(OK, response)
+        verifyAll(responseBody()) {
+            successors ==~ [updatedItemPath]
+        }
+
         cleanup:
         // Put the label back to how it was
         log.info("Cleanup of label and description")

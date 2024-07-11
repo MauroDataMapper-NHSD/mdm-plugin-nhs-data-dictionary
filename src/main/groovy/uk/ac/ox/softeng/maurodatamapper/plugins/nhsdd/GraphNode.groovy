@@ -68,6 +68,11 @@ class GraphNode {
         predecessors.clear()
     }
 
+    void replaceSuccessor(String original, String replacement) {
+        removeSuccessor(original)
+        addSuccessor(replacement)
+    }
+
     void replacePredecessor(String original, String replacement) {
         removePredecessor(original)
         addPredecessor(replacement)

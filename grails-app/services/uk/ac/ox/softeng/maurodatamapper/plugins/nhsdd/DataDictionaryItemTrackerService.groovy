@@ -5,6 +5,7 @@ import uk.ac.ox.softeng.maurodatamapper.core.async.AsyncJobService
 import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MetadataAware
 import uk.ac.ox.softeng.maurodatamapper.core.traits.domain.InformationAware
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
@@ -217,7 +218,12 @@ class DataDictionaryItemTrackerService {
                 // item correctly
                 String correctedPredecessorPath = predecessorPath.replace(originalPath, replacementPath)
 
-                modifyDescriptionInPredecessorItem(correctedPredecessorPath, originalHyperlink, replacementHyperlink)
+                modifyDescriptionInPredecessorItem(
+                    correctedPredecessorPath,
+                    originalHyperlink,
+                    replacementHyperlink,
+                    originalPath,
+                    replacementPath)
             }
         }
         catch (Exception exception) {
@@ -227,10 +233,12 @@ class DataDictionaryItemTrackerService {
         }
     }
 
-    private <T extends MdmDomain & InformationAware & GormEntity> void modifyDescriptionInPredecessorItem(
+    private <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> void modifyDescriptionInPredecessorItem(
         String predecessorPath,
         String originalHyperlink,
-        String replacementHyperlink) {
+        String replacementHyperlink,
+        String originalPath,
+        String replacementPath) {
         try {
             T predecessorItem = graphService.findGraphResourceByPath(predecessorPath) as T
             if (!predecessorItem) {
@@ -246,6 +254,11 @@ class DataDictionaryItemTrackerService {
 
             predecessorItem.save([flush: true, validate: true])
             log.info("Updated description of $predecessorItem.domainType '$predecessorItem.label' [$predecessorItem.id]")
+
+            GraphNode graphNode = graphService.getGraphNode(predecessorItem)
+            log.info("Updating successor '$originalPath' to '$replacementPath' in '$predecessorPath'")
+            graphNode.replaceSuccessor(originalPath, replacementPath)
+            graphService.saveGraphNode(predecessorItem, graphNode)
         }
         catch (Exception exception) {
             log.error("Exception occurred updating $predecessorPath: $exception.message", exception)
