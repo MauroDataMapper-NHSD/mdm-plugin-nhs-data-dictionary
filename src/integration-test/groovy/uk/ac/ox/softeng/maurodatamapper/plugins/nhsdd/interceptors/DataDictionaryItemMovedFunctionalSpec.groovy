@@ -11,8 +11,8 @@ import static io.micronaut.http.HttpStatus.OK
 @Integration
 @Slf4j
 @Rollback
-class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryItemTrackerFunctionalSpec {
-    void "should automatically update a graph node after updating the description of #domainType"(
+class DataDictionaryItemMovedFunctionalSpec extends BaseDataDictionaryItemTrackerFunctionalSpec {
+    void "should automatically update a graph node after changing the path of #domainType"(
         String domainType,
         Closure getCreateEndpoint,
         Closure getUpdateEndpoint) {
@@ -44,9 +44,9 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryItemTrac
         verifyResponse(CREATED, response)
 
         and: "the response has object values"
-        def body = responseBody()
-        String newItemId = body.id
-        String newItemPath = body.path
+        def createdResponseBody = responseBody()
+        String newItemId = createdResponseBody.id
+        String newItemPath = createdResponseBody.path
         verifyAll {
             newItemId
             newItemPath
@@ -87,33 +87,24 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryItemTrac
             predecessors ==~ [newItemPath]
         }
 
-        and: "the predecessors were updated"
-        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
-        verifyResponse(OK, response)
-        verifyAll(responseBody()) {
-            successors ==~ []
-            predecessors ==~ []
-        }
-
-        when: "an updated description is prepared"
-        // *Don't* include the branch name in paths to match what MDM UI would do when
-        // saving the description
-        String nhsClassPath = getPathStringWithoutBranchName(nhsClass.path, dictionaryBranch.branchName)
-        verifyAll {
-            nhsClassPath == "dm:Classes and Attributes|dc:APPOINTMENT"
-        }
-        String updatedDescription = """<a href=\"$nhsClassPath\">Class</a>, 
-<a href=\"$nhsBusinessTermPath\">Term</a>, 
-<a href=\"https://www.google.com\">Website</a>"""
-
-        and: "the item is updated"
+        when: "the item is updated to change its path"
         String updateEndpoint = getUpdateEndpoint(newItemId)
-        PUT(updateEndpoint, [
-            description: updatedDescription
-        ],MAP_ARG, true)
+        Map updateRequestBody = buildUpdateItemRequestBody(domainType, "Changed Item to Update")
+        PUT(updateEndpoint, updateRequestBody,MAP_ARG, true)
 
         then: "the response is correct"
         verifyResponse(OK, response)
+
+        and: "the response has object values"
+        def updatedResponseBody = responseBody()
+        String updatedItemId = updatedResponseBody.id
+        String updatedItemPath = updatedResponseBody.path
+        verifyAll {
+            updatedItemId
+            updatedItemPath
+            updatedItemId == newItemId
+            updatedItemPath != newItemPath
+        }
 
         and: "wait for the async job to finish"
         waitForLastAsyncJobToComplete()
@@ -122,40 +113,32 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryItemTrac
         GET("nhsdd/$dictionaryBranch.id/graph/$domainType/$newItemId", MAP_ARG, true)
         verifyResponse(OK, response)
         verifyAll(responseBody()) {
-            successors ==~ [this.nhsClass.path.toString(), this.nhsBusinessTerm.path.toString()]
+            successors ==~ [this.dataSetModel.path.toString(), this.nhsBusinessTerm.path.toString(), this.nhsAttribute.path.toString()]
             predecessors ==~ []
         }
 
-        and: "the predecessors were updated"
+        and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/dataModels/$dataSetModel.id", MAP_ARG, true)
         verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
-            predecessors ==~ []
+            predecessors ==~ [updatedItemPath]
         }
 
-        and: "the predecessors were updated"
+        and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/terms/$nhsBusinessTerm.id", MAP_ARG, true)
         verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
-            predecessors ==~ [newItemPath]
+            predecessors ==~ [updatedItemPath]
         }
 
-        and: "the predecessors were updated"
+        and: "the predecessors are correct"
         GET("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
         verifyResponse(OK, response)
         verifyAll(responseBody()) {
             successors ==~ []
-            predecessors ==~ []
-        }
-
-        and: "the predecessors were updated"
-        GET("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
-        verifyResponse(OK, response)
-        verifyAll(responseBody()) {
-            successors ==~ []
-            predecessors ==~ [newItemPath]
+            predecessors ==~ [updatedItemPath]
         }
 
         cleanup:
@@ -170,9 +153,6 @@ class DataDictionaryItemUpdatedFunctionalSpec extends BaseDataDictionaryItemTrac
         verifyResponse(NO_CONTENT, response)
 
         DELETE("nhsdd/$dictionaryBranch.id/graph/dataElements/$nhsAttribute.id", MAP_ARG, true)
-        verifyResponse(NO_CONTENT, response)
-
-        DELETE("nhsdd/$dictionaryBranch.id/graph/dataClasses/$nhsClass.id", MAP_ARG, true)
         verifyResponse(NO_CONTENT, response)
 
         where:
