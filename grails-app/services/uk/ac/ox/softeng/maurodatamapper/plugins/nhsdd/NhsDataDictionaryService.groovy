@@ -867,7 +867,7 @@ class NhsDataDictionaryService {
             previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
         }
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
-        NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
+        NhsDataDictionary previousDataDictionary = previousVersion ? buildDataDictionary(previousVersion.id) : null
 
         Path outputPath = Paths.get(getTestOutputPath())
         if(!isTest) {
