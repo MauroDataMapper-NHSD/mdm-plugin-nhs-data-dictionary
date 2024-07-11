@@ -1,0 +1,17 @@
+[
+  {
+    "sectionName": "Graph",
+    "sectionDescription": "Represents the graph and relationships of this item to other items",
+    "fields": [
+      {
+        "fieldName": "Graph Node",
+        "metadataPropertyName": "graphNode",
+        "description": "The graph node properties pointing to successors and predecessors. These values are read-only and maintained automatically via the NHS Data Dictionary.",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "json",
+        "uneditable": true
+      }
+    ]
+  }
+]

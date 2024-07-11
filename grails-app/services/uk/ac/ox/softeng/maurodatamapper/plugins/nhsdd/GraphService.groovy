@@ -79,7 +79,7 @@ class GraphService {
     /**
      * These are the only Mauro domain types we choose to add graph nodes to.
      */
-    private static List<Class> ACCEPTED_RESOURCE_CLASSES = [
+    public static List<Class> ACCEPTED_RESOURCE_CLASSES = [
         DataModel.class,
         DataClass.class,
         DataElement.class,
