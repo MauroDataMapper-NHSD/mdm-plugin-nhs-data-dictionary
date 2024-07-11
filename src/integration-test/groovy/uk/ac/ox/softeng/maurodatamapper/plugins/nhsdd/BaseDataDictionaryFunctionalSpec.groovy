@@ -19,6 +19,9 @@ import static io.micronaut.http.HttpStatus.CREATED
 import static io.micronaut.http.HttpStatus.NO_CONTENT
 import static io.micronaut.http.HttpStatus.OK
 
+/**
+ * Base specification for any tests that need to verify data dictionary items.
+ */
 @Slf4j
 class BaseDataDictionaryFunctionalSpec extends BaseFunctionalSpec {
     AsyncJobService asyncJobService

@@ -17,6 +17,9 @@ import groovy.util.logging.Slf4j
 import spock.lang.Shared
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
+/**
+ * Base specification for all of the custom interceptors for maintaining the data dictionary graph.
+ */
 @Slf4j
 abstract class BaseDataDictionaryItemTrackerFunctionalSpec extends BaseDataDictionaryFunctionalSpec {
     // Trace the item layout of a test data dictionary

@@ -4,6 +4,18 @@ import uk.ac.ox.softeng.maurodatamapper.path.Path
 
 import groovy.json.JsonOutput
 
+/**
+ * Represents a node of a graph.
+ *
+ * This is used as part of tracing all items within a Data Dictionary branch, where each item in the
+ * dictionary represents a "graph node", linked to successors and predecessors.
+ *
+ * For example, given these items and relationships: A --> B
+ * - B is a "successor" to A
+ * - A is a "predecessor" to B
+ *
+ * All successors and predecessors are represented as a set of Mauro paths e.g. "dm:Model$branch|dc:Class|de:Element"
+ */
 class GraphNode {
     Set<String> predecessors = []
     Set<String> successors = []
@@ -64,7 +76,7 @@ class GraphNode {
         successors.clear()
     }
 
-    void clearPredecessaors() {
+    void clearPredecessors() {
         predecessors.clear()
     }
 

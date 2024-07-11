@@ -12,6 +12,11 @@ import groovy.util.logging.Slf4j
 import org.grails.datastore.gorm.GormEntity
 import org.springframework.http.HttpStatus
 
+/**
+ * Custom interceptor for tracking when individual data dictionary items have been deleted. Automatically
+ * updates the graph nodes of items that the deleted item used to be linked to so those references are
+ * removed.
+ */
 @Slf4j
 class DataDictionaryItemDeletedInterceptor extends DataDictionaryItemTrackerInterceptor implements Interceptor {
     GraphService graphService

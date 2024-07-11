@@ -16,6 +16,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import static org.springframework.http.HttpStatus.NO_CONTENT
 
+/**
+ * Controller for endpoints to manage the Data Dictionary graph.
+ */
 @Slf4j
 class GraphController implements MdmController, Controller, RestResponder {
     GraphService graphService

@@ -17,6 +17,13 @@ import groovy.util.logging.Slf4j
 
 import java.util.regex.Pattern
 
+/**
+ * Custom interceptor base class for Data Dictionary items.
+ *
+ * These item tracker interceptors are designed to capture when certain actions happen in Mauro e.g.
+ * an item is created/updated/deleted. In those cases, the data dictionary graph must be maintained
+ * at the same time to ensure the graph is accurate all the time.
+ */
 @Slf4j
 abstract class DataDictionaryItemTrackerInterceptor implements MdmInterceptor, Interceptor {
     static Pattern CONTROLLER_PATTERN = ~/(folder|dataModel|dataClass|dataElement|term)/

@@ -9,6 +9,15 @@ import grails.artefact.Interceptor
 import groovy.util.logging.Slf4j
 import org.springframework.http.HttpStatus
 
+/**
+ * Custom interceptor for tracking when individual data dictionary items have been updated. There are two
+ * possible update actions:
+ *
+ * 1. The description was changed - so the graph node is built/updated to add/remove successors/predecessors
+ * that now match the new description.
+ * 2. An item was renamed or moved - so the surrounding graph nodes are updated to refer to the new path
+ * of this item.
+ */
 @Slf4j
 class DataDictionaryItemUpdatedInterceptor extends DataDictionaryItemTrackerInterceptor implements Interceptor {
     DataDictionaryItemUpdatedInterceptor() {

@@ -27,12 +27,48 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
+/**
+ * Service to handle all graph operations on a Data Dictionary branch.
+ *
+ * A Data Dictionary branch is equivalent to a Versioned Folder.
+ *
+ * Th2 graph is a representation of how dictionary items are related to each other. The description fields
+ * of dictionary items contain hyperlinks to other dictionary items, so they build up a relationship to each other.
+ * Each dictionary item with these links to Mauro paths will automatically have a {@link GraphNode} attached, with
+ * the following properties:
+ *
+ * - successors - A list of Mauro paths referred to in an items description field - links going "out"
+ * - predecessors - A list of Mauro paths which refer to an item in their description field - links coming "in"
+ *
+ * For example, given these two Data Classes, they would have these graph nodes:
+ *
+ * - Label: ACCOMMODATION
+ * - Path: dm:Classes and Attributes$main|dc:ACCOMMODATION
+ * - Description: "Refers to <a href='dm:Classes and Attributes$main|dc:ACTIVITY'>an item</a>"
+ * - Graph node: successors: [dm:Classes and Attributes$main|dc:ACTIVITY], predecessors: []
+ *
+ * - Label: ACTIVITY
+ * - Path: dm:Classes and Attributes$main|dc:ACTIVITY
+ * - Graph node: successors: [], predecessors: [dm:Classes and Attributes$main|dc:ACCOMMODATION]
+ *
+ * All {@link GraphNode} objects for every item are stored in a metadata key under that item and fetched/updated
+ * via this service.
+ */
 @Slf4j
 class GraphService {
     public static final String METADATA_NAMESPACE = "uk.nhs.datadictionary.graph"
     public static final String METADATA_KEY = "graphNode"
 
-    private static List<Class> ACCEPTED_RESOURCE_CLASSES = [DataModel.class, DataClass.class, DataElement.class, Folder.class, Term.class]
+    /**
+     * These are the only Mauro domain types we choose to add graph nodes to.
+     */
+    private static List<Class> ACCEPTED_RESOURCE_CLASSES = [
+        DataModel.class,
+        DataClass.class,
+        DataElement.class,
+        Folder.class,
+        Term.class
+    ]
 
     JsonSlurper jsonSlurper = new JsonSlurper()
 
@@ -101,6 +137,16 @@ class GraphService {
         }
     }
 
+    /**
+     * Build a graph node for a Mauro item. Use this when an item has been created or updated.
+     * @param rootBranch The Versioned Folder this item is a descendant of.
+     * @param item The item to update.
+     * @return The new or updated {@link GraphNode}.
+     *
+     * Building a graph node requires scanning the item's description field for links to Mauro paths. All of
+     * these found paths become "successors" to the item passed in, then all of these successors will be updated
+     * to add the item passed in as a "predecessor".
+     */
     <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> GraphNode buildGraphNode(
         VersionedFolder rootBranch,
         T item) {
@@ -142,6 +188,11 @@ class GraphService {
         graphNode
     }
 
+    /**
+     * Rebuild all graph nodes under a provided Versioned Folder.
+     * @param rootBranch The Versioned Folder these items are a descendant of.
+     * @param items The list of items to rebuild.
+     */
     <T extends MdmDomain & InformationAware & MetadataAware & GormEntity> List<GraphNode> buildAllGraphNodes(
         VersionedFolder rootBranch,
         List<T> items) {
@@ -175,6 +226,13 @@ class GraphService {
         graphNodes
     }
 
+    /**
+     * Remove references to an item (the "predecessor) in other graph nodes. Use this when removing an item.
+     * @param rootBranch The ancestor Versioned Folder.
+     * @param predecessorPath The path of the item that was removed.
+     * @param predecessorGraphNode The {@link GraphNode} of the item that was removed, containing the successor
+     * list to track and update
+     */
     void removePredecessorFromSuccessorGraphNodes(
         VersionedFolder rootBranch,
         String predecessorPath,
@@ -191,6 +249,15 @@ class GraphService {
         predecessorGraphNode.clearSuccessors()
     }
 
+    /**
+     * Replaces references to an item (the "predecessor) in other graph nodes. Use this when removing an item
+     * label has been changed or the path of the item has changed (e.g. "moved").
+     * @param rootBranch The ancestor Versioned Folder.
+     * @param originalPredecessorPath The original path of the predecessor.
+     * @param replacementPredecessorPath The new path of the predecessor.
+     * @param predecessorGraphNode The {@link GraphNode} of the item that was removed, containing the successor
+     * list to track and update
+     */
     void updatePredecessorFromSuccessorGraphNodes(
         VersionedFolder rootBranch,
         String originalPredecessorPath,

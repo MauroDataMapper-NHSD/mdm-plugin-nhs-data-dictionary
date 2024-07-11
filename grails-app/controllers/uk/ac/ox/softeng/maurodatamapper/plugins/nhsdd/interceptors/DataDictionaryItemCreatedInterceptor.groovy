@@ -6,6 +6,10 @@ import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import grails.artefact.Interceptor
 import groovy.util.logging.Slf4j
 
+/**
+ * Custom interceptor for tracking when individual data dictionary items have been created. Automatically
+ * creates a new GraphNode for the new item.
+ */
 @Slf4j
 class DataDictionaryItemCreatedInterceptor extends DataDictionaryItemTrackerInterceptor implements Interceptor {
     DataDictionaryItemCreatedInterceptor() {
