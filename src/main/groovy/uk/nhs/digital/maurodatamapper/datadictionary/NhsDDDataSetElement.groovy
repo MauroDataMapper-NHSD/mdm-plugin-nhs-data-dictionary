@@ -81,13 +81,13 @@ class NhsDDDataSetElement{
         }
 
 
-        mandation = thisElementMetadata.find { it.key == "MRO" }?.value
-        constraints = thisElementMetadata.find { it.key == "Rules" }?.value
-        groupRepeats = thisElementMetadata.find { it.key == "Group Repeats" }?.value
-        rules = thisElementMetadata.find { it.key == "Rules" }?.value
+        mandation = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_MRO }?.value
+        constraints = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES }?.value
+        groupRepeats = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_GROUP_REPEATS }?.value
+        rules = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES }?.value
         uin = thisElementMetadata.find { it.key == "uin" }?.value
 
-        Metadata md = thisElementMetadata.find {it.key == "Web Order"}
+        Metadata md = thisElementMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_WEB_ORDER }
         if(md) {
             webOrder = Integer.parseInt(md.value)
         } else {

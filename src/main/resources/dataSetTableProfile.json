@@ -59,7 +59,7 @@
       {
         "fieldName": "Choice",
         "metadataPropertyName": "choice",
-        "description": "true or false value for stating this table element presents a choice with the child elements below",
+        "description": "State whether this table element presents a choice with the child elements below. This defaults to \"or\" unless one of the other options are selected.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "boolean"
@@ -67,7 +67,7 @@
       {
         "fieldName": "And",
         "metadataPropertyName": "and",
-        "description": "And",
+        "description": "State whether this table element presents a choice between child elements in an \"and\" relationship.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "boolean"
@@ -75,7 +75,7 @@
       {
         "fieldName": "Inclusive or",
         "metadataPropertyName": "inclusiveOr",
-        "description": "Inclusive OR",
+        "description": "State whether this table element presents a choice between child elements in an \"and/or\" relationship.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "boolean"
@@ -83,7 +83,7 @@
       {
         "fieldName": "Not option",
         "metadataPropertyName": "notOption",
-        "description": "Not option",
+        "description": "State whether this table element presents a negated choice.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "boolean"
@@ -113,15 +113,15 @@
       {
         "fieldName": "Data Set Reference",
         "metadataPropertyName": "dataSetReference",
-        "description": "Data Set Reference",
+        "description": "State whether this table element references another data set. If so, fill in the \"Data Set Reference To\" field with the data set name.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "boolean"
       },
       {
         "fieldName": "Data Set Reference To",
         "metadataPropertyName": "dataSetReferenceTo",
-        "description": "Data Set Reference To",
+        "description": "The name of the data set to reference and produce a link in the data set table element.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"

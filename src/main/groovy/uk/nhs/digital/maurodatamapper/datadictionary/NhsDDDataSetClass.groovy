@@ -98,7 +98,7 @@ class NhsDDDataSetClass {
         constraints = thisClassMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES  }?.value
         isDataSetReference = thisClassMetadata.find {
             (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
-                    && it.key == "Data Set Reference"
+                    && it.key == NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE
                     && it.value == "true")
         }
         dataSetReferenceTo = thisClassMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO }?.value
