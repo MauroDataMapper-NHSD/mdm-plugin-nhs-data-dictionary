@@ -75,38 +75,38 @@ class NhsDDDataSetClass {
         }
 
         isChoice = thisClassMetadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
-                    && it.key == "Choice"
-                    && it.value == "true")
+            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+                && it.key == NhsDataDictionary.DATASET_TABLE_KEY_CHOICE
+                && it.value == "true")
         }
         isAnd = thisClassMetadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
-                    && it.key == "And"
-                    && it.value == "true")
+            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+                && it.key == NhsDataDictionary.DATASET_TABLE_KEY_AND
+                && it.value == "true")
         }
         isInclusiveOr = thisClassMetadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
-                    && it.key == "InclusiveOr"
-                    && it.value == "true")
+            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+                && it.key == NhsDataDictionary.DATASET_TABLE_KEY_INCLUSIVE_OR
+                && it.value == "true")
         }
         isAddress = thisClassMetadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
-                    && it.key == "Address Choice"
-                    && it.value == "true")
+            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+                && it.key == NhsDataDictionary.DATASET_TABLE_KEY_ADDRESS_CHOICE
+                && it.value == "true")
         }
-        mandation = thisClassMetadata.find { it.key == "MRO" }?.value
-        constraints = thisClassMetadata.find { it.key == "Rules" }?.value
+        mandation = thisClassMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_MRO  }?.value
+        constraints = thisClassMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES  }?.value
         isDataSetReference = thisClassMetadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
-                    && it.key == "Data Set Reference"
+            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+                    && it.key == NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE
                     && it.value == "true")
         }
-        dataSetReferenceTo = thisClassMetadata.find {it.key == "Data Set Reference To"}?.value
-        groupRepeats = thisClassMetadata.find {it.key == "Group Repeats"}?.value
-        multiplicityText = thisClassMetadata.find {it.key == "Multiplicity Text"}?.value
-        rules = thisClassMetadata.find { it.key == "Rules" }?.value
+        dataSetReferenceTo = thisClassMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO }?.value
+        groupRepeats = thisClassMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_GROUP_REPEATS }?.value
+        multiplicityText = thisClassMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_MULTIPLICITY_TEXT }?.value
+        rules = thisClassMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES  }?.value
 
-        Metadata md = thisClassMetadata.find {it.key == "Web Order"}
+        Metadata md = thisClassMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_WEB_ORDER }
         if(md) {
             webOrder = Integer.parseInt(md.value)
         } else {
@@ -415,7 +415,7 @@ class NhsDDDataSetClass {
                             }
                         }
                         entry(namest: "col2", nameend: "col2", align: Align.CENTER) {
-                            p "Group Repeats"
+                            p NhsDataDictionary.DATASET_TABLE_KEY_GROUP_REPEATS
                             if(includeMRO) {
                                 p groupRepeats
                             }
