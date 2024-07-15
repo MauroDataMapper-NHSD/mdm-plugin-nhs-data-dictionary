@@ -36,7 +36,7 @@ class BrokenLinks implements IntegrityCheck {
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
         Map<String, List<NhsDataDictionaryComponent>> linkComponentMap = [:]
-        List<NhsDataDictionaryComponent> errorComponents = []
+        List<NhsDataDictionaryComponent> errorComponents = Collections.synchronizedList(new ArrayList<NhsDataDictionaryComponent>())
         dataDictionary.allComponents.
             findAll {!it.isRetired() && it.definition }.
             each {component ->
@@ -50,30 +50,34 @@ class BrokenLinks implements IntegrityCheck {
                     }
                 }
             }
+        List<Thread> threads = []
         linkComponentMap.each {link, componentList ->
-            try {
-                def code = new URL(link).openConnection().with {
-                    requestMethod = 'HEAD'
-                    connect()
-                    responseCode
-                }
-
-                if(code != 200) {
-                    componentList.each {component ->
-                        log.error("${component.stereotype},${component.name},${link}, ${code}")
+            threads.add(Thread.start {
+                try {
+                    def code = new URL(link).openConnection().with {
+                        requestMethod = 'HEAD'
+                        connect()
+                        responseCode
                     }
-                }
-                if(code == 404) {
+
+                    if (code != 200) {
+                        componentList.each {component ->
+                            log.error("${component.stereotype},${component.name},${link}, ${code}")
+                        }
+                    }
+                    if (code > 400 && code < 500) {
+                        errorComponents.addAll(componentList)
+                        log.info("Broken link: " + link)
+                    }
+                } catch (Exception e) {
+                    componentList.each {component ->
+                        log.error("${component.stereotype},${component.name},${link}, Exception")
+                    }
                     errorComponents.addAll(componentList)
-                    log.info("Broken link: " + link)
                 }
-            } catch(Exception e) {
-                componentList.each {component ->
-                    log.error("${component.stereotype},${component.name},${link}, Exception")
-                }
-                errorComponents.addAll(componentList)
-            }
+            })
         }
+        threads.each { it.join() }
         errors = (errorComponents.toSet()).toList()
     }
 

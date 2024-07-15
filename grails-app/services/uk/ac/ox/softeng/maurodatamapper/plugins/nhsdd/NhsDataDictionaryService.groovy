@@ -270,7 +270,7 @@ class NhsDataDictionaryService {
             AllItemsHaveAlias,
             AllItemsAreWithinValidDateRange,
             ReusedItemNames,
-            //BrokenLinks
+            BrokenLinks
         ]
 
         List<IntegrityCheck> integrityChecks = integrityCheckClasses.collect {checkClass ->
