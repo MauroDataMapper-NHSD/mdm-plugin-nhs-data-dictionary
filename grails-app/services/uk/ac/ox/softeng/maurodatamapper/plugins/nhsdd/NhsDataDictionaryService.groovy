@@ -73,6 +73,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.DataSetsInc
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ReusedItemNames
+import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllItemsAreWithinValidDateRange
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.ISO11179Helper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.website.WebsiteUtility
@@ -268,8 +269,9 @@ class NhsDataDictionaryService {
             DataSetsIncludeRetiredItem,
             AllItemsHaveShortDescription,
             AllItemsHaveAlias,
+            AllItemsAreWithinValidDateRange,
             ReusedItemNames,
-            //BrokenLinks
+            BrokenLinks
         ]
 
         List<IntegrityCheck> integrityChecks = integrityCheckClasses.collect {checkClass ->
@@ -874,7 +876,7 @@ class NhsDataDictionaryService {
             previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
         }
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
-        NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
+        NhsDataDictionary previousDataDictionary = previousVersion ? buildDataDictionary(previousVersion.id) : null
 
         Path outputPath = Paths.get(getTestOutputPath())
         if(!isTest) {

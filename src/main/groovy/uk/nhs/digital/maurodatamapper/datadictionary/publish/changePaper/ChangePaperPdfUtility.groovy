@@ -51,21 +51,22 @@ class ChangePaperPdfUtility {
         }
 
 
-
-        previousDataDictionary.getAllComponents().each { it ->
-            if(!pathLookup[it.getMauroPath()]) {
-                ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
-                pathLookup[it.getMauroPath()] = it
+        if (previousDataDictionary) {
+            previousDataDictionary.getAllComponents().each {it ->
+                if (!pathLookup[it.getMauroPath()]) {
+                    ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
+                    pathLookup[it.getMauroPath()] = it
+                }
             }
         }
-
         thisDataDictionary.getAllComponents().each {it ->
             it.replaceLinksInDefinition(pathLookup)
         }
-        previousDataDictionary.getAllComponents().each {it ->
-            it.replaceLinksInDefinition(pathLookup)
+        if (previousDataDictionary) {
+            previousDataDictionary.getAllComponents().each {it ->
+                it.replaceLinksInDefinition(pathLookup)
+            }
         }
-
         ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
 
 

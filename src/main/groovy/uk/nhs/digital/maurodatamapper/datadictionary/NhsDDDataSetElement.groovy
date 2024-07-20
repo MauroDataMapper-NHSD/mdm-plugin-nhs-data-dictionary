@@ -18,18 +18,16 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
 import groovy.xml.MarkupBuilder
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
+
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
-import uk.nhs.digital.maurodatamapper.datadictionary.datasets.DataSetParser
+
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
-import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 class NhsDDDataSetElement{
 
@@ -45,6 +43,7 @@ class NhsDDDataSetElement{
     boolean retired
     String groupRepeats
     String rules
+    String uin
 
     NhsDDElement reuseElement
     NhsDataDictionary dataDictionary
@@ -74,14 +73,21 @@ class NhsDDDataSetElement{
             }
         }
 
-        List<Metadata> thisElementMetadata = dataDictionary.dataSetsMetadata[dataElement.id]
+        List<Metadata> thisElementMetadata
+        if(dataDictionary) {
+            thisElementMetadata = dataDictionary.dataSetsMetadata[dataElement.id]
+        } else {
+            thisElementMetadata = Metadata.byMultiFacetAwareItemId(dataElement.id).list()
+        }
 
-        mandation = thisElementMetadata.find { it.key == "MRO" }?.value
-        constraints = thisElementMetadata.find { it.key == "Rules" }?.value
-        groupRepeats = thisElementMetadata.find { it.key == "Group Repeats" }?.value
-        rules = thisElementMetadata.find { it.key == "Rules" }?.value
 
-        Metadata md = thisElementMetadata.find {it.key == "Web Order"}
+        mandation = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_MRO }?.value
+        constraints = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES }?.value
+        groupRepeats = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_GROUP_REPEATS }?.value
+        rules = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES }?.value
+        uin = thisElementMetadata.find { it.key == "uin" }?.value
+
+        Metadata md = thisElementMetadata.find {it.key == NhsDataDictionary.DATASET_TABLE_KEY_WEB_ORDER }
         if(md) {
             webOrder = Integer.parseInt(md.value)
         } else {
@@ -104,7 +110,7 @@ class NhsDDDataSetElement{
         } else {
             link = NhsDDElement.getPathFromName(name, false)
         }
-        
+
         markupBuilder.a (href: link) {
             mkp.yield(name)
         }

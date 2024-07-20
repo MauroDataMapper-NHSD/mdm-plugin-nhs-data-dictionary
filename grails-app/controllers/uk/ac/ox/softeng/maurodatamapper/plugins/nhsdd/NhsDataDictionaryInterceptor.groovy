@@ -24,8 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.security.UserGroup
 
 class NhsDataDictionaryInterceptor implements MdmInterceptor {
 
-    public static final TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME = "Terminology Server Administrators"
-    public static final WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME = "Website Preview Generators"
+//    public static final TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME = "Terminology Server Administrators"
 
     static final List<String> adminActions = [
             'ingest'
@@ -33,21 +32,16 @@ class NhsDataDictionaryInterceptor implements MdmInterceptor {
 
 
     boolean before() {
-        //User currentUser = getCurrentUser()
 
         if (actionName in adminActions) {
             return currentUserSecurityPolicyManager.isApplicationAdministrator() ?: forbiddenDueToNotApplicationAdministrator()
         }
+//        Terminology Server Administrators has been disabled for gh-18 to be reenabled at a later date
+//        if(invalidUserGroup(["codeSystemValidateBundle","valueSetValidateBundle"],
+//                TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME)) {
+//            return forbiddenDueToPermissions()
+//        }
 
-
-        if(invalidUserGroup(["codeSystemValidateBundle","valueSetValidateBundle"],
-                TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME)) {
-            return forbiddenDueToPermissions()
-        }
-        if(invalidUserGroup(["generateWebsite"],
-                WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME)) {
-            return forbiddenDueToPermissions()
-        }
         return true
     }
 

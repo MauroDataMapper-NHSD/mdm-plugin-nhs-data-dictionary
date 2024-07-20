@@ -65,8 +65,8 @@ class BootStrap {
             }
 
             List<String> userGroupNames = [
-                    NhsDataDictionaryInterceptor.WEBSITE_PREVIEW_GENERATORS_USER_GROUP_NAME,
-                    NhsDataDictionaryInterceptor.TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME
+                    //Terminology Server Administrators has been disabled for gh-18 to be reenabled at a later date
+                    //NhsDataDictionaryInterceptor.TERMINOLOGY_SERVER_ADMINISTRATORS_USER_GROUP_NAME
             ]
             CatalogueUser adminUser = CatalogueUser.findByEmailAddress(StandardEmailAddress.ADMIN)
 
