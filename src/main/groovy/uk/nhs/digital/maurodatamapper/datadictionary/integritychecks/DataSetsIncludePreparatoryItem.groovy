@@ -23,9 +23,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
 class DataSetsIncludePreparatoryItem implements IntegrityCheck {
 
-    String name = "Datasets that include preparatory items"
+    String name = "Data Sets that include preparatory items"
 
-    String description = "Check that a dataset doesn't include any preparatory data elements in its definition"
+    String description = "Check that a data set doesn't include any preparatory data elements in its definition"
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {

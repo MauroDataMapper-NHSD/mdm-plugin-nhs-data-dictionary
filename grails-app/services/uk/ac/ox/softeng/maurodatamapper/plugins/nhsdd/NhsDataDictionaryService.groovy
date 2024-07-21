@@ -71,6 +71,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.DataSetsInc
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.DataSetsIncludeRetiredItem
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ElementsLinkedToAnAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheck
+import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.InternalLinksInDescriptions
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ReusedItemNames
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllItemsAreWithinValidDateRange
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.ISO11179Helper
@@ -259,6 +260,7 @@ class NhsDataDictionaryService {
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
 
         List<Class<IntegrityCheck>> integrityCheckClasses = [
+            InternalLinksInDescriptions,
             AllClassesHaveRelationships,
             ClassLinkedToRetiredAttribute,
             AttributesLinkedToAClass,
