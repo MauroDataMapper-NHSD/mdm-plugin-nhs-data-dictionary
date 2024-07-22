@@ -25,9 +25,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
 class DataSetsIncludeRetiredItem implements IntegrityCheck {
 
-    String name = "Datasets that include retired items"
+    String name = "Data Sets that include retired items"
 
-    String description = "Check that a dataset doesn't include any retired data elements in its definition"
+    String description = "Check that a data set doesn't include any retired data elements in its definition"
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {

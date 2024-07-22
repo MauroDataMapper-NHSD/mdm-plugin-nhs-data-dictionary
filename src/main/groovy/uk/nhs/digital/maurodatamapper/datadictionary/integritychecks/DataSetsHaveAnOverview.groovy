@@ -25,7 +25,7 @@ class DataSetsHaveAnOverview implements IntegrityCheck {
 
     String name = "Data Sets have an overview"
 
-    String description = "Check that all live datasets have an overview field"
+    String description = "Check that all live data sets have an overview field"
 
     @Override
     List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
