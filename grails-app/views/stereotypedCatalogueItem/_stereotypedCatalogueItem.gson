@@ -9,4 +9,5 @@ json {
     name stereotypedCatalogueItem.label
     stereotype stereotypedCatalogueItem.stereotype
     isRetired stereotypedCatalogueItem.isRetired
+    key stereotypedCatalogueItem.key
 }
