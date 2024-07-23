@@ -22,11 +22,11 @@ import uk.ac.ox.softeng.maurodatamapper.profile.provider.JsonProfileProviderServ
 class DDClassRelationshipPropertiesProfileProviderService extends JsonProfileProviderService{
 
     String getMetadataNamespace() {
-        'uk.nhs.datadictionary.class.relationship'
+        'uk.nhs.datadictionary.class'
     }
 
     String getDisplayName() {
-        'NHS Data Dictionary - Class relationship Properties'
+        'NHS Data Dictionary - Class Relationship'
     }
 
     String getVersion() {
@@ -38,7 +38,7 @@ class DDClassRelationshipPropertiesProfileProviderService extends JsonProfilePro
     }
 
     List<String> profileApplicableForDomains() {
-        return ['DataClass', 'DataElement']
+        return ['DataElement']
     }
 
 }

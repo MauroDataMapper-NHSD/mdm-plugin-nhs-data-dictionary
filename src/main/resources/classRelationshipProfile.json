@@ -1,7 +1,106 @@
 [
   {
-    "sectionName": "Meta Properties",
-    "sectionDescription": "These fields control the properties not covered by other profiles",
+    "sectionName": "Relationship Properties",
+    "sectionDescription": "These fields control the properties for the class relationship",
+    "fields": [
+      {
+        "fieldName": "Direction",
+        "metadataPropertyName": "direction",
+        "description": "The direction of this relationship",
+        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "dataType": "enumeration",
+        "allowedValues": ["client", "supplier"]
+      },
+      {
+        "fieldName": "Is key",
+        "metadataPropertyName": "isKey",
+        "description": "States whether this is a key relationship. This should be checked if 'Part of Client Key' and/or 'Part of Supplier Key' are also checked.",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      }
+    ]
+  },
+  {
+    "sectionName": "Supplier Properties",
+    "sectionDescription": "These fields control the properties for the supplier of the class relationship, depending on the direction.",
+    "fields": [
+      {
+        "fieldName": "Supplier Role",
+        "metadataPropertyName": "supplierRole",
+        "description": "The role of the supplier in this relationship. e.g. If the supplier is ACTIVITY which relates to ADDRESS and a direction of 'supplier', the supplier role may be 'located at'.",
+        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Supplier Cardinality",
+        "metadataPropertyName": "supplierCardinality",
+        "description": "The cardinality of the supplier in this relationship. e.g. a single value like '1', or a cardinality like '0..*'",
+        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Part of Supplier Key",
+        "metadataPropertyName": "partOfSupplierKey",
+        "description": "States whether this is a key from the supplier.",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      },
+      {
+        "fieldName": "Relation Supplier Exclusivity",
+        "metadataPropertyName": "relationSupplierExclusivity",
+        "description": "The exclusivity of the supplier in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  },
+  {
+    "sectionName": "Client Properties",
+    "sectionDescription": "These fields control the properties for the client of the class relationship, depending on the direction.",
+    "fields": [
+      {
+        "fieldName": "Client Role",
+        "metadataPropertyName": "clientRole",
+        "description": "The role of the client in this relationship. e.g. If the client is ADDRESS which is used in ACTIVITY and a direction of 'supplier', the client role may be 'the location for'.'",
+        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Client Cardinality",
+        "metadataPropertyName": "clientCardinality",
+        "description": "The cardinality of the client in this relationship. e.g. a single value like '1', or a cardinality like '0..*'",
+        "minMultiplicity": 1,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
+        "fieldName": "Part of Client Key",
+        "metadataPropertyName": "partOfClientKey",
+        "description": "States whether this is a key from the client.",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      },
+      {
+        "fieldName": "Relation Client Exclusivity",
+        "metadataPropertyName": "relationClientExclusivity",
+        "description": "The exclusivity of the client in this relationship",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      }
+    ]
+  },
+  {
+    "sectionName": "Legacy fields",
+    "sectionDescription": "Properties relating to the definitions in previous tooling, or used as part of the original ingest process",
     "fields": [
       {
         "fieldName": "UIN",
@@ -12,49 +111,17 @@
         "dataType": "string"
       },
       {
+        "fieldName": "Name from Borland Together",
+        "metadataPropertyName": "name",
+        "description": "The name of this modeled content in Borland Together",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "string"
+      },
+      {
         "fieldName": "Metaclass",
         "metadataPropertyName": "metaclass",
         "description": "The metaclass of this modeled content",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Client Role",
-        "metadataPropertyName": "clientRole",
-        "description": "The role of the client in this relationship",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Supplier Role",
-        "metadataPropertyName": "supplierRole",
-        "description": "The role of the supplier in this relationship",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Client Cardinality",
-        "metadataPropertyName": "clientCardinality",
-        "description": "The cardinality of the client in this relationship",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Supplier Cardinality",
-        "metadataPropertyName": "supplierCardinality",
-        "description": "The cardinality of the supplier in this relationship",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Name",
-        "metadataPropertyName": "name",
-        "description": "The name of this modeled content in Borland Together",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
@@ -71,22 +138,6 @@
         "fieldName": "Client UIN",
         "metadataPropertyName": "clientUin",
         "description": "The unique identifier of the client in this relationship",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Relation Supplier Exclusivity",
-        "metadataPropertyName": "relation",
-        "description": "The exclusivity of the supplier in this relationship",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
-        "fieldName": "Direction",
-        "metadataPropertyName": "direction",
-        "description": "The direction of this relationship",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
