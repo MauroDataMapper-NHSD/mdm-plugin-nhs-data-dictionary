@@ -208,7 +208,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     @Override
     Set<DataClass> getAll(UUID versionedFolderId, boolean includeRetired = false) {
         DataModel coreModel = nhsDataDictionaryService.getClassesModel(versionedFolderId)
-        DataClass classesClass = DataClass.byDataModelId(coreModel.id)
+        List<DataClass> classesClass = DataClass.byDataModelId(coreModel.id).toList()
 
         classesClass.findAll {dataClass ->
             dataClass.label != "Retired" && (
