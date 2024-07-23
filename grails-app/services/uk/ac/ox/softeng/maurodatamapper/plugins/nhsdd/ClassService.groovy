@@ -28,6 +28,7 @@ import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassLink
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import javax.lang.model.type.PrimitiveType
@@ -50,6 +51,15 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         nhsClass.keyAttributes = attributes.findAll { it.isKey }.sort { it.name }
         nhsClass.otherAttributes = attributes.findAll { !it.isKey }.sort { it.name }
 
+        List<NhsDDClassRelationship> relationships = getRelationshipsForShow(nhsClass, dataDictionary)
+        List<NhsDDClassRelationship> keyRelationships = relationships
+            .findAll { it.isKey }
+            .sort { it.targetClass.name }
+        List<NhsDDClassRelationship> otherRelationships = relationships
+            .findAll { !it.isKey }
+            .sort { it.targetClass.name }
+        nhsClass.classRelationships = keyRelationships + otherRelationships
+
         return nhsClass
     }
 
@@ -63,6 +73,24 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             NhsDDAttribute nhsAttribute = new NhsDDAttribute()
             attributeService.nhsDataDictionaryComponentFromItem(dataElement, nhsAttribute, dataElement.metadata.toList())
             nhsAttribute
+        }
+    }
+
+    List<NhsDDClassRelationship> getRelationshipsForShow(NhsDDClass nhsClass, NhsDataDictionary dataDictionary) {
+        Set<DataElement> relationshipDataElements = nhsClass.catalogueItem.dataElements.findAll {
+            it.dataType instanceof ReferenceType
+        }
+
+        relationshipDataElements.collect { dataElement ->
+            DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
+            NhsDDClass referencedNhsClass = getNhsDataDictionaryComponentFromCatalogueItem(referencedClass, dataDictionary)
+
+            NhsDDClassRelationship relationship = new NhsDDClassRelationship(targetClass: referencedNhsClass)
+                .tap {
+                    setDescription(dataElement)
+                    isKey = dataElement.metadata.find {it.key == "isKey"}
+                }
+            relationship
         }
     }
 
