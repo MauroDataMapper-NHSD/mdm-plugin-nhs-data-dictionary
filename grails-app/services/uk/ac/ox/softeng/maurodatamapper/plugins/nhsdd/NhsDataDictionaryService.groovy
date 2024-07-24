@@ -444,13 +444,17 @@ class NhsDataDictionaryService {
                     })
                 } else {
                     NhsDDAttribute attribute = dataDictionary.attributesByCatalogueId[dataElement.id]
-                    attribute.parentClass = dataClass
-                    if(attribute.otherProperties['isKey']) {
-                        dataClass.keyAttributes.add(attribute)
-                    } else {
-                        dataClass.otherAttributes.add(attribute)
+                    if (attribute) {
+                        attribute.parentClass = dataClass
+                        if (attribute.otherProperties['isKey']) {
+                            dataClass.keyAttributes.add(attribute)
+                        } else {
+                            dataClass.otherAttributes.add(attribute)
+                        }
                     }
-
+                    else {
+                        log.warn("Cannot find link association for NhsDDAttribute based on Mauro data element '$dataElement.label' [$dataElement.id]")
+                    }
                 }
             }
             ((DataClass)dataClass.catalogueItem).getExtendedDataClasses().each { extendedDataClass ->
