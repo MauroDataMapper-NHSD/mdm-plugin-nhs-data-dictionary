@@ -1,0 +1,13 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedClassRelationship
+
+model {
+    StereotypedClassRelationship stereotypedClassRelationship
+}
+
+json {
+    catalogueId stereotypedClassRelationship.targetClass.id
+    name stereotypedClassRelationship.targetClass.label
+    stereotype stereotypedClassRelationship.stereotype
+    key stereotypedClassRelationship.key
+    relationship stereotypedClassRelationship.relationship
+}

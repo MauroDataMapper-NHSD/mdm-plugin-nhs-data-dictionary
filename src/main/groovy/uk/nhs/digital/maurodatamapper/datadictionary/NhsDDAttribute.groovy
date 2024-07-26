@@ -53,6 +53,14 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
 
     Set<NhsDDElement> instantiatedByElements = [] as Set
 
+    boolean getIsKey() {
+        if (!otherProperties.containsKey("isKey")) {
+            return false
+        }
+
+        Boolean.parseBoolean(otherProperties["isKey"])
+    }
+
     @Override
     String calculateShortDescription() {
         if (isPreparatory()) {

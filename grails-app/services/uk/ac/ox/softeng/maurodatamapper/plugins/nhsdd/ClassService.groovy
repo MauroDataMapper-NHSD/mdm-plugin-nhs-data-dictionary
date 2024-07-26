@@ -17,19 +17,18 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
-import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceTypeService
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassLink
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 import javax.lang.model.type.PrimitiveType
@@ -38,177 +37,67 @@ import javax.lang.model.type.PrimitiveType
 @Transactional
 class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass> {
 
-    ReferenceTypeService referenceTypeService
+    AttributeService attributeService
 
     @Override
     NhsDDClass show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
-        DataClass classDataClass = dataClassService.get(id)
-        NhsDDClass dataClass = getNhsDataDictionaryComponentFromCatalogueItem(classDataClass, dataDictionary)
-        dataClass.definition = convertLinksInDescription(versionedFolderId, dataClass.getDescription())
-        return dataClass
-    }
-    /*
-    @Override
-    def show(UUID versionedFolderId, String id) {
         DataClass dataClass = dataClassService.get(id)
+        NhsDDClass nhsClass = getNhsDataDictionaryComponentFromCatalogueItem(dataClass, dataDictionary)
+        nhsClass.definition = convertLinksInDescription(versionedFolderId, nhsClass.getDescription())
 
-        String description = convertLinksInDescription(branch, dataClass.description)
-        DataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(branch)
-        String shortDesc = replaceLinksInShortDescription(getShortDescription(dataClass, dataDictionary))
-        def result = [
-            catalogueId     : dataClass.id.toString(),
-            name            : dataClass.label,
-            stereotype      : "class",
-            shortDescription: shortDesc,
-            description     : description,
-            alsoKnownAs     : getAliases(dataClass)
-        ]
+        List<NhsDDAttribute> attributes = getAttributesForShow(nhsClass)
+        // Assign the attribute by key and non-key types. The NhsDDClass.allAttributes() method will combine them
+        nhsClass.keyAttributes = attributes.findAll { it.isKey }.sort { it.name }
+        nhsClass.otherAttributes = attributes.findAll { !it.isKey }.sort { it.name }
 
-        List<Map> attributes = []
-        Collection<DataElement> basicElements = dataClass.dataElements.
-            findAll { !(it.dataType instanceof ReferenceType) }
+        List<NhsDDClassRelationship> relationships = getRelationshipsForShow(nhsClass, dataDictionary)
+        List<NhsDDClassRelationship> keyRelationships = relationships
+            .findAll { it.isKey }
+            .sort { it.targetClass.name }
+        List<NhsDDClassRelationship> otherRelationships = relationships
+            .findAll { !it.isKey }
+            .sort { it.targetClass.name }
+        nhsClass.classRelationships = keyRelationships + otherRelationships
 
-        basicElements.sort { a, b ->
-            DDHelperFunctions.getMetadataValue(a, "isUnique") <=> DDHelperFunctions.getMetadataValue(b, "isUnique") ?:
-            b.label <=> a.label
-        }.reverse().each { de ->
-
-            String uin = DDHelperFunctions.getMetadataValue(de, "uin")
-            DDAttribute ddAttribute = dataDictionary.attributes[uin]
-            if (ddAttribute) {
-
-                Map attributesMap = [:]
-                String key = ""
-                if (DDHelperFunctions.getMetadataValue(de, "isUnique")) {
-                    key = "Key"
-                }
-                attributesMap["key"] = key
-                attributesMap["catalogueId"] = ddAttribute.catalogueItem.id.toString()
-                attributesMap["name"] = ddAttribute.name
-                attributesMap["stereotype"] = "attribute"
-                attributes.add(attributesMap)
-            } else {
-                log.error("Cannot lookup attribute: " + uin)
-            }
-        }
-        result["attributes"] = attributes
-
-        List<Map> relationships = []
-
-        List<Map> keyRows = []
-        List<Map> otherRows = []
-        dataClass.dataElements.
-            findAll { it.dataType instanceof ReferenceType }.
-            findAll {
-                (DDHelperFunctions.getMetadataValue(it, "direction") == "supplier" &&
-                 DDHelperFunctions.getMetadataValue(it, "partOfClientKey") == "true") ||
-                (DDHelperFunctions.getMetadataValue(it, "direction") == "client" &&
-                 DDHelperFunctions.getMetadataValue(it, "partOfSupplierKey") == "true")
-            }.
-            each { dataElement ->
-                DDClass targetClass = dataDictionary.classes.values().find {
-                    it.uin == DDHelperFunctions.getMetadataValue(dataElement, "clientUin")
-                }
-                String relationshipLabel = dataElement.label
-                int bracketLocation = relationshipLabel.indexOf("(")
-                if (bracketLocation >= 0) {
-                    relationshipLabel = relationshipLabel.substring(0, bracketLocation)
-                }
-                keyRows.add([
-                    key         : "Key",
-                    relationship: ClassLink.getCardinalityText(DDHelperFunctions.getMetadataValue(dataElement, "clientCardinality"),
-                                                               relationshipLabel),
-                    catalogueId : targetClass.catalogueItem.id.toString(),
-                    name        : targetClass.name,
-                    stereotype  : "class"
-                ])
-            }
-        dataClass.dataElements.
-            findAll { it.dataType instanceof ReferenceType }.
-            findAll {
-                !(DDHelperFunctions.getMetadataValue(it, "direction") == "supplier" &&
-                  DDHelperFunctions.getMetadataValue(it, "partOfClientKey") == "true") &&
-                !(DDHelperFunctions.getMetadataValue(it, "direction") == "client" &&
-                  DDHelperFunctions.getMetadataValue(it, "partOfSupplierKey") == "true")
-
-            }.
-            each { dataElement ->
-                DDClass targetClass = dataDictionary.classes.values().find {
-                    (DDHelperFunctions.getMetadataValue(dataElement, "direction") == "supplier" &&
-                     it.uin == DDHelperFunctions.getMetadataValue(dataElement, "clientUin")) ||
-                    (DDHelperFunctions.getMetadataValue(dataElement, "direction") == "client" &&
-                     it.uin == DDHelperFunctions.getMetadataValue(dataElement, "supplierUin"))
-                }
-                String relationshipLabel = dataElement.label
-                int bracketLocation = relationshipLabel.indexOf("(")
-                if (bracketLocation >= 0) {
-                    relationshipLabel = relationshipLabel.substring(0, bracketLocation)
-                }
-                otherRows.add([
-                    relationSupplierExclusivity: DDHelperFunctions.getMetadataValue(dataElement, "relationSupplierExclusivity"),
-                    relationClientExclusivity  : DDHelperFunctions.getMetadataValue(dataElement, "relationClientExclusivity"),
-                    relationship               : ClassLink.getCardinalityText(DDHelperFunctions.getMetadataValue(dataElement, "clientCardinality"),
-                                                                              relationshipLabel),
-                    catalogueId                : targetClass.catalogueItem.id.toString(),
-                    name                       : targetClass.name,
-                    stereotype                 : "class"
-
-                ])
-            }
-        keyRows.sort { it.name }.each { row ->
-            relationships.add(row)
-        }
-        otherRows.sort { a, b ->
-            a.relationSupplierExclusivity <=> b.relationSupplierExclusivity ?:
-            a.relationClientExclusivity <=> b.relationClientExclusivity ?:
-            b.name <=> a.name
-        }.reverse().each { row ->
-            if (!relationships.contains(row)) {
-                relationships.add(row)
-                String relationSupplierExclusivity = row.relationSupplierExclusivity
-                if (relationSupplierExclusivity && relationSupplierExclusivity != "") {
-                    otherRows.findAll { it.relationSupplierExclusivity == relationSupplierExclusivity && it != row }.
-                        sort { it.name }.
-                        each { linkedRow ->
-                            relationships.add(linkedRow)
-                            //linkedRow.stEntries.remove(0)
-                            //linkedRow.stEntries.value = ""
-                            linkedRow.key = "or " + linkedRow.relationClientExclusivity
-                            //linkedRow.stEntries[0].value = ""
-
-                        }
-
-                }
-                String relationClientExclusivity = row.relationClientExclusivity
-                if (relationClientExclusivity && relationClientExclusivity != "") {
-                    otherRows.findAll { it.relationClientExclusivity == relationClientExclusivity && it != row }.
-                        sort { it.name }.
-                        each { linkedRow ->
-                            relationships.add(linkedRow)
-                            //linkedRow.stEntries.remove(0)
-                            //linkedRow.stEntries.value = ""
-                            linkedRow.key = "or " + linkedRow.relationClientExclusivity
-                            //linkedRow.stEntries[0].value = ""
-
-                        }
-
-                }
-            }
-        }
-        relationships.each { row ->
-            if (row.relationSupplierExclusivity != "Key") {
-                row.relationSupplierExclusivity = ""
-            }
-        }
-        result["relationships"] = relationships
-        return result
+        return nhsClass
     }
-*/
+
+    List<NhsDDAttribute> getAttributesForShow(NhsDDClass nhsClass) {
+        Set<DataElement> attributeDataElements = nhsClass.catalogueItem.dataElements.findAll {
+            !(it.dataType instanceof ReferenceType)
+        }
+
+        // Get a cut-down version of the NhsDDAttribute list, we don't need national codes for previewing an NhsDDClass
+        attributeDataElements.collect {dataElement ->
+            NhsDDAttribute nhsAttribute = new NhsDDAttribute()
+            attributeService.nhsDataDictionaryComponentFromItem(dataElement, nhsAttribute, dataElement.metadata.toList())
+            nhsAttribute
+        }
+    }
+
+    List<NhsDDClassRelationship> getRelationshipsForShow(NhsDDClass nhsClass, NhsDataDictionary dataDictionary) {
+        Set<DataElement> relationshipDataElements = nhsClass.catalogueItem.dataElements.findAll {
+            it.dataType instanceof ReferenceType
+        }
+
+        relationshipDataElements.collect { dataElement ->
+            DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
+            NhsDDClass referencedNhsClass = getNhsDataDictionaryComponentFromCatalogueItem(referencedClass, dataDictionary)
+
+            NhsDDClassRelationship relationship = new NhsDDClassRelationship(targetClass: referencedNhsClass)
+                .tap {
+                    setDescription(dataElement)
+                    isKey = dataElement.metadata.find {it.key == "isKey"}
+                }
+            relationship
+        }
+    }
+
     @Override
     Set<DataClass> getAll(UUID versionedFolderId, boolean includeRetired = false) {
         DataModel coreModel = nhsDataDictionaryService.getClassesModel(versionedFolderId)
-        DataClass classesClass = DataClass.byDataModelId(coreModel.id)
+        List<DataClass> classesClass = DataClass.byDataModelId(coreModel.id).toList()
 
         classesClass.findAll {dataClass ->
             dataClass.label != "Retired" && (
@@ -387,5 +276,4 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             it.catalogueItem.id == catalogueItemId
         }
     }
-
 }

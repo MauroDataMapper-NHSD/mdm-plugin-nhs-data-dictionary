@@ -31,6 +31,7 @@ class StereotypedCatalogueItem {
     String label
     String stereotype
     Boolean isRetired
+    String key
 
     StereotypedCatalogueItem(MdmDomain catalogueItem, String stereotype) {
         this.catalogueItem = catalogueItem
@@ -39,6 +40,7 @@ class StereotypedCatalogueItem {
             it.key == "isRetired" &&
             it.value == "true"
         }
+        this.key = catalogueItem.metadata.any { it.key == "isKey" && it.value == "true" } ? "Key" : ""
         this.label = catalogueItem.label
     }
 
@@ -46,6 +48,7 @@ class StereotypedCatalogueItem {
         this.catalogueItem = component.catalogueItem
         this.stereotype = component.stereotypeForPreview
         this.isRetired = component.isRetired()
+        this.key = component.otherProperties.any { it.key == "isKey" && it.value == "true" } ? "Key" : ""
         this.label = component.getNameWithRetired()
     }
 
