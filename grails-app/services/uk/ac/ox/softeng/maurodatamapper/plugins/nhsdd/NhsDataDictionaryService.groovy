@@ -250,8 +250,13 @@ class NhsDataDictionaryService {
 
         VersionedFolder oldestAncestor = versionedFolderService.findOldestAncestor(versionedFolders[0])
 
-        List<VersionTreeModel> versionTreeModelList = versionedFolderService.buildModelVersionTree(oldestAncestor, null, null,
-                                                                                                   true, userSecurityPolicyManager)
+        List<VersionTreeModel> versionTreeModelList = versionedFolderService.buildModelVersionTree(
+            oldestAncestor,
+            null,
+            null,
+            true,
+            false,
+            userSecurityPolicyManager)
         return versionTreeModelList
     }
 
