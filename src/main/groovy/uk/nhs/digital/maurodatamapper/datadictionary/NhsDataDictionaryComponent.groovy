@@ -199,89 +199,124 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent, boolean includeDataSets = false) {
-
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
 
-
         List<Change> changeList = []
+        buildChangeList(changeList, stringWriter, markupBuilder, previousComponent, includeDataSets)
+
+        return changeList
+    }
+
+    void buildChangeList(
+        List<Change> changes,
+        StringWriter stringWriter,
+        MarkupBuilder markupBuilder,
+        NhsDataDictionaryComponent previousComponent,
+        boolean includeDataSets) {
         if (!previousComponent) {
-            markupBuilder.div {
-                div (class: "new") {
-                    mkp.yieldUnescaped(this.description)
+            Change newChange = createNewComponentChange(stringWriter, markupBuilder, previousComponent)
+            changes.add(newChange)
+        }
+        else if (isRetired() && !previousComponent.isRetired()) {
+            Change retiredChange = createRetiredComponentChange(stringWriter, markupBuilder, previousComponent)
+            changes.add(retiredChange)
+        }
+        else if (description != previousComponent.description) {
+            Change updatedDescriptionChange = createUpdatedDescriptionChange(stringWriter, markupBuilder, previousComponent, includeDataSets)
+            changes.add(updatedDescriptionChange)
+        }
+    }
+
+    Change createNewComponentChange(
+        StringWriter stringWriter,
+        MarkupBuilder markupBuilder,
+        NhsDataDictionaryComponent previousComponent) {
+        markupBuilder.div {
+            div (class: "new") {
+                mkp.yieldUnescaped(this.description)
+            }
+        }
+
+        new Change(
+            changeType: Change.NEW_TYPE,
+            stereotype: stereotype,
+            oldItem: null,
+            newItem: this,
+            htmlDetail: stringWriter.toString(),
+            ditaDetail: Div.build(outputClass: "new") {
+                div HtmlHelper.replaceHtmlWithDita(this.description)
+            }
+        )
+    }
+
+    Change createRetiredComponentChange(
+        StringWriter stringWriter,
+        MarkupBuilder markupBuilder,
+        NhsDataDictionaryComponent previousComponent) {
+        markupBuilder.div {
+            /*div (class: "deleted") {
+                mkp.yieldUnescaped(previousComponent.description)
+            }
+            div (class: "new") {
+                mkp.yieldUnescaped(this.description)
+            }*/
+
+            mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
+        }
+
+        new Change(
+            changeType: Change.RETIRED_TYPE,
+            stereotype: stereotype,
+            oldItem: previousComponent,
+            newItem: this,
+            htmlDetail: stringWriter.toString(),
+            ditaDetail: Div.build {
+                div (outputClass: "deleted") {
+                    div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                    if(previousComponent instanceof NhsDDDataSet) {
+                        div HtmlHelper.replaceHtmlWithDita(previousComponent.outputAsHtml(markupBuilder))
+                    }
+                }
+                div (outputClass: "new") {
+                    div HtmlHelper.replaceHtmlWithDita(this.description)
+                    if(this instanceof NhsDDDataSet) {
+                        div HtmlHelper.replaceHtmlWithDita(((NhsDDDataSet)this).outputAsHtml(markupBuilder))
+                    }
                 }
             }
+        )
+    }
 
-            changeList += new Change(
-                changeType: "New",
-                stereotype: stereotype,
-                oldItem: null,
-                newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build(outputClass: "new") {
+    Change createUpdatedDescriptionChange(
+        StringWriter stringWriter,
+        MarkupBuilder markupBuilder,
+        NhsDataDictionaryComponent previousComponent,
+        boolean includeDataSets) {
+        markupBuilder.div {
+            div {
+                mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
+                if(this instanceof NhsDDDataSet && includeDataSets) {
+                    mkp.yieldUnescaped(((NhsDDDataSet)this).structureAsHtml)
+                }
+            }
+        }
+
+        new Change(
+            changeType: Change.UPDATED_DESCRIPTION_TYPE,
+            stereotype: stereotype,
+            oldItem: previousComponent,
+            newItem: this,
+            htmlDetail: stringWriter.toString(),
+            ditaDetail: Div.build {
+                div (outputClass: "deleted") {
+                    div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                }
+                div (outputClass: "new") {
                     div HtmlHelper.replaceHtmlWithDita(this.description)
                 }
-            )
-        } else if(isRetired() && !previousComponent.isRetired()) {
-
-            markupBuilder.div {
-                /*div (class: "deleted") {
-                    mkp.yieldUnescaped(previousComponent.description)
-                }
-                div (class: "new") {
-                    mkp.yieldUnescaped(this.description)
-                }*/
-
-                    mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
             }
-
-            changeList += new Change(
-                changeType: "Retired",
-                stereotype: stereotype,
-                oldItem: previousComponent,
-                newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build {
-                    div (outputClass: "deleted") {
-                        div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-                        if(previousComponent instanceof NhsDDDataSet) {
-                            div HtmlHelper.replaceHtmlWithDita(previousComponent.outputAsHtml(markupBuilder))
-                        }
-                    }
-                    div (outputClass: "new") {
-                        div HtmlHelper.replaceHtmlWithDita(this.description)
-                        if(this instanceof NhsDDDataSet) {
-                            div HtmlHelper.replaceHtmlWithDita(((NhsDDDataSet)this).outputAsHtml(markupBuilder))
-                        }
-                    }
-                }
-            )
-        } else if (description != previousComponent.description) {
-            markupBuilder.div {
-                div {
-                    mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
-                    if(this instanceof NhsDDDataSet && includeDataSets) {
-                        mkp.yieldUnescaped(((NhsDDDataSet)this).structureAsHtml)
-                    }
-                }
-            }
-            changeList += new Change(
-                changeType: "Updated description",
-                stereotype: stereotype,
-                oldItem: previousComponent,
-                newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build {
-                    div (outputClass: "deleted") {
-                        div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-                    }
-                    div (outputClass: "new") {
-                        div HtmlHelper.replaceHtmlWithDita(this.description)
-                    }
-                }
-            )
-        }
-        return changeList
+        )
     }
 
     DitaMap generateMap() {

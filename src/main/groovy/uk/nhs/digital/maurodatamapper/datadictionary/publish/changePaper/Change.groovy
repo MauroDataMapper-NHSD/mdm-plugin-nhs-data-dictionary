@@ -22,6 +22,10 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
 class Change {
+    static final String NEW_TYPE = "New"
+    static final String RETIRED_TYPE = "Retired"
+    static final String UPDATED_DESCRIPTION_TYPE = "Updated description"
+
     String changeType
     String stereotype
 
@@ -34,10 +38,10 @@ class Change {
     Change() { }
 
     String changeText(String stereotype) {
-        if(changeType == "New") {
+        if(changeType == NEW_TYPE) {
             return "New " + stereotype
         }
-        if(changeType == "Retired") {
+        if(changeType == RETIRED_TYPE) {
             return "Changed status to retired"
         }
         if(changeType == "Description") {
