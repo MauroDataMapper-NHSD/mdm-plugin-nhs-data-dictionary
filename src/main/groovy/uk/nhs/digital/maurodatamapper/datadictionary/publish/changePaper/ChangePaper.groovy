@@ -225,7 +225,7 @@ class ChangePaper {
         background = nhsDataDictionary.workItemDetails['backgroundText'] ?: backgroundText()
         sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS England'
 
-        SimpleDateFormat publicationDateFormat = new SimpleDateFormat("dd MMM yyyy")
+        SimpleDateFormat publicationDateFormat = new SimpleDateFormat("dd MMMM yyyy")
         publicationDate = publicationDateFormat.format(new Date())
 
         stereotypedChanges = calculateChanges(nhsDataDictionary, oldDataDictionary, includeDataSets)
