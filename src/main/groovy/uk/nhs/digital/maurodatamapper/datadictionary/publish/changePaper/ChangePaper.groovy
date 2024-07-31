@@ -27,6 +27,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
+import java.text.SimpleDateFormat
+
 class ChangePaper {
 
     static String example1 = "<p>Here is some text</p>"
@@ -220,9 +222,11 @@ class ChangePaper {
         subject = nhsDataDictionary.workItemDetails['subject'] ?: 'NHS England and NHS Improvement'
         effectiveDate = nhsDataDictionary.workItemDetails['effectiveDate'] ?: 'Immediate'
         reasonForChange = nhsDataDictionary.workItemDetails['reasonForChange'] ?: 'Change to definitions'
-        publicationDate = new Date().toString()
         background = nhsDataDictionary.workItemDetails['backgroundText'] ?: backgroundText()
-        sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS Digital'
+        sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS England'
+
+        SimpleDateFormat publicationDateFormat = new SimpleDateFormat("dd MMM yyyy")
+        publicationDate = publicationDateFormat.format(new Date())
 
         stereotypedChanges = calculateChanges(nhsDataDictionary, oldDataDictionary, includeDataSets)
     }
