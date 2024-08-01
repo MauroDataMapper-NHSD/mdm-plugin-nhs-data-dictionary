@@ -18,10 +18,14 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 @Slf4j
 class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
@@ -190,6 +194,79 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    void buildChangeList(
+        List<Change> changes,
+        StringWriter stringWriter,
+        MarkupBuilder markupBuilder,
+        NhsDataDictionaryComponent previousComponent,
+        boolean includeDataSets) {
+        // Run standard change checks first
+        NhsDataDictionaryComponent.super.buildChangeList(changes, stringWriter, markupBuilder, previousComponent, includeDataSets)
+
+        NhsDDClass previousClass = previousComponent as NhsDDClass
+        if (!previousClass) {
+            return
+        }
+
+        buildChangedAttributesChange(changes, stringWriter, markupBuilder, previousClass)
+    }
+
+    void buildChangedAttributesChange(
+        List<Change> changes,
+        StringWriter stringWriter,
+        MarkupBuilder markupBuilder,
+        NhsDDClass previousClass) {
+        List<NhsDDAttribute> currentAttributes = this.allAttributes()
+        List<NhsDDAttribute> previousAttributes = previousClass.allAttributes()
+
+        // Find all attributes in this one but not the previous - "new attributes"
+        List<NhsDDAttribute> newAttributes = currentAttributes.findAll { currentAttribute ->
+            !previousAttributes.find {previousAttribute -> previousAttribute.name == currentAttribute.name }
+        }
+
+        // Find all the attributes in the previous one but not this one - "removed attributes"
+        List<NhsDDAttribute> removedAttributes = previousAttributes.findAll {previousAttribute ->
+            !currentAttributes.find {currentAttribute -> currentAttribute.name == previousAttribute.name }
+        }
+
+        if (!newAttributes.empty || !removedAttributes.empty) {
+            markupBuilder.div {
+                p "Attributes of this Class are:"
+                currentAttributes.forEach {currentAttribute ->
+                    String outputClassName = newAttributes.any { it.name == currentAttribute.name } ? "new" : ""
+                    markupBuilder.div(outputClass: outputClassName) {
+                        p currentAttribute.name
+                    }
+                }
+                removedAttributes.forEach { removedAttribute ->
+                    markupBuilder.div(outputClass: "deleted") {
+                        p removedAttribute.name
+                    }
+                }
+            }
+
+            Change change = new Change(
+                changeType: Change.CHANGED_ATTRIBUTES_TYPE,
+                stereotype: stereotype,
+                oldItem: previousClass,
+                newItem: this,
+                htmlDetail: stringWriter.toString(),
+                ditaDetail: Div.build {
+                    // TODO: change this
+                    div (outputClass: "deleted") {
+                        div HtmlHelper.replaceHtmlWithDita(previousClass.description)
+                    }
+                    div (outputClass: "new") {
+                        div HtmlHelper.replaceHtmlWithDita(this.description)
+                    }
+                }
+            )
+
+            changes.add(change)
         }
     }
 }
