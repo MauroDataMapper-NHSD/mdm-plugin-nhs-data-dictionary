@@ -237,36 +237,44 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             markupBuilder.div {
                 p "Attributes of this Class are:"
                 currentAttributes.forEach {currentAttribute ->
-                    String outputClassName = newAttributes.any { it.name == currentAttribute.name } ? "new" : ""
-                    markupBuilder.div(outputClass: outputClassName) {
-                        p currentAttribute.name
+                    if (newAttributes.any { it.name == currentAttribute.name }) {
+                        markupBuilder.div(class: "new") {
+                            markupBuilder.span(class: "attribute-key") {
+                                mkp.yield(currentAttribute.isKey ? "K" : "&nbsp;")   // Include extra space for empty span to appear in DITA
+                            }
+                            span currentAttribute.name
+                        }
+                    }
+                    else {
+                        markupBuilder.div {
+                            markupBuilder.span(class: "attribute-key") {
+                                mkp.yield(currentAttribute.isKey ? "K" : "&nbsp;")   // Include extra space for empty span to appear in DITA
+                            }
+                            span currentAttribute.name
+                        }
                     }
                 }
                 removedAttributes.forEach { removedAttribute ->
-                    markupBuilder.div(outputClass: "deleted") {
-                        p removedAttribute.name
+                    markupBuilder.div(class: "deleted") {
+                        markupBuilder.span(class: "attribute-key") {
+                            mkp.yield(removedAttribute.isKey ? "K" : "&nbsp;")   // Include extra space for empty span to appear in DITA
+                        }
+                        span removedAttribute.name
                     }
                 }
             }
 
-            Change change = new Change(
+            String htmlDetail = stringWriter.toString()
+            Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
+
+            changes.add(new Change(
                 changeType: Change.CHANGED_ATTRIBUTES_TYPE,
                 stereotype: stereotype,
                 oldItem: previousClass,
                 newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build {
-                    // TODO: change this
-                    div (outputClass: "deleted") {
-                        div HtmlHelper.replaceHtmlWithDita(previousClass.description)
-                    }
-                    div (outputClass: "new") {
-                        div HtmlHelper.replaceHtmlWithDita(this.description)
-                    }
-                }
-            )
-
-            changes.add(change)
+                htmlDetail: htmlDetail,
+                ditaDetail: ditaDetail
+            ))
         }
     }
 }

@@ -4,6 +4,7 @@ import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
 import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 class ChangePaperChangesSpec extends Specification {
@@ -91,6 +92,92 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
 
       <xref keyref='DIAGNOSTIC%20TEST%20REQUEST' scope='local'>DIAGNOSTIC TEST REQUEST</xref> was obtained.
 
+    </div>
+  </div>
+</div>"""
+        }
+    }
+}
+
+@Integration
+@Rollback
+class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
+    void "should return changes for changed attributes in a class"() {
+        given: "there is a previous component"
+        NhsDDClass previousComponent = new NhsDDClass(name: "SERVICE REPORT")
+        previousComponent.keyAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT IDENTIFIER", otherProperties: ["isKey": "true"]))
+        previousComponent.otherAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT ISSUE DATE"))
+        previousComponent.otherAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT STATUS"))
+        previousComponent.otherAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT STATUS CODE"))
+
+        and: "there is a current component"
+        NhsDDClass currentComponent = new NhsDDClass(name: "SERVICE REPORT")
+        currentComponent.keyAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT IDENTIFIER", otherProperties: ["isKey": "true"]))
+        currentComponent.otherAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT ISSUE DATE"))
+        currentComponent.otherAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT ISSUE TIME"))
+        currentComponent.otherAttributes.add(new NhsDDAttribute(name: "SERVICE REPORT STATUS"))
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected change object is returned"
+        Change change = changes.first()
+        with {
+            change
+        }
+
+        String ditaXml = change.ditaDetail.toXmlString()
+
+        verifyAll(change) {
+            changeType == CHANGED_ATTRIBUTES_TYPE
+            stereotype == "Class"
+            oldItem == previousComponent
+            newItem == currentComponent
+            htmlDetail == """<div>
+  <p>Attributes of this Class are:</p>
+  <div>
+    <span class='attribute-key'>K</span>
+    <span>SERVICE REPORT IDENTIFIER</span>
+  </div>
+  <div>
+    <span class='attribute-key'>&amp;nbsp;</span>
+    <span>SERVICE REPORT ISSUE DATE</span>
+  </div>
+  <div class='new'>
+    <span class='attribute-key'>&amp;nbsp;</span>
+    <span>SERVICE REPORT ISSUE TIME</span>
+  </div>
+  <div>
+    <span class='attribute-key'>&amp;nbsp;</span>
+    <span>SERVICE REPORT STATUS</span>
+  </div>
+  <div class='deleted'>
+    <span class='attribute-key'>&amp;nbsp;</span>
+    <span>SERVICE REPORT STATUS CODE</span>
+  </div>
+</div>"""
+            ditaXml == """<div>
+  <div>
+    <p>Attributes of this Class are:</p>
+    <div>
+      <ph outputclass='attribute-key'>K</ph>
+      <ph>SERVICE REPORT IDENTIFIER</ph>
+    </div>
+    <div>
+      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
+      <ph>SERVICE REPORT ISSUE DATE</ph>
+    </div>
+    <div outputclass='new'>
+      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
+      <ph>SERVICE REPORT ISSUE TIME</ph>
+    </div>
+    <div>
+      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
+      <ph>SERVICE REPORT STATUS</ph>
+    </div>
+    <div outputclass='deleted'>
+      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
+      <ph>SERVICE REPORT STATUS CODE</ph>
     </div>
   </div>
 </div>"""
