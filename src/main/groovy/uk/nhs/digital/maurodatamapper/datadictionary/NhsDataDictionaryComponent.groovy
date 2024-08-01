@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
@@ -218,6 +219,11 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             Change updatedDescriptionChange = createUpdatedDescriptionChange(previousComponent, includeDataSets)
             changes.add(updatedDescriptionChange)
         }
+
+        Change aliasesChange = createAliasesChange(previousComponent)
+        if (aliasesChange) {
+            changes.add(aliasesChange)
+        }
     }
 
     Change createNewComponentChange(NhsDataDictionaryComponent previousComponent) {
@@ -308,6 +314,121 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
                 }
             }
         )
+    }
+
+    Change createAliasesChange(NhsDataDictionaryComponent previousComponent) {
+        Map<String, String> currentAliases = getAliases()
+        Map<String, String> previousAliases = previousComponent ? previousComponent.getAliases() : [:]
+
+        if (currentAliases.isEmpty() && previousAliases.isEmpty()) {
+            return null
+        }
+
+        String htmlDetail = createAliasTableChangeHtml(currentAliases, previousAliases)
+        DitaElement ditaDetail = createAliasTableChangeDita(currentAliases, previousAliases)
+
+        new Change(
+            changeType: Change.ALIASES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousComponent,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail
+        )
+    }
+
+    String createAliasTableChangeHtml(Map<String, String> currentAliases, Map<String, String> previousAliases) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            p "This ${getStereotype()} is also known by these names:"
+            table(class: "alias-table") {
+                thead {
+                    th "Context"
+                    th "Alias"
+                }
+                tbody {
+                    currentAliases.each {context, alias ->
+                        if (!previousAliases.containsKey(context) || (previousAliases.containsKey(context) && previousAliases[context] != alias)) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(context)
+                                }
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(alias)
+                                }
+                            }
+                        } else {
+                            markupBuilder.tr {
+                                td context
+                                td alias
+                            }
+                        }
+                    }
+                    previousAliases.each {context, alias ->
+                        if (!currentAliases.containsKey(context) || (currentAliases.containsKey(context) && currentAliases[context] != alias)) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "deleted") {
+                                    mkp.yield(context)
+                                }
+                                markupBuilder.td(class: "deleted") {
+                                    mkp.yield(alias)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return stringWriter.toString()
+    }
+
+    DitaElement createAliasTableChangeDita(Map<String, String> currentAliases, Map<String, String> previousAliases) {
+        Div.build {
+            p "This ${getStereotype()} is also known by these names:"
+            simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"])) {
+                stHead {
+                    stentry "Context"
+                    stentry "Alias"
+                }
+                currentAliases.each { context, alias ->
+                    if (!previousAliases.containsKey(context) || (previousAliases.containsKey(context) && previousAliases[context] != alias)) {
+                        strow {
+                            stentry(outputClass: "new") {
+                                ph context
+                            }
+                            stentry(outputClass: "new") {
+                                ph alias
+                            }
+                        }
+                    }
+                    else {
+                        strow {
+                            stentry {
+                                ph context
+                            }
+                            stentry {
+                                ph alias
+                            }
+                        }
+                    }
+                }
+                previousAliases.each { context, alias ->
+                    if (!currentAliases.containsKey(context) || (currentAliases.containsKey(context) && currentAliases[context] != alias)) {
+                        strow {
+                            stentry(outputClass: "deleted") {
+                                ph context
+                            }
+                            stentry(outputClass: "deleted") {
+                                ph context
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     DitaMap generateMap() {

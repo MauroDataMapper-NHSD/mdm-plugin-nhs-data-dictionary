@@ -7,12 +7,18 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
-class ChangePaperChangesSpec extends Specification {
+abstract class ChangePaperChangesSpec extends Specification {
+    abstract getExpectedStereotype()
 }
 
 @Integration
 @Rollback
 class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
+    @Override
+    def getExpectedStereotype() {
+        "Attribute"
+    }
+
     void "should return changes for a new component"() {
         given: "there is no previous component"
         NhsDDAttribute previousComponent = null
@@ -33,7 +39,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
 
         verifyAll(change) {
             changeType == NEW_TYPE
-            stereotype == "Attribute"
+            stereotype == expectedStereotype
             !oldItem
             newItem == currentComponent
             htmlDetail == "<div>\n" +
@@ -73,7 +79,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
 
         verifyAll(change) {
             changeType == UPDATED_DESCRIPTION_TYPE
-            stereotype == "Attribute"
+            stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
             htmlDetail == "<div>\n" +
@@ -121,10 +127,220 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
 
         verifyAll(change) {
             changeType == RETIRED_TYPE
-            stereotype == "Attribute"
+            stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
             htmlDetail == "<div><span class=\"diff-html-removed\" id=\"removed-diff-0\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">The time the </span><a href=\"DIAGNOSTIC TEST REQUEST\"><span class=\"diff-html-removed\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">DIAGNOSTIC TEST REQUEST</span></a><span class=\"diff-html-removed\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\"> was received</span><span class=\"diff-html-added\" id=\"added-diff-0\" previous=\"removed-diff-0\" changeId=\"added-diff-0\" next=\"last-diff\">This item has been retired from the NHS Data Model and Dictionary</span>.</div>"
+        }
+    }
+
+    void "should return changes for a new attribute with aliases"() {
+        given: "there is no previous component"
+        NhsDDAttribute previousComponent = null
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "DIAGNOSTIC TEST REQUEST RECEIVED TIME",
+            definition: "The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was received.",
+            otherProperties: [
+                'aliasAlsoKnownAs': 'DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP',
+                'aliasPlural': 'DIAGNOSTIC TEST REQUEST RECEIVED TIMES'
+            ])
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected changes are returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change newChange = changes.first()
+        verifyAll(newChange) {
+            changeType == NEW_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+        }
+
+        Change aliasesChange = changes.last()
+        String aliasDitaXml = aliasesChange.ditaDetail.toXmlString()
+        verifyAll(aliasesChange) {
+            changeType == ALIASES_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+            htmlDetail == """<div>
+  <p>This Attribute is also known by these names:</p>
+  <table class='alias-table'>
+    <thead>
+      <th>Context</th>
+      <th>Alias</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td class='new'>Also known as</td>
+        <td class='new'>DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP</td>
+      </tr>
+      <tr>
+        <td class='new'>Plural</td>
+        <td class='new'>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</td>
+      </tr>
+    </tbody>
+  </table>
+</div>"""
+            aliasDitaXml == """<div>
+  <p>This Attribute is also known by these names:</p>
+  <simpletable relcolwidth='1* 2*'>
+    <sthead>
+      <stentry>Context</stentry>
+      <stentry>Alias</stentry>
+    </sthead>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>Also known as</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>Plural</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</ph>
+      </stentry>
+    </strow>
+  </simpletable>
+</div>"""
+        }
+    }
+
+    void "should return changes for an attribute with updated aliases"() {
+        given: "there is a previous component"
+        NhsDDAttribute previousComponent = new NhsDDAttribute(
+            name: "DIAGNOSTIC TEST REQUEST RECEIVED TIME",
+            definition: "The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was received.",
+            otherProperties: [
+                'aliasAlsoKnownAs': 'DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP',   // Change
+                'aliasFormerly': 'DIAGNOSTIC ASSESSMENT REQUEST RECEIVED TIMES',    // Remove
+                'aliasPlural': 'DIAGNOSTIC TEST REQUEST RECEIVED TIMES'             // Unchanged
+            ])
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "DIAGNOSTIC TEST REQUEST RECEIVED TIME",
+            definition: "The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was accepted.",
+            otherProperties: [
+                'aliasAlsoKnownAs': 'DIAGNOSTIC TEST REQUEST RECEIVED TIME TRACKING',   // Change
+                'aliasPlural': 'DIAGNOSTIC TEST REQUEST RECEIVED TIMES',                // Unchanged
+                'aliasSchema': 'DIAGNOSTIC SCHEMA'                                      // New
+            ])
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected changes are returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change newChange = changes.first()
+        verifyAll(newChange) {
+            changeType == UPDATED_DESCRIPTION_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+        }
+
+        Change aliasesChange = changes.last()
+        String aliasDitaXml = aliasesChange.ditaDetail.toXmlString()
+        verifyAll(aliasesChange) {
+            changeType == ALIASES_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+            htmlDetail == """<div>
+  <p>This Attribute is also known by these names:</p>
+  <table class='alias-table'>
+    <thead>
+      <th>Context</th>
+      <th>Alias</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td class='new'>Also known as</td>
+        <td class='new'>DIAGNOSTIC TEST REQUEST RECEIVED TIME TRACKING</td>
+      </tr>
+      <tr>
+        <td>Plural</td>
+        <td>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</td>
+      </tr>
+      <tr>
+        <td class='new'>Schema</td>
+        <td class='new'>DIAGNOSTIC SCHEMA</td>
+      </tr>
+      <tr>
+        <td class='deleted'>Also known as</td>
+        <td class='deleted'>DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP</td>
+      </tr>
+      <tr>
+        <td class='deleted'>Formerly</td>
+        <td class='deleted'>DIAGNOSTIC ASSESSMENT REQUEST RECEIVED TIMES</td>
+      </tr>
+    </tbody>
+  </table>
+</div>"""
+            aliasDitaXml == """<div>
+  <p>This Attribute is also known by these names:</p>
+  <simpletable relcolwidth='1* 2*'>
+    <sthead>
+      <stentry>Context</stentry>
+      <stentry>Alias</stentry>
+    </sthead>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>Also known as</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIME TRACKING</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry>
+        <ph>Plural</ph>
+      </stentry>
+      <stentry>
+        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>Schema</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>DIAGNOSTIC SCHEMA</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='deleted'>
+        <ph>Also known as</ph>
+      </stentry>
+      <stentry outputclass='deleted'>
+        <ph>Also known as</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='deleted'>
+        <ph>Formerly</ph>
+      </stentry>
+      <stentry outputclass='deleted'>
+        <ph>Formerly</ph>
+      </stentry>
+    </strow>
+  </simpletable>
+</div>"""
         }
     }
 }
@@ -132,6 +348,11 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
 @Integration
 @Rollback
 class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
+    @Override
+    def getExpectedStereotype() {
+        "Class"
+    }
+
     void "should return changes for changed attributes in a class"() {
         given: "there is a previous component"
         NhsDDClass previousComponent = new NhsDDClass(name: "SERVICE REPORT")
@@ -160,7 +381,7 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
 
         verifyAll(change) {
             changeType == CHANGED_ATTRIBUTES_TYPE
-            stereotype == "Class"
+            stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
             htmlDetail == """<div>
