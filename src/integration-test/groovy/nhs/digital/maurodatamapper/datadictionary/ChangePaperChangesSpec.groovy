@@ -136,48 +136,40 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
             htmlDetail == """<div>
   <p>Attributes of this Class are:</p>
   <div>
-    <span class='attribute-key'>K</span>
-    <span>SERVICE REPORT IDENTIFIER</span>
+    <span class='attribute-name'>SERVICE REPORT IDENTIFIER</span>
+    <span class='attribute-key'>Key</span>
   </div>
   <div>
-    <span class='attribute-key'>&amp;nbsp;</span>
-    <span>SERVICE REPORT ISSUE DATE</span>
+    <span class='attribute-name'>SERVICE REPORT ISSUE DATE</span>
   </div>
   <div class='new'>
-    <span class='attribute-key'>&amp;nbsp;</span>
-    <span>SERVICE REPORT ISSUE TIME</span>
+    <span class='attribute-name'>SERVICE REPORT ISSUE TIME</span>
   </div>
   <div>
-    <span class='attribute-key'>&amp;nbsp;</span>
-    <span>SERVICE REPORT STATUS</span>
+    <span class='attribute-name'>SERVICE REPORT STATUS</span>
   </div>
   <div class='deleted'>
-    <span class='attribute-key'>&amp;nbsp;</span>
-    <span>SERVICE REPORT STATUS CODE</span>
+    <span class='attribute-name'>SERVICE REPORT STATUS CODE</span>
   </div>
 </div>"""
             ditaXml == """<div>
   <div>
     <p>Attributes of this Class are:</p>
     <div>
-      <ph outputclass='attribute-key'>K</ph>
-      <ph>SERVICE REPORT IDENTIFIER</ph>
+      <ph outputclass='attribute-name'>SERVICE REPORT IDENTIFIER</ph>
+      <ph outputclass='attribute-key'>Key</ph>
     </div>
     <div>
-      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
-      <ph>SERVICE REPORT ISSUE DATE</ph>
+      <ph outputclass='attribute-name'>SERVICE REPORT ISSUE DATE</ph>
     </div>
     <div outputclass='new'>
-      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
-      <ph>SERVICE REPORT ISSUE TIME</ph>
+      <ph outputclass='attribute-name'>SERVICE REPORT ISSUE TIME</ph>
     </div>
     <div>
-      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
-      <ph>SERVICE REPORT STATUS</ph>
+      <ph outputclass='attribute-name'>SERVICE REPORT STATUS</ph>
     </div>
     <div outputclass='deleted'>
-      <ph outputclass='attribute-key'>&amp;nbsp;</ph>
-      <ph>SERVICE REPORT STATUS CODE</ph>
+      <ph outputclass='attribute-name'>SERVICE REPORT STATUS CODE</ph>
     </div>
   </div>
 </div>"""

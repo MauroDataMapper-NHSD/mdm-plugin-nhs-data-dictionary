@@ -236,30 +236,42 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         if (!newAttributes.empty || !removedAttributes.empty) {
             markupBuilder.div {
                 p "Attributes of this Class are:"
-                currentAttributes.forEach {currentAttribute ->
-                    if (newAttributes.any { it.name == currentAttribute.name }) {
+                currentAttributes.forEach {attribute ->
+                    if (newAttributes.any { it.name == attribute.name }) {
                         markupBuilder.div(class: "new") {
-                            markupBuilder.span(class: "attribute-key") {
-                                mkp.yield(currentAttribute.isKey ? "K" : "&nbsp;")   // Include extra space for empty span to appear in DITA
+                            markupBuilder.span(class: "attribute-name") {
+                                mkp.yield(attribute.name)
                             }
-                            span currentAttribute.name
+                            if (attribute.isKey) {
+                                markupBuilder.span(class: "attribute-key") {
+                                    mkp.yield("Key")
+                                }
+                            }
                         }
                     }
                     else {
                         markupBuilder.div {
-                            markupBuilder.span(class: "attribute-key") {
-                                mkp.yield(currentAttribute.isKey ? "K" : "&nbsp;")   // Include extra space for empty span to appear in DITA
+                            markupBuilder.span(class: "attribute-name") {
+                                mkp.yield(attribute.name)
                             }
-                            span currentAttribute.name
+                            if (attribute.isKey) {
+                                markupBuilder.span(class: "attribute-key") {
+                                    mkp.yield("Key")
+                                }
+                            }
                         }
                     }
                 }
-                removedAttributes.forEach { removedAttribute ->
+                removedAttributes.forEach { attribute ->
                     markupBuilder.div(class: "deleted") {
-                        markupBuilder.span(class: "attribute-key") {
-                            mkp.yield(removedAttribute.isKey ? "K" : "&nbsp;")   // Include extra space for empty span to appear in DITA
+                        markupBuilder.span(class: "attribute-name") {
+                            mkp.yield(attribute.name)
                         }
-                        span removedAttribute.name
+                        if (attribute.isKey) {
+                            markupBuilder.span(class: "attribute-key") {
+                                mkp.yield("Key")
+                            }
+                        }
                     }
                 }
             }
