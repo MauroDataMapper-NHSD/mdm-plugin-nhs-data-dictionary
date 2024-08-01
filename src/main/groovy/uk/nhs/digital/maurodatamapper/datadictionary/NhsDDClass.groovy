@@ -198,28 +198,22 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     }
 
     @Override
-    void buildChangeList(
-        List<Change> changes,
-        StringWriter stringWriter,
-        MarkupBuilder markupBuilder,
-        NhsDataDictionaryComponent previousComponent,
-        boolean includeDataSets) {
+    void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
         // Run standard change checks first
-        NhsDataDictionaryComponent.super.buildChangeList(changes, stringWriter, markupBuilder, previousComponent, includeDataSets)
+        NhsDataDictionaryComponent.super.buildChangeList(changes, previousComponent, includeDataSets)
 
         NhsDDClass previousClass = previousComponent as NhsDDClass
         if (!previousClass) {
             return
         }
 
-        buildChangedAttributesChange(changes, stringWriter, markupBuilder, previousClass)
+        Change changedAttributesChange = createChangedAttributesChange(previousClass)
+        if (changedAttributesChange) {
+            changes.add(changedAttributesChange)
+        }
     }
 
-    void buildChangedAttributesChange(
-        List<Change> changes,
-        StringWriter stringWriter,
-        MarkupBuilder markupBuilder,
-        NhsDDClass previousClass) {
+    Change createChangedAttributesChange(NhsDDClass previousClass) {
         List<NhsDDAttribute> currentAttributes = this.allAttributes()
         List<NhsDDAttribute> previousAttributes = previousClass.allAttributes()
 
@@ -233,37 +227,30 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             !currentAttributes.find {currentAttribute -> currentAttribute.name == previousAttribute.name }
         }
 
-        if (!newAttributes.empty || !removedAttributes.empty) {
-            markupBuilder.div {
-                p "Attributes of this Class are:"
-                currentAttributes.forEach {attribute ->
-                    if (newAttributes.any { it.name == attribute.name }) {
-                        markupBuilder.div(class: "new") {
-                            markupBuilder.span(class: "attribute-name") {
-                                mkp.yield(attribute.name)
-                            }
-                            if (attribute.isKey) {
-                                markupBuilder.span(class: "attribute-key") {
-                                    mkp.yield("Key")
-                                }
-                            }
+        if (newAttributes.empty && removedAttributes.empty) {
+            return null
+        }
+
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            p "Attributes of this Class are:"
+            currentAttributes.forEach {attribute ->
+                if (newAttributes.any { it.name == attribute.name }) {
+                    markupBuilder.div(class: "new") {
+                        markupBuilder.span(class: "attribute-name") {
+                            mkp.yield(attribute.name)
                         }
-                    }
-                    else {
-                        markupBuilder.div {
-                            markupBuilder.span(class: "attribute-name") {
-                                mkp.yield(attribute.name)
-                            }
-                            if (attribute.isKey) {
-                                markupBuilder.span(class: "attribute-key") {
-                                    mkp.yield("Key")
-                                }
+                        if (attribute.isKey) {
+                            markupBuilder.span(class: "attribute-key") {
+                                mkp.yield("Key")
                             }
                         }
                     }
                 }
-                removedAttributes.forEach { attribute ->
-                    markupBuilder.div(class: "deleted") {
+                else {
+                    markupBuilder.div {
                         markupBuilder.span(class: "attribute-name") {
                             mkp.yield(attribute.name)
                         }
@@ -275,18 +262,30 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                     }
                 }
             }
-
-            String htmlDetail = stringWriter.toString()
-            Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
-
-            changes.add(new Change(
-                changeType: Change.CHANGED_ATTRIBUTES_TYPE,
-                stereotype: stereotype,
-                oldItem: previousClass,
-                newItem: this,
-                htmlDetail: htmlDetail,
-                ditaDetail: ditaDetail
-            ))
+            removedAttributes.forEach { attribute ->
+                markupBuilder.div(class: "deleted") {
+                    markupBuilder.span(class: "attribute-name") {
+                        mkp.yield(attribute.name)
+                    }
+                    if (attribute.isKey) {
+                        markupBuilder.span(class: "attribute-key") {
+                            mkp.yield("Key")
+                        }
+                    }
+                }
+            }
         }
+
+        String htmlDetail = stringWriter.toString()
+        Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
+
+        new Change(
+            changeType: Change.CHANGED_ATTRIBUTES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousClass,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail
+        )
     }
 }

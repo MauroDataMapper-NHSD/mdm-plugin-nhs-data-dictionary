@@ -199,39 +199,31 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent, boolean includeDataSets = false) {
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-
         List<Change> changeList = []
-        buildChangeList(changeList, stringWriter, markupBuilder, previousComponent, includeDataSets)
+        buildChangeList(changeList, previousComponent, includeDataSets)
 
         return changeList
     }
 
-    void buildChangeList(
-        List<Change> changes,
-        StringWriter stringWriter,
-        MarkupBuilder markupBuilder,
-        NhsDataDictionaryComponent previousComponent,
-        boolean includeDataSets) {
+    void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
         if (!previousComponent) {
-            Change newChange = createNewComponentChange(stringWriter, markupBuilder, previousComponent)
+            Change newChange = createNewComponentChange(previousComponent)
             changes.add(newChange)
         }
         else if (isRetired() && !previousComponent.isRetired()) {
-            Change retiredChange = createRetiredComponentChange(stringWriter, markupBuilder, previousComponent)
+            Change retiredChange = createRetiredComponentChange(previousComponent)
             changes.add(retiredChange)
         }
         else if (description != previousComponent.description) {
-            Change updatedDescriptionChange = createUpdatedDescriptionChange(stringWriter, markupBuilder, previousComponent, includeDataSets)
+            Change updatedDescriptionChange = createUpdatedDescriptionChange(previousComponent, includeDataSets)
             changes.add(updatedDescriptionChange)
         }
     }
 
-    Change createNewComponentChange(
-        StringWriter stringWriter,
-        MarkupBuilder markupBuilder,
-        NhsDataDictionaryComponent previousComponent) {
+    Change createNewComponentChange(NhsDataDictionaryComponent previousComponent) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
         markupBuilder.div {
             div (class: "new") {
                 mkp.yieldUnescaped(this.description)
@@ -250,10 +242,10 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         )
     }
 
-    Change createRetiredComponentChange(
-        StringWriter stringWriter,
-        MarkupBuilder markupBuilder,
-        NhsDataDictionaryComponent previousComponent) {
+    Change createRetiredComponentChange(NhsDataDictionaryComponent previousComponent) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
         markupBuilder.div {
             /*div (class: "deleted") {
                 mkp.yieldUnescaped(previousComponent.description)
@@ -288,11 +280,10 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         )
     }
 
-    Change createUpdatedDescriptionChange(
-        StringWriter stringWriter,
-        MarkupBuilder markupBuilder,
-        NhsDataDictionaryComponent previousComponent,
-        boolean includeDataSets) {
+    Change createUpdatedDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
         markupBuilder.div {
             div {
                 mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
