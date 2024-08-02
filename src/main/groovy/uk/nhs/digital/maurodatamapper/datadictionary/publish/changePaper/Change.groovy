@@ -27,6 +27,7 @@ class Change {
     static final String UPDATED_DESCRIPTION_TYPE = "Updated description"
     static final String CHANGED_ATTRIBUTES_TYPE = "Changed attributes"
     static final String ALIASES_TYPE = "Aliases"
+    static final String NATIONAL_CODES_TYPE = "National Codes"
 
     String changeType
     String stereotype

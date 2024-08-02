@@ -22,6 +22,7 @@ import grails.testing.mixin.integration.Integration
 import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 abstract class ChangePaperChangesSpec extends Specification {
@@ -267,8 +268,8 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             changes.size() == 2
         }
 
-        Change newChange = changes.first()
-        verifyAll(newChange) {
+        Change updatedChange = changes.first()
+        verifyAll(updatedChange) {
             changeType == UPDATED_DESCRIPTION_TYPE
             stereotype == expectedStereotype
             oldItem == previousComponent
@@ -359,6 +360,258 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
       </stentry>
       <stentry outputclass='deleted'>
         <ph>Formerly</ph>
+      </stentry>
+    </strow>
+  </simpletable>
+</div>"""
+        }
+    }
+
+    void "should return changes for a new attribute with national codes"() {
+        given: "there is no previous component"
+        NhsDDAttribute previousComponent = null
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "ABLATIVE THERAPY TYPE",
+            definition: "The type of <a href=\"ABLATIVE THERAPY TYPE\">ABLATIVE THERAPY TYPE</a>.",
+            codes: [
+                new NhsDDCode(code: "7", definition: "Other Ablative Therapy (not listed)", webOrder: 2),
+                new NhsDDCode(code: "8", definition: "Other Ablative Treatment (not listed) (Retired 1 April 2024)", webOrder: 3),
+                new NhsDDCode(code: "9", definition: "Not Known (Not Recorded)", webOrder: 0),
+                new NhsDDCode(code: "M", definition: "Microwave Ablation", webOrder: 1),
+            ])
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected changes are returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change newChange = changes.first()
+        verifyAll(newChange) {
+            changeType == NEW_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+        }
+
+        Change nationalCodesChange = changes.last()
+        String ditaXml = nationalCodesChange.ditaDetail.toXmlString()
+        verifyAll(nationalCodesChange) {
+            changeType == NATIONAL_CODES_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+            preferDitaDetail
+            htmlDetail == """<div>
+  <table class='codes-table'>
+    <thead>
+      <th>Code</th>
+      <th>Description</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td class='new'>9</td>
+        <td class='new'>Not Known (Not Recorded)</td>
+      </tr>
+      <tr>
+        <td class='new'>M</td>
+        <td class='new'>Microwave Ablation</td>
+      </tr>
+      <tr>
+        <td class='new'>7</td>
+        <td class='new'>Other Ablative Therapy (not listed)</td>
+      </tr>
+      <tr>
+        <td class='new'>8</td>
+        <td class='new'>Other Ablative Treatment (not listed) (Retired 1 April 2024)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>"""
+            ditaXml == """<div>
+  <simpletable relcolwidth='1* 4*'>
+    <sthead>
+      <stentry>Code</stentry>
+      <stentry>Description</stentry>
+    </sthead>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>9</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>Not Known (Not Recorded)</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>M</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>Microwave Ablation</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>7</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>Other Ablative Therapy (not listed)</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>8</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>Other Ablative Treatment (not listed) (Retired 1 April 2024)</ph>
+      </stentry>
+    </strow>
+  </simpletable>
+</div>"""
+        }
+    }
+
+    void "should return changes for an attribute with updated national codes"() {
+        given: "there is a previous component"
+        NhsDDAttribute previousComponent = new NhsDDAttribute(
+            name: "ABLATIVE THERAPY TYPE",
+            definition: "The type of <a href=\"ABLATIVE THERAPY TYPE\">ABLATIVE THERAPY TYPE</a>.",
+            codes: [
+                new NhsDDCode(code: "7", definition: "Other Ablative Therapy (not listed)", webOrder: 2), // Remove
+                new NhsDDCode(code: "8", definition: "Other Ablative Treatment (not listed) (Retired 1 April 2024)", webOrder: 3), // Changed
+                new NhsDDCode(code: "9", definition: "Not Known (Not Recorded)", webOrder: 0), // Unchanged
+                new NhsDDCode(code: "M", definition: "Microwave Ablation", webOrder: 1), // Unchanged
+            ])
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "ABLATIVE THERAPY TYPE",
+            definition: "The form of <a href=\"ABLATIVE THERAPY TYPE\">ABLATIVE THERAPY TYPE</a>.",
+            codes: [
+                new NhsDDCode(code: "8", definition: "Other Ablative Treatment (not listed) (Retired 1 May 2024)", webOrder: 3), // Changed
+                new NhsDDCode(code: "9", definition: "Not Known (Not Recorded)", webOrder: 0), // Unchanged
+                new NhsDDCode(code: "M", definition: "Microwave Ablation", webOrder: 1),    // Unchanged
+                new NhsDDCode(code: "R", definition: "Radiofrequency Ablation (RFA)", webOrder: 2, webPresentation: "<p><a href=\"te:NHS Business Definitions|tm:Radiofrequency Ablation\">Radiofrequency Ablation</a></p>"),    // Added
+            ])
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected changes are returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change updatedChange = changes.first()
+        verifyAll(updatedChange) {
+            changeType == UPDATED_DESCRIPTION_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+        }
+
+        Change nationalCodesChange = changes.last()
+        String ditaXml = nationalCodesChange.ditaDetail.toXmlString()
+        verifyAll(nationalCodesChange) {
+            changeType == NATIONAL_CODES_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+            preferDitaDetail
+            htmlDetail == """<div>
+  <table class='codes-table'>
+    <thead>
+      <th>Code</th>
+      <th>Description</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td>9</td>
+        <td>Not Known (Not Recorded)</td>
+      </tr>
+      <tr>
+        <td>M</td>
+        <td>Microwave Ablation</td>
+      </tr>
+      <tr>
+        <td class='new'>R</td>
+        <td class='new'><p><a href="te:NHS Business Definitions|tm:Radiofrequency Ablation">Radiofrequency Ablation</a></p></td>
+      </tr>
+      <tr>
+        <td class='new'>8</td>
+        <td class='new'>Other Ablative Treatment (not listed) (Retired 1 May 2024)</td>
+      </tr>
+      <tr>
+        <td class='deleted'>7</td>
+        <td class='deleted'>Other Ablative Therapy (not listed)</td>
+      </tr>
+      <tr>
+        <td class='deleted'>8</td>
+        <td class='deleted'>Other Ablative Treatment (not listed) (Retired 1 April 2024)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>"""
+            ditaXml == """<div>
+  <simpletable relcolwidth='1* 4*'>
+    <sthead>
+      <stentry>Code</stentry>
+      <stentry>Description</stentry>
+    </sthead>
+    <strow>
+      <stentry>
+        <ph>9</ph>
+      </stentry>
+      <stentry>
+        <ph>Not Known (Not Recorded)</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry>
+        <ph>M</ph>
+      </stentry>
+      <stentry>
+        <ph>Microwave Ablation</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>R</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <div>
+          <p>
+            <xref keyref='te:NHS%20Business%20Definitions|tm:Radiofrequency%20Ablation' scope='local'>Radiofrequency Ablation</xref>
+          </p>
+        </div>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='new'>
+        <ph>8</ph>
+      </stentry>
+      <stentry outputclass='new'>
+        <ph>Other Ablative Treatment (not listed) (Retired 1 May 2024)</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='deleted'>
+        <ph>7</ph>
+      </stentry>
+      <stentry outputclass='deleted'>
+        <ph>Other Ablative Therapy (not listed)</ph>
+      </stentry>
+    </strow>
+    <strow>
+      <stentry outputclass='deleted'>
+        <ph>8</ph>
+      </stentry>
+      <stentry outputclass='deleted'>
+        <ph>Other Ablative Treatment (not listed) (Retired 1 April 2024)</ph>
       </stentry>
     </strow>
   </simpletable>
