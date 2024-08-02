@@ -238,12 +238,12 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             p "Attributes of this Class are:"
             currentAttributes.forEach {attribute ->
                 if (newAttributes.any { it.name == attribute.name }) {
-                    markupBuilder.div(class: "new") {
-                        markupBuilder.span(class: "attribute-name") {
+                    markupBuilder.div {
+                        markupBuilder.span(class: "attribute-name new") {
                             mkp.yield(attribute.name)
                         }
                         if (attribute.isKey) {
-                            markupBuilder.span(class: "attribute-key") {
+                            markupBuilder.span(class: "attribute-key new") {
                                 mkp.yield("Key")
                             }
                         }
@@ -263,12 +263,12 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                 }
             }
             removedAttributes.forEach { attribute ->
-                markupBuilder.div(class: "deleted") {
-                    markupBuilder.span(class: "attribute-name") {
+                markupBuilder.div {
+                    markupBuilder.span(class: "attribute-name deleted") {
                         mkp.yield(attribute.name)
                     }
                     if (attribute.isKey) {
-                        markupBuilder.span(class: "attribute-key") {
+                        markupBuilder.span(class: "attribute-key deleted") {
                             mkp.yield("Key")
                         }
                     }

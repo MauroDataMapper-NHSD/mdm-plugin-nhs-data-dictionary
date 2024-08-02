@@ -393,14 +393,14 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
   <div>
     <span class='attribute-name'>SERVICE REPORT ISSUE DATE</span>
   </div>
-  <div class='new'>
-    <span class='attribute-name'>SERVICE REPORT ISSUE TIME</span>
+  <div>
+    <span class='attribute-name new'>SERVICE REPORT ISSUE TIME</span>
   </div>
   <div>
     <span class='attribute-name'>SERVICE REPORT STATUS</span>
   </div>
-  <div class='deleted'>
-    <span class='attribute-name'>SERVICE REPORT STATUS CODE</span>
+  <div>
+    <span class='attribute-name deleted'>SERVICE REPORT STATUS CODE</span>
   </div>
 </div>"""
             ditaXml == """<div>
@@ -413,14 +413,14 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
     <div>
       <ph outputclass='attribute-name'>SERVICE REPORT ISSUE DATE</ph>
     </div>
-    <div outputclass='new'>
-      <ph outputclass='attribute-name'>SERVICE REPORT ISSUE TIME</ph>
+    <div>
+      <ph outputclass='attribute-name new'>SERVICE REPORT ISSUE TIME</ph>
     </div>
     <div>
       <ph outputclass='attribute-name'>SERVICE REPORT STATUS</ph>
     </div>
-    <div outputclass='deleted'>
-      <ph outputclass='attribute-name'>SERVICE REPORT STATUS CODE</ph>
+    <div>
+      <ph outputclass='attribute-name deleted'>SERVICE REPORT STATUS CODE</ph>
     </div>
   </div>
 </div>"""

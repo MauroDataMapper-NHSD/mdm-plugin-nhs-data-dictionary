@@ -208,25 +208,39 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
         if (!previousComponent) {
-            Change newChange = createNewComponentChange(previousComponent)
-            changes.add(newChange)
+            buildComponentDetailsChangeList(changes, null, false)
         }
         else if (isRetired() && !previousComponent.isRetired()) {
             Change retiredChange = createRetiredComponentChange(previousComponent)
             changes.add(retiredChange)
         }
         else if (description != previousComponent.description) {
-            Change updatedDescriptionChange = createUpdatedDescriptionChange(previousComponent, includeDataSets)
-            changes.add(updatedDescriptionChange)
+            buildComponentDetailsChangeList(changes, previousComponent, includeDataSets)
+        }
+    }
+
+    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
+        if (standardDescriptionChange) {
+            changes.add(standardDescriptionChange)
         }
 
+        // Aliases should only be added if the component is new or updated
         Change aliasesChange = createAliasesChange(previousComponent)
         if (aliasesChange) {
             changes.add(aliasesChange)
         }
     }
 
-    Change createNewComponentChange(NhsDataDictionaryComponent previousComponent) {
+    Change createStandardDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        if (!previousComponent) {
+            return createNewComponentChange()
+        }
+
+        return createUpdatedDescriptionChange(previousComponent, includeDataSets)
+    }
+
+    Change createNewComponentChange() {
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
 
