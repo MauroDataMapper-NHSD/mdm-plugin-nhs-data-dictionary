@@ -36,6 +36,7 @@ class Change {
 
     String htmlDetail
     DitaElement ditaDetail
+    boolean preferDitaDetail = false
 
     Change() { }
 

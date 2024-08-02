@@ -347,7 +347,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             oldItem: previousComponent,
             newItem: this,
             htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail
+            ditaDetail: ditaDetail,
+            preferDitaDetail: true
         )
     }
 

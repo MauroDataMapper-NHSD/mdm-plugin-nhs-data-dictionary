@@ -59,6 +59,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             !oldItem
             newItem == currentComponent
+            !preferDitaDetail
             htmlDetail == "<div>\n" +
             "  <div class='new'>The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was received.</div>\n" +
             "</div>"
@@ -99,6 +100,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
+            !preferDitaDetail
             htmlDetail == "<div>\n" +
             "  <div>The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was <span class=\"diff-html-removed\" id=\"removed-diff-0\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">received</span><span class=\"diff-html-added\" id=\"added-diff-0\" previous=\"removed-diff-0\" changeId=\"added-diff-0\" next=\"last-diff\">obtained</span>.</div>\n" +
             "</div>"
@@ -147,6 +149,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
+            !preferDitaDetail
             htmlDetail == "<div><span class=\"diff-html-removed\" id=\"removed-diff-0\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">The time the </span><a href=\"DIAGNOSTIC TEST REQUEST\"><span class=\"diff-html-removed\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">DIAGNOSTIC TEST REQUEST</span></a><span class=\"diff-html-removed\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\"> was received</span><span class=\"diff-html-added\" id=\"added-diff-0\" previous=\"removed-diff-0\" changeId=\"added-diff-0\" next=\"last-diff\">This item has been retired from the NHS Data Model and Dictionary</span>.</div>"
         }
     }
@@ -187,6 +190,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             !oldItem
             newItem == currentComponent
+            preferDitaDetail
             htmlDetail == """<div>
   <p>This Attribute is also known by these names:</p>
   <table class='alias-table'>
@@ -278,6 +282,7 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
+            preferDitaDetail
             htmlDetail == """<div>
   <p>This Attribute is also known by these names:</p>
   <table class='alias-table'>
@@ -401,6 +406,7 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
+            !preferDitaDetail
             htmlDetail == """<div>
   <p>Attributes of this Class are:</p>
   <div>

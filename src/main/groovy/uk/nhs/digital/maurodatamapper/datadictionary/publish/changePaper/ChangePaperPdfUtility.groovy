@@ -20,7 +20,6 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicMeta
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
@@ -189,10 +188,11 @@ class ChangePaperPdfUtility {
                                 txt changedItem.dictionaryComponent.name
                             }
                         }
-                        changedItem.changes.each {change ->
-                            stentry {
-                                p change.changeType
-                            }
+                        stentry {
+                            String changeText = changedItem.changes.collect {
+                                it.changeType
+                            }.join(", ")
+                            p changeText
                         }
                     }
                 }
@@ -214,10 +214,14 @@ class ChangePaperPdfUtility {
                 }.join(", ")
                 shortdesc "Change to ${stereotypedChange.stereotypeName}: ${changeText}"
 
-                changedItem.changes.each {change ->
-                    //String newChangeDetails = replaceLinksInHtml(change.htmlDetail, pathLookup)
-                    body {
-                        div HtmlHelper.replaceHtmlWithDita(change.htmlDetail)
+                body {
+                    changedItem.changes.each {change ->
+                        if (change.preferDitaDetail && change.ditaDetail) {
+                            div change.ditaDetail
+                        }
+                        else {
+                            div HtmlHelper.replaceHtmlWithDita(change.htmlDetail)
+                        }
                     }
                 }
             }
