@@ -23,6 +23,7 @@ import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 abstract class ChangePaperChangesSpec extends Specification {
@@ -700,6 +701,138 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
     </div>
   </div>
 </div>"""
+        }
+    }
+}
+
+@Integration
+@Rollback
+class NhsDDElementChangePaperChangesSpec extends ChangePaperChangesSpec {
+    @Override
+    def getExpectedStereotype() {
+        "Data Element"
+    }
+
+    void "should return changes for a new element with a format length"() {
+        given: "there is no previous component"
+        NhsDDElement previousComponent = null
+
+        and: "there is a current component"
+        NhsDDElement currentComponent = new NhsDDElement(
+            name: "SERVICE REPORT ISSUE TIME",
+            definition: "<a href=\"SERVICE REPORT ISSUE TIME\">SERVICE REPORT ISSUE TIME</a> is the same as attribute SERVICE REPORT ISSUE TIME.",
+            otherProperties: [
+                'formatLength': 'an8 HH:MM:SS'
+            ])
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected change object is returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change formatChange = changes.first()
+        String formatChangeDitaXml = formatChange.ditaDetail.toXmlString()
+
+        verifyAll(formatChange) {
+            changeType == FORMAT_LENGTH_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+            preferDitaDetail
+            htmlDetail == """<div class='format-length-detail'>
+  <dl>
+    <dt>Format / Length</dt>
+    <dd>
+      <p class='new'>an8 HH:MM:SS</p>
+    </dd>
+  </dl>
+</div>"""
+            formatChangeDitaXml == """<div>
+  <dl>
+    <dlentry>
+      <dt>Format / Length</dt>
+      <dd>
+        <p outputclass='new'>an8 HH:MM:SS</p>
+      </dd>
+    </dlentry>
+  </dl>
+</div>"""
+        }
+
+        Change newChange = changes.last()
+        verifyAll(newChange) {
+            changeType == NEW_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+        }
+    }
+
+    void "should return changes for an element with updated format length"() {
+        given: "there is a previous component"
+        NhsDDElement previousComponent = new NhsDDElement(
+            name: "SERVICE REPORT ISSUE TIME",
+            definition: "<a href=\"SERVICE REPORT ISSUE TIME\">SERVICE REPORT ISSUE TIME</a> is the same as attribute SERVICE REPORT ISSUE TIME.",
+            otherProperties: [
+                'formatLength': 'an8 HH:MM:SS'
+            ])
+
+        and: "there is a current component"
+        NhsDDElement currentComponent = new NhsDDElement(
+            name: "SERVICE REPORT ISSUE TIME",
+            definition: "Please note: <a href=\"SERVICE REPORT ISSUE TIME\">SERVICE REPORT ISSUE TIME</a> is the same as attribute SERVICE REPORT ISSUE TIME.",
+            otherProperties: [
+                'formatLength': 'min an5 max an9'
+            ])
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected change object is returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change formatChange = changes.first()
+        String formatChangeDitaXml = formatChange.ditaDetail.toXmlString()
+
+        verifyAll(formatChange) {
+            changeType == FORMAT_LENGTH_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+            preferDitaDetail
+            htmlDetail == """<div class='format-length-detail'>
+  <dl>
+    <dt>Format / Length</dt>
+    <dd>
+      <p class='new'>min an5 max an9</p>
+      <p class='deleted'>an8 HH:MM:SS</p>
+    </dd>
+  </dl>
+</div>"""
+            formatChangeDitaXml == """<div>
+  <dl>
+    <dlentry>
+      <dt>Format / Length</dt>
+      <dd>
+        <p outputclass='new'>min an5 max an9</p>
+        <p outputclass='deleted'>an8 HH:MM:SS</p>
+      </dd>
+    </dlentry>
+  </dl>
+</div>"""
+        }
+
+        Change newChange = changes.last()
+        verifyAll(newChange) {
+            changeType == UPDATED_DESCRIPTION_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
         }
     }
 }
