@@ -17,28 +17,18 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 
-
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
-class DataSetsHaveAnOverview implements IntegrityCheck {
+class IntegrityCheckError {
+    final NhsDataDictionaryComponent component
+    final List<String> details
 
-    String name = "Data Sets have an overview"
-
-    String description = "Check that all live data sets have an overview field"
-
-    @Override
-    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
-
-        errors = dataDictionary.dataSets.values()
-            .findAll {ddDataSet ->
-                // log.debug(ddAttribute.classLinks.size())
-                !ddDataSet.isRetired() &&
-                (ddDataSet.definition == null || ddDataSet.definition == "")
-            }
-            .collect { component -> new IntegrityCheckError(component) }
-
-        return errors
+    IntegrityCheckError(NhsDataDictionaryComponent component) {
+        this(component, [])
     }
 
+    IntegrityCheckError(NhsDataDictionaryComponent component, List<String> details) {
+        this.component = component
+        this.details = details
+    }
 }

@@ -30,21 +30,24 @@ class DataSetsIncludeRetiredItem implements IntegrityCheck {
     String description = "Check that a data set doesn't include any retired data elements in its definition"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
         //List<NhsDataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPreparatory()}
 
-        errors = dataDictionary.dataSets.values().findAll {component ->
-            ((DataModel)component.catalogueItem).allDataElements.find {dataElement ->
-                NhsDDElement foundElement = dataDictionary.elementsByCatalogueId[dataElement.id]
-                if(foundElement) {
-                    return foundElement.isRetired()
-                } else {
-                    // This must be one of those 'preview' elements, and so we'll assume it's not retired
-                    return false
+        errors = dataDictionary.dataSets.values()
+            .findAll {component ->
+                ((DataModel)component.catalogueItem).allDataElements.find {dataElement ->
+                    NhsDDElement foundElement = dataDictionary.elementsByCatalogueId[dataElement.id]
+                    if(foundElement) {
+                        return foundElement.isRetired()
+                    } else {
+                        // This must be one of those 'preview' elements, and so we'll assume it's not retired
+                        return false
+                    }
                 }
             }
-        }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

@@ -28,12 +28,15 @@ class ClassLinkedToRetiredAttribute implements IntegrityCheck {
     String description = "Check that all live classes do not contain attributes that are retired"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.classes.values().findAll{ddClass ->
-            !ddClass.isRetired() &&
-            ddClass.allAttributes().findAll {it.isRetired()}.size() > 0
-        }
+        errors = dataDictionary.classes.values()
+            .findAll{ddClass ->
+                !ddClass.isRetired() &&
+                ddClass.allAttributes().findAll {it.isRetired()}.size() > 0
+            }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

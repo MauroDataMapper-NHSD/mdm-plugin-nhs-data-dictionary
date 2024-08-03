@@ -34,7 +34,7 @@ class BrokenLinks implements IntegrityCheck {
     static Pattern pattern = Pattern.compile("<a[\\s]*href=\"(http[^\"]*)\"[^>]*>([^<]*)</a>")
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
         Map<String, List<NhsDataDictionaryComponent>> linkComponentMap = [:]
         List<NhsDataDictionaryComponent> errorComponents = Collections.synchronizedList(new ArrayList<NhsDataDictionaryComponent>())
         dataDictionary.allComponents.
@@ -78,7 +78,11 @@ class BrokenLinks implements IntegrityCheck {
             })
         }
         threads.each { it.join() }
-        errors = (errorComponents.toSet()).toList()
+        List<NhsDataDictionaryComponent> components = (errorComponents.toSet()).toList()
+
+        errors = components.collect { component -> new IntegrityCheckError(component) }
+
+        return errors
     }
 
 }
