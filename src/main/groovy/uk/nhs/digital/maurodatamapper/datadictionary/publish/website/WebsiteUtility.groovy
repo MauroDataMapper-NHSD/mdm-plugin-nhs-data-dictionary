@@ -226,25 +226,25 @@ class WebsiteUtility {
 
 
 
-        DitaMap indexMap = DitaMap.build(id: 'all_items_index__a-z_', toc: Toc.YES) {
+        DitaMap indexMap = DitaMap.build(id: 'all_items_index', toc: Toc.YES) {
             title "All Items Index"
             topicSet indexTopicSet
         }
         ditaProject.registerMap("", indexMap)
 
         Topic allItemsOverview = Topic.build {
-            id 'all_items_index__a-z_'
+            id 'allItems-index-overview'
             title 'All Items Index'
             shortdesc 'Lists all the items in the dictionary in alphabetical order'
             body {
                 p TO_BE_OVERRIDDEN_TEXT
             }
         }
-        ditaProject.registerTopic("", allItemsOverview)
+        ditaProject.registerTopic("", allItemsOverview, "all_items_index_overview")
 
         ditaProject.mainMap.mapRef {
             toc Toc.YES
-            keyRef 'all_items_index__a-z_'
+            keyRef indexMap.id
         }
     }
 

@@ -71,7 +71,7 @@ class DataSetsWebsiteHelper {
 
 
         dataDictionary.dataSets.values().each { dataSet ->
-            String path = "data_sets/" + StringUtils.join(dataSet.getDitaFolderPath(), "/")
+            String path = "data_sets/" + StringUtils.join(dataSet.getDitaFolderPath(), "/").toLowerCase()
             DitaMap dataSetMap = dataSet.generateMap()
             ditaProject.registerMap(path, dataSetMap)
             ditaProject.registerTopic(path, dataSet.generateTopic())

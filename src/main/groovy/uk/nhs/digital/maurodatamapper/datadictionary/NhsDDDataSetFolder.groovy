@@ -127,7 +127,7 @@ class NhsDDDataSetFolder implements NhsDataDictionaryComponent <Folder> {
 
     List<String> getDitaFolderPath() {
         folderPath.collect {
-            it.replaceAll("[^A-Za-z0-9 ]", "").replace(" ", "_")
+            it.replaceAll("[^A-Za-z0-9- ]", "").replace(" ", "_")
         }
     }
 
