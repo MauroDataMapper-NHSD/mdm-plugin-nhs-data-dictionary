@@ -275,7 +275,10 @@ class ChangePaper {
         changedItems += new StereotypedChange(stereotypeName: "Data Set Constraint",
               changedItems: compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary?.dataSetConstraints))
 
-        if(includeDataSets && dataSetChanges.size() > 0) {
+        if (includeDataSets && dataSetChanges.size() > 0) {
+            Set<NhsDataDictionaryComponent> existingElementsForChanges = elementChange.getUniqueNewItems()
+            Set<NhsDataDictionaryComponent> existingAttributesForChanges = attributeChange.getUniqueNewItems()
+
             Set<NhsDDDataSet> changedDataSets = [] as Set<NhsDDDataSet>
             dataSetChanges.each { changedItem ->
                 changedDataSets.add((NhsDDDataSet)changedItem.dictionaryComponent)
@@ -283,36 +286,41 @@ class ChangePaper {
             changedDataSets.each { dataSet ->
                 Set<NhsDDDataSetElement> dataSetElements = dataSet.getAllElements()
                 Set<NhsDDAttribute> dataSetAttributes = [] as Set<NhsDDAttribute>
-                dataSetElements.each {dataSetElement ->
 
-                    elementChange.changedItems.add(new ChangedItem(
+                dataSetElements.each {dataSetElement ->
+                    // Don't duplicate a Data Element appearing in the change paper if a change was already recorded
+                    if (!existingElementsForChanges.contains(dataSetElement.reuseElement)) {
+                        elementChange.changedItems.add(new ChangedItem(
                             dictionaryComponent: dataSetElement.reuseElement,
                             changes: [new Change(
-                                    changeType: "Unchanged Item",
-                                    stereotype: dataSetElement.reuseElement.stereotype,
-                                    oldItem: null,
-                                    newItem: dataSetElement.reuseElement,
-                                    htmlDetail: dataSetElement.reuseElement.description,
-                                    ditaDetail: Div.build {
-                                        div HtmlHelper.replaceHtmlWithDita(dataSetElement.reuseElement.description)
-                                    })]
-                    ))
+                                changeType: Change.CHANGED_DATA_SET_TYPE,
+                                stereotype: dataSetElement.reuseElement.stereotype,
+                                oldItem: null,
+                                newItem: dataSetElement.reuseElement,
+                                htmlDetail: dataSetElement.reuseElement.description,
+                                ditaDetail: Div.build {
+                                    div HtmlHelper.replaceHtmlWithDita(dataSetElement.reuseElement.description)
+                                })]
+                        ))
+                    }
                     dataSetAttributes.addAll(((NhsDDElement)dataSetElement.reuseElement).instantiatesAttributes)
                 }
                 dataSetAttributes.each { attribute ->
-
-                    attributeChange.changedItems.add(new ChangedItem(
+                    // Don't duplicate an Attribute appearing in the change paper if a change was already recorded
+                    if (!existingAttributesForChanges.contains(attribute)) {
+                        attributeChange.changedItems.add(new ChangedItem(
                             dictionaryComponent: attribute,
                             changes: [new Change(
-                                    changeType: "Unchanged Item",
-                                    stereotype: attribute.stereotype,
-                                    oldItem: null,
-                                    newItem: attribute,
-                                    htmlDetail: attribute.description,
-                                    ditaDetail: Div.build {
-                                        div HtmlHelper.replaceHtmlWithDita(attribute.description)
-                                    })]
-                    ))
+                                changeType: Change.CHANGED_DATA_SET_TYPE,
+                                stereotype: attribute.stereotype,
+                                oldItem: null,
+                                newItem: attribute,
+                                htmlDetail: attribute.description,
+                                ditaDetail: Div.build {
+                                    div HtmlHelper.replaceHtmlWithDita(attribute.description)
+                                })]
+                        ))
+                    }
                 }
             }
         }
@@ -361,22 +369,4 @@ class ChangePaper {
         }
         return writer.toString()
     }
-/*
-    Map<String, List<Change>> getStereotypedChanges() {
-
-        Map<String, List<Change>> stereotypedChangesResult = [:]
-
-        changes.each { change ->
-            List<Change> changesForStereotype = stereotypedChangesResult[change.stereotype]
-            if(!changesForStereotype) {
-                changesForStereotype = [change]
-                stereotypedChangesResult[change.stereotype] = changesForStereotype
-
-            } else {
-                changesForStereotype.add(change)
-            }
-        }
-        return stereotypedChangesResult
-    }
-*/
 }
