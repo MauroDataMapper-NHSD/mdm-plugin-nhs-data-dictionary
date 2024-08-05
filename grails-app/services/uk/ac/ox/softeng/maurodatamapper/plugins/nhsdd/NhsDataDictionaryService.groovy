@@ -50,6 +50,7 @@ import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import org.apache.commons.io.FileUtils
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
@@ -995,9 +996,11 @@ class NhsDataDictionaryService {
     static String getTestOutputPath() {
         File ditaTestDir = new File(System.getProperty("java.io.tmpdir"), "ditaTest")
 
-        if (!ditaTestDir.exists()) {
-            ditaTestDir.mkdirs()
+        if (ditaTestDir.exists()) {
+            FileUtils.deleteDirectory(ditaTestDir)
         }
+        ditaTestDir.mkdirs()
+
         ditaTestDir.absolutePath
     }
 }
