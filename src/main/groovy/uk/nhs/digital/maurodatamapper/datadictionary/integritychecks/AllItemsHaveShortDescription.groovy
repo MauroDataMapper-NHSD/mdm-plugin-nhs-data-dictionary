@@ -30,16 +30,19 @@ class AllItemsHaveShortDescription implements IntegrityCheck {
     String description = "Check that all items have a short description"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.getAllComponents().findAll {component ->
-            String shortDesc = component.getShortDescription()
-            if(component instanceof NhsDDDataSetFolder) {
-                log.debug(((NhsDDDataSetFolder)component).folderPath.toString())
-                log.debug("${component.name} : ${shortDesc}")
+        errors = dataDictionary.getAllComponents()
+            .findAll {component ->
+                String shortDesc = component.getShortDescription()
+                if(component instanceof NhsDDDataSetFolder) {
+                    log.debug(((NhsDDDataSetFolder)component).folderPath.toString())
+                    log.debug("${component.name} : ${shortDesc}")
+                }
+                return (shortDesc == null || shortDesc == "")
             }
-            return (shortDesc == null || shortDesc == "")
-        }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

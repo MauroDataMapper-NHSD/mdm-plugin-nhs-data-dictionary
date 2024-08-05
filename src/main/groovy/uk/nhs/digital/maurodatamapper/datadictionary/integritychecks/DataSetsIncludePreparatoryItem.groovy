@@ -28,15 +28,18 @@ class DataSetsIncludePreparatoryItem implements IntegrityCheck {
     String description = "Check that a data set doesn't include any preparatory data elements in its definition"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
         List<NhsDataDictionaryComponent> prepItems = dataDictionary.elements.values().findAll {it.isPreparatory()}
 
-        errors = dataDictionary.dataSets.values().findAll {component ->
-            ((DataModel)component.catalogueItem).allDataElements.find {dataElement ->
-                prepItems.find {it.name == dataElement.label}
+        errors = dataDictionary.dataSets.values()
+            .findAll {component ->
+                ((DataModel)component.catalogueItem).allDataElements.find {dataElement ->
+                    prepItems.find {it.name == dataElement.label}
+                }
             }
-        }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

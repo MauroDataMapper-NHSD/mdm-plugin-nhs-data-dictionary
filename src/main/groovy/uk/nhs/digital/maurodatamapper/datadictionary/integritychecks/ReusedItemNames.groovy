@@ -28,7 +28,7 @@ class ReusedItemNames implements IntegrityCheck {
     String description = "Check that item names of retired classes, attributes and elements have not been re-used"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
         Set<String> duplicateAttributes = findDuplicates(dataDictionary.attributes.values().collect {it.name})
         Set<String> duplicateElements = findDuplicates(dataDictionary.elements.values().collect {it.name})
@@ -50,7 +50,11 @@ class ReusedItemNames implements IntegrityCheck {
                 foundDuplicates.addAll(dataDictionary.classes.values().findAll {it.name == className})
             }
         }
-        errors = foundDuplicates as List
+
+        errors = foundDuplicates
+            .toList()
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

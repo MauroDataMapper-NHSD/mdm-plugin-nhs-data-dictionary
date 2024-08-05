@@ -26,12 +26,12 @@ trait IntegrityCheck {
     String name
     String description
 
-    List<NhsDataDictionaryComponent> errors = []
+    List<IntegrityCheckError> errors = []
 
-    abstract List<NhsDataDictionaryComponent> runCheck (NhsDataDictionary dataDictionary)
+    abstract List<IntegrityCheckError> runCheck (NhsDataDictionary dataDictionary)
 
     void sortErrors() {
-        errors = errors.sort {it.name}
+        errors = errors.sort { it.component.name }
     }
 
 

@@ -28,13 +28,16 @@ class ElementsLinkedToAnAttribute implements IntegrityCheck {
     String description = "Check that all live elements are linked to an attribute"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.elements.values().findAll {ddElement ->
-            // log.debug(ddAttribute.classLinks.size())
-            !ddElement.isRetired() &&
-            ddElement.getInstantiatesAttributes() == []
-        }
+        errors = dataDictionary.elements.values()
+            .findAll {ddElement ->
+                // log.debug(ddAttribute.classLinks.size())
+                !ddElement.isRetired() &&
+                ddElement.getInstantiatesAttributes() == []
+            }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

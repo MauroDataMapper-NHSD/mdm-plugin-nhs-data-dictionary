@@ -7,7 +7,7 @@ model {
 json {
     checkName integrityCheck.name
     description integrityCheck.description
-    errors tmpl.'/nhsDataDictionaryComponent/nhsDataDictionaryComponent'(integrityCheck.errors ?: [])
+    errors tmpl.'/integrityCheck/integrityCheckError'(integrityCheck.errors ?: [])
 
     size integrityCheck.errors.size()
 }
