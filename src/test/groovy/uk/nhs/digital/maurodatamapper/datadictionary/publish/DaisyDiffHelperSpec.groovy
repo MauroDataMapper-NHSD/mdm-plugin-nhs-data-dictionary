@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020-2024 University of Oxford and NHS England
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
 import grails.util.BuildSettings
@@ -18,11 +35,11 @@ class DaisyDiffHelperSpec extends Specification {
 
     void "should diff HTML with basic markup"() {
         given: "there is a source html content"
-        Path leftPath = resourcesPath.resolve("basic/left.html")
+        Path leftPath = resourcesPath.resolve("basic/left.txt")
         String leftHtml = Files.readString(leftPath)
 
         and: "there is a target html content"
-        Path rightPath = resourcesPath.resolve("basic/right.html")
+        Path rightPath = resourcesPath.resolve("basic/right.txt")
         String rightHtml = Files.readString(rightPath)
 
         when: "html is diffed"
@@ -37,11 +54,11 @@ class DaisyDiffHelperSpec extends Specification {
 
     void "should not diff HTML which includes tables"() {
         given: "there is a source html content"
-        Path leftPath = resourcesPath.resolve("complexHtmlTable/left.html")
+        Path leftPath = resourcesPath.resolve("complexHtmlTable/left.txt")
         String leftHtml = Files.readString(leftPath)
 
         and: "there is a target html content"
-        Path rightPath = resourcesPath.resolve("complexHtmlTable/right.html")
+        Path rightPath = resourcesPath.resolve("complexHtmlTable/right.txt")
         String rightHtml = Files.readString(rightPath)
 
         when: "html is checked"
