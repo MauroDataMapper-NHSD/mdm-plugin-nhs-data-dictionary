@@ -208,7 +208,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
         if (!previousComponent) {
-            buildComponentDetailsChangeList(changes, null, false)
+            buildComponentDetailsChangeList(changes, null, includeDataSets)
         }
         else if (isRetired() && !previousComponent.isRetired()) {
             Change retiredChange = createRetiredComponentChange(previousComponent)
@@ -286,15 +286,9 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             ditaDetail: Div.build {
                 div (outputClass: "deleted") {
                     div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-                    if(previousComponent instanceof NhsDDDataSet) {
-                        div HtmlHelper.replaceHtmlWithDita(previousComponent.outputAsHtml(markupBuilder))
-                    }
                 }
                 div (outputClass: "new") {
                     div HtmlHelper.replaceHtmlWithDita(this.description)
-                    if(this instanceof NhsDDDataSet) {
-                        div HtmlHelper.replaceHtmlWithDita(((NhsDDDataSet)this).outputAsHtml(markupBuilder))
-                    }
                 }
             }
         )
@@ -327,9 +321,6 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             }
             markupBuilder.div {
                 mkp.yieldUnescaped(diffHtml)
-                if(this instanceof NhsDDDataSet && includeDataSets) {
-                    mkp.yieldUnescaped(((NhsDDDataSet)this).structureAsHtml)
-                }
             }
         }
 
