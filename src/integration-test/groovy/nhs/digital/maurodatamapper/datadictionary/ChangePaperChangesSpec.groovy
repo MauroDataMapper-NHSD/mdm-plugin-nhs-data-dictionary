@@ -125,6 +125,41 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
         }
     }
 
+    void "should return changes for an updated description that contains a html table"() {
+        given: "there is a previous component"
+        NhsDDAttribute previousComponent = new NhsDDAttribute(
+            name: "DIAGNOSTIC TEST REQUEST RECEIVED TIME",
+            definition: "The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was received.")
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "DIAGNOSTIC TEST REQUEST RECEIVED TIME",
+            definition: "The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was obtained.<table border='0'></table>")
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected change object is returned"
+        Change change = changes.first()
+        with {
+            change
+        }
+
+        String ditaXml = change.ditaDetail.toXmlString()
+
+        verifyAll(change) {
+            changeType == UPDATED_DESCRIPTION_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+            !preferDitaDetail
+            htmlDetail == """<div>
+  <p class='info-message'>Contains content that cannot be directly compared. This is the current content.</p>
+  <div>The time the <a href="DIAGNOSTIC TEST REQUEST">DIAGNOSTIC TEST REQUEST</a> was obtained.<table border='0'></table></div>
+</div>"""
+        }
+    }
+
     void "should return changes for a retired item"() {
         given: "there is a previous component"
         NhsDDAttribute previousComponent = new NhsDDAttribute(

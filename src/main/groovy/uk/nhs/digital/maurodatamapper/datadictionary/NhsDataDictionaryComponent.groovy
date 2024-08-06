@@ -301,12 +301,32 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     Change createUpdatedDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        // There could be really complex HTML which really messes up the diff output, particular when HTML tables
+        // merge cells together, the diff tags added back don't align correctly. So just ignore this for now!
+        boolean currentContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(this.description)
+        boolean previousContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(previousComponent.description)
+        boolean canDiffContent = !currentContainsHtmlTable && !previousContainsHtmlTable
+
+        String diffHtml = ""
+        if (!canDiffContent) {
+            log.warn("HTML in ${this.stereotype} '${this.name}' contains table, cannot produce diff")
+            diffHtml = this.description
+        }
+        else {
+            diffHtml = DaisyDiffHelper.diff(previousComponent.description, this.description)
+        }
+
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
 
         markupBuilder.div {
-            div {
-                mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
+            if (!canDiffContent) {
+                markupBuilder.p(class: "info-message") {
+                    mkp.yield("Contains content that cannot be directly compared. This is the current content.")
+                }
+            }
+            markupBuilder.div {
+                mkp.yieldUnescaped(diffHtml)
                 if(this instanceof NhsDDDataSet && includeDataSets) {
                     mkp.yieldUnescaped(((NhsDDDataSet)this).structureAsHtml)
                 }
