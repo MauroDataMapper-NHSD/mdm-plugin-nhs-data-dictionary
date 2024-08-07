@@ -54,9 +54,7 @@ class WebsiteUtility {
             'Supporting Information': 'supportingInformation'
     ]
 
-    static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
-    static final Boolean TEST_GITHUB = true
-    static final String TEST_GITHUB_DIR = "/Users/james/git/metadata-catalogue/DataDictionaryPublication/Website"
+    static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/feature/move-to-mauro.zip"
 
     static final String TO_BE_OVERRIDDEN_TEXT = "This text should be overridden by custom text stored in a GitHub library"
 
@@ -109,7 +107,10 @@ class WebsiteUtility {
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
         log.error(ditaOutputDirectory)
-        //overwriteGithubDir(ditaOutputDirectory)
+
+        if(publishOptions.overwriteStaticContent) {
+            overwriteGithubDir(ditaOutputDirectory)
+        }
 
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
@@ -127,28 +128,24 @@ class WebsiteUtility {
 
     static void overwriteGithubDir(String outputPath){
 
-        if(TEST_GITHUB) {
-            //FileUtils.copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
-            moveDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
-        } else {
-            // Create a temporary directory for the downloaded zip
-            Path tempPath = Files.createTempDirectory("ditaGeneration")
-            String sourceFile = tempPath.toString() + "/github_download.zip"
+        // Create a temporary directory for the downloaded zip
+        Path tempPath = Files.createTempDirectory("ditaGeneration")
+        String sourceFile = tempPath.toString() + "/github_download.zip"
 
-            // Get the zip file and save it into the directory
-            InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
-            Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
+        // Get the zip file and save it into the directory
+        InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
+        Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
 
 
-            // Extract the necessary contents and copy them to the right place
-            ZipFile zipFile = new ZipFile(sourceFile)
-            zipFile.extractFile("DataDictionaryPublication-master/Website/", outputPath)
-            FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-master/Website/"), new File(outputPath))
+        // Extract the necessary contents and copy them to the right place
+        ZipFile zipFile = new ZipFile(sourceFile)
+        zipFile.extractFile("DataDictionaryPublication-feature-move-to-mauro/Website/", outputPath)
+        FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-feature-move-to-mauro/Website/"), new File(outputPath))
 
-            // tidy up
-            Files.delete(new File(sourceFile).toPath())
-            FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-master/"))
-        }
+        // tidy up
+        Files.delete(new File(sourceFile).toPath())
+        FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-feature-move-to-mauro/"))
+
     }
 
     static Map<String, Topic> getFlatIndexTopics(Map<String, List<NhsDataDictionaryComponent>> componentMap, String indexPrefix) {
