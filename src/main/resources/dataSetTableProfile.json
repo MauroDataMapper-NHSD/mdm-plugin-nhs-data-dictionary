@@ -79,14 +79,6 @@
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "boolean"
-      },
-      {
-        "fieldName": "Not option",
-        "metadataPropertyName": "notOption",
-        "description": "State whether this table element presents a negated choice.",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "boolean"
       }
     ]
   },
@@ -125,6 +117,14 @@
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "string"
+      },
+      {
+        "fieldName": "Not option",
+        "metadataPropertyName": "notOption",
+        "description": "State whether this table element presents a negated choice.",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
       }
     ]
   }
