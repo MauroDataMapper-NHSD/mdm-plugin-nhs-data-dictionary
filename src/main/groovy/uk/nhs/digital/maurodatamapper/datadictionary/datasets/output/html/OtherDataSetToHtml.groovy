@@ -17,7 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html
 
-import groovy.transform.CompileStatic
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
+
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
@@ -82,9 +84,9 @@ class OtherDataSetToHtml {
     }
 
     void addAllChildRows(NhsDDDataSetClass ddDataClass) {
-        if(ddDataClass.dataSetElements) {
-            ddDataClass.dataSetElements.sort {it.webOrder}.each {dataElement ->
-                addChildRow(dataElement)
+        if(ddDataClass.dataSetElements && ddDataClass.dataSetElements.size() > 0) {
+            ddDataClass.getSortedChildren().each {classOrElement ->
+                addChildRow(classOrElement)
             }
         } else { // No data elements
             ddDataClass.dataSetClasses.sort {it.webOrder}.eachWithIndex {childClass, idx ->
@@ -104,19 +106,47 @@ class OtherDataSetToHtml {
         }
     }
 
-    void addChildRow(NhsDDDataSetElement dataSetElement) {
+    void addChildRow(def classOrElement) {
         markupBuilder.tr {
             td (width: '20%', class: 'mandation') {
-                p dataSetElement.mandation
-
+                p classOrElement.mandation
             }
             td (width: '80%') {
-                dataSetElement.createLink(markupBuilder)
-                if(dataSetElement.maxMultiplicity == '-1') {
-                    p 'Multiple occurrences of this item are permitted'
+                if (classOrElement instanceof NhsDDDataSetElement) {
+                    NhsDDDataSetElement dataSetElement = (NhsDDDataSetElement)classOrElement
+                    dataSetElement.createLink(markupBuilder)
+
+                    if(dataSetElement.maxMultiplicity == '-1') {
+                        p 'Multiple occurrences of this item are permitted'
+                    }
+                } else if (classOrElement instanceof NhsDDDataSetClass) {
+                    NhsDDDataSetClass dataSetClass = (NhsDDDataSetClass)classOrElement
+                    if (dataSetClass.dataSetElements.size() > 0) {
+                        if (dataSetClass.isAddress) {
+                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+
+                            dataSetElement.createLink(markupBuilder)
+                            markupBuilder.getMkp().yield(" - ")
+                            markupBuilder.a (href: dataSetClass.address1) {
+                                mkp.yield("ADDRESS STRUCTURED")
+                            }
+
+                            p('Or')
+
+                            dataSetElement.createLink(markupBuilder)
+                            markupBuilder.getMkp().yield(" - ")
+                            markupBuilder.a (href: dataSetClass.address2) {
+                                mkp.yield("ADDRESS UNSTRUCTURED")
+                            }
+                        } else {
+                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+                            dataSetElement.createLink(markupBuilder)
+                        }
+                    }
                 }
             }
         }
+
     }
 
     void addSubClass(NhsDDDataSetClass dataSetClass) {
