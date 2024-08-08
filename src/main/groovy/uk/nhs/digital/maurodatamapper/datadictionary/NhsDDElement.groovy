@@ -41,7 +41,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
     @Override
     String getPluralStereotypeForWebsite() {
-        "elements"
+        "data_elements"
     }
 
 

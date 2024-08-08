@@ -71,7 +71,7 @@ class DataSetsWebsiteHelper {
 
 
         dataDictionary.dataSets.values().each { dataSet ->
-            String path = "data_sets/" + StringUtils.join(dataSet.getDitaFolderPath(), "/")
+            String path = "data_sets/" + StringUtils.join(dataSet.getDitaFolderPath(), "/").toLowerCase()
             DitaMap dataSetMap = dataSet.generateMap()
             ditaProject.registerMap(path, dataSetMap)
             ditaProject.registerTopic(path, dataSet.generateTopic())
@@ -94,7 +94,7 @@ class DataSetsWebsiteHelper {
                 p WebsiteUtility.TO_BE_OVERRIDDEN_TEXT
             }
         }
-        ditaProject.registerTopic("data_sets", dataSetsOverview)
+        ditaProject.registerTopic("", dataSetsOverview)
 
     }
 
@@ -124,8 +124,8 @@ class DataSetsWebsiteHelper {
                 }
             }
         }
-        String path = "data_sets/" + StringUtils.join(folder.getDitaFolderPath(), "/")
-        ditaProject.registerMap(path, dataSetsIndexMap)
+        String path = "data_sets/" + StringUtils.join(folder.getDitaFolderPath(), "/").toLowerCase()
+        ditaProject.registerMap(path, dataSetsIndexMap, folder.getNameWithoutNonAlphaNumerics().toLowerCase())
     }
 
     static void generateOverviewTopicForFolder(NhsDDDataSetFolder folder, NhsDataDictionary dataDictionary, PublishOptions publishOptions, DitaProject ditaProject) {
@@ -139,7 +139,7 @@ class DataSetsWebsiteHelper {
                 }
             }
         }
-        String path = "data_sets/" + StringUtils.join(folder.getDitaFolderPath(), "/")
+        String path = "data_sets/" + StringUtils.join(folder.getDitaFolderPath(), "/").toLowerCase()
         ditaProject.registerTopic(path, folderOverviewTopic)
 
     }

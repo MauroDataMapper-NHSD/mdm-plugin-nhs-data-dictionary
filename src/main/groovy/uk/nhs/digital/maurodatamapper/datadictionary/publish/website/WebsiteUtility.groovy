@@ -54,9 +54,7 @@ class WebsiteUtility {
             'Supporting Information': 'supportingInformation'
     ]
 
-    static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/master.zip"
-    static final Boolean TEST_GITHUB = true
-    static final String TEST_GITHUB_DIR = "/Users/james/git/metadata-catalogue/DataDictionaryPublication/Website"
+    static final String GITHUB_BRANCH_URL = "https://github.com/NHSDigital/DataDictionaryPublication/archive/refs/heads/feature/move-to-mauro.zip"
 
     static final String TO_BE_OVERRIDDEN_TEXT = "This text should be overridden by custom text stored in a GitHub library"
 
@@ -97,8 +95,8 @@ class WebsiteUtility {
             each {component ->
                 if(!(component instanceof NhsDDDataSet || component instanceof  NhsDDDataSetFolder)) {
                     if (publishOptions.isPublishableComponent(component)) {
-                        String path = "${component.getPluralStereotypeForWebsite()}/${component.getDitaKey()}"
-                        ditaProject.registerTopic(path, component.generateTopic())
+                        String path = "${component.getPluralStereotypeForWebsite()}"
+                        ditaProject.registerTopic(path, component.generateTopic(), component.getNameWithoutNonAlphaNumerics().toLowerCase())
                     }
                 }
             }
@@ -109,7 +107,10 @@ class WebsiteUtility {
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))
 
         log.error(ditaOutputDirectory)
-        overwriteGithubDir(ditaOutputDirectory)
+
+        if(publishOptions.overwriteStaticContent) {
+            overwriteGithubDir(ditaOutputDirectory)
+        }
 
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
@@ -127,34 +128,30 @@ class WebsiteUtility {
 
     static void overwriteGithubDir(String outputPath){
 
-        if(TEST_GITHUB) {
-            //FileUtils.copyDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
-            moveDirectory(new File(TEST_GITHUB_DIR), new File(outputPath))
-        } else {
-            // Create a temporary directory for the downloaded zip
-            Path tempPath = Files.createTempDirectory("ditaGeneration")
-            String sourceFile = tempPath.toString() + "/github_download.zip"
+        // Create a temporary directory for the downloaded zip
+        Path tempPath = Files.createTempDirectory("ditaGeneration")
+        String sourceFile = tempPath.toString() + "/github_download.zip"
 
-            // Get the zip file and save it into the directory
-            InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
-            Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
+        // Get the zip file and save it into the directory
+        InputStream inputStream = new URL(GITHUB_BRANCH_URL).openStream()
+        Files.copy(inputStream, Paths.get(sourceFile), StandardCopyOption.REPLACE_EXISTING)
 
 
-            // Extract the necessary contents and copy them to the right place
-            ZipFile zipFile = new ZipFile(sourceFile)
-            zipFile.extractFile("DataDictionaryPublication-master/Website/", outputPath)
-            FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-master/Website/"), new File(outputPath))
+        // Extract the necessary contents and copy them to the right place
+        ZipFile zipFile = new ZipFile(sourceFile)
+        zipFile.extractFile("DataDictionaryPublication-feature-move-to-mauro/Website/", outputPath)
+        FileUtils.copyDirectory(new File(outputPath + "/DataDictionaryPublication-feature-move-to-mauro/Website/"), new File(outputPath))
 
-            // tidy up
-            Files.delete(new File(sourceFile).toPath())
-            FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-master/"))
-        }
+        // tidy up
+        Files.delete(new File(sourceFile).toPath())
+        FileUtils.deleteDirectory(new File(outputPath + "/DataDictionaryPublication-feature-move-to-mauro/"))
+
     }
 
-    static List<Topic> getFlatIndexTopics(Map<String, List<NhsDataDictionaryComponent>> componentMap, String indexPrefix, String indexTopicTitle) {
+    static Map<String, Topic> getFlatIndexTopics(Map<String, List<NhsDataDictionaryComponent>> componentMap, String indexPrefix) {
 
-        return componentMap.collect {alphaIndex, componentList ->
-            Topic.build (id: "${indexPrefix}-index-${alphaIndex}"){
+        return componentMap.collectEntries {alphaIndex, componentList ->
+            [alphaIndex, Topic.build (id: "${indexPrefix}-index-${alphaIndex}"){
                 title alphaIndex.toUpperCase()
                 body {
                     simpletable(relColWidth: ["10*"], outputClass: "table table-sm table-striped") {
@@ -170,56 +167,14 @@ class WebsiteUtility {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    static Topic getFlatIndexTopic(Map<String, NhsDataDictionaryComponent> componentMap, String indexPrefix, String indexTopicTitle) {
-
-        Topic.build(
-            id: "${indexPrefix}-index"
-        ) {
-            title indexTopicTitle
-            titlealts {
-                searchtitle "All Items: ${indexTopicTitle}"
-            }
-            List<String> alphabet = ['0-9']
-            alphabet.addAll('a'..'z')
-
-            alphabet.each {alphIndex ->
-                List<NhsDataDictionaryComponent> indexMap = componentMap.findAll {name, component ->
-                    !component.isRetired() &&
-                    ((alphIndex == '0-9' && Character.isDigit(name.charAt(0))) ||
-                     name.toLowerCase().startsWith(alphIndex))
-                }.values().sort {it.name}
-
-                if(indexMap) {
-                    topic (id: "${indexPrefix}.index.${alphIndex}"){
-                        title alphIndex.toUpperCase()
-                        body {
-                            simpletable(relColWidth: ["10*"], outputClass: "table table-striped table-sm") {
-                                stHead(outputClass: "thead-light") {
-                                    stentry "Item Name"
-                                }
-                                indexMap.each {component ->
-                                    strow {
-                                        stentry {
-                                            xRef component.calculateXRef()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            }]
         }
     }
 
     static void generateIndexTopics(NhsDataDictionary dataDictionary, DitaProject ditaProject, PublishOptions publishOptions) {
 
         if(publishOptions.isPublishElements()) {
-            generateIndexMap(ditaProject, "elements", "Elements", dataDictionary, dataDictionary.elements.values())
+            generateIndexMap(ditaProject, "data_elements", "Elements", dataDictionary, dataDictionary.elements.values())
 
         }
         if(publishOptions.isPublishAttributes()) {
@@ -229,11 +184,11 @@ class WebsiteUtility {
             generateIndexMap(ditaProject, "classes", "Classes", dataDictionary, dataDictionary.classes.values())
         }
         if(publishOptions.isPublishBusinessDefinitions()) {
-            generateIndexMap(ditaProject, "nhsBusinessDefinitions", "NHS Business Definitions", dataDictionary, dataDictionary.businessDefinitions.values())
+            generateIndexMap(ditaProject, "nhs_business_definitions", "NHS Business Definitions", dataDictionary, dataDictionary.businessDefinitions.values())
 
         }
         if(publishOptions.isPublishSupportingInformation()) {
-            generateIndexMap(ditaProject, "supportingInformation", "Supporting Information", dataDictionary, dataDictionary.supportingInformation.values())
+            generateIndexMap(ditaProject, "supporting_information", "Supporting Information", dataDictionary, dataDictionary.supportingInformation.values())
         }
     }
 
@@ -242,7 +197,8 @@ class WebsiteUtility {
         TopicSet indexTopicSet = TopicSet.build( id: "allItems-index-topicset", keyRef: "allItems-index-overview", navTitle: "All Items Index")
 
         dataDictionary.allComponentsByIndex(true).each {alphaIndex, components ->
-            Topic indexPage = Topic.build (id: "allItems-index-${alphaIndex}") {
+            String indexId = "all_items__${alphaIndex.substring(0,1).toLowerCase()}"
+            Topic indexPage = Topic.build (id: indexId) {
                 title "All Items: ${alphaIndex}"
                 body {
                     simpletable(relColWidth: ["7*", "3*"], outputClass: "table table-sm table-striped") {
@@ -261,13 +217,13 @@ class WebsiteUtility {
                     }
                 }
             }
-            indexTopicSet.topicRef(TopicRef.build(keyRef: "allItems-index-${alphaIndex}"))
-            ditaProject.registerTopic("allItems", indexPage)
+            indexTopicSet.topicRef(TopicRef.build(keyRef: indexId))
+            ditaProject.registerTopic("all_items_index__a-z_", indexPage)
         }
 
 
 
-        DitaMap indexMap = DitaMap.build(id: 'allItems-index', toc: Toc.YES) {
+        DitaMap indexMap = DitaMap.build(id: 'all_items_index', toc: Toc.YES) {
             title "All Items Index"
             topicSet indexTopicSet
         }
@@ -281,11 +237,11 @@ class WebsiteUtility {
                 p TO_BE_OVERRIDDEN_TEXT
             }
         }
-        ditaProject.registerTopic("", allItemsOverview)
+        ditaProject.registerTopic("", allItemsOverview, "all_items_index_overview")
 
         ditaProject.mainMap.mapRef {
             toc Toc.YES
-            keyRef 'allItems-index'
+            keyRef indexMap.id
         }
     }
 
@@ -312,7 +268,7 @@ class WebsiteUtility {
                 p TO_BE_OVERRIDDEN_TEXT
             }
         }
-        ditaProject.registerTopic(lowercaseStereotype, indexOverview)
+        ditaProject.registerTopic("", indexOverview, "${lowercaseStereotype}_overview")
 
 
         TopicSet topicSet = TopicSet.build( id: "${lowercaseStereotype}-index-topicset",
@@ -322,17 +278,17 @@ class WebsiteUtility {
                                             navTitle: stereotype)
         indexMap.topicSet(topicSet)
 
-        List<Topic> indexTopics = getFlatIndexTopics(dataDictionary.componentsByIndex(components, false),
-                                                            lowercaseStereotype, stereotype)
+        Map<String, Topic> indexTopics = getFlatIndexTopics(dataDictionary.componentsByIndex(components, false),
+                                                            lowercaseStereotype)
 
-        indexTopics.each {topic ->
-            ditaProject.registerTopic(lowercaseStereotype, topic)
+        indexTopics.each {prefix, topic ->
+            ditaProject.registerTopic(lowercaseStereotype, topic, prefix.toLowerCase())
             topicSet.topicRef(keyRef:topic.id, linking: Linking.NORMAL)
         }
         ditaProject.registerMap("", indexMap)
         ditaProject.mainMap.mapRef {
             toc Toc.YES
-            keyRef "${lowercaseStereotype}-index"
+            keyRef indexMap.id
         }
     }
 

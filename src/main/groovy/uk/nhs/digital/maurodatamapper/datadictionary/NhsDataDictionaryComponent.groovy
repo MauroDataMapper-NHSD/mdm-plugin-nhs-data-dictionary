@@ -162,7 +162,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     String getNameWithoutNonAlphaNumerics() {
-        name.replaceAll("[^A-Za-z0-9 ]", "").replace(" ", "_")
+        name.replaceAll("[^A-Za-z0-9- ]", "").replace(" ", "_")
     }
 
     abstract String getMauroPath()
