@@ -18,14 +18,17 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
+
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
-import org.apache.commons.lang3.StringUtils
 import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.CDSDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.OtherDataSetToHtml
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -145,7 +148,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
             id getDitaKey() + "_specification"
             body {
                 getDataSetClasses().sort { it.webOrder }.each { dataSetClass ->
-                    if (name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Care Data Set')) {
+                    if (useCdsClassRender()) {
                         div dataSetClass.outputCDSClassAsDita(dataDictionary)
                     } else {
                         div dataSetClass.outputClassAsDita(dataDictionary)
@@ -162,17 +165,13 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
         markupBuilder.setEscapeAttributes(false)
         markupBuilder.setDoubleQuotes(true)
-        if(name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Care Data Set')) {
+        if(useCdsClassRender()) {
             new CDSDataSetToHtml(markupBuilder).outputAsCdsHtml(this)
         } else {
             new OtherDataSetToHtml(markupBuilder).outputAsHtml(this)
         }
         return stringWriter.toString().replaceAll(">\\s+<", "><").trim()
     }
-
-
-
-
 
     List<String> getDitaFolderPath() {
         webPath.collect {
@@ -189,4 +188,65 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         return dataSetElements
     }
 
+    @Override
+    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
+        if (standardDescriptionChange) {
+            changes.add(standardDescriptionChange)
+        }
+
+        // Data set tables should only be included if specifically requested
+        if (includeDataSets) {
+            Change specificationChange = createSpecificationChange(previousComponent as NhsDDDataSet)
+            if (specificationChange) {
+                changes.add(specificationChange)
+            }
+        }
+
+        // Aliases should only be added if the component is new or updated
+        Change aliasesChange = createAliasesChange(previousComponent)
+        if (aliasesChange) {
+            changes.add(aliasesChange)
+        }
+    }
+
+    Change createSpecificationChange(NhsDDDataSet previousDataSet) {
+        if (this.dataSetClasses.empty || (previousDataSet && previousDataSet.dataSetClasses.empty)) {
+            return null
+        }
+
+        // TODO: show previous as well?
+        String currentHtmlDetail = this.createSpecificationChangeHtml()
+        DitaElement currentDitaDetail = this.createSpecificationChangeDita()
+
+        new Change(
+            changeType: Change.SPECIFICATION_TYPE,
+            stereotype: stereotype,
+            oldItem: previousDataSet,
+            newItem: this,
+            htmlDetail: currentHtmlDetail,
+            ditaDetail: currentDitaDetail,
+            preferDitaDetail: true
+        )
+    }
+
+    String createSpecificationChangeHtml() {
+        this.structureAsHtml
+    }
+
+    DitaElement createSpecificationChangeDita() {
+        Div.build {
+            getDataSetClasses().sort { it.webOrder }.each { dataSetClass ->
+                if (useCdsClassRender()) {
+                    div dataSetClass.outputCDSClassAsDita(dataDictionary)
+                } else {
+                    div dataSetClass.outputClassAsDita(dataDictionary)
+                }
+            }
+        }
+    }
+
+    boolean useCdsClassRender() {
+        name.startsWith('CDS') || name.startsWith('ECDS') || name.startsWith('Emergency Care Data Set')
+    }
 }

@@ -18,10 +18,14 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 @Slf4j
 class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
@@ -191,5 +195,97 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                 }
             }
         }
+    }
+
+    @Override
+    void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        // Run standard change checks first
+        NhsDataDictionaryComponent.super.buildChangeList(changes, previousComponent, includeDataSets)
+
+        NhsDDClass previousClass = previousComponent as NhsDDClass
+        if (!previousClass) {
+            return
+        }
+
+        Change changedAttributesChange = createChangedAttributesChange(previousClass)
+        if (changedAttributesChange) {
+            changes.add(changedAttributesChange)
+        }
+    }
+
+    Change createChangedAttributesChange(NhsDDClass previousClass) {
+        List<NhsDDAttribute> currentAttributes = this.allAttributes()
+        List<NhsDDAttribute> previousAttributes = previousClass.allAttributes()
+
+        // Find all attributes in this one but not the previous - "new attributes"
+        List<NhsDDAttribute> newAttributes = currentAttributes.findAll { currentAttribute ->
+            !previousAttributes.find {previousAttribute -> previousAttribute.name == currentAttribute.name }
+        }
+
+        // Find all the attributes in the previous one but not this one - "removed attributes"
+        List<NhsDDAttribute> removedAttributes = previousAttributes.findAll {previousAttribute ->
+            !currentAttributes.find {currentAttribute -> currentAttribute.name == previousAttribute.name }
+        }
+
+        if (newAttributes.empty && removedAttributes.empty) {
+            return null
+        }
+
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            p "Attributes of this Class are:"
+            currentAttributes.forEach {attribute ->
+                if (newAttributes.any { it.name == attribute.name }) {
+                    markupBuilder.div {
+                        markupBuilder.span(class: "attribute-name new") {
+                            mkp.yield(attribute.name)
+                        }
+                        if (attribute.isKey) {
+                            markupBuilder.span(class: "attribute-key new") {
+                                mkp.yield("Key")
+                            }
+                        }
+                    }
+                }
+                else {
+                    markupBuilder.div {
+                        markupBuilder.span(class: "attribute-name") {
+                            mkp.yield(attribute.name)
+                        }
+                        if (attribute.isKey) {
+                            markupBuilder.span(class: "attribute-key") {
+                                mkp.yield("Key")
+                            }
+                        }
+                    }
+                }
+            }
+            removedAttributes.forEach { attribute ->
+                markupBuilder.div {
+                    markupBuilder.span(class: "attribute-name deleted") {
+                        mkp.yield(attribute.name)
+                    }
+                    if (attribute.isKey) {
+                        markupBuilder.span(class: "attribute-key deleted") {
+                            mkp.yield("Key")
+                        }
+                    }
+                }
+            }
+        }
+
+        String htmlDetail = stringWriter.toString()
+        Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
+
+        new Change(
+            changeType: Change.CHANGED_ATTRIBUTES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousClass,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail
+        )
     }
 }

@@ -18,11 +18,13 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
+import groovy.util.logging.Slf4j
 import org.outerj.daisy.diff.helper.NekoHtmlParser
 import org.outerj.daisy.diff.html.HTMLDiffer
 import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
 import org.outerj.daisy.diff.html.TextNodeComparator
 import org.outerj.daisy.diff.html.dom.DomTreeBuilder
+import org.outerj.daisy.diff.html.dom.TagNode
 import org.xml.sax.ContentHandler
 import org.xml.sax.InputSource
 
@@ -31,6 +33,7 @@ import javax.xml.transform.sax.SAXTransformerFactory
 import javax.xml.transform.sax.TransformerHandler
 import javax.xml.transform.stream.StreamResult
 
+@Slf4j
 class DaisyDiffHelper {
 
     static String diff(String first, String second) throws Exception {
@@ -94,4 +97,8 @@ class DaisyDiffHelper {
 
     }
 
+    static boolean containsHtmlTable(String source) {
+        // Not elegant, but should work...
+        source.contains("<table")
+    }
 }

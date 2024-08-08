@@ -22,6 +22,16 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
 class Change {
+    static final String NEW_TYPE = "New"
+    static final String RETIRED_TYPE = "Retired"
+    static final String UPDATED_DESCRIPTION_TYPE = "Updated description"
+    static final String CHANGED_ATTRIBUTES_TYPE = "Changed attributes"
+    static final String ALIASES_TYPE = "Aliases"
+    static final String NATIONAL_CODES_TYPE = "National Codes"
+    static final String FORMAT_LENGTH_TYPE = "Format / Length"
+    static final String CHANGED_DATA_SET_TYPE = "Changed Data Set"
+    static final String SPECIFICATION_TYPE = "Specification"
+
     String changeType
     String stereotype
 
@@ -30,22 +40,7 @@ class Change {
 
     String htmlDetail
     DitaElement ditaDetail
+    boolean preferDitaDetail = false
 
     Change() { }
-
-    String changeText(String stereotype) {
-        if(changeType == "New") {
-            return "New " + stereotype
-        }
-        if(changeType == "Retired") {
-            return "Changed status to retired"
-        }
-        if(changeType == "Description") {
-            return "Changed description"
-        }
-        if(changeType == "Unchanged Item") {
-            return "Unchanged item"
-        }
-    }
-
 }

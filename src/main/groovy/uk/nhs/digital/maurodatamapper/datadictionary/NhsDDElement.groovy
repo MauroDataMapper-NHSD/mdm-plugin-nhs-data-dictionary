@@ -17,6 +17,10 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
+
+import groovy.xml.MarkupBuilder
 import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -24,6 +28,8 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 
 import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
+
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
@@ -53,6 +59,14 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     String codeSetVersion
 
     List<NhsDDAttribute> instantiatesAttributes = []
+
+    String getFormatLength() {
+        if (!otherProperties.containsKey("formatLength")) {
+            return null
+        }
+
+        otherProperties["formatLength"]
+    }
 
     @Override
     String calculateShortDescription() {
@@ -227,7 +241,148 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
+    @Override
+    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        Change formatLengthChange = createFormatLengthChange(previousComponent as NhsDDElement)
+        if (formatLengthChange) {
+            changes.add(formatLengthChange)
+        }
 
+        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
+        if (standardDescriptionChange) {
+            changes.add(standardDescriptionChange)
+        }
+
+        // Aliases should only be added if the component is new or updated
+        Change aliasesChange = createAliasesChange(previousComponent)
+        if (aliasesChange) {
+            changes.add(aliasesChange)
+        }
+    }
+
+    Change createFormatLengthChange(NhsDDElement previousElement) {
+        String currentFormatLength = this.formatLength
+        XRef currentFormatLinkXref = this.formatLinkXref
+
+        String previousFormatLength = previousElement?.formatLength
+        XRef previousFormatLinkXref = previousElement?.formatLinkXref
+
+        String htmlDetail = createFormatLengthChangeHtml(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
+        DitaElement ditaDetail = createFormatLengthChangeDita(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
+
+        new Change(
+            changeType: Change.FORMAT_LENGTH_TYPE,
+            stereotype: stereotype,
+            oldItem: previousElement,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail,
+            preferDitaDetail: true
+        )
+    }
+
+    static String createFormatLengthChangeHtml(String currentFormatLength, XRef currentFormatLinkXref, String previousFormatLength, XRef previousFormatLinkXref) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div(class: "format-length-detail") {
+            dl {
+                dt "Format / Length"
+                dd {
+                    if (currentFormatLinkXref) {
+                        if (!previousFormatLinkXref) {
+                            markupBuilder.p(class: "new") {
+                                // TODO: not sure what to output for HTML here, but just for preview
+                                mkp.yield("See ${currentFormatLinkXref.toXmlString()}")
+                            }
+                        }
+                        else {
+                            markupBuilder.p {
+                                // TODO: not sure what to output for HTML here, but just for preview
+                                mkp.yield("See ${currentFormatLinkXref.toXmlString()}")
+                            }
+                        }
+                    }
+                    else {
+                        if (!previousFormatLength || (previousFormatLength && previousFormatLength != currentFormatLength)) {
+                            markupBuilder.p(class: "new") {
+                                mkp.yield(currentFormatLength)
+                            }
+                            if (previousFormatLength) {
+                                markupBuilder.p(class: "deleted") {
+                                    mkp.yield(previousFormatLength)
+                                }
+                            }
+                        } else if (!currentFormatLength || (currentFormatLength && currentFormatLength != previousFormatLength)) {
+                            markupBuilder.p(class: "deleted") {
+                                mkp.yield(currentFormatLength)
+                            }
+                            if (currentFormatLength) {
+                                markupBuilder.p(class: "new") {
+                                    mkp.yield(currentFormatLength)
+                                }
+                            }
+                        } else {
+                            markupBuilder.p {
+                                mkp.yield(currentFormatLength)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return stringWriter.toString()
+    }
+
+    static DitaElement createFormatLengthChangeDita(String currentFormatLength, XRef currentFormatLinkXref, String previousFormatLength, XRef previousFormatLinkXref) {
+        Div.build {
+            dl {
+                dlentry {
+                    dt "Format / Length"
+                    dd {
+                        if (currentFormatLinkXref) {
+                            if (!previousFormatLinkXref) {
+                                p(outputClass: "new") {
+                                    txt "See "
+                                    xRef currentFormatLinkXref
+                                }
+                            }
+                            else {
+                                p {
+                                    txt "See "
+                                    xRef currentFormatLinkXref
+                                }
+                            }
+                        }
+                        else {
+                            if (!previousFormatLength || (previousFormatLength && previousFormatLength != currentFormatLength)) {
+                                p(outputClass: "new") {
+                                    txt currentFormatLength
+                                }
+                                if (previousFormatLength) {
+                                    p(outputClass: "deleted") {
+                                        txt previousFormatLength
+                                    }
+                                }
+                            } else if (!currentFormatLength || (currentFormatLength && currentFormatLength != previousFormatLength)) {
+                                p(outputClass: "deleted") {
+                                    txt currentFormatLength
+                                }
+                                if (currentFormatLength) {
+                                    p(outputClass: "new") {
+                                        txt currentFormatLength
+                                    }
+                                }
+                            } else {
+                                p currentFormatLength
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     List<Topic> getWebsiteTopics() {

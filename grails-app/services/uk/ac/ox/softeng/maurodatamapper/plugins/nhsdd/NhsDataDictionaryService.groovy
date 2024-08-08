@@ -857,7 +857,7 @@ class NhsDataDictionaryService {
     }
 
 
-    ChangePaper previewChangePaper(UUID versionedFolderId) {
+    ChangePaper previewChangePaper(UUID versionedFolderId, boolean includeDataSets = false) {
 
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
@@ -865,7 +865,7 @@ class NhsDataDictionaryService {
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 
-        return new ChangePaper(thisDataDictionary, previousDataDictionary)
+        return new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
     }
 
     File generateChangePaper(UUID versionedFolderId, boolean includeDataSets = false, boolean isTest = false) {

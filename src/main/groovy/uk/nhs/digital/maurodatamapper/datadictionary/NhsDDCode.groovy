@@ -17,11 +17,15 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
+
+import groovy.xml.MarkupBuilder
 
 class NhsDDCode {
 
@@ -87,6 +91,120 @@ class NhsDDCode {
                     }
                     orderedCodes.each {code ->
                         strow code.toDitaTableRow()
+                    }
+                }
+            }
+        }
+    }
+
+    static String createCodesTableChangeHtml(List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            table(class: "codes-table") {
+                thead {
+                    th "Code"
+                    th "Description"
+                }
+                tbody {
+                    currentCodes.each { code ->
+                        NhsDDCode existing = previousCodes.find { previous -> previous.code == code.code }
+                        if (!existing || (existing && existing.definition != code.definition)) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(code.code)
+                                }
+                                markupBuilder.td(class: "new") {
+                                    code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
+                                }
+                            }
+                        }
+                        else {
+                            markupBuilder.tr {
+                                td code.code
+                                td {
+                                    code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
+                                }
+                            }
+                        }
+                    }
+                    previousCodes.each { code ->
+                        NhsDDCode existing = currentCodes.find { current -> current.code == code.code }
+                        if (!existing || (existing && existing.definition != code.definition)) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "deleted") {
+                                    mkp.yield(code.code)
+                                }
+                                markupBuilder.td(class: "deleted") {
+                                    code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return stringWriter.toString()
+    }
+
+    static DitaElement createCodesTableChangeDita(List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes) {
+        Div.build {
+            simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"])) {
+                stHead {
+                    stentry "Code"
+                    stentry "Description"
+                }
+                currentCodes.each { code ->
+                    NhsDDCode existing = previousCodes.find { previous -> previous.code == code.code }
+                    if (!existing || (existing && existing.definition != code.definition)) {
+                        strow {
+                            stentry(outputClass: "new") {
+                                ph code.code
+                            }
+                            stentry(outputClass: "new") {
+                                if (code.webPresentation) {
+                                    div HtmlHelper.replaceHtmlWithDita(code.webPresentation)
+                                }
+                                else {
+                                    ph code.definition
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        strow {
+                            stentry {
+                                ph code.code
+                            }
+                            stentry {
+                                if (code.webPresentation) {
+                                    div HtmlHelper.replaceHtmlWithDita(code.webPresentation)
+                                }
+                                else {
+                                    ph code.definition
+                                }
+                            }
+                        }
+                    }
+                }
+                previousCodes.each { code ->
+                    NhsDDCode existing = currentCodes.find { current -> current.code == code.code }
+                    if (!existing || (existing && existing.definition != code.definition)) {
+                        strow {
+                            stentry(outputClass: "deleted") {
+                                ph code.code
+                            }
+                            stentry(outputClass: "deleted") {
+                                if (code.webPresentation) {
+                                    div HtmlHelper.replaceHtmlWithDita(code.webPresentation)
+                                }
+                                else {
+                                    ph code.definition
+                                }
+                            }
+                        }
                     }
                 }
             }

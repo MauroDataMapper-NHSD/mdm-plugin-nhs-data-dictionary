@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
@@ -199,89 +200,261 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent, boolean includeDataSets = false) {
+        List<Change> changeList = []
+        buildChangeList(changeList, previousComponent, includeDataSets)
+
+        return changeList
+    }
+
+    void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        if (!previousComponent) {
+            buildComponentDetailsChangeList(changes, null, includeDataSets)
+        }
+        else if (isRetired() && !previousComponent.isRetired()) {
+            Change retiredChange = createRetiredComponentChange(previousComponent)
+            changes.add(retiredChange)
+        }
+        else if (description != previousComponent.description) {
+            buildComponentDetailsChangeList(changes, previousComponent, includeDataSets)
+        }
+    }
+
+    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
+        if (standardDescriptionChange) {
+            changes.add(standardDescriptionChange)
+        }
+
+        // Aliases should only be added if the component is new or updated
+        Change aliasesChange = createAliasesChange(previousComponent)
+        if (aliasesChange) {
+            changes.add(aliasesChange)
+        }
+    }
+
+    Change createStandardDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        if (!previousComponent) {
+            return createNewComponentChange()
+        }
+
+        return createUpdatedDescriptionChange(previousComponent, includeDataSets)
+    }
+
+    Change createNewComponentChange() {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            div (class: "new") {
+                mkp.yieldUnescaped(this.description)
+            }
+        }
+
+        new Change(
+            changeType: Change.NEW_TYPE,
+            stereotype: stereotype,
+            oldItem: null,
+            newItem: this,
+            htmlDetail: stringWriter.toString(),
+            ditaDetail: Div.build(outputClass: "new") {
+                div HtmlHelper.replaceHtmlWithDita(this.description)
+            }
+        )
+    }
+
+    Change createRetiredComponentChange(NhsDataDictionaryComponent previousComponent) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            /*div (class: "deleted") {
+                mkp.yieldUnescaped(previousComponent.description)
+            }
+            div (class: "new") {
+                mkp.yieldUnescaped(this.description)
+            }*/
+
+            mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
+        }
+
+        new Change(
+            changeType: Change.RETIRED_TYPE,
+            stereotype: stereotype,
+            oldItem: previousComponent,
+            newItem: this,
+            htmlDetail: stringWriter.toString(),
+            ditaDetail: Div.build {
+                div (outputClass: "deleted") {
+                    div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                }
+                div (outputClass: "new") {
+                    div HtmlHelper.replaceHtmlWithDita(this.description)
+                }
+            }
+        )
+    }
+
+    Change createUpdatedDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        // There could be really complex HTML which really messes up the diff output, particular when HTML tables
+        // merge cells together, the diff tags added back don't align correctly. So just ignore this for now!
+        boolean currentContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(this.description)
+        boolean previousContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(previousComponent.description)
+        boolean canDiffContent = !currentContainsHtmlTable && !previousContainsHtmlTable
+
+        String diffHtml = ""
+        if (!canDiffContent) {
+            log.warn("HTML in ${this.stereotype} '${this.name}' contains table, cannot produce diff")
+            diffHtml = this.description
+        }
+        else {
+            diffHtml = DaisyDiffHelper.diff(previousComponent.description, this.description)
+        }
 
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
 
-
-        List<Change> changeList = []
-        if (!previousComponent) {
-            markupBuilder.div {
-                div (class: "new") {
-                    mkp.yieldUnescaped(this.description)
+        markupBuilder.div {
+            if (!canDiffContent) {
+                markupBuilder.p(class: "info-message") {
+                    mkp.yield("Contains content that cannot be directly compared. This is the current content.")
                 }
             }
+            markupBuilder.div {
+                mkp.yieldUnescaped(diffHtml)
+            }
+        }
 
-            changeList += new Change(
-                changeType: "New",
-                stereotype: stereotype,
-                oldItem: null,
-                newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build(outputClass: "new") {
+        new Change(
+            changeType: Change.UPDATED_DESCRIPTION_TYPE,
+            stereotype: stereotype,
+            oldItem: previousComponent,
+            newItem: this,
+            htmlDetail: stringWriter.toString(),
+            ditaDetail: Div.build {
+                div (outputClass: "deleted") {
+                    div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
+                }
+                div (outputClass: "new") {
                     div HtmlHelper.replaceHtmlWithDita(this.description)
                 }
-            )
-        } else if(isRetired() && !previousComponent.isRetired()) {
-
-            markupBuilder.div {
-                /*div (class: "deleted") {
-                    mkp.yieldUnescaped(previousComponent.description)
-                }
-                div (class: "new") {
-                    mkp.yieldUnescaped(this.description)
-                }*/
-
-                    mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
             }
+        )
+    }
 
-            changeList += new Change(
-                changeType: "Retired",
-                stereotype: stereotype,
-                oldItem: previousComponent,
-                newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build {
-                    div (outputClass: "deleted") {
-                        div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-                        if(previousComponent instanceof NhsDDDataSet) {
-                            div HtmlHelper.replaceHtmlWithDita(previousComponent.outputAsHtml(markupBuilder))
-                        }
-                    }
-                    div (outputClass: "new") {
-                        div HtmlHelper.replaceHtmlWithDita(this.description)
-                        if(this instanceof NhsDDDataSet) {
-                            div HtmlHelper.replaceHtmlWithDita(((NhsDDDataSet)this).outputAsHtml(markupBuilder))
-                        }
-                    }
-                }
-            )
-        } else if (description != previousComponent.description) {
-            markupBuilder.div {
-                div {
-                    mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
-                    if(this instanceof NhsDDDataSet && includeDataSets) {
-                        mkp.yieldUnescaped(((NhsDDDataSet)this).structureAsHtml)
-                    }
-                }
-            }
-            changeList += new Change(
-                changeType: "Updated description",
-                stereotype: stereotype,
-                oldItem: previousComponent,
-                newItem: this,
-                htmlDetail: stringWriter.toString(),
-                ditaDetail: Div.build {
-                    div (outputClass: "deleted") {
-                        div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-                    }
-                    div (outputClass: "new") {
-                        div HtmlHelper.replaceHtmlWithDita(this.description)
-                    }
-                }
-            )
+    Change createAliasesChange(NhsDataDictionaryComponent previousComponent) {
+        Map<String, String> currentAliases = getAliases()
+        Map<String, String> previousAliases = previousComponent ? previousComponent.getAliases() : [:]
+
+        if (currentAliases.isEmpty() && previousAliases.isEmpty()) {
+            return null
         }
-        return changeList
+
+        String htmlDetail = createAliasTableChangeHtml(currentAliases, previousAliases)
+        DitaElement ditaDetail = createAliasTableChangeDita(currentAliases, previousAliases)
+
+        new Change(
+            changeType: Change.ALIASES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousComponent,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail,
+            preferDitaDetail: true
+        )
+    }
+
+    String createAliasTableChangeHtml(Map<String, String> currentAliases, Map<String, String> previousAliases) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            p "This ${getStereotype()} is also known by these names:"
+            table(class: "alias-table") {
+                thead {
+                    th "Context"
+                    th "Alias"
+                }
+                tbody {
+                    currentAliases.each {context, alias ->
+                        if (!previousAliases.containsKey(context) || (previousAliases.containsKey(context) && previousAliases[context] != alias)) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(context)
+                                }
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(alias)
+                                }
+                            }
+                        } else {
+                            markupBuilder.tr {
+                                td context
+                                td alias
+                            }
+                        }
+                    }
+                    previousAliases.each {context, alias ->
+                        if (!currentAliases.containsKey(context) || (currentAliases.containsKey(context) && currentAliases[context] != alias)) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "deleted") {
+                                    mkp.yield(context)
+                                }
+                                markupBuilder.td(class: "deleted") {
+                                    mkp.yield(alias)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return stringWriter.toString()
+    }
+
+    DitaElement createAliasTableChangeDita(Map<String, String> currentAliases, Map<String, String> previousAliases) {
+        Div.build {
+            p "This ${getStereotype()} is also known by these names:"
+            simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"])) {
+                stHead {
+                    stentry "Context"
+                    stentry "Alias"
+                }
+                currentAliases.each { context, alias ->
+                    if (!previousAliases.containsKey(context) || (previousAliases.containsKey(context) && previousAliases[context] != alias)) {
+                        strow {
+                            stentry(outputClass: "new") {
+                                ph context
+                            }
+                            stentry(outputClass: "new") {
+                                ph alias
+                            }
+                        }
+                    }
+                    else {
+                        strow {
+                            stentry {
+                                ph context
+                            }
+                            stentry {
+                                ph alias
+                            }
+                        }
+                    }
+                }
+                previousAliases.each { context, alias ->
+                    if (!currentAliases.containsKey(context) || (currentAliases.containsKey(context) && currentAliases[context] != alias)) {
+                        strow {
+                            stentry(outputClass: "deleted") {
+                                ph context
+                            }
+                            stentry(outputClass: "deleted") {
+                                ph context
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     DitaMap generateMap() {
