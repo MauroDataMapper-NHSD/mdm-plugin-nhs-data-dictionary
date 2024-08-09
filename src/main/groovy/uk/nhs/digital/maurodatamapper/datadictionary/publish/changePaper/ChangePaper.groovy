@@ -283,44 +283,58 @@ class ChangePaper {
             dataSetChanges.each { changedItem ->
                 changedDataSets.add((NhsDDDataSet)changedItem.dictionaryComponent)
             }
-            changedDataSets.each { dataSet ->
-                Set<NhsDDDataSetElement> dataSetElements = dataSet.getAllElements()
-                Set<NhsDDAttribute> dataSetAttributes = [] as Set<NhsDDAttribute>
 
-                dataSetElements.each {dataSetElement ->
-                    // Don't duplicate a Data Element appearing in the change paper if a change was already recorded
-                    if (!existingElementsForChanges.contains(dataSetElement.reuseElement)) {
-                        elementChange.changedItems.add(new ChangedItem(
-                            dictionaryComponent: dataSetElement.reuseElement,
-                            changes: [new Change(
-                                changeType: Change.CHANGED_DATA_SET_TYPE,
-                                stereotype: dataSetElement.reuseElement.stereotype,
-                                oldItem: null,
-                                newItem: dataSetElement.reuseElement,
-                                htmlDetail: dataSetElement.reuseElement.description,
-                                ditaDetail: Div.build {
-                                    div HtmlHelper.replaceHtmlWithDita(dataSetElement.reuseElement.description)
-                                })]
-                        ))
-                    }
-                    dataSetAttributes.addAll(((NhsDDElement)dataSetElement.reuseElement).instantiatesAttributes)
+            Set<NhsDDElement> dataSetElements = [] as Set<NhsDDElement>
+            Set<NhsDDAttribute> dataSetAttributes = [] as Set<NhsDDAttribute>
+
+            // Collect all Data Elements and Attributes used by every data set. Store in sets to that duplicates are not
+            // captured and repeated
+            changedDataSets.each {dataSet ->
+                Set<NhsDDDataSetElement> currentElements = dataSet.getAllElements()
+
+                currentElements.each { element ->
+                    dataSetElements.add(element.reuseElement)
+                    dataSetAttributes.addAll(element.reuseElement.instantiatesAttributes)
                 }
-                dataSetAttributes.each { attribute ->
-                    // Don't duplicate an Attribute appearing in the change paper if a change was already recorded
-                    if (!existingAttributesForChanges.contains(attribute)) {
-                        attributeChange.changedItems.add(new ChangedItem(
-                            dictionaryComponent: attribute,
-                            changes: [new Change(
-                                changeType: Change.CHANGED_DATA_SET_TYPE,
-                                stereotype: attribute.stereotype,
-                                oldItem: null,
-                                newItem: attribute,
-                                htmlDetail: attribute.description,
-                                ditaDetail: Div.build {
-                                    div HtmlHelper.replaceHtmlWithDita(attribute.description)
-                                })]
-                        ))
-                    }
+            }
+
+            dataSetElements.each {element ->
+                // Don't duplicate a Data Element appearing in the change paper if a change was already recorded
+                // This is especially true if the change paper contains multiple data sets that trace back to the
+                // same Data Elements
+                if (!existingElementsForChanges.contains(element)) {
+                    elementChange.changedItems.add(new ChangedItem(
+                        dictionaryComponent: element,
+                        changes: [new Change(
+                            changeType: Change.CHANGED_DATA_SET_TYPE,
+                            stereotype: element.stereotype,
+                            oldItem: null,
+                            newItem: element,
+                            htmlDetail: element.description,
+                            ditaDetail: Div.build {
+                                div HtmlHelper.replaceHtmlWithDita(element.description)
+                            })]
+                    ))
+                }
+            }
+
+            dataSetAttributes.each { attribute ->
+                // Don't duplicate an Attribute appearing in the change paper if a change was already recorded
+                // This is especially true if the change paper contains multiple data sets that trace back to the
+                // same Attributes
+                if (!existingAttributesForChanges.contains(attribute)) {
+                    attributeChange.changedItems.add(new ChangedItem(
+                        dictionaryComponent: attribute,
+                        changes: [new Change(
+                            changeType: Change.CHANGED_DATA_SET_TYPE,
+                            stereotype: attribute.stereotype,
+                            oldItem: null,
+                            newItem: attribute,
+                            htmlDetail: attribute.description,
+                            ditaDetail: Div.build {
+                                div HtmlHelper.replaceHtmlWithDita(attribute.description)
+                            })]
+                    ))
                 }
             }
         }
