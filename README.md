@@ -28,6 +28,7 @@ Apart from this README, which provides the basic setup required for development,
 
 - [HTTP Endpoints](/docs/endpoints.md)
 - [Previews](/docs/previews.md)
+- [Publication](/docs/publication.md)
 
 ## Requirements
 
