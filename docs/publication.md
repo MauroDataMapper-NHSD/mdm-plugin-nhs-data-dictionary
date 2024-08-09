@@ -6,7 +6,7 @@ This document will explain how to produce the final DITA outputs required to bui
 
 Publication starts by signing in to the Orchestrator, found at:
 
-- _Pending_ - LIVE
+- https://mauro.dataproducts.nhs.uk/orchestration/ - LIVE
 - https://mauro.dev.dataproducts.nhs.uk/orchestration/ - TEST
 - https://mauro.uat.dataproducts.nhs.uk/orchestration/ - TRAINING
 
