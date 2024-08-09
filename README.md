@@ -27,6 +27,7 @@ This plugin is one part of the whole Mauro solution to support the NHS Data Dict
 Apart from this README, which provides the basic setup required for development, further documentation can be found under [documentation](/docs) folder:
 
 - [HTTP Endpoints](/docs/endpoints.md)
+- [Previews](/docs/previews.md)
 
 ## Requirements
 
