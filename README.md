@@ -22,6 +22,12 @@ This plugin is one part of the whole Mauro solution to support the NHS Data Dict
 - [nhsd-datadictionary-orchestration](https://github.com/MauroDataMapper-NHSD/nhsd-datadictionary-orchestration) - a custom user interface for NHS England to manage preview and publication operations that this plugin provides.
 - [nhsd-datadictionary-docker](https://github.com/MauroDataMapper-NHSD/nhsd-datadictionary-docker) - the hosting and deployment setup to run the NHS Data Dictionary solution via Docker containers.
 
+# Documentation
+
+Apart from this README, which provides the basic setup required for development, further documentation can be found under [documentation](/docs) folder:
+
+- [HTTP Endpoints](/docs/endpoints.md)
+
 ## Requirements
 
 * Java 17 (Temurin)
