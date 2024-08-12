@@ -430,7 +430,7 @@ class NhsDataDictionaryService {
         //DataClass classesClass = coreModel.dataClasses.find {it.label == NhsDataDictionary.DATA_CLASSES_CLASS_NAME}
         //DataClass retiredClassesClass = classesClass.dataClasses.find {it.label == "Retired"}
         Set<DataClass> classClasses = classesModel.dataClasses.collect() as Set
-        classClasses.addAll(classClasses.find {it.label == "Retired"}.dataClasses)
+        classClasses.addAll(classClasses.find {it.label == "Retired"}?.dataClasses ?: [])
         classClasses.removeAll {it.label == "Retired"}
         dataDictionary.classes = classService.collectNhsDataDictionaryComponents(classClasses, dataDictionary)
         dataDictionary.classes.values().each { ddClass ->
