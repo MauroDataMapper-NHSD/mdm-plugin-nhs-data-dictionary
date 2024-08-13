@@ -40,6 +40,11 @@ prevVersion        – A UUID to the previous version e.g. if ingesting
 async              - true
 ```
 
+The `releaseDate` and `folderVersionNo` are required. The `releaseDate` maps to the version tag of the branch, and the `folderVersionNo` is the formal version number of the branch. Convention so far has been to name them as:
+
+- `folderVersionNo` - `<year>.<month>.0` e.g. August 2024 would be `2024.8.0`
+- `releaseDate` - the month and year of the release e.g. "August 2024"
+
 By setting `async=true`, the response back should be `202 Accepted`. The ingest will then happen in the background, taking around 2 - 5 minutes.
 
 ### Ingest an in-flight branch
@@ -57,6 +62,10 @@ async       – true
 
 By setting `async=true`, the response back should be `202 Accepted`. The ingest will then happen in the background, taking around 2 - 5 minutes.
 
+### Asynchronous Jobs
+
+If the `async=true` parameter was set in the request body, the HTTP response will always be `202 Accepted` to return an immediate response. The work to ingest the file is then carried out in the background on the Mauro server (since the ingest can take several minutes). To view the progress of the async job, the HTTP response will also return a job ID which can be used to request the status of this job, using these [Mauro Async Jobs APIs](https://documenter.getpostman.com/view/9840589/UVC8BkkA#351305e8-341d-4ca7-a401-02e50fbdbfc7).
+
 ## Branches
 
 ```http
@@ -71,7 +80,7 @@ Returns a list of all available Data Dictionary branches to use. Each branch ret
 GET /api/nhsdd/branches/{branchId}/statistics
 ```
 
-Returns the set of statistics calculated for a Data Dictonary branch, such as how many items are retired or preparatory.
+Returns the set of statistics calculated for a Data Dictionary branch, such as how many items are retired or preparatory.
 
 ## Integrity Checks
 
