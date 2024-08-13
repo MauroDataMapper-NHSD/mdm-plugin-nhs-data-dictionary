@@ -71,6 +71,14 @@ class NhsDDClassLink {
         partOfSupplierKey == "true"
     }
 
+    boolean hasRelationClientExclusivity() {
+        relationClientExclusivity != null && !relationClientExclusivity.empty
+    }
+
+    boolean hasRelationSupplierExclusivity() {
+        relationSupplierExclusivity != null && !relationSupplierExclusivity.empty
+    }
+
 /*    ClassLink(DataElement dataElement) {
         uin = DDHelperFunctions.getMetadataValue(dataElement, "uin")
         metaclass = DDHelperFunctions.getMetadataValue(dataElement, "metaclass")

@@ -442,12 +442,7 @@ class NhsDataDictionaryService {
             ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
                 if(dataElement.dataType instanceof ReferenceType) {
                     DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
-                    dataClass.classRelationships.add(new NhsDDClassRelationship(
-                        targetClass: dataDictionary.classes[referencedClass.label]
-                    ).tap {
-                        setDescription(dataElement)
-                        isKey = dataElement.metadata.find {it.key == "isKey"}
-                    })
+                    dataClass.classRelationships.add(new NhsDDClassRelationship(dataElement, dataDictionary.classes[referencedClass.label]))
                 } else {
                     NhsDDAttribute attribute = dataDictionary.attributesByCatalogueId[dataElement.id]
                     if (attribute) {
