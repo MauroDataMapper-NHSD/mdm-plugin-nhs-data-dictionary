@@ -38,10 +38,10 @@ class NhsDDClassRelationship {
         this.role = relationshipElement.label.replaceAll("\\(\\d\\)", "")
         // TODO: can't think of a better way right now to work out if the description needs to contain "or"
         this.hasMultiple = !relationshipElement.label.findAll("\\(\\d\\)").empty
-        this.minMultiplicity = relationshipElement.minMultiplicity
-        this.maxMultiplicity = relationshipElement.maxMultiplicity
-        this.isKey = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_KEY_METADATA_KEY }
-        this.isChoice = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_CHOICE_METADATA_KEY }
+        this.minMultiplicity = relationshipElement.minMultiplicity ?: 0
+        this.maxMultiplicity = relationshipElement.maxMultiplicity ?: 0
+        this.isKey = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_KEY_METADATA_KEY }?.value == "true" ?: false
+        this.isChoice = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_CHOICE_METADATA_KEY }?.value == "true" ?: false
         this.relationshipDescription = this.buildDescription()
     }
 
