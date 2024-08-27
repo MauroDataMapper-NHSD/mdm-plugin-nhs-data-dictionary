@@ -17,7 +17,15 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+
 class NhsDDClassLink {
+    static final String IS_KEY_METADATA_KEY = "isKey"
+    static final String IS_CHOICE_METADATA_KEY = "isChoice"
+    static final String DIRECTION_METADATA_KEY = "direction"
+
+    static final String CLIENT_DIRECTION = "client"
+    static final String SUPPLIER_DIRECTION = "supplier"
 
     String uin
     String metaclass
@@ -53,6 +61,22 @@ class NhsDDClassLink {
         relationClientExclusivity = link.relationClientExclusivity.text()
         supplierUin = link.participant.find {it."@role" == "Supplier"}."@referencedUin"
         clientUin = link.participant.find {it."@role" == "Client"}."@referencedUin"
+    }
+
+    boolean isPartOfClientKey() {
+        partOfClientKey == "true"
+    }
+
+    boolean isPartOfSupplierKey() {
+        partOfSupplierKey == "true"
+    }
+
+    boolean hasRelationClientExclusivity() {
+        relationClientExclusivity != null && !relationClientExclusivity.empty
+    }
+
+    boolean hasRelationSupplierExclusivity() {
+        relationSupplierExclusivity != null && !relationSupplierExclusivity.empty
     }
 
 /*    ClassLink(DataElement dataElement) {
@@ -117,6 +141,27 @@ class NhsDDClassLink {
                 return "must be ${role} one and only one "
             default: // we'll assume 1..1
                 return "must be ${role} one and only one "
+        }
+    }
+
+    static void setMultiplicityToDataElement(DataElement dataElement, String cardinality) {
+        switch (cardinality) {
+            case "0..1":
+                dataElement.minMultiplicity = 0
+                dataElement.maxMultiplicity = 1
+                break
+            case "0..*":
+                dataElement.minMultiplicity = 0
+                dataElement.maxMultiplicity = -1
+                break
+            case "1..*":
+                dataElement.minMultiplicity = 1
+                dataElement.maxMultiplicity = -1
+                break
+            default: // we'll assume 1..1
+                dataElement.minMultiplicity = 1
+                dataElement.maxMultiplicity = 1
+                break
         }
     }
 

@@ -85,11 +85,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
             NhsDDClass referencedNhsClass = getNhsDataDictionaryComponentFromCatalogueItem(referencedClass, dataDictionary)
 
-            NhsDDClassRelationship relationship = new NhsDDClassRelationship(targetClass: referencedNhsClass)
-                .tap {
-                    setDescription(dataElement)
-                    isKey = dataElement.metadata.find {it.key == "isKey"}
-                }
+            NhsDDClassRelationship relationship = new NhsDDClassRelationship(dataElement, referencedNhsClass)
             relationship
         }
     }
@@ -205,8 +201,11 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
                         }
                         DataElement sourceDataElement = new DataElement(label: sourceLabel, dataType: targetReferenceType,
                                                                         createdBy: currentUserEmailAddress)
+                        NhsDDClassLink.setMultiplicityToDataElement(sourceDataElement, classLink.supplierCardinality)
                         addMetadataForLink(classLink, sourceDataElement, currentUserEmailAddress)
-                        addToMetadata(sourceDataElement, "direction", "client", currentUserEmailAddress)
+                        addToMetadata(sourceDataElement, NhsDDClassLink.IS_KEY_METADATA_KEY, classLink.isPartOfSupplierKey().toString(), currentUserEmailAddress)
+                        addToMetadata(sourceDataElement, NhsDDClassLink.IS_CHOICE_METADATA_KEY, classLink.hasRelationClientExclusivity().toString(), currentUserEmailAddress)
+                        addToMetadata(sourceDataElement, NhsDDClassLink.DIRECTION_METADATA_KEY, NhsDDClassLink.CLIENT_DIRECTION, currentUserEmailAddress)
                         thisDataClass.addToDataElements(sourceDataElement)
 
                         String targetLabel = classLink.supplierRole
@@ -219,8 +218,11 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
                         }
                         DataElement targetDataElement = new DataElement(label: targetLabel, dataType: sourceReferenceType,
                                                                         createdBy: currentUserEmailAddress)
+                        NhsDDClassLink.setMultiplicityToDataElement(targetDataElement, classLink.clientCardinality)
                         addMetadataForLink(classLink, targetDataElement, currentUserEmailAddress)
-                        addToMetadata(targetDataElement, "direction", "supplier", currentUserEmailAddress)
+                        addToMetadata(targetDataElement, NhsDDClassLink.IS_KEY_METADATA_KEY, classLink.isPartOfClientKey().toString(), currentUserEmailAddress)
+                        addToMetadata(targetDataElement, NhsDDClassLink.IS_CHOICE_METADATA_KEY, classLink.hasRelationSupplierExclusivity().toString(), currentUserEmailAddress)
+                        addToMetadata(targetDataElement, NhsDDClassLink.DIRECTION_METADATA_KEY, NhsDDClassLink.SUPPLIER_DIRECTION, currentUserEmailAddress)
                         targetDataClass.addToDataElements(targetDataElement)
                     }
                 } else if (classLink.metaclass == "Generalization20") {
@@ -248,8 +250,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
             "clientUin": classLink.clientUin,
             "relationSupplierExclusivity": classLink.relationSupplierExclusivity,
             "relationClientExclusivity": classLink.relationClientExclusivity,
-            "direction": classLink.direction,
-            "isKey": classLink.partOfClientKey,
+            "direction": classLink.direction
         ]
         metadata.each {key, value ->
             addToMetadata(dataElement, key, value, currentUserEmailAddress)
