@@ -23,28 +23,43 @@ class NhsDDClassRelationship {
 
     String relationshipDescription
     NhsDDClass targetClass
+    String role
+    boolean hasMultiple
     boolean isKey
+    boolean isChoice
+    int minMultiplicity
+    int maxMultiplicity
 
-    void setDescription(DataElement dataElement) {
-
-        String role = dataElement.label.replaceAll("\\(\\d\\)", "")
-        Integer minMultiplicity = dataElement.minMultiplicity
-        Integer maxMultiplicity = dataElement.maxMultiplicity
-
-        String mayMust = "must be "
-
-        if(minMultiplicity == 0) {
-            mayMust = "may be "
-        }
-        String cardinality = " one or more"
-
-        if(maxMultiplicity == 1) {
-            role = role + " one and only one"
-        }
-        relationshipDescription = mayMust + role + cardinality
-
+    NhsDDClassRelationship() {
     }
 
+    NhsDDClassRelationship(DataElement relationshipElement, NhsDDClass targetClass) {
+        this.targetClass = targetClass
+        this.role = relationshipElement.label.replaceAll("\\(\\d\\)", "")
+        // TODO: can't think of a better way right now to work out if the description needs to contain "or"
+        this.hasMultiple = !relationshipElement.label.findAll("\\(\\d\\)").empty
+        this.minMultiplicity = relationshipElement.minMultiplicity ?: 0
+        this.maxMultiplicity = relationshipElement.maxMultiplicity ?: 0
+        this.isKey = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_KEY_METADATA_KEY }?.value == "true" ?: false
+        this.isChoice = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_CHOICE_METADATA_KEY }?.value == "true" ?: false
+        this.relationshipDescription = this.buildDescription()
+    }
 
+    String buildDescription() {
+        String prefix = hasMultiple && isChoice ? "or " : ""
 
+        if (minMultiplicity == 0 && maxMultiplicity == 1) {
+            return "${prefix}may be ${role} one and only one"
+        }
+
+        if (minMultiplicity == 0 && maxMultiplicity == -1) {
+            return "${prefix}may be ${role} one or more"
+        }
+
+        if (minMultiplicity == 1 && maxMultiplicity == -1) {
+            return "${prefix}must be ${role} one or more"
+        }
+
+        return "${prefix}must be ${role} one and only one"
+    }
 }
