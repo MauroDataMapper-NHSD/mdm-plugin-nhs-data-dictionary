@@ -56,7 +56,7 @@ class OtherDataSetToHtml {
                         th(colspan: 2, class: "thead-light", 'text-align': 'center') {
                             b ddDataClass.name
                             if (ddDataClass.description) {
-                                p ddDataClass.description
+                                p ddDataClass.description.replaceAll("<[^>]*>", "")
                             }
                         }
                     }
