@@ -115,8 +115,9 @@ class ChangePaperPdfUtility {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
         String date = simpleDateFormat.format(new Date())
+        String changePaperType = includeDataSets ? "datasets" : "basic"
 
-        String filename = "change-paper-${changePaper.reference}-${date}.zip"
+        String filename = "change-paper-${changePaper.reference}-${changePaperType}-${date}.zip"
 
         ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)
         zipFile.addFolder(new File(ditaOutputDirectory))

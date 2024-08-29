@@ -17,14 +17,13 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
-import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
 import groovy.util.logging.Slf4j
+import org.apache.xalan.processor.TransformerFactoryImpl
 import org.outerj.daisy.diff.helper.NekoHtmlParser
 import org.outerj.daisy.diff.html.HTMLDiffer
 import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
 import org.outerj.daisy.diff.html.TextNodeComparator
 import org.outerj.daisy.diff.html.dom.DomTreeBuilder
-import org.outerj.daisy.diff.html.dom.TagNode
 import org.xml.sax.ContentHandler
 import org.xml.sax.InputSource
 
@@ -38,8 +37,7 @@ class DaisyDiffHelper {
 
     static String diff(String first, String second) throws Exception {
         StringWriter finalResult = new StringWriter()
-        //SAXTransformerFactory tf = new org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl()
-        SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance()
+        SAXTransformerFactory tf = new TransformerFactoryImpl()
         TransformerHandler result = tf.newTransformerHandler()
         result.getTransformer().setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
         result.getTransformer().setOutputProperty(OutputKeys.INDENT, "yes")
