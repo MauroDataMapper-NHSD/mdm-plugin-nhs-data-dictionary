@@ -90,7 +90,9 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         } else {
             List<String> aliases = [name]
             aliases.addAll(getAliases().values())
-            aliases.add(path.last())
+            if (path && !path.empty) {
+                aliases.add(path.last())
+            }
 
             try {
 
