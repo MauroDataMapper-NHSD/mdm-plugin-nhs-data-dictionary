@@ -263,6 +263,7 @@ class OtherDataSetParser {
                 returnElement = DataSetParser.getElementFromText(tds[0].a[0], dataModel, dataDictionary, currentClass)
                 int multiples = getMultipleOccurrences(tds[0].text())
                 if(multiples == 1) {
+                    returnElement.minMultiplicity = 0
                     returnElement.maxMultiplicity = -1
                 } else if(multiples != 0) {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
@@ -273,6 +274,7 @@ class OtherDataSetParser {
                 returnElement = DataSetParser.getElementFromText(tds[1].a[0], dataModel, dataDictionary, currentClass)
                 int multiples = getMultipleOccurrences(tds[1].text())
                 if(multiples == 1) {
+                    returnElement.minMultiplicity = 0
                     returnElement.maxMultiplicity = -1
                 } else if(multiples != 0) {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
@@ -302,6 +304,7 @@ class OtherDataSetParser {
                 int multiples = getMultipleOccurrences(tds[1].text())
                 if(multiples == 2) {
                     returnElement.dataElements.each {de ->
+                        de.minMultiplicity = 0
                         de.maxMultiplicity = -1
                     }
                 } else if(multiples != 0) {
@@ -375,10 +378,12 @@ class OtherDataSetParser {
                 if(multiples == 3) {
                     log.trace("3 multiples!")
                     returnElement.dataElements.each {de ->
+                        de.minMultiplicity = 0
                         de.maxMultiplicity = -1
                     }
                     returnElement.dataClasses.each {dc ->
                         dc.dataElements.each { de ->
+                            de.minMultiplicity = 0
                             de.maxMultiplicity = -1
                         }
                     }
@@ -427,17 +432,22 @@ class OtherDataSetParser {
                 if(multiples == 4) {
                     log.trace("4 multiples!")
                     returnElement.dataElements.each {de ->
+                        de.minMultiplicity = 0
                         de.maxMultiplicity = -1
                     }
                     returnElement.dataClasses.each {dc ->
                         dc.dataElements.each { de ->
+                            de.minMultiplicity = 0
                             de.maxMultiplicity = -1
                         }
                     }
                 } else if (dataModel.label == "GUMCAD Sexually Transmitted Infection Surveillance System Data Set" &&
                            multiples == 3 && returnElement.dataElements && returnElement.dataElements.size() >= 3) {
+                    returnElement.dataElements[0].minMultiplicity = 0
                     returnElement.dataElements[0].maxMultiplicity = -1
+                    returnElement.dataElements[1].minMultiplicity = 0
                     returnElement.dataElements[1].maxMultiplicity = -1
+                    returnElement.dataElements[2].minMultiplicity = 0
                     returnElement.dataElements[2].maxMultiplicity = -1
                 } else if (multiples != 0) {
                     unmatchedPattern("Wrong number of multiples", tr, dataModel.label, currentClassName)
