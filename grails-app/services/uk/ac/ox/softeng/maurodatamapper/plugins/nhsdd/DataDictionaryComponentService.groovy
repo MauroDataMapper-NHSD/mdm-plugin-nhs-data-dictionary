@@ -124,8 +124,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             collect {new StereotypedCatalogueItem(it)}
     }
 
-    //static Pattern pattern = Pattern.compile("\\[([^\\]]*)\\]\\(([^\\)]*)\\)")
-    static Pattern pattern = Pattern.compile("<a[\\s]*href=\"([^\"]*)\"[\\s]*>([^<]*)</a>")
+    static Pattern pattern = Pattern.compile("<a\\s+[^>]*?href=\"([^\"]+)\"[^>]*>(.*?)</a>")
 
 
     String convertLinksInDescription(UUID branchId, String description) {
