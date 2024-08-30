@@ -674,6 +674,9 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             return null
         }
         String sentence = calculateSentences(html)[i]
+        if (!sentence) {
+            return null
+        }
         return tidyShortDescription(sentence) + "."
     }
 
