@@ -9,7 +9,7 @@ json {
         catalogueId nhsDataDictionaryComponent.getCatalogueItemIdAsString()
         name        nhsDataDictionaryComponent.getNameWithRetired()
         stereotype  stereotype
-        shortDescription nhsDataDictionaryComponent.otherProperties["shortDescription"]
+        shortDescription nhsDataDictionaryComponent.getShortDescription()
         description nhsDataDictionaryComponent.getDescription()
         alsoKnownAs nhsDataDictionaryComponent.getAliases()
 }

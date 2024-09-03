@@ -124,11 +124,11 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             collect {new StereotypedCatalogueItem(it)}
     }
 
-    //static Pattern pattern = Pattern.compile("\\[([^\\]]*)\\]\\(([^\\)]*)\\)")
-    static Pattern pattern = Pattern.compile("<a[\\s]*href=\"([^\"]*)\"[\\s]*>([^<]*)</a>")
+    static Pattern pattern = Pattern.compile("<a\\s+[^>]*?href=\"([^\"]+)\"[^>]*>(.*?)</a>")
 
 
     String convertLinksInDescription(UUID branchId, String description) {
+        VersionedFolder versionedFolder = VersionedFolder.get(branchId)
 
         String newDescription = description
         log.debug(newDescription)
@@ -142,7 +142,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                 System.err.println(matcher.group(1))
                 try {
                     String[] path = matcher.group(1).split("\\|")
-                    CatalogueItem foundCatalogueItem = getByPath(VersionedFolder.get(branchId), path)
+                    CatalogueItem foundCatalogueItem = getByPath(versionedFolder, path)
                     if (foundCatalogueItem) {
                         String stereotype = getStereotypeByPath(path)
                         String catalogueId = foundCatalogueItem.id.toString()
@@ -176,7 +176,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
     CatalogueItem getByPath(VersionedFolder versionedFolder, String[] path) {
         if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
+            Terminology terminology = terminologyService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
             if (t) {
@@ -184,7 +184,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             }
         }
         if (path[0] == "te:${NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
+            Terminology terminology = terminologyService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
             if (t) {
@@ -192,7 +192,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             }
         }
         if (path[0] == "te:${NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME}") {
-            Terminology terminology = terminologyService.findByLabel(NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
+            Terminology terminology = terminologyService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME)
             String termLabel = path[1].replace("tm:", "")
             Term t = terminology.findTermByCode(termLabel)
             if (t) {
@@ -220,7 +220,6 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                 DataElement de = dataElementService.findByParentAndLabel(dc, path[2].replace("de:", ""))
                 return de
             }
-
         }
 
         if (path.length == 1 && path[0].startsWith("dm:")) {

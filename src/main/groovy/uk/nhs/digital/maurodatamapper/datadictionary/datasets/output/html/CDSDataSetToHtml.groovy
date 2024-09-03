@@ -154,7 +154,7 @@ class CDSDataSetToHtml {
                 th(colspan: noColumns - 2) {
                     p {
                         b 'Function:'
-                        mkp.yield(function)
+                        mkp.yieldUnescaped(function)
                     }
                 }
             }
@@ -228,7 +228,9 @@ class CDSDataSetToHtml {
             td(class: 'cds-element-header', colspan: (totalDepth*2+3) - (currentDepth*2+1)) {
                 b name
                 if (dataClass.description) {
-                    markupBuilder.p dataClass.description
+                    markupBuilder.p {
+                        mkp.yieldUnescaped(dataClass.description)
+                    }
                 }
             }
             td (class: 'rules') {
