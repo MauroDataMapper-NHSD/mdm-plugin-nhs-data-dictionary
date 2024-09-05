@@ -5,11 +5,7 @@ model {
 }
 json {
     code nhsDDCode.code
-    if (nhsDDCode.webPresentation) {
-       description nhsDDCode.webPresentation
-    } else {
-        description nhsDDCode.definition
-    }
+    description nhsDDCode.getDescription()
     retired nhsDDCode.isRetired
     if(nhsDDCode.isRetired) {
         retiredDate nhsDDCode.retiredDate

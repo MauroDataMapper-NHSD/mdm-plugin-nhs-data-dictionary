@@ -208,7 +208,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        if(!isPreparatory() && this.codes) {
+        if(!isPreparatory() && !isRetired() && this.codes) {
             topics.add(getNationalCodesTopic())
         }
         if(getAliases()) {

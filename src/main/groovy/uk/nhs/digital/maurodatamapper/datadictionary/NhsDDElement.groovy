@@ -394,10 +394,10 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
         topics.add(descriptionTopic())
 
-        if(!isPreparatory() && hasNationalCodes()) {
+        if(!isPreparatory() && !isRetired() && hasNationalCodes()) {
             topics.add(getNationalCodesTopic())
         }
-        if(!isPreparatory() && hasDefaultCodes()) {
+        if(!isPreparatory() && !isRetired() && hasDefaultCodes()) {
             topics.add(getDefaultCodesTopic())
         }
         if(getAliases()) {
