@@ -17,8 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html
 
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
@@ -112,41 +110,89 @@ class OtherDataSetToHtml {
                 p classOrElement.mandation
             }
             td (width: '80%') {
-                if (classOrElement instanceof NhsDDDataSetElement) {
-                    NhsDDDataSetElement dataSetElement = (NhsDDDataSetElement)classOrElement
-                    dataSetElement.createLink(markupBuilder)
+                addXrefStringFromItem(classOrElement)
 
-                    if(dataSetElement.maxMultiplicity == '-1') {
-                        p 'Multiple occurrences of this item are permitted'
-                    }
-                } else if (classOrElement instanceof NhsDDDataSetClass) {
-                    NhsDDDataSetClass dataSetClass = (NhsDDDataSetClass)classOrElement
-                    if (dataSetClass.dataSetElements.size() > 0) {
-                        if (dataSetClass.isAddress) {
-                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
-
-                            dataSetElement.createLink(markupBuilder)
-                            markupBuilder.getMkp().yield(" - ")
-                            markupBuilder.a (href: dataSetClass.address1) {
-                                mkp.yield("ADDRESS STRUCTURED")
-                            }
-
-                            p('Or')
-
-                            dataSetElement.createLink(markupBuilder)
-                            markupBuilder.getMkp().yield(" - ")
-                            markupBuilder.a (href: dataSetClass.address2) {
-                                mkp.yield("ADDRESS UNSTRUCTURED")
-                            }
-                        } else {
-                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
-                            dataSetElement.createLink(markupBuilder)
-                        }
-                    }
-                }
+//                if (classOrElement instanceof NhsDDDataSetElement) {
+//                    NhsDDDataSetElement dataSetElement = (NhsDDDataSetElement)classOrElement
+//                    dataSetElement.createLink(markupBuilder)
+//
+//                    if(dataSetElement.maxMultiplicity == '-1') {
+//                        p 'Multiple occurrences of this item are permitted'
+//                    }
+//                } else if (classOrElement instanceof NhsDDDataSetClass) {
+//                    NhsDDDataSetClass dataSetClass = (NhsDDDataSetClass)classOrElement
+//                    if (dataSetClass.dataSetElements.size() > 0) {
+//                        if (dataSetClass.isAddress) {
+//                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+//
+//                            dataSetElement.createLink(markupBuilder)
+//                            markupBuilder.getMkp().yield(" - ")
+//                            markupBuilder.a (href: dataSetClass.address1) {
+//                                mkp.yield("ADDRESS STRUCTURED")
+//                            }
+//
+//                            p('Or')
+//
+//                            dataSetElement.createLink(markupBuilder)
+//                            markupBuilder.getMkp().yield(" - ")
+//                            markupBuilder.a (href: dataSetClass.address2) {
+//                                mkp.yield("ADDRESS UNSTRUCTURED")
+//                            }
+//                        } else {
+//                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+//                            dataSetElement.createLink(markupBuilder)
+//                        }
+//                    }
+//                }
             }
         }
+    }
 
+    // Replicate the logic of NhsDDDataSetClass.getXrefStringFromItem()
+    void addXrefStringFromItem(def classOrElement) {
+        if (classOrElement instanceof NhsDDDataSetElement) {
+            addBasicDataSetElementContent((NhsDDDataSetElement) classOrElement)
+        }
+        else { //if (catalogueItem instanceof NhsDDDataSetClass)
+            addComplexDataSetElementContent((NhsDDDataSetClass) classOrElement)
+        }
+    }
+
+    void addBasicDataSetElementContent(NhsDDDataSetElement dataSetElement) {
+        dataSetElement.createLink(markupBuilder)
+
+        if (dataSetElement.maxMultiplicity == '-1') {
+            markupBuilder.p 'Multiple occurrences of this item are permitted'
+        }
+    }
+
+    void addComplexDataSetElementContent(NhsDDDataSetClass dataSetClass) {
+        if (dataSetClass.dataSetElements.size() == 0) {
+            return
+        }
+
+        if (dataSetClass.isAddress) {
+            // See COSD Pathology for an example of this
+            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+
+            dataSetElement.createLink(markupBuilder)
+            markupBuilder.getMkp().yield(" - ")
+            markupBuilder.a (href: dataSetClass.address1) {
+                mkp.yield("ADDRESS STRUCTURED")
+            }
+
+            markupBuilder.p('Or')
+
+            dataSetElement.createLink(markupBuilder)
+            markupBuilder.getMkp().yield(" - ")
+            markupBuilder.a (href: dataSetClass.address2) {
+                mkp.yield("ADDRESS UNSTRUCTURED")
+            }
+        }
+        else {
+            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+            dataSetElement.createLink(markupBuilder)
+        }
     }
 
     void addSubClass(NhsDDDataSetClass dataSetClass) {
