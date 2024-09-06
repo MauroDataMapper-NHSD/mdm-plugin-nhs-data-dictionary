@@ -112,13 +112,13 @@ class OtherDataSetToHtml {
                 p classOrElement.mandation
             }
             td (width: '80%') {
-                addXrefStringFromItem(classOrElement)
+                addDataSetElementContent(classOrElement)
             }
         }
     }
 
     // Replicate the logic of NhsDDDataSetClass.getXrefStringFromItem()
-    void addXrefStringFromItem(def classOrElement) {
+    void addDataSetElementContent(def classOrElement) {
         if (classOrElement instanceof NhsDDDataSetElement) {
             addBasicDataSetElementContent((NhsDDDataSetElement) classOrElement)
         }
@@ -156,6 +156,30 @@ class OtherDataSetToHtml {
             markupBuilder.getMkp().yield(" - ")
             markupBuilder.a (href: dataSetClass.address2, class: "class") {
                 mkp.yield("ADDRESS UNSTRUCTURED")
+            }
+        }
+        else if (dataSetClass.isChoice && dataSetClass.name.startsWith("Choice")) {
+            dataSetClass.getSortedChildren().eachWithIndex { childItem, idx ->
+                if (idx != 0) {
+                    markupBuilder.p "Or"
+                }
+                addDataSetElementContent(childItem)
+            }
+        }
+        else if (dataSetClass.isAnd && (dataSetClass.name.startsWith("Choice") || dataSetClass.name.startsWith("And"))) {
+            dataSetClass.getSortedChildren().eachWithIndex { childItem, idx ->
+                if (idx != 0) {
+                    markupBuilder.p "And"
+                }
+                addDataSetElementContent(childItem)
+            }
+        }
+        else if (dataSetClass.isInclusiveOr && dataSetClass.name.startsWith("Choice")) {
+            dataSetClass.getSortedChildren().eachWithIndex { childItem, idx ->
+                if (idx != 0) {
+                    markupBuilder.p "And/Or"
+                }
+                addDataSetElementContent(childItem)
             }
         }
         else {
