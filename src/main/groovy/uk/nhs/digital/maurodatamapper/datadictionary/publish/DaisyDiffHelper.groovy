@@ -19,6 +19,9 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
 import groovy.util.logging.Slf4j
 import org.apache.xalan.processor.TransformerFactoryImpl
+import org.eclipse.compare.internal.LCSSettings
+import org.eclipse.compare.rangedifferencer.RangeDifference
+import org.eclipse.compare.rangedifferencer.RangeDifferencer
 import org.outerj.daisy.diff.helper.NekoHtmlParser
 import org.outerj.daisy.diff.html.HTMLDiffer
 import org.outerj.daisy.diff.html.HtmlSaxDiffOutput
@@ -52,34 +55,18 @@ class DaisyDiffHelper {
 
         NekoHtmlParser cleaner = new NekoHtmlParser()
 
-        InputSource oldSource = new InputSource(new StringReader(
-                first))
-        InputSource newSource = new InputSource(new StringReader(
-                second))
+        InputSource oldSource = new InputSource(new StringReader(first))
+        InputSource newSource = new InputSource(new StringReader(second))
 
-        DomTreeBuilder oldHandler = new DomTreeBuilder();
+        DomTreeBuilder oldHandler = new DomTreeBuilder()
         cleaner.parse(oldSource, oldHandler)
-        TextNodeComparator leftComparator = new TextNodeComparator(
-                oldHandler, locale)
+        TextNodeComparator leftComparator = new TextNodeComparator(oldHandler, locale)
 
-        DomTreeBuilder newHandler = new DomTreeBuilder();
+        DomTreeBuilder newHandler = new DomTreeBuilder()
         cleaner.parse(newSource, newHandler)
-        TextNodeComparator rightComparator = new TextNodeComparator(
-                newHandler, locale)
+        TextNodeComparator rightComparator = new TextNodeComparator(newHandler, locale)
 
-        HtmlSaxDiffOutput output = new HtmlSaxDiffOutput(postProcess,
-                prefix)
-
-        //Debug code
-//        LCSSettings settings = new LCSSettings();
-//        settings.setUseGreedyMethod(false);
-//        // settings.setPowLimit(1.5);
-//        // settings.setTooLong(100000*100000);
-//
-//        RangeDifference[] differences = RangeDifferencer.findDifferences(
-//                settings, leftComparator, rightComparator);
-//        LOG.info(">>>>Number of diffs is "+differences.length);
-        //End of debug code
+        HtmlSaxDiffOutput output = new HtmlSaxDiffOutput(postProcess, prefix)
 
         HTMLDiffer differ = new HTMLDiffer(output)
         System.err.println(leftComparator)
@@ -92,11 +79,35 @@ class DaisyDiffHelper {
         }
 
         return finalResult.toString().replaceAll(" changes=\"[^\"]*\"", "")
-
     }
 
     static boolean containsHtmlTable(String source) {
         // Not elegant, but should work...
         source.contains("<table")
+    }
+
+    static RangeDifference[] calculateDifferences(String first, String second) {
+        Locale locale = Locale.getDefault()
+
+        NekoHtmlParser cleaner = new NekoHtmlParser()
+
+        InputSource oldSource = new InputSource(new StringReader(first))
+        InputSource newSource = new InputSource(new StringReader(second))
+
+        DomTreeBuilder oldHandler = new DomTreeBuilder()
+        cleaner.parse(oldSource, oldHandler)
+        TextNodeComparator leftComparator = new TextNodeComparator(oldHandler, locale)
+
+        DomTreeBuilder newHandler = new DomTreeBuilder()
+        cleaner.parse(newSource, newHandler)
+        TextNodeComparator rightComparator = new TextNodeComparator(newHandler, locale)
+
+        LCSSettings settings = new LCSSettings()
+        settings.setUseGreedyMethod(false)
+        // settings.setPowLimit(1.5);
+        // settings.setTooLong(100000*100000);
+
+        RangeDifference[] differences = RangeDifferencer.findDifferences(settings, leftComparator, rightComparator)
+        differences
     }
 }

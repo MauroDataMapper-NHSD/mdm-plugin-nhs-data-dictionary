@@ -214,7 +214,12 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             Change retiredChange = createRetiredComponentChange(previousComponent)
             changes.add(retiredChange)
         }
-        else if (description != previousComponent.description) {
+        // To get accurate description comparison, we have to load all strings as HTML Dom trees and compare them. A simple
+        // string comparison won't do anymore - because you could have superfluous whitespace between HTML tags that a string compare will
+        // just consider "different" when semantically it isn't. _However_, this HTML comparison is *incredibly* slow across comparing
+        // two dictionary branches now! If you want to test it faster, uncomment the line below and remember to put it back before you commit
+        //else if (description != previousComponent.description) { // DEBUG
+        else if (DaisyDiffHelper.calculateDifferences(description, previousComponent.description).length > 0) {
             buildComponentDetailsChangeList(changes, previousComponent, includeDataSets)
         }
     }
