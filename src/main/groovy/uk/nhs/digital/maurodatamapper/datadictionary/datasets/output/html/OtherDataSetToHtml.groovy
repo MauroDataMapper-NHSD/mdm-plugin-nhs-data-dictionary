@@ -113,39 +113,6 @@ class OtherDataSetToHtml {
             }
             td (width: '80%') {
                 addXrefStringFromItem(classOrElement)
-
-//                if (classOrElement instanceof NhsDDDataSetElement) {
-//                    NhsDDDataSetElement dataSetElement = (NhsDDDataSetElement)classOrElement
-//                    dataSetElement.createLink(markupBuilder)
-//
-//                    if(dataSetElement.maxMultiplicity == '-1') {
-//                        p 'Multiple occurrences of this item are permitted'
-//                    }
-//                } else if (classOrElement instanceof NhsDDDataSetClass) {
-//                    NhsDDDataSetClass dataSetClass = (NhsDDDataSetClass)classOrElement
-//                    if (dataSetClass.dataSetElements.size() > 0) {
-//                        if (dataSetClass.isAddress) {
-//                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
-//
-//                            dataSetElement.createLink(markupBuilder)
-//                            markupBuilder.getMkp().yield(" - ")
-//                            markupBuilder.a (href: dataSetClass.address1) {
-//                                mkp.yield("ADDRESS STRUCTURED")
-//                            }
-//
-//                            p('Or')
-//
-//                            dataSetElement.createLink(markupBuilder)
-//                            markupBuilder.getMkp().yield(" - ")
-//                            markupBuilder.a (href: dataSetClass.address2) {
-//                                mkp.yield("ADDRESS UNSTRUCTURED")
-//                            }
-//                        } else {
-//                            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
-//                            dataSetElement.createLink(markupBuilder)
-//                        }
-//                    }
-//                }
             }
         }
     }
@@ -179,7 +146,7 @@ class OtherDataSetToHtml {
 
             dataSetElement.createLink(markupBuilder)
             markupBuilder.getMkp().yield(" - ")
-            markupBuilder.a (href: dataSetClass.address1) {
+            markupBuilder.a (href: dataSetClass.address1, class: "class") {
                 mkp.yield("ADDRESS STRUCTURED")
             }
 
@@ -187,7 +154,7 @@ class OtherDataSetToHtml {
 
             dataSetElement.createLink(markupBuilder)
             markupBuilder.getMkp().yield(" - ")
-            markupBuilder.a (href: dataSetClass.address2) {
+            markupBuilder.a (href: dataSetClass.address2, class: "class") {
                 mkp.yield("ADDRESS UNSTRUCTURED")
             }
         }
