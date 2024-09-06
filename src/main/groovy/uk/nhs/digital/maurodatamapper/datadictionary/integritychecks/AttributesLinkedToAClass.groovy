@@ -29,7 +29,7 @@ class AttributesLinkedToAClass implements IntegrityCheck {
     String description = "Check that all live attributes are linked to a class"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
         Map<String, NhsDDAttribute> allUnusedAttributesMap = new HashMap<String, NhsDDAttribute>(dataDictionary.attributes)
 
@@ -42,7 +42,12 @@ class AttributesLinkedToAClass implements IntegrityCheck {
         allUnusedAttributesMap.removeAll {name, attribute ->
             attribute.isRetired()
         }
-        return allUnusedAttributesMap.values() as List
+
+        errors = allUnusedAttributesMap
+            .values()
+            .collect { component -> new IntegrityCheckError(component) }
+
+        return errors
     }
 
 }

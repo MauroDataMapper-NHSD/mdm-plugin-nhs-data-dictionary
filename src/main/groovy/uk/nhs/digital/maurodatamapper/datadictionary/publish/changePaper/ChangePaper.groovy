@@ -27,6 +27,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
+import java.text.SimpleDateFormat
+
 class ChangePaper {
 
     static String example1 = "<p>Here is some text</p>"
@@ -220,9 +222,11 @@ class ChangePaper {
         subject = nhsDataDictionary.workItemDetails['subject'] ?: 'NHS England and NHS Improvement'
         effectiveDate = nhsDataDictionary.workItemDetails['effectiveDate'] ?: 'Immediate'
         reasonForChange = nhsDataDictionary.workItemDetails['reasonForChange'] ?: 'Change to definitions'
-        publicationDate = new Date().toString()
         background = nhsDataDictionary.workItemDetails['backgroundText'] ?: backgroundText()
-        sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS Digital'
+        sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS England'
+
+        SimpleDateFormat publicationDateFormat = new SimpleDateFormat("dd MMMM yyyy")
+        publicationDate = publicationDateFormat.format(new Date())
 
         stereotypedChanges = calculateChanges(nhsDataDictionary, oldDataDictionary, includeDataSets)
     }
@@ -271,43 +275,65 @@ class ChangePaper {
         changedItems += new StereotypedChange(stereotypeName: "Data Set Constraint",
               changedItems: compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary?.dataSetConstraints))
 
-        if(includeDataSets && dataSetChanges.size() > 0) {
+        if (includeDataSets && dataSetChanges.size() > 0) {
+            Set<NhsDataDictionaryComponent> existingElementsForChanges = elementChange.getUniqueNewItems()
+            Set<NhsDataDictionaryComponent> existingAttributesForChanges = attributeChange.getUniqueNewItems()
+
             Set<NhsDDDataSet> changedDataSets = [] as Set<NhsDDDataSet>
             dataSetChanges.each { changedItem ->
                 changedDataSets.add((NhsDDDataSet)changedItem.dictionaryComponent)
             }
-            changedDataSets.each { dataSet ->
-                Set<NhsDDDataSetElement> dataSetElements = dataSet.getAllElements()
-                Set<NhsDDAttribute> dataSetAttributes = [] as Set<NhsDDAttribute>
-                dataSetElements.each {dataSetElement ->
 
-                    elementChange.changedItems.add(new ChangedItem(
-                            dictionaryComponent: dataSetElement.reuseElement,
-                            changes: [new Change(
-                                    changeType: "Unchanged Item",
-                                    stereotype: dataSetElement.reuseElement.stereotype,
-                                    oldItem: null,
-                                    newItem: dataSetElement.reuseElement,
-                                    htmlDetail: dataSetElement.reuseElement.description,
-                                    ditaDetail: Div.build {
-                                        div HtmlHelper.replaceHtmlWithDita(dataSetElement.reuseElement.description)
-                                    })]
-                    ))
-                    dataSetAttributes.addAll(((NhsDDElement)dataSetElement.reuseElement).instantiatesAttributes)
+            Set<NhsDDElement> dataSetElements = [] as Set<NhsDDElement>
+            Set<NhsDDAttribute> dataSetAttributes = [] as Set<NhsDDAttribute>
+
+            // Collect all Data Elements and Attributes used by every data set. Store in sets to that duplicates are not
+            // captured and repeated
+            changedDataSets.each {dataSet ->
+                Set<NhsDDDataSetElement> currentElements = dataSet.getAllElements()
+
+                currentElements.each { element ->
+                    dataSetElements.add(element.reuseElement)
+                    dataSetAttributes.addAll(element.reuseElement.instantiatesAttributes)
                 }
-                dataSetAttributes.each { attribute ->
+            }
 
+            dataSetElements.each {element ->
+                // Don't duplicate a Data Element appearing in the change paper if a change was already recorded
+                // This is especially true if the change paper contains multiple data sets that trace back to the
+                // same Data Elements
+                if (!existingElementsForChanges.contains(element)) {
+                    elementChange.changedItems.add(new ChangedItem(
+                        dictionaryComponent: element,
+                        changes: [new Change(
+                            changeType: Change.CHANGED_DATA_SET_TYPE,
+                            stereotype: element.stereotype,
+                            oldItem: null,
+                            newItem: element,
+                            htmlDetail: element.description,
+                            ditaDetail: Div.build {
+                                div HtmlHelper.replaceHtmlWithDita(element.description)
+                            })]
+                    ))
+                }
+            }
+
+            dataSetAttributes.each { attribute ->
+                // Don't duplicate an Attribute appearing in the change paper if a change was already recorded
+                // This is especially true if the change paper contains multiple data sets that trace back to the
+                // same Attributes
+                if (!existingAttributesForChanges.contains(attribute)) {
                     attributeChange.changedItems.add(new ChangedItem(
-                            dictionaryComponent: attribute,
-                            changes: [new Change(
-                                    changeType: "Unchanged Item",
-                                    stereotype: attribute.stereotype,
-                                    oldItem: null,
-                                    newItem: attribute,
-                                    htmlDetail: attribute.description,
-                                    ditaDetail: Div.build {
-                                        div HtmlHelper.replaceHtmlWithDita(attribute.description)
-                                    })]
+                        dictionaryComponent: attribute,
+                        changes: [new Change(
+                            changeType: Change.CHANGED_DATA_SET_TYPE,
+                            stereotype: attribute.stereotype,
+                            oldItem: null,
+                            newItem: attribute,
+                            htmlDetail: attribute.description,
+                            ditaDetail: Div.build {
+                                div HtmlHelper.replaceHtmlWithDita(attribute.description)
+                            })]
                     ))
                 }
             }
@@ -357,22 +383,4 @@ class ChangePaper {
         }
         return writer.toString()
     }
-/*
-    Map<String, List<Change>> getStereotypedChanges() {
-
-        Map<String, List<Change>> stereotypedChangesResult = [:]
-
-        changes.each { change ->
-            List<Change> changesForStereotype = stereotypedChangesResult[change.stereotype]
-            if(!changesForStereotype) {
-                changesForStereotype = [change]
-                stereotypedChangesResult[change.stereotype] = changesForStereotype
-
-            } else {
-                changesForStereotype.add(change)
-            }
-        }
-        return stereotypedChangesResult
-    }
-*/
 }

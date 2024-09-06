@@ -19,8 +19,10 @@ package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.util.logging.Slf4j
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 @Slf4j
 class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
@@ -160,6 +162,47 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
+    @Override
+    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
+        if (standardDescriptionChange) {
+            changes.add(standardDescriptionChange)
+        }
+
+        // National codes should only be added if the component is new or updated
+        Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDAttribute)
+        if (nationalCodesChange) {
+            changes.add(nationalCodesChange)
+        }
+
+        // Aliases should only be added if the component is new or updated
+        Change aliasesChange = createAliasesChange(previousComponent)
+        if (aliasesChange) {
+            changes.add(aliasesChange)
+        }
+    }
+
+    Change createNationalCodesChange(NhsDDAttribute previousAttribute) {
+        List<NhsDDCode> currentCodes = this.getOrderedNationalCodes()
+        List<NhsDDCode> previousCodes = previousAttribute ? previousAttribute.getOrderedNationalCodes() : []
+
+        if (currentCodes.isEmpty() && previousCodes.isEmpty()) {
+            return null
+        }
+
+        String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
+        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes)
+
+        new Change(
+            changeType: Change.NATIONAL_CODES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousAttribute,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail,
+            preferDitaDetail: true
+        )
+    }
 
     @Override
     List<Topic> getWebsiteTopics() {
@@ -181,11 +224,16 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     }
 
     Topic getNationalCodesTopic() {
+        List<NhsDDCode> orderedCodes = getOrderedNationalCodes()
+        NhsDDCode.getCodesTopic(getDitaKey() + "_nationalCodes", "National Codes", orderedCodes)
+    }
+
+    List<NhsDDCode> getOrderedNationalCodes() {
         List<NhsDDCode> orderedCodes = codes.sort {it.code}
-        if(codes.find{it.webOrder }) {
+        if (codes.find{it.webOrder }) {
             orderedCodes = codes.sort {it.webOrder}
         }
-        NhsDDCode.getCodesTopic(getDitaKey() + "_nationalCodes", "National Codes", orderedCodes)
+        orderedCodes
     }
 
     Topic getDataElementsTopic() {

@@ -17,6 +17,8 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 
+import uk.ac.ox.softeng.maurodatamapper.path.Path
+
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
@@ -31,34 +33,48 @@ class InternalLinksInDescriptions implements IntegrityCheck {
     String description = "Check that all internal links to other dictionary items are valid"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
-        errors = dataDictionary.allComponents.findAll {component ->
-            !allDefinitionInternalLinksAreValid(dataDictionary, component)
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
+        List<IntegrityCheckError> foundErrors = []
+
+        dataDictionary.allComponents.forEach {component ->
+            IntegrityCheckError integrityCheckError = checkDefinitionInternalLinksAreValid(dataDictionary, component)
+            if (integrityCheckError) {
+                foundErrors.add(integrityCheckError)
+            }
         }
+
+        errors = foundErrors
 
         errors
     }
 
-    static boolean allDefinitionInternalLinksAreValid(
+    static IntegrityCheckError checkDefinitionInternalLinksAreValid(
         NhsDataDictionary dataDictionary,
         NhsDataDictionaryComponent component) {
         if (!component.definition || component.definition.length() == 0) {
             // Ignore this component
-            return true
+            return null
         }
 
         log.debug("Checking $component.catalogueItemDomainTypeAsString '$component.name' [$component.catalogueItemIdAsString] for internal links")
         Set<String> paths = getMauroPathsFromHtml(component.definition)
 
-        boolean allPathsValid = true
+        List<String> invalidLinks = []
         paths.forEach { path ->
             if (!dataDictionary.internalLinks.containsKey(path)) {
                 log.warn("$component.catalogueItemDomainTypeAsString '$component.name' [$component.catalogueItemIdAsString] references '$path' which does not exist")
-                allPathsValid = false
+                Path pathObject = Path.from(path)
+                String label = pathObject.last()?.identifier ?: "Unknown"
+                String detail = "Link for '${label}' was not found"
+                invalidLinks.add(detail)
             }
         }
 
-        allPathsValid
+        if (invalidLinks.empty) {
+            return null
+        }
+
+        return new IntegrityCheckError(component, invalidLinks)
     }
 
     private static Set<String> getMauroPathsFromHtml(String source) {

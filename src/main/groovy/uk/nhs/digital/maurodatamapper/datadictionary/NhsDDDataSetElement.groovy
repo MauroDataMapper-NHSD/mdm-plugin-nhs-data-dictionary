@@ -48,6 +48,10 @@ class NhsDDDataSetElement{
     NhsDDElement reuseElement
     NhsDataDictionary dataDictionary
 
+    // For testing only
+    NhsDDDataSetElement() {
+    }
+
     NhsDDDataSetElement(DataElement dataElement) {
         this.name = dataElement.label
         if(this.name.endsWith(" 1")) {
@@ -134,7 +138,9 @@ class NhsDDDataSetElement{
         List<P> response = []
         if(reuseElement) {
             response.add(P.build {
-                xRef (outputClass: "element", keyRef: reuseElement.getDitaKey(), scope: Scope.LOCAL)
+                xRef (outputClass: "element", keyRef: reuseElement.getDitaKey(), scope: Scope.LOCAL) {
+                    txt name
+                }
             })
         } else {
             response.add(P.build {

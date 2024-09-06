@@ -58,6 +58,10 @@ class NhsDDDataSetClass {
 
     NhsDataDictionary dataDictionary
 
+    // For testing only
+    NhsDDDataSetClass() {
+    }
+
     NhsDDDataSetClass(DataClass dataClass) {
         this.name = dataClass.label
         this.description = dataClass.description

@@ -56,7 +56,9 @@ class OtherDataSetToHtml {
                         th(colspan: 2, class: "thead-light", 'text-align': 'center') {
                             b ddDataClass.name
                             if (ddDataClass.description) {
-                                p ddDataClass.description
+                                p {
+                                    mkp.yieldUnescaped(ddDataClass.description)
+                                }
                             }
                         }
                     }
@@ -206,7 +208,9 @@ class OtherDataSetToHtml {
                         b dataSetClass.name
                     }
                     if(dataSetClass.description) {
-                        markupBuilder.p dataSetClass.description
+                        markupBuilder.p {
+                            mkp.yieldUnescaped(dataSetClass.description)
+                        }
                     }
                 }
             }

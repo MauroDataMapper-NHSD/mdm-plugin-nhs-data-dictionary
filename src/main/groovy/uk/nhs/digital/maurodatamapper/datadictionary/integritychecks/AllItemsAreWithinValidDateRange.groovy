@@ -28,10 +28,10 @@ class AllItemsAreWithinValidDateRange implements IntegrityCheck {
     String description = "Check that items are within their To and From dates "
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
-        errors = dataDictionary.getAllComponents().findAll {component ->
-           return !component.isRetired() && validateDateRange(component, LocalDate.now())
-        }
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
+        errors = dataDictionary.getAllComponents()
+            .findAll {component -> !component.isRetired() && validateDateRange(component, LocalDate.now()) }
+            .collect { component -> new IntegrityCheckError(component) }
 
         return errors
     }

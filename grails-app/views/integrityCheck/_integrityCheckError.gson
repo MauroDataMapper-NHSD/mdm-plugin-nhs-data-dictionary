@@ -1,0 +1,10 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheckError
+
+model {
+    IntegrityCheckError integrityCheckError
+}
+
+json {
+    component tmpl.'/nhsDataDictionaryComponent/nhsDataDictionaryComponent'(integrityCheckError.component)
+    details integrityCheckError.details
+}

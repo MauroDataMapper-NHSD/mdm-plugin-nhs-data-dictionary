@@ -39,6 +39,7 @@ class PublishOptions {
     boolean publishSupportingInformation = true
     boolean publishDataSetConstraints = true
     boolean publishDataSetFolders = true
+    boolean overwriteStaticContent = true
 
     static PublishOptions fromParameters(Map<String, String> params = [:]) {
 
@@ -51,6 +52,7 @@ class PublishOptions {
             publishSupportingInformation = Boolean.parseBoolean(params["supportingInformation"]?:'true')
             publishDataSetConstraints = Boolean.parseBoolean(params["dataSetConstraints"]?:'true')
             publishDataSetFolders = Boolean.parseBoolean(params["dataSetFolders"]?:'true')
+            overwriteStaticContent = Boolean.parseBoolean(params["overwriteStaticContent"]?:'true')
 
         }
     }

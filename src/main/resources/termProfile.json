@@ -20,6 +20,14 @@
         "dataType": "date"
       },
       {
+        "fieldName": "Is preparatory",
+        "metadataPropertyName": "isPreparatory",
+        "description": "Whether this item is preparatory or not",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "boolean"
+      },
+      {
         "fieldName": "Is retired",
         "metadataPropertyName": "isRetired",
         "description": "Whether this item is retired or not",

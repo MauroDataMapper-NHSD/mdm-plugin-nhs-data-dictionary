@@ -29,10 +29,12 @@ class AllClassesHaveRelationships implements IntegrityCheck {
     String description = "Check that all live classes have relationships to other classes defined"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.classes.values().findAll{ddClass ->
-            !ddClass.isRetired() && !classHasRelationships(ddClass) }
+        errors = dataDictionary.classes.values()
+            .findAll{ddClass -> !ddClass.isRetired() && !classHasRelationships(ddClass) }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 

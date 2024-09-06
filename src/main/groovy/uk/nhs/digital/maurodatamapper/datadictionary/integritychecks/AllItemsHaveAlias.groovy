@@ -28,13 +28,15 @@ class AllItemsHaveAlias implements IntegrityCheck {
     String description = "Check that all items have one of the alias fields completed"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.getAllComponents().findAll {component ->
-            !component.isRetired() &&
-            (component.hasNoAliases() &&
-             (!component.otherProperties["noAliasesRequired"] || component.otherProperties["noAliasesRequired"] != "true"))
-        }
+        errors = dataDictionary.getAllComponents()
+            .findAll {component ->
+                !component.isRetired() &&
+                (component.hasNoAliases() &&
+                 (!component.otherProperties["noAliasesRequired"] || component.otherProperties["noAliasesRequired"] != "true"))
+            }
+            .collect { component -> new IntegrityCheckError(component) }
         return errors
     }
 

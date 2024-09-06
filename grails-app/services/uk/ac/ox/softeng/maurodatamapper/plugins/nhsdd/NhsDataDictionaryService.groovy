@@ -50,6 +50,7 @@ import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
+import org.apache.commons.io.FileUtils
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
@@ -441,12 +442,7 @@ class NhsDataDictionaryService {
             ((DataClass)dataClass.catalogueItem).dataElements.each { dataElement ->
                 if(dataElement.dataType instanceof ReferenceType) {
                     DataClass referencedClass = ((ReferenceType)dataElement.dataType).referenceClass
-                    dataClass.classRelationships.add(new NhsDDClassRelationship(
-                        targetClass: dataDictionary.classes[referencedClass.label]
-                    ).tap {
-                        setDescription(dataElement)
-                        isKey = dataElement.metadata.find {it.key == "isKey"}
-                    })
+                    dataClass.classRelationships.add(new NhsDDClassRelationship(dataElement, dataDictionary.classes[referencedClass.label]))
                 } else {
                     NhsDDAttribute attribute = dataDictionary.attributesByCatalogueId[dataElement.id]
                     if (attribute) {
@@ -856,7 +852,7 @@ class NhsDataDictionaryService {
     }
 
 
-    ChangePaper previewChangePaper(UUID versionedFolderId) {
+    ChangePaper previewChangePaper(UUID versionedFolderId, boolean includeDataSets = false) {
 
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
@@ -864,7 +860,7 @@ class NhsDataDictionaryService {
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 
-        return new ChangePaper(thisDataDictionary, previousDataDictionary)
+        return new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
     }
 
     File generateChangePaper(UUID versionedFolderId, boolean includeDataSets = false, boolean isTest = false) {
@@ -995,9 +991,11 @@ class NhsDataDictionaryService {
     static String getTestOutputPath() {
         File ditaTestDir = new File(System.getProperty("java.io.tmpdir"), "ditaTest")
 
-        if (!ditaTestDir.exists()) {
-            ditaTestDir.mkdirs()
+        if (ditaTestDir.exists()) {
+            FileUtils.deleteDirectory(ditaTestDir)
         }
+        ditaTestDir.mkdirs()
+
         ditaTestDir.absolutePath
     }
 }

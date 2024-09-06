@@ -17,6 +17,8 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
+import grails.artefact.Controller
+import grails.artefact.controller.RestResponder
 import groovy.xml.XmlParser
 import org.springframework.http.HttpStatus
 import uk.ac.ox.softeng.maurodatamapper.api.exception.ApiBadRequestException
@@ -33,7 +35,7 @@ import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
 
 @Slf4j
-class NhsDataDictionaryController implements ResourcelessMdmController {
+class NhsDataDictionaryController implements ResourcelessMdmController, RestResponder, Controller {
 
     // For ingest
     static XmlParser xmlParser = new XmlParser(false, false)
@@ -95,7 +97,8 @@ class NhsDataDictionaryController implements ResourcelessMdmController {
 
     def previewChangePaper() {
         UUID versionedFolderId = UUID.fromString(params.versionedFolderId)
-        respond nhsDataDictionaryService.previewChangePaper(versionedFolderId)
+        boolean includeDataSets = params.boolean('includeDataSets') ?: false
+        respond nhsDataDictionaryService.previewChangePaper(versionedFolderId, includeDataSets)
     }
 
     def branches() {

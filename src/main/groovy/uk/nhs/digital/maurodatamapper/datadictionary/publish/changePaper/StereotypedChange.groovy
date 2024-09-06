@@ -17,10 +17,26 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+
 class StereotypedChange {
 
     String stereotypeName
     List<ChangedItem> changedItems
 
+    Set<NhsDataDictionaryComponent> getUniqueNewItems() {
+        def components = new HashSet<NhsDataDictionaryComponent>()
 
+        if (!changedItems) {
+            return components
+        }
+
+        changedItems.forEach {changedItem ->
+            changedItem.changes.forEach {change ->
+                components.add(change.newItem)
+            }
+        }
+
+        components
+    }
 }

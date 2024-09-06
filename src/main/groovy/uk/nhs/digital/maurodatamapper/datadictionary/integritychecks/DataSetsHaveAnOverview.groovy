@@ -28,13 +28,16 @@ class DataSetsHaveAnOverview implements IntegrityCheck {
     String description = "Check that all live data sets have an overview field"
 
     @Override
-    List<NhsDataDictionaryComponent> runCheck(NhsDataDictionary dataDictionary) {
+    List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
 
-        errors = dataDictionary.dataSets.values().findAll {ddDataSet ->
-            // log.debug(ddAttribute.classLinks.size())
-            !ddDataSet.isRetired() &&
-            (ddDataSet.definition == null || ddDataSet.definition == "")
-        }
+        errors = dataDictionary.dataSets.values()
+            .findAll {ddDataSet ->
+                // log.debug(ddAttribute.classLinks.size())
+                !ddDataSet.isRetired() &&
+                (ddDataSet.definition == null || ddDataSet.definition == "")
+            }
+            .collect { component -> new IntegrityCheckError(component) }
+
         return errors
     }
 
