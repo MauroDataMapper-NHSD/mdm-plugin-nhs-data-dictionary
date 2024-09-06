@@ -149,8 +149,11 @@ class NhsDDCode {
         return stringWriter.toString()
     }
 
-    static DitaElement createCodesTableChangeDita(List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes) {
+    static DitaElement createCodesTableChangeDita(List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes, String title) {
         Div.build {
+            p {
+                b title
+            }
             simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"])) {
                 stHead {
                     stentry "Code"
