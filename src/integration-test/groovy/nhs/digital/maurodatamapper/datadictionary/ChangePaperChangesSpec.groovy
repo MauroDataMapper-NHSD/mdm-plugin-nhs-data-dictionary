@@ -472,6 +472,9 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
   </table>
 </div>"""
             ditaXml == """<div>
+  <p>
+    <b>National Codes</b>
+  </p>
   <simpletable relcolwidth='1* 4*'>
     <sthead>
       <stentry>Code</stentry>
@@ -596,6 +599,9 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
   </table>
 </div>"""
             ditaXml == """<div>
+  <p>
+    <b>National Codes</b>
+  </p>
   <simpletable relcolwidth='1* 4*'>
     <sthead>
       <stentry>Code</stentry>
