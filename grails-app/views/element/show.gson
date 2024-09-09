@@ -6,8 +6,10 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDElement, stereotype: "element"]
 json {
-    nationalCodes g.render (nhsDDElement.codes.findAll { !it.isDefault}.sort{it.webOrder})
-    defaultCodes g.render (nhsDDElement.codes.findAll { it.isDefault}.sort {it.code})
+    if (!nhsDDElement.isRetired() && !nhsDDElement.isPreparatory()) {
+        nationalCodes g.render (nhsDDElement.codes.findAll { !it.isDefault}.sort{it.webOrder})
+        defaultCodes g.render (nhsDDElement.codes.findAll { it.isDefault}.sort {it.code})
+    }
 
     if(nhsDDElement.otherProperties["formatLength"]) {
         formatLength nhsDDElement.otherProperties["formatLength"]

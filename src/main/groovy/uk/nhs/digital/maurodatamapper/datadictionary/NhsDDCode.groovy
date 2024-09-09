@@ -27,6 +27,11 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import groovy.xml.MarkupBuilder
 
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 class NhsDDCode {
 
     String code
@@ -67,14 +72,44 @@ class NhsDDCode {
 
     }
 
+    String getDescription() {
+        String description = webPresentation ?: definition
+
+        // Some of the ingested branches seem to already contain the "(Retired [date])" text in the definition, don't duplicate it
+        if (isRetired && !description.contains("Retired")) {
+            String retiredDateString = ""
+            if (retiredDate) {
+                try {
+                    LocalDateTime actualRetiredDate = LocalDateTime.parse(retiredDate, DateTimeFormatter.ISO_DATE_TIME)
+                    retiredDateString = " ${actualRetiredDate.format("d MMMM yyyy")}"
+                }
+                catch (Exception exception) {
+                    // Ignore the retired date, must be in a bad format...
+                    System.err.println(exception.message)
+                }
+            }
+
+            String retiredText = "(Retired$retiredDateString)"
+
+            if (webPresentation) {
+                description += "<span>" + retiredText + "</span>"
+            }
+            else {
+                description += " " + retiredText
+            }
+        }
+
+        description
+    }
+
     Strow toDitaTableRow() {
         Strow.build(outputClass: isRetired ? "retired" : "") {
             stentry code
             stentry {
                 if(webPresentation) {
-                    div HtmlHelper.replaceHtmlWithDita(webPresentation)
+                    div HtmlHelper.replaceHtmlWithDita(getDescription())
                 } else {
-                    txt definition
+                    txt getDescription()
                 }
             }
         }

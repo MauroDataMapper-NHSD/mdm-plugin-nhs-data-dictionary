@@ -208,7 +208,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        if(!isPreparatory() && this.codes) {
+        if(!isPreparatory() && !isRetired() && this.codes) {
             topics.add(getNationalCodesTopic())
         }
         if(getAliases()) {
@@ -229,7 +229,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     }
 
     List<NhsDDCode> getOrderedNationalCodes() {
-        List<NhsDDCode> orderedCodes = codes.sort {it.code}
+        List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }.sort {it.code}
         if (codes.find{it.webOrder }) {
             orderedCodes = codes.sort {it.webOrder}
         }

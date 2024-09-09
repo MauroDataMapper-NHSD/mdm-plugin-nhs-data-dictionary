@@ -6,8 +6,9 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDAttribute, stereotype: "attribute"]
 json {
-    nationalCodes g.render (nhsDDAttribute.codes.findAll { !it.isDefault}.sort{it.webOrder})
-    defaultCodes g.render (nhsDDAttribute.codes.findAll { it.isDefault}.sort {it.code})
+    if (!nhsDDAttribute.isRetired() && !nhsDDAttribute.isPreparatory()) {
+        nationalCodes g.render (nhsDDAttribute.codes.findAll { !it.isDefault}.sort{it.webOrder})
+    }
 
     if(nhsDDAttribute.otherProperties["formatLength"]) {
         formatLength nhsDDAttribute.otherProperties["formatLength"]
