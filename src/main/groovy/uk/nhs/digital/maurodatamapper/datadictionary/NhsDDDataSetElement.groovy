@@ -78,7 +78,7 @@ class NhsDDDataSetElement{
         }
 
         List<Metadata> thisElementMetadata
-        if(dataDictionary) {
+        if(dataDictionary && !dataDictionary.dataSetsMetadata.isEmpty()) {
             thisElementMetadata = dataDictionary.dataSetsMetadata[dataElement.id]
         } else {
             thisElementMetadata = Metadata.byMultiFacetAwareItemId(dataElement.id).list()
