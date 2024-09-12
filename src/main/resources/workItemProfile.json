@@ -44,7 +44,7 @@
       {
         "fieldName": "Effective Date",
         "metadataPropertyName": "effectiveDate",
-        "description": "The description of the change",
+        "description": "The date from which these changes are effective",
         "minMultiplicity": 1,
         "maxMultiplicity": 1,
         "dataType": "string"
