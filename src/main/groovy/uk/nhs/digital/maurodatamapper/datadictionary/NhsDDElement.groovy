@@ -253,11 +253,67 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
             changes.add(standardDescriptionChange)
         }
 
+        // National codes should only be added if the component is new or updated
+        Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDElement)
+        if (nationalCodesChange) {
+            changes.add(nationalCodesChange)
+        }
+
+        // Default codes should only be added if the component is new or updated
+        Change defaultCodesChange = createDefaultCodesChange(previousComponent as NhsDDElement)
+        if (defaultCodesChange) {
+            changes.add(defaultCodesChange)
+        }
+
         // Aliases should only be added if the component is new or updated
         Change aliasesChange = createAliasesChange(previousComponent)
         if (aliasesChange) {
             changes.add(aliasesChange)
         }
+    }
+
+    Change createNationalCodesChange(NhsDDElement previousElement) {
+        List<NhsDDCode> currentCodes = this.getOrderedNationalCodes()
+        List<NhsDDCode> previousCodes = previousElement ? previousElement.getOrderedNationalCodes() : []
+
+        if (currentCodes.isEmpty() && previousCodes.isEmpty()) {
+            return null
+        }
+
+        String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
+        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes, Change.NATIONAL_CODES_TYPE)
+
+        new Change(
+            changeType: Change.NATIONAL_CODES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousElement,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail,
+            preferDitaDetail: true
+        )
+    }
+
+    Change createDefaultCodesChange(NhsDDElement previousElement) {
+        List<NhsDDCode> currentCodes = this.getOrderedDefaultCodes()
+        List<NhsDDCode> previousCodes = previousElement ? previousElement.getOrderedDefaultCodes() : []
+
+        if (currentCodes.isEmpty() && previousCodes.isEmpty()) {
+            return null
+        }
+
+        String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
+        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes, Change.DEFAULT_CODES_TYPE)
+
+        new Change(
+            changeType: Change.DEFAULT_CODES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousElement,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail,
+            preferDitaDetail: true
+        )
     }
 
     Change createFormatLengthChange(NhsDDElement previousElement) {
@@ -428,11 +484,26 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
-    Topic getNationalCodesTopic() {
+    List<NhsDDCode> getOrderedNationalCodes() {
         List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }.sort {it.code}
-        if(codes.find{it.webOrder }) {
+        if (codes.find{it.webOrder }) {
             orderedCodes = orderedCodes.sort {it.webOrder}
         }
+
+        return orderedCodes
+    }
+
+    List<NhsDDCode> getOrderedDefaultCodes() {
+        List<NhsDDCode> orderedCodes = codes.findAll { it.isDefault }.sort {it.code}
+        if (orderedCodes.find{it.webOrder }) {
+            orderedCodes = orderedCodes.sort {it.webOrder}
+        }
+
+        return orderedCodes
+    }
+
+    Topic getNationalCodesTopic() {
+        List<NhsDDCode> orderedCodes = getOrderedNationalCodes()
         String topicTitle = "National Codes"
         if(instantiatesAttributes) {
             if(orderedCodes.size() < instantiatesAttributes[0].codes.findAll { !it.isDefault }.size()) {
@@ -444,10 +515,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 
     Topic getDefaultCodesTopic() {
-        List<NhsDDCode> orderedCodes = codes.findAll { it.isDefault }.sort {it.code}
-        if(orderedCodes.find{it.webOrder }) {
-            orderedCodes = orderedCodes.sort {it.webOrder}
-        }
+        List<NhsDDCode> orderedCodes = getOrderedDefaultCodes()
         NhsDDCode.getCodesTopic(getDitaKey() + "_defaultCodes", "Default Codes", orderedCodes)
     }
 

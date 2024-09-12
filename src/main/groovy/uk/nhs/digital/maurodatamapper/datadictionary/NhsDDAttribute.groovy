@@ -191,7 +191,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         }
 
         String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
-        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes)
+        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes, Change.NATIONAL_CODES_TYPE)
 
         new Change(
             changeType: Change.NATIONAL_CODES_TYPE,

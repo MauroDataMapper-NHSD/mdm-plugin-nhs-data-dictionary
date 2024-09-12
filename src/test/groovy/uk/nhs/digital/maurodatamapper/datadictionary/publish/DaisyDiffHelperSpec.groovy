@@ -18,6 +18,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
 import grails.util.BuildSettings
+import org.eclipse.compare.rangedifferencer.RangeDifference
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -69,6 +70,60 @@ class DaisyDiffHelperSpec extends Specification {
         verifyAll {
             leftContainsHtmlTable
             rightContainsHtmlTable
+        }
+    }
+
+    void "should have no differences when HTML strings are identical"() {
+        given: "there is a source html content"
+        Path leftPath = resourcesPath.resolve("htmlIdentical/left.txt")
+        String leftHtml = Files.readString(leftPath)
+
+        and: "there is a target html content"
+        Path rightPath = resourcesPath.resolve("htmlIdentical/right.txt")
+        String rightHtml = Files.readString(rightPath)
+
+        when: "differences are checked"
+        RangeDifference[] differences = DaisyDiffHelper.calculateDifferences(leftHtml, rightHtml)
+
+        then: "there are no differences"
+        verifyAll {
+            differences.size() == 0
+        }
+    }
+
+    void "should have no differences when HTML strings contain whitespace"() {
+        given: "there is a source html content"
+        Path leftPath = resourcesPath.resolve("htmlWithWhitespace/left.txt")
+        String leftHtml = Files.readString(leftPath)
+
+        and: "there is a target html content"
+        Path rightPath = resourcesPath.resolve("htmlWithWhitespace/right.txt")
+        String rightHtml = Files.readString(rightPath)
+
+        when: "differences are checked"
+        RangeDifference[] differences = DaisyDiffHelper.calculateDifferences(leftHtml, rightHtml)
+
+        then: "there are no differences"
+        verifyAll {
+            differences.size() == 0
+        }
+    }
+
+    void "should have differences when HTML strings contain different content"() {
+        given: "there is a source html content"
+        Path leftPath = resourcesPath.resolve("htmlDifferent/left.txt")
+        String leftHtml = Files.readString(leftPath)
+
+        and: "there is a target html content"
+        Path rightPath = resourcesPath.resolve("htmlDifferent/right.txt")
+        String rightHtml = Files.readString(rightPath)
+
+        when: "differences are checked"
+        RangeDifference[] differences = DaisyDiffHelper.calculateDifferences(leftHtml, rightHtml)
+
+        then: "there are differences"
+        verifyAll {
+            differences.size() > 0
         }
     }
 }
