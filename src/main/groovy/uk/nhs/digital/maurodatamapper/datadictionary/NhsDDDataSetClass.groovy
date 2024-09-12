@@ -50,6 +50,8 @@ class NhsDDDataSetClass {
     String groupRepeats
     String multiplicityText
     String rules
+    String address1
+    String address2
 
     List<NhsDDDataSetClass> dataSetClasses = []
     List<NhsDDDataSetElement> dataSetElements = []
@@ -98,6 +100,15 @@ class NhsDDDataSetClass {
                 && it.key == NhsDataDictionary.DATASET_TABLE_KEY_ADDRESS_CHOICE
                 && it.value == "true")
         }
+        address1 = thisClassMetadata.find {
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
+                && it.key == "Address 1")
+        }?.value ?: ""
+        address2 = thisClassMetadata.find {
+            (it.namespace == NhsDataDictionary.METADATA_NAMESPACE
+                && it.key == "Address 2")
+        }?.value ?: ""
+
         mandation = thisClassMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_MRO  }?.value
         constraints = thisClassMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES  }?.value
         isDataSetReference = thisClassMetadata.find {

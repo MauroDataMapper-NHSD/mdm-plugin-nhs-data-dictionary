@@ -17,7 +17,7 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html
 
-import groovy.transform.CompileStatic
+
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
@@ -84,9 +84,9 @@ class OtherDataSetToHtml {
     }
 
     void addAllChildRows(NhsDDDataSetClass ddDataClass) {
-        if(ddDataClass.dataSetElements) {
-            ddDataClass.dataSetElements.sort {it.webOrder}.each {dataElement ->
-                addChildRow(dataElement)
+        if(ddDataClass.dataSetElements && ddDataClass.dataSetElements.size() > 0) {
+            ddDataClass.getSortedChildren().each {classOrElement ->
+                addChildRow(classOrElement)
             }
         } else { // No data elements
             ddDataClass.dataSetClasses.sort {it.webOrder}.eachWithIndex {childClass, idx ->
@@ -106,18 +106,85 @@ class OtherDataSetToHtml {
         }
     }
 
-    void addChildRow(NhsDDDataSetElement dataSetElement) {
+    void addChildRow(def classOrElement) {
         markupBuilder.tr {
             td (width: '20%', class: 'mandation') {
-                p dataSetElement.mandation
-
+                p classOrElement.mandation
             }
             td (width: '80%') {
-                dataSetElement.createLink(markupBuilder)
-                if(dataSetElement.maxMultiplicity == '-1') {
-                    p 'Multiple occurrences of this item are permitted'
-                }
+                addDataSetElementContent(classOrElement)
             }
+        }
+    }
+
+    // Replicate the logic of NhsDDDataSetClass.getXrefStringFromItem()
+    void addDataSetElementContent(def classOrElement) {
+        if (classOrElement instanceof NhsDDDataSetElement) {
+            addBasicDataSetElementContent((NhsDDDataSetElement) classOrElement)
+        }
+        else { //if (catalogueItem instanceof NhsDDDataSetClass)
+            addComplexDataSetElementContent((NhsDDDataSetClass) classOrElement)
+        }
+    }
+
+    void addBasicDataSetElementContent(NhsDDDataSetElement dataSetElement) {
+        dataSetElement.createLink(markupBuilder)
+
+        if (dataSetElement.maxMultiplicity == '-1') {
+            markupBuilder.p 'Multiple occurrences of this item are permitted'
+        }
+    }
+
+    void addComplexDataSetElementContent(NhsDDDataSetClass dataSetClass) {
+        if (dataSetClass.dataSetElements.size() == 0) {
+            return
+        }
+
+        if (dataSetClass.isAddress) {
+            // See COSD Pathology for an example of this
+            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+
+            dataSetElement.createLink(markupBuilder)
+            markupBuilder.getMkp().yield(" - ")
+            markupBuilder.a (href: dataSetClass.address1, class: "class") {
+                mkp.yield("ADDRESS STRUCTURED")
+            }
+
+            markupBuilder.p('Or')
+
+            dataSetElement.createLink(markupBuilder)
+            markupBuilder.getMkp().yield(" - ")
+            markupBuilder.a (href: dataSetClass.address2, class: "class") {
+                mkp.yield("ADDRESS UNSTRUCTURED")
+            }
+        }
+        else if (dataSetClass.isChoice && dataSetClass.name.startsWith("Choice")) {
+            dataSetClass.getSortedChildren().eachWithIndex { childItem, idx ->
+                if (idx != 0) {
+                    markupBuilder.p "Or"
+                }
+                addDataSetElementContent(childItem)
+            }
+        }
+        else if (dataSetClass.isAnd && (dataSetClass.name.startsWith("Choice") || dataSetClass.name.startsWith("And"))) {
+            dataSetClass.getSortedChildren().eachWithIndex { childItem, idx ->
+                if (idx != 0) {
+                    markupBuilder.p "And"
+                }
+                addDataSetElementContent(childItem)
+            }
+        }
+        else if (dataSetClass.isInclusiveOr && dataSetClass.name.startsWith("Choice")) {
+            dataSetClass.getSortedChildren().eachWithIndex { childItem, idx ->
+                if (idx != 0) {
+                    markupBuilder.p "And/Or"
+                }
+                addDataSetElementContent(childItem)
+            }
+        }
+        else {
+            NhsDDDataSetElement dataSetElement = dataSetClass.dataSetElements[0]
+            dataSetElement.createLink(markupBuilder)
         }
     }
 

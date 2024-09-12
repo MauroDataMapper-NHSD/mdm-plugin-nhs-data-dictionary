@@ -92,7 +92,7 @@
         "description": "Address choice",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "string"
+        "dataType": "boolean"
       },
       {
         "fieldName": "Name Choice",
