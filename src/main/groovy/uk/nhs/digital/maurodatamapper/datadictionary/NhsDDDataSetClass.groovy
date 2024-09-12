@@ -74,7 +74,7 @@ class NhsDDDataSetClass {
         this.dataDictionary = dataDictionary
 
         List<Metadata> thisClassMetadata
-        if(dataDictionary) {
+        if(dataDictionary && !dataDictionary.dataSetsMetadata.isEmpty()) {
              thisClassMetadata = dataDictionary.dataSetsMetadata[dataClass.id]
         } else {
             thisClassMetadata = Metadata.byMultiFacetAwareItemId(dataClass.id).list()
