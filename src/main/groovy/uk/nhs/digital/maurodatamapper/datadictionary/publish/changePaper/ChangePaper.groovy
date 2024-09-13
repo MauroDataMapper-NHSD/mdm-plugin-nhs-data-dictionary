@@ -293,8 +293,10 @@ class ChangePaper {
                 Set<NhsDDDataSetElement> currentElements = dataSet.getAllElements()
 
                 currentElements.each { element ->
-                    dataSetElements.add(element.reuseElement)
-                    dataSetAttributes.addAll(element.reuseElement.instantiatesAttributes)
+                    if (element.reuseElement) {
+                        dataSetElements.add(element.reuseElement)
+                        dataSetAttributes.addAll(element.reuseElement.instantiatesAttributes)
+                    }
                 }
             }
 
