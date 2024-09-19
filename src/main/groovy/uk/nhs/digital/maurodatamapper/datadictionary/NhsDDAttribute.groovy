@@ -229,10 +229,10 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     }
 
     List<NhsDDCode> getOrderedNationalCodes() {
-        List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }.sort {it.code}
-        if (codes.find{it.webOrder }) {
-            orderedCodes = codes.sort {it.webOrder}
-        }
+        List<NhsDDCode> orderedCodes = codes
+            .findAll { !it.isDefault }
+            .sort {it.webOrder }
+
         orderedCodes
     }
 
