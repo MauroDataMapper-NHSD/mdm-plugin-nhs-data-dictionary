@@ -79,14 +79,9 @@ class NhsDDCode {
         if (isRetired && !description.contains("Retired")) {
             String retiredDateString = ""
             if (retiredDate) {
-                try {
-                    LocalDateTime actualRetiredDate = LocalDateTime.parse(retiredDate, DateTimeFormatter.ISO_DATE_TIME)
-                    retiredDateString = " ${actualRetiredDate.format("d MMMM yyyy")}"
-                }
-                catch (Exception exception) {
-                    // Ignore the retired date, must be in a bad format...
-                    System.err.println(exception.message)
-                }
+                // The profile field to store the retired date is just a "string" type, so just have to assume
+                // that it is a valid date
+                retiredDateString = " " + retiredDate
             }
 
             String retiredText = "(Retired$retiredDateString)"
