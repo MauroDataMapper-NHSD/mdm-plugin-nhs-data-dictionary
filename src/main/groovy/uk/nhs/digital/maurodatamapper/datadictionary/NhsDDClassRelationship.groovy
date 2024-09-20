@@ -35,9 +35,12 @@ class NhsDDClassRelationship {
 
     NhsDDClassRelationship(DataElement relationshipElement, NhsDDClass targetClass) {
         this.targetClass = targetClass
-        this.role = relationshipElement.label.replaceAll("\\(\\d\\)", "")
+        // Assume that the relationshipElement label may have a multiple suffix e.g. "categorised by (1)" or "categorised by (10)"
+        // This is because the label has to be unique but the relationship label may be used to relate a class to
+        // different classes
+        this.role = relationshipElement.label.replaceAll("\\(\\d+\\)", "")
         // TODO: can't think of a better way right now to work out if the description needs to contain "or"
-        this.hasMultiple = !relationshipElement.label.findAll("\\(\\d\\)").empty
+        this.hasMultiple = !relationshipElement.label.findAll("\\(\\d+\\)").empty
         this.minMultiplicity = relationshipElement.minMultiplicity ?: 0
         this.maxMultiplicity = relationshipElement.maxMultiplicity ?: 0
         this.isKey = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_KEY_METADATA_KEY }?.value == "true" ?: false
