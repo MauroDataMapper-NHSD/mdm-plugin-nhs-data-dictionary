@@ -391,7 +391,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         setNhsDataDictionaryComponentChangeLog(dataDictionary, component)
     }
 
-    static Pattern CHANGE_LOG_BRANCH_NAME_PATTERN = Pattern.compile("(?<=\$)(.*?(?=\'))")
+    static Pattern CHANGE_LOG_BRANCH_NAME_PATTERN = Pattern.compile(/(?<=\$)(.*?(?='))/)
 
     void setNhsDataDictionaryComponentChangeLog(NhsDataDictionary dataDictionary, NhsDataDictionaryComponent component) {
         List<Edit> mergeEdits = editService.findAllByResourceAndTitle(component.catalogueItem.domainType, component.catalogueItem.id, EditTitle.MERGE)
@@ -401,6 +401,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
         Set<String> branchNames = mergeEdits
             .collect {edit -> edit.description.find(CHANGE_LOG_BRANCH_NAME_PATTERN) }
+            .findAll { branchName -> branchName != null }
             .toSet()
 
         if (branchNames.empty) {
