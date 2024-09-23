@@ -444,7 +444,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
 
-        if(otherProperties["formatLength"] || otherProperties["formatLink"]) {
+        if(!isPreparatory() && !isRetired() && (otherProperties["formatLength"] || otherProperties["formatLink"])) {
             topics.add(getFormatLengthTopic())
         }
 

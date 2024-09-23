@@ -11,10 +11,10 @@ json {
         defaultCodes g.render (nhsDDElement.codes.findAll { it.isDefault}.sort {it.code})
     }
 
-    if(nhsDDElement.otherProperties["formatLength"]) {
+    if(!nhsDDElement.isRetired() && !nhsDDElement.isPreparatory() && nhsDDElement.otherProperties["formatLength"]) {
         formatLength nhsDDElement.otherProperties["formatLength"]
     }
-    if(nhsDDElement.otherProperties["formatLink"]) {
+    if(!nhsDDElement.isRetired() && !nhsDDElement.isPreparatory() && nhsDDElement.otherProperties["formatLink"]) {
         formatLink nhsDDElement.otherProperties["formatLink"]
     }
     attributes g.render(nhsDDElement.instantiatesAttributes.collect {new StereotypedCatalogueItem(it.catalogueItem, "attribute")})
