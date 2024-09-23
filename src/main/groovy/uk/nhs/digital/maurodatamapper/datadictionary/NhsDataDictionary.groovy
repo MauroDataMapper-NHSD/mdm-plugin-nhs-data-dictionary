@@ -64,10 +64,14 @@ class NhsDataDictionary {
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE = "dataSetReference"
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO = "dataSetReferenceTo"
 
+    static final String CHANGE_REQUEST_NUMBER_TOKEN = "{cr_number}"
+
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 
     String retiredItemText = ""
     String preparatoryItemText = ""
+    String changeRequestUrl = ""
+    String changeLogArchiveUrl = ""
 
     Map<String, String> workItemDetails = [:]
 

@@ -95,14 +95,21 @@ import java.util.zip.ZipOutputStream
 class NhsDataDictionaryService {
 
     static final Map<String, String> KNOWN_KEYS = [
-        'retired.template': '<p>This item has been retired from the NHS Data Model and Dictionary.</p>' +
+        (API_PROPERTY_RETIRED_TEMPLATE): '<p>This item has been retired from the NHS Data Model and Dictionary.</p>' +
                             '<p>The last version of this item is available in the ?????? release of the NHS Data Model and Dictionary.</p>' +
                            '<p>Access to the last live version of this item can be obtained by emailing <a href=\"mailto:information.standards@nhs' +
                            '.net\">information.standards@nhs.net</a> with "NHS Data Model and Dictionary - Archive Request" in the email subject ' +
                             'line.</p>',
-        'preparatory.template': '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>']
+        (API_PROPERTY_PREPARATORY_TEMPLATE): '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>',
+        (API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL): "https://mauro.dataproducts.nhs.uk/changerequest/$NhsDataDictionary.CHANGE_REQUEST_NUMBER_TOKEN",
+        (API_PROPERTY_CHANGE_LOG_ARCHIVE_URL): 'https://mauro.dataproducts.nhs.uk/archive'
+    ]
 
     static final String NHSDD_PROPERTY_CATEGORY = 'NHS Data Dictionary'
+    static final String API_PROPERTY_RETIRED_TEMPLATE = 'retired.template'
+    static final String API_PROPERTY_PREPARATORY_TEMPLATE = 'preparatory.template'
+    static final String API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL = 'changelog.url.changerequest'
+    static final String API_PROPERTY_CHANGE_LOG_ARCHIVE_URL = 'changelog.url.archive'
 
     TerminologyService terminologyService
     DataModelService dataModelService
@@ -909,24 +916,36 @@ class NhsDataDictionaryService {
 
     NhsDataDictionary newDataDictionary() {
         NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
-        setTemplateText(nhsDataDictionary)
+        setApiProperties(nhsDataDictionary)
         return nhsDataDictionary
     }
 
-    void setTemplateText(NhsDataDictionary dataDictionary) {
+    void setApiProperties(NhsDataDictionary dataDictionary) {
         ApiProperty.findAllByCategory(NHSDD_PROPERTY_CATEGORY).each {apiProperty ->
-            if(apiProperty.key == "retired.template") {
+            if(apiProperty.key == API_PROPERTY_RETIRED_TEMPLATE) {
                 dataDictionary.retiredItemText = apiProperty.value
             }
-            if(apiProperty.key == "preparatory.template") {
+            if(apiProperty.key == API_PROPERTY_PREPARATORY_TEMPLATE) {
                 dataDictionary.preparatoryItemText = apiProperty.value
+            }
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL) {
+                dataDictionary.changeRequestUrl = apiProperty.value
+            }
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_ARCHIVE_URL) {
+                dataDictionary.changeLogArchiveUrl = apiProperty.value
             }
         }
         if(!dataDictionary.preparatoryItemText) {
-            dataDictionary.preparatoryItemText = KNOWN_KEYS["preparatory.template"]
+            dataDictionary.preparatoryItemText = KNOWN_KEYS[API_PROPERTY_PREPARATORY_TEMPLATE]
         }
         if(!dataDictionary.retiredItemText) {
-            dataDictionary.preparatoryItemText = KNOWN_KEYS["retired.template"]
+            dataDictionary.preparatoryItemText = KNOWN_KEYS[API_PROPERTY_RETIRED_TEMPLATE]
+        }
+        if (!dataDictionary.changeRequestUrl) {
+            dataDictionary.changeRequestUrl = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL]
+        }
+        if (!dataDictionary.changeLogArchiveUrl) {
+            dataDictionary.changeLogArchiveUrl = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_ARCHIVE_URL]
         }
     }
 
