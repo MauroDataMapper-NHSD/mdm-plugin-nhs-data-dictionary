@@ -281,7 +281,10 @@ class ChangePaper {
 
             Set<NhsDDDataSet> changedDataSets = [] as Set<NhsDDDataSet>
             dataSetChanges.each { changedItem ->
-                changedDataSets.add((NhsDDDataSet)changedItem.dictionaryComponent)
+                NhsDDDataSet changedDataSet = (NhsDDDataSet)changedItem.dictionaryComponent
+                if (!changedDataSet.retired) {
+                    changedDataSets.add((NhsDDDataSet) changedItem.dictionaryComponent)
+                }
             }
 
             Set<NhsDDElement> dataSetElements = [] as Set<NhsDDElement>

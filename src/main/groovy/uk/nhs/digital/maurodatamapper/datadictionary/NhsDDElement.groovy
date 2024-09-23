@@ -485,19 +485,17 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 
     List<NhsDDCode> getOrderedNationalCodes() {
-        List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }.sort {it.code}
-        if (codes.find{it.webOrder }) {
-            orderedCodes = orderedCodes.sort {it.webOrder}
-        }
+        List<NhsDDCode> orderedCodes = codes
+            .findAll { !it.isDefault }
+            .sort {it.webOrder }
 
         return orderedCodes
     }
 
     List<NhsDDCode> getOrderedDefaultCodes() {
-        List<NhsDDCode> orderedCodes = codes.findAll { it.isDefault }.sort {it.code}
-        if (orderedCodes.find{it.webOrder }) {
-            orderedCodes = orderedCodes.sort {it.webOrder}
-        }
+        List<NhsDDCode> orderedCodes = codes
+            .findAll { it.isDefault }
+            .sort {it.webOrder }
 
         return orderedCodes
     }
