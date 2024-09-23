@@ -53,6 +53,7 @@ import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBranch
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
@@ -917,6 +918,7 @@ class NhsDataDictionaryService {
     NhsDataDictionary newDataDictionary() {
         NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
         setApiProperties(nhsDataDictionary)
+        loadBranchInformation(nhsDataDictionary)
         return nhsDataDictionary
     }
 
@@ -947,6 +949,23 @@ class NhsDataDictionaryService {
         if (!dataDictionary.changeLogArchiveUrl) {
             dataDictionary.changeLogArchiveUrl = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_ARCHIVE_URL]
         }
+    }
+
+    void loadBranchInformation(NhsDataDictionary dataDictionary) {
+        List<VersionedFolder> versionedFolders = VersionedFolder
+            .findAll()
+            .findAll {it.label.startsWith("NHS Data Dictionary") }
+
+        if (versionedFolders.empty) {
+            return
+        }
+
+        versionedFolders
+            .collect {versionedFolder -> new NhsDDBranch(versionedFolder) }
+            .findAll {branch -> !branch.finalised && branch.branchName }
+            .each { branch ->
+                dataDictionary.workItemBranches[branch.branchName] = branch
+            }
     }
 
     def diff(UUID versionedFolderId) {

@@ -108,6 +108,9 @@ class NhsDataDictionary {
 
     VersionedFolder containingVersionedFolder
 
+    // Stores a map of every work item branch available (i.e. branches where changes are made), where the key is the branch name
+    Map<String, NhsDDBranch> workItemBranches = [:]
+
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
         "NhsDDAttribute": attributes,
         "NhsDDElement": elements,
