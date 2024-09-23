@@ -6,6 +6,7 @@ class NhsDDBranch {
     static final String METADATA_NAMESPACE = 'uk.nhs.datadictionary.workItem'
     static final String METADATA_KEY_TYPE = 'type'
     static final String METADATA_KEY_REFERENCE = 'reference'
+    static final String METADATA_KEY_SUBJECT = 'subject'
     static final String METADATA_KEY_EFFECTIVE_DATE = 'effectiveDate'
 
     String id
@@ -16,6 +17,7 @@ class NhsDDBranch {
 
     String type
     String reference
+    String subject
     String effectiveDate
 
     NhsDDBranch(VersionedFolder versionedFolder) {
@@ -27,6 +29,7 @@ class NhsDDBranch {
 
         this.type = versionedFolder.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY_TYPE)?.value ?: ''
         this.reference = versionedFolder.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY_REFERENCE)?.value ?: ''
+        this.subject = versionedFolder.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY_SUBJECT)?.value ?: ''
         this.effectiveDate = versionedFolder.findMetadataByNamespaceAndKey(METADATA_NAMESPACE, METADATA_KEY_EFFECTIVE_DATE)?.value ?: ''
     }
 }

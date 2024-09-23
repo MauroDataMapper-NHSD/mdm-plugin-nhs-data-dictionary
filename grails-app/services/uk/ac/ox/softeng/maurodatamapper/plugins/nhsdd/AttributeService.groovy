@@ -94,7 +94,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     @Override
     NhsDDAttribute getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDAttribute attribute = new NhsDDAttribute()
-        nhsDataDictionaryComponentFromItem(catalogueItem, attribute, metadata)
+        nhsDataDictionaryComponentFromItem(dataDictionary, catalogueItem, attribute, metadata)
         if (catalogueItem.dataType instanceof ModelDataType) {
             List<Term> terms = termService.findAllByTerminologyId(((ModelDataType) catalogueItem.dataType).modelResourceId)
             List<NhsDDCode> codes = getCodesForTerms(terms, dataDictionary)

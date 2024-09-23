@@ -108,7 +108,9 @@ class NhsDataDictionary {
 
     VersionedFolder containingVersionedFolder
 
-    // Stores a map of every work item branch available (i.e. branches where changes are made), where the key is the branch name
+    /**
+     * Stores a map of every work item branch available (i.e. branches where changes are made), where the key is the branch name
+     */
     Map<String, NhsDDBranch> workItemBranches = [:]
 
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
@@ -185,7 +187,8 @@ class NhsDataDictionary {
                 log.info("Building ${componentClassName}...")
                 long componentStartTime = System.currentTimeMillis()
                 if(publishOptions.isPublishableComponent(dummyComponent)) {
-                    xml[dummyComponent.getXmlNodeName()] /*.sort {it.name.text()} */.each {node ->
+                    xml[dummyComponent.getXmlNodeName()] /*.sort {it.name.text()} */
+    .each {node ->
                         NhsDataDictionaryComponent component = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
                             .newInstance()
                         if (component.isValidXmlNode(node)) {

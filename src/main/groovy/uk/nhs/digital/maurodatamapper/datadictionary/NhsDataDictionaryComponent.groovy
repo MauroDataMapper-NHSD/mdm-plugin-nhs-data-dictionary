@@ -57,6 +57,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     Map<NhsDataDictionaryComponent, String> whereUsed = [:]
 
+    List<NhsDDChangeLog> changeLog = []
+
     abstract String calculateShortDescription()
 
     boolean isRetired() {
