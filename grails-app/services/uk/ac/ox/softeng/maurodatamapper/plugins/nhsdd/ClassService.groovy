@@ -69,10 +69,15 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         }
 
         // Get a cut-down version of the NhsDDAttribute list, we don't need national codes for previewing an NhsDDClass
-        attributeDataElements.collect {dataElement ->
-            NhsDDAttribute nhsAttribute = new NhsDDAttribute()
-            attributeService.nhsDataDictionaryComponentFromItem(dataElement, nhsAttribute, dataElement.metadata.toList())
-            nhsAttribute
+        attributeDataElements
+            .collect {dataElement ->
+                NhsDDAttribute nhsAttribute = new NhsDDAttribute()
+                attributeService.nhsDataDictionaryComponentFromItem(dataElement, nhsAttribute, dataElement.metadata.toList())
+                nhsAttribute
+            }
+        .findAll { nhsAttribute ->
+            // Do not include retired attributes in the list
+            !nhsAttribute.isRetired()
         }
     }
 

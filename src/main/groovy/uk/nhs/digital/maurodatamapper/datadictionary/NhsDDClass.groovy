@@ -137,10 +137,12 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     }
 
     Topic classLinksTopic() {
+        List<NhsDDAttribute> attributes = allAttributes().findAll { !it.isRetired() }
+
         Topic.build (id: getDitaKey() + "_attributes") {
             title "Attributes"
             body {
-                if(allAttributes().size() == 0) {
+                if (attributes.size() == 0) {
                     p "This class has no attributes"
                 } else {
                     simpletable(relColWidth: new SpaceSeparatedStringList(["1*", "9*"]), outputClass: "table table-sm") {
@@ -148,23 +150,28 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                             stentry "Key"
                             stentry "Attribute Name"
                         }
-                        keyAttributes.sort { it.name.toLowerCase() }.each { attribute ->
-                            strow {
-                                stentry 'Key'
-                                stentry {
-                                    xRef attribute.calculateXRef()
+                        keyAttributes
+                            .findAll { !it.isRetired() }
+                            .sort { it.name.toLowerCase() }
+                            .each { attribute ->
+                                strow {
+                                    stentry 'Key'
+                                    stentry {
+                                        xRef attribute.calculateXRef()
+                                    }
                                 }
                             }
-                        }
-                        otherAttributes.sort { it.name.toLowerCase() }.each { attribute ->
-                            strow {
-                                stentry ''
-                                stentry {
-                                    xRef attribute.calculateXRef()
+                        otherAttributes
+                            .findAll { !it.isRetired() }
+                            .sort { it.name.toLowerCase() }
+                            .each { attribute ->
+                                strow {
+                                    stentry ''
+                                    stentry {
+                                        xRef attribute.calculateXRef()
+                                    }
                                 }
                             }
-                        }
-
                     }
                 }
             }
@@ -214,8 +221,8 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     }
 
     Change createChangedAttributesChange(NhsDDClass previousClass) {
-        List<NhsDDAttribute> currentAttributes = this.allAttributes()
-        List<NhsDDAttribute> previousAttributes = previousClass.allAttributes()
+        List<NhsDDAttribute> currentAttributes = this.allAttributes().findAll { !it.isRetired() }
+        List<NhsDDAttribute> previousAttributes = previousClass.allAttributes().findAll { !it.isRetired() }
 
         // Find all attributes in this one but not the previous - "new attributes"
         List<NhsDDAttribute> newAttributes = currentAttributes.findAll { currentAttribute ->
