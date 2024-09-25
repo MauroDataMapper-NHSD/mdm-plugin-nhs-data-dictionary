@@ -17,9 +17,8 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.integritychecks
 
-
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
 class ClassLinkedToRetiredAttribute implements IntegrityCheck {
 
@@ -29,15 +28,21 @@ class ClassLinkedToRetiredAttribute implements IntegrityCheck {
 
     @Override
     List<IntegrityCheckError> runCheck(NhsDataDictionary dataDictionary) {
+        List<IntegrityCheckError> foundErrors = []
 
-        errors = dataDictionary.classes.values()
-            .findAll{ddClass ->
-                !ddClass.isRetired() &&
-                ddClass.allAttributes().findAll {it.isRetired()}.size() > 0
+        dataDictionary.classes.values()
+            .findAll { ddClass -> !ddClass.isRetired() }
+            .forEach { ddClass ->
+                List<NhsDDAttribute> retiredAttributes = ddClass.allAttributes().findAll { it.isRetired() }
+                if (!retiredAttributes.empty) {
+                    List<String> attributeNames = retiredAttributes.collect { it.name }
+                    foundErrors.add(new IntegrityCheckError(ddClass, attributeNames))
+                }
             }
-            .collect { component -> new IntegrityCheckError(component) }
 
-        return errors
+        errors = foundErrors
+
+        errors
     }
 
 }
