@@ -68,11 +68,11 @@ class ChangePaperPdfUtility {
         }
         ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
 
-
-
-
-
-        // ditaProject.addTopic("", createSummaryTopic(dataDictionary))
+        // The background text could be HTML, so make sure any links inside this are fixed up
+        changePaper.background = NhsDataDictionary.replaceLinksInStringAndUpdateWhereUsed(
+            changePaper.background,
+            pathLookup,
+            null)
 
         Topic summaryOfChangesTopic = Topic.build(id: "summary") {
             title "Summary of Changes"

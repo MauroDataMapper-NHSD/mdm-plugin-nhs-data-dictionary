@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryComponentService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Transactional
@@ -351,6 +352,35 @@ class NhsDataDictionary {
             }
         }
         return input
+    }
+
+    static String replaceLinksInStringAndUpdateWhereUsed(
+        String source,
+        Map<String, NhsDataDictionaryComponent> pathLookup,
+        NhsDataDictionaryComponent sourceComponent) {
+        if (!source) {
+            return source
+        }
+
+        Matcher matcher = DataDictionaryComponentService.pattern.matcher(source)
+        while (matcher.find()) {
+            NhsDataDictionaryComponent component = pathLookup[matcher.group(1)]
+
+            if (component) {
+                String text = matcher.group(2).replaceAll("_"," ")
+                String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
+                source = source.replace(matcher.group(0), replacement)
+                if (sourceComponent && sourceComponent != component) {
+                    component.whereUsed[sourceComponent] = "references in description ${sourceComponent.name}".toString()
+
+                }
+            }
+            else {
+                log.info("Cannot match component: ${matcher.group(1)}")
+            }
+        }
+
+        return source
     }
 
 
