@@ -111,6 +111,12 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         keyAttributes + otherAttributes
     }
 
+    List<NhsDDClassRelationship> allRelationships() {
+        classRelationships.sort { a, b ->
+            b.isKey <=> a.isKey ?: a.targetClass.name.toLowerCase() <=> b.targetClass.name.toLowerCase()
+        }
+    }
+
     String getMauroPath() {
         if(isRetired()) {
             "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:Retired|dc:${name}"
@@ -188,9 +194,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                         stentry "Relationship"
                         stentry "Class"
                     }
-                    classRelationships.sort { a, b ->
-                        b.isKey <=> a.isKey ?: a.targetClass.name.toLowerCase() <=> b.targetClass.name.toLowerCase()
-                    }.each {relationship ->
+                    allRelationships().each {relationship ->
                         strow {
                             stentry relationship.isKey?'Key':''
                             stentry relationship.relationshipDescription
@@ -217,6 +221,11 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         Change changedAttributesChange = createChangedAttributesChange(previousClass)
         if (changedAttributesChange) {
             changes.add(changedAttributesChange)
+        }
+
+        Change changedRelationshipsChange = createChangedRelationshipsChange(previousClass)
+        if (changedRelationshipsChange) {
+            changes.add(changedRelationshipsChange)
         }
     }
 
@@ -288,6 +297,88 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
 
         new Change(
             changeType: Change.CHANGED_ATTRIBUTES_TYPE,
+            stereotype: stereotype,
+            oldItem: previousClass,
+            newItem: this,
+            htmlDetail: htmlDetail,
+            ditaDetail: ditaDetail
+        )
+    }
+
+    Change createChangedRelationshipsChange(NhsDDClass previousClass) {
+        List<NhsDDClassRelationship> currentRelationships = this.allRelationships()
+        List<NhsDDClassRelationship> previousRelationships = previousClass.allRelationships()
+
+        // Find all relationships in this one but not the previous - "new relationships"
+        List<NhsDDClassRelationship> newRelationships = currentRelationships.findAll {currentRelationship ->
+            !previousRelationships.find { previousRelationship ->
+                previousRelationship.changePaperDiscriminator == currentRelationship.changePaperDiscriminator
+            }
+        }
+
+        // Find all the relationships in the previous one but not this one - "removed relationships"
+        List<NhsDDClassRelationship> removedRelationships = previousRelationships.findAll {previousRelationship ->
+            !currentRelationships.find {currentRelationship ->
+                currentRelationship.changePaperDiscriminator == previousRelationship.changePaperDiscriminator
+            }
+        }
+
+        if (newRelationships.empty && removedRelationships.empty) {
+            return null
+        }
+
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            markupBuilder.p(class: "relationship-source-class") {
+                mkp.yield("Each $name")
+            }
+            currentRelationships.forEach {relationship ->
+                if (newRelationships.any {it.changePaperDiscriminator == relationship.changePaperDiscriminator }) {
+                    markupBuilder.div {
+                        markupBuilder.span(class: "relationship-name new") {
+                            mkp.yield(relationship.changePaperLabel)
+                        }
+                        if (relationship.isKey) {
+                            markupBuilder.span(class: "relationship-key new") {
+                                mkp.yield("Key")
+                            }
+                        }
+                    }
+                }
+                else {
+                    markupBuilder.div {
+                        markupBuilder.span(class: "relationship-name") {
+                            mkp.yield(relationship.changePaperLabel)
+                        }
+                        if (relationship.isKey) {
+                            markupBuilder.span(class: "relationship-key") {
+                                mkp.yield("Key")
+                            }
+                        }
+                    }
+                }
+            }
+            removedRelationships.forEach { relationship ->
+                markupBuilder.div {
+                    markupBuilder.span(class: "relationship-name deleted") {
+                        mkp.yield(relationship.changePaperLabel)
+                    }
+                    if (relationship.isKey) {
+                        markupBuilder.span(class: "relationship-key deleted") {
+                            mkp.yield("Key")
+                        }
+                    }
+                }
+            }
+        }
+
+        String htmlDetail = stringWriter.toString()
+        Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
+
+        new Change(
+            changeType: Change.CHANGED_RELATIONSHIPS_TYPE,
             stereotype: stereotype,
             oldItem: previousClass,
             newItem: this,

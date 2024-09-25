@@ -64,6 +64,9 @@ class NhsDataDictionary {
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE = "dataSetReference"
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO = "dataSetReferenceTo"
 
+    /**
+     * This is the HTML link pattern to use when reading the XML ingest files
+     */
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 
     String retiredItemText = ""

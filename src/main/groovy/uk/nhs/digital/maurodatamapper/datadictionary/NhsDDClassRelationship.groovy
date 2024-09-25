@@ -30,6 +30,17 @@ class NhsDDClassRelationship {
     int minMultiplicity
     int maxMultiplicity
 
+    /**
+     * This describes the full description of the relationship, including relationship label, target class and key. This should
+     * be used in comparisons.
+     */
+    String changePaperDiscriminator
+
+    /**
+     * This is the label that should appear in the change paper, just the relationship label and target class.
+     */
+    String changePaperLabel
+
     NhsDDClassRelationship() {
     }
 
@@ -46,6 +57,8 @@ class NhsDDClassRelationship {
         this.isKey = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_KEY_METADATA_KEY }?.value == "true" ?: false
         this.isChoice = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_CHOICE_METADATA_KEY }?.value == "true" ?: false
         this.relationshipDescription = this.buildDescription()
+        this.changePaperDiscriminator = "${isKey ? "Key: " : ""}$relationshipDescription $targetClass.name"
+        this.changePaperLabel = "$relationshipDescription $targetClass.name"
     }
 
     String buildDescription() {

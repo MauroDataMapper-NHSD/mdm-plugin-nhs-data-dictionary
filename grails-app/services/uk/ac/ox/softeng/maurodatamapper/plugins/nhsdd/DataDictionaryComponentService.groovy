@@ -124,6 +124,10 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
             collect {new StereotypedCatalogueItem(it)}
     }
 
+    /**
+     * This is the HTML link pattern to use for descriptions in Mauro. These could be ingested links, or links created
+     * via the Mauro UI
+     */
     static Pattern pattern = Pattern.compile("<a\\s+[^>]*?href=\"([^\"]+)\"[^>]*>(.*?)</a>")
 
 

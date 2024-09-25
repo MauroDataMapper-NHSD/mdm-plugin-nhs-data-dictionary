@@ -25,6 +25,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryComponentService
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
@@ -598,7 +599,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     String replaceLinksInString(String source, Map<String, NhsDataDictionaryComponent> pathLookup) {
         if(source) {
-            Matcher matcher = NhsDataDictionary.pattern.matcher(source)
+            Matcher matcher = DataDictionaryComponentService.pattern.matcher(source)
             while(matcher.find()) {
                 NhsDataDictionaryComponent component = pathLookup[matcher.group(1)]
 

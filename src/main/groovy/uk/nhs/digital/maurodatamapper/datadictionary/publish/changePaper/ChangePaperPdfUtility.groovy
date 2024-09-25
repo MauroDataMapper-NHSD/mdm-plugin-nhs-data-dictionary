@@ -156,27 +156,23 @@ class ChangePaperPdfUtility {
             }
         }
         return backgroundTopic
-
-
     }
 
-
-    static String replaceLinksInHtml(String html, Map<String, String> pathLookup) {
-        if(html) {
-            Matcher matcher = NhsDataDictionary.pattern.matcher(html)
-            while(matcher.find()) {
-                String matchedUrl = pathLookup[matcher.group(1)]
-                if(matchedUrl) {
-                    String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
-                    html = html.replace(matcher.group(0), replacement)
-                } else {
-                    log.error("Cannot match: " + matcher.group(0))
-                }
-            }
-        }
-        return html
-    }
-
+//    static String replaceLinksInHtml(String html, Map<String, String> pathLookup) {
+//        if(html) {
+//            Matcher matcher = NhsDataDictionary.pattern.matcher(html)
+//            while(matcher.find()) {
+//                String matchedUrl = pathLookup[matcher.group(1)]
+//                if(matchedUrl) {
+//                    String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
+//                    html = html.replace(matcher.group(0), replacement)
+//                } else {
+//                    log.error("Cannot match: " + matcher.group(0))
+//                }
+//            }
+//        }
+//        return html
+//    }
 
     static Section generateSummaryContentSection(List<ChangedItem> changedItems, String stereotype) {
         return Section.build {
