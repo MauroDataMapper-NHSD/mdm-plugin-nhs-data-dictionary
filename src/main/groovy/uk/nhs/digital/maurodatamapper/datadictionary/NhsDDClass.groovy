@@ -283,54 +283,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             return null
         }
 
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-
-        markupBuilder.div {
-            markupBuilder.p(class: "relationship-source-class") {
-                mkp.yield("Each $name")
-            }
-            currentRelationships.forEach {relationship ->
-                if (newRelationships.any {it.changePaperDiscriminator == relationship.changePaperDiscriminator }) {
-                    markupBuilder.div {
-                        markupBuilder.span(class: "relationship-name new") {
-                            mkp.yield(relationship.changePaperLabel)
-                        }
-                        if (relationship.isKey) {
-                            markupBuilder.span(class: "relationship-key new") {
-                                mkp.yield("Key")
-                            }
-                        }
-                    }
-                }
-                else {
-                    markupBuilder.div {
-                        markupBuilder.span(class: "relationship-name") {
-                            mkp.yield(relationship.changePaperLabel)
-                        }
-                        if (relationship.isKey) {
-                            markupBuilder.span(class: "relationship-key") {
-                                mkp.yield("Key")
-                            }
-                        }
-                    }
-                }
-            }
-            removedRelationships.forEach { relationship ->
-                markupBuilder.div {
-                    markupBuilder.span(class: "relationship-name deleted") {
-                        mkp.yield(relationship.changePaperLabel)
-                    }
-                    if (relationship.isKey) {
-                        markupBuilder.span(class: "relationship-key deleted") {
-                            mkp.yield("Key")
-                        }
-                    }
-                }
-            }
-        }
-
-        String htmlDetail = stringWriter.toString()
+        String htmlDetail = createRelationshipsTableChangeHtml(currentRelationships, newRelationships, removedRelationships)
         Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
 
         new Change(
@@ -375,7 +328,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                         } else {
                             markupBuilder.tr {
                                 td {
-                                    mkp.yield(attribute.isKey ? "Key": "")
+                                    mkp.yield(attribute.isKey ? "K": "")
                                 }
                                 td attribute.name
                             }
@@ -384,10 +337,75 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                     removedAttributes.each { attribute ->
                         markupBuilder.tr {
                             markupBuilder.td(class: "deleted") {
-                                mkp.yield(attribute.isKey ? "Key": "")
+                                mkp.yield(attribute.isKey ? "K": "")
                             }
                             markupBuilder.td(class: "deleted") {
                                 mkp.yield(attribute.name)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return stringWriter.toString()
+    }
+
+    static String createRelationshipsTableChangeHtml(
+        List<NhsDDClassRelationship> currentRelationships,
+        List<NhsDDClassRelationship> newRelationships,
+        List<NhsDDClassRelationship> removedRelationships) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            p "Each $name"
+            table(class: "relationship-table") {
+                thead {
+                    markupBuilder.th(width: "5%") {
+                        mkp.yield("Key")
+                    }
+                    markupBuilder.th(width: "55%") {
+                        mkp.yield("Relationship")
+                    }
+                    markupBuilder.th(width: "40%") {
+                        mkp.yield("Class")
+                    }
+                }
+                tbody {
+                    currentRelationships.each {relationship ->
+                        if (newRelationships.any {it.changePaperDiscriminator == relationship.changePaperDiscriminator}) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(relationship.isKey ? "K" : "")
+                                }
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(relationship.relationshipDescription)
+                                }
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(relationship.targetClass.name)
+                                }
+                            }
+                        } else {
+                            markupBuilder.tr {
+                                td {
+                                    mkp.yield(relationship.isKey ? "K" : "")
+                                }
+                                td relationship.relationshipDescription
+                                td relationship.targetClass.name
+                            }
+                        }
+                    }
+                    removedRelationships.each {relationship ->
+                        markupBuilder.tr {
+                            markupBuilder.td(class: "deleted") {
+                                mkp.yield(relationship.isKey ? "K" : "")
+                            }
+                            markupBuilder.td(class: "deleted") {
+                                mkp.yield(relationship.relationshipDescription)
+                            }
+                            markupBuilder.td(class: "deleted") {
+                                mkp.yield(relationship.targetClass.name)
                             }
                         }
                     }
