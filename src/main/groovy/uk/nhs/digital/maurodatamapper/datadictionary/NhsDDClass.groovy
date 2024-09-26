@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
@@ -247,52 +248,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             return null
         }
 
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-
-        markupBuilder.div {
-            p "Attributes of this Class are:"
-            currentAttributes.forEach {attribute ->
-                if (newAttributes.any { it.name == attribute.name }) {
-                    markupBuilder.div {
-                        markupBuilder.span(class: "attribute-name new") {
-                            mkp.yield(attribute.name)
-                        }
-                        if (attribute.isKey) {
-                            markupBuilder.span(class: "attribute-key new") {
-                                mkp.yield("Key")
-                            }
-                        }
-                    }
-                }
-                else {
-                    markupBuilder.div {
-                        markupBuilder.span(class: "attribute-name") {
-                            mkp.yield(attribute.name)
-                        }
-                        if (attribute.isKey) {
-                            markupBuilder.span(class: "attribute-key") {
-                                mkp.yield("Key")
-                            }
-                        }
-                    }
-                }
-            }
-            removedAttributes.forEach { attribute ->
-                markupBuilder.div {
-                    markupBuilder.span(class: "attribute-name deleted") {
-                        mkp.yield(attribute.name)
-                    }
-                    if (attribute.isKey) {
-                        markupBuilder.span(class: "attribute-key deleted") {
-                            mkp.yield("Key")
-                        }
-                    }
-                }
-            }
-        }
-
-        String htmlDetail = stringWriter.toString()
+        String htmlDetail = createAttributesTableChangeHtml(currentAttributes, newAttributes, removedAttributes)
         Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
 
         new Change(
@@ -385,5 +341,60 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             htmlDetail: htmlDetail,
             ditaDetail: ditaDetail
         )
+    }
+
+    static String createAttributesTableChangeHtml(
+        List<NhsDDAttribute> currentAttributes,
+        List<NhsDDAttribute> newAttributes,
+        List<NhsDDAttribute> removedAttributes) {
+        StringWriter stringWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+
+        markupBuilder.div {
+            p "Attributes of this Class are:"
+            table(class: "attribute-table") {
+                thead {
+                    markupBuilder.th(width: "5%") {
+                        mkp.yield("Key")
+                    }
+                    markupBuilder.th(width: "95%") {
+                        mkp.yield("Attribute Name")
+                    }
+                }
+                tbody {
+                    currentAttributes.each { attribute ->
+                        if (newAttributes.any { it.name == attribute.name }) {
+                            markupBuilder.tr {
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(attribute.isKey ? "K": "")
+                                }
+                                markupBuilder.td(class: "new") {
+                                    mkp.yield(attribute.name)
+                                }
+                            }
+                        } else {
+                            markupBuilder.tr {
+                                td {
+                                    mkp.yield(attribute.isKey ? "Key": "")
+                                }
+                                td attribute.name
+                            }
+                        }
+                    }
+                    removedAttributes.each { attribute ->
+                        markupBuilder.tr {
+                            markupBuilder.td(class: "deleted") {
+                                mkp.yield(attribute.isKey ? "Key": "")
+                            }
+                            markupBuilder.td(class: "deleted") {
+                                mkp.yield(attribute.name)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return stringWriter.toString()
     }
 }
