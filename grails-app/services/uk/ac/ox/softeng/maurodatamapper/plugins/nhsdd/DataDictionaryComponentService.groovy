@@ -397,7 +397,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         component.changeLogHeaderText = dataDictionary.changeLogHeaderText
         component.changeLogFooterText = dataDictionary.changeLogFooterText
 
-        List<Edit> mergeEdits = editService.findAllByResourceAndTitle(component.catalogueItem.domainType, component.catalogueItem.id, EditTitle.MERGE)
+        List<Edit> mergeEdits = getMergeEditsForChangeLog(component)
         if (mergeEdits.empty) {
             return
         }
@@ -417,6 +417,10 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
                 NhsDDBranch branch = dataDictionary.workItemBranches.get(branchName)
                 new NhsDDChangeLog(branch, dataDictionary.changeRequestUrl)
             }
+    }
+
+    List<Edit> getMergeEditsForChangeLog(NhsDataDictionaryComponent component) {
+        editService.findAllByResourceAndTitle(component.catalogueItem.domainType, component.catalogueItem.id, EditTitle.MERGE)
     }
 
     Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems, NhsDataDictionary dataDictionary, Map<UUID, Metadata> metadataMap = null) {

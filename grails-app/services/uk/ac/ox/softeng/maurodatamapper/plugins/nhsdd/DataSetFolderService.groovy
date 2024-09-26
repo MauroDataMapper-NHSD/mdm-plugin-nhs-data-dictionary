@@ -58,15 +58,15 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
             dataSetFolder.folderPath = folderPath
         }
         folderFolder.childFolders.each { it ->
-            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, null, [])
+            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary, [])
             dataSetFolder.childFolders[it.label] = childFolder
         }
         dataModelService.findAllByFolderId(folderFolder.id).each {
-            NhsDDDataSet childDataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(it, null)
+            NhsDDDataSet childDataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary)
             dataSetFolder.dataSets[it.label] = childDataSet
         }
         folderFolder.childFolders.each { it ->
-            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, null, [])
+            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary, [])
             dataSetFolder.childFolders[it.label] = childFolder
         }
         return dataSetFolder
@@ -115,7 +115,6 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
         NhsDataDictionary.METADATA_NAMESPACE + ".data set folder"
     }
 
-    @Deprecated
     @Override
     NhsDDDataSetFolder getNhsDataDictionaryComponentFromCatalogueItem(Folder catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         return getNhsDataDictionaryComponentFromCatalogueItem([], catalogueItem, dataDictionary, metadata)
