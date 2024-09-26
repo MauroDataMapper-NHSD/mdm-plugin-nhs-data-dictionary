@@ -58,6 +58,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     Map<NhsDataDictionaryComponent, String> whereUsed = [:]
 
     List<NhsDDChangeLog> changeLog = []
+    String changeLogHeaderText = ""
+    String changeLogFooterText = ""
 
     abstract String calculateShortDescription()
 

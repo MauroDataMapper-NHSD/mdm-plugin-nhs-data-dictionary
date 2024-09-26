@@ -71,7 +71,8 @@ class NhsDataDictionary {
     String retiredItemText = ""
     String preparatoryItemText = ""
     String changeRequestUrl = ""
-    String changeLogArchiveUrl = ""
+    String changeLogHeaderText = ""
+    String changeLogFooterText = ""
 
     Map<String, String> workItemDetails = [:]
 

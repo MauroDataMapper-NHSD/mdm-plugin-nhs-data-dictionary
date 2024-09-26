@@ -103,14 +103,16 @@ class NhsDataDictionaryService {
                             'line.</p>',
         (API_PROPERTY_PREPARATORY_TEMPLATE): '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>',
         (API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL): "https://mauro.dataproducts.nhs.uk/changerequest/$NhsDataDictionary.CHANGE_REQUEST_NUMBER_TOKEN",
-        (API_PROPERTY_CHANGE_LOG_ARCHIVE_URL): 'https://mauro.dataproducts.nhs.uk/archive'
+        (API_PROPERTY_CHANGE_LOG_HEADER_TEXT): "<p>Click on the links below to view the change requests this item is part of:</p>",
+        (API_PROPERTY_CHANGE_LOG_FOOTER_TEXT): "<p>Click <a href='https://www.datadictionary.nhs.uk/archive'>here</a> to see the Change Log Information for changes before January 2025.</p>"
     ]
 
     static final String NHSDD_PROPERTY_CATEGORY = 'NHS Data Dictionary'
     static final String API_PROPERTY_RETIRED_TEMPLATE = 'retired.template'
     static final String API_PROPERTY_PREPARATORY_TEMPLATE = 'preparatory.template'
     static final String API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL = 'changelog.url.changerequest'
-    static final String API_PROPERTY_CHANGE_LOG_ARCHIVE_URL = 'changelog.url.archive'
+    static final String API_PROPERTY_CHANGE_LOG_HEADER_TEXT = 'changelog.headertext'
+    static final String API_PROPERTY_CHANGE_LOG_FOOTER_TEXT = 'changelog.footertext'
 
     TerminologyService terminologyService
     DataModelService dataModelService
@@ -933,8 +935,11 @@ class NhsDataDictionaryService {
             if (apiProperty.key == API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL) {
                 dataDictionary.changeRequestUrl = apiProperty.value
             }
-            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_ARCHIVE_URL) {
-                dataDictionary.changeLogArchiveUrl = apiProperty.value
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_HEADER_TEXT) {
+                dataDictionary.changeLogHeaderText = apiProperty.value
+            }
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_FOOTER_TEXT) {
+                dataDictionary.changeLogFooterText = apiProperty.value
             }
         }
         if(!dataDictionary.preparatoryItemText) {
@@ -946,8 +951,11 @@ class NhsDataDictionaryService {
         if (!dataDictionary.changeRequestUrl) {
             dataDictionary.changeRequestUrl = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL]
         }
-        if (!dataDictionary.changeLogArchiveUrl) {
-            dataDictionary.changeLogArchiveUrl = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_ARCHIVE_URL]
+        if (!dataDictionary.changeLogHeaderText) {
+            dataDictionary.changeLogHeaderText = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_HEADER_TEXT]
+        }
+        if (!dataDictionary.changeLogFooterText) {
+            dataDictionary.changeLogFooterText = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_FOOTER_TEXT]
         }
     }
 

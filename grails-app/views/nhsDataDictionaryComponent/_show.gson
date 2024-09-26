@@ -12,5 +12,9 @@ json {
         shortDescription nhsDataDictionaryComponent.getShortDescription()
         description nhsDataDictionaryComponent.getDescription()
         alsoKnownAs nhsDataDictionaryComponent.getAliases()
-        changeLog nhsDataDictionaryComponent.changeLog
+        changeLog {
+            headerText nhsDataDictionaryComponent.changeLogHeaderText
+            footerText nhsDataDictionaryComponent.changeLogFooterText
+            entries nhsDataDictionaryComponent.changeLog
+        }
 }
