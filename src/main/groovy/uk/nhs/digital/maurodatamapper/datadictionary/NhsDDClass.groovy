@@ -283,7 +283,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             return null
         }
 
-        String htmlDetail = createRelationshipsTableChangeHtml(currentRelationships, newRelationships, removedRelationships)
+        String htmlDetail = createRelationshipsTableChangeHtml(name, currentRelationships, newRelationships, removedRelationships)
         Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
 
         new Change(
@@ -352,14 +352,17 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     }
 
     static String createRelationshipsTableChangeHtml(
+        String sourceName,
         List<NhsDDClassRelationship> currentRelationships,
         List<NhsDDClassRelationship> newRelationships,
         List<NhsDDClassRelationship> removedRelationships) {
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
 
+        String title = "Each $sourceName"
+
         markupBuilder.div {
-            p "Each $name"
+            p title
             table(class: "relationship-table") {
                 thead {
                     markupBuilder.th(width: "5%") {
