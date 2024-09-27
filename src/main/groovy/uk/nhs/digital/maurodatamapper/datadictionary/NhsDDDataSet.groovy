@@ -140,6 +140,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         if(whereUsed) {
             topics.add(whereUsedTopic())
         }
+        topics.add(changeLogTopic())
         return topics
     }
 
