@@ -220,6 +220,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         if(instantiatedByElements) {
             topics.add(getDataElementsTopic())
         }
+        topics.add(changeLogTopic())
         return topics
     }
 
