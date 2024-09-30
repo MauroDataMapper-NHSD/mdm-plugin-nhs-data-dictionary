@@ -110,18 +110,23 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
     List<StereotypedCatalogueItem> getWhereUsed(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.buildDataDictionary(versionedFolderId)
-        dataDictionary.allComponents.each {
-            if(!it.definition) {
-                log.error("null definition!" + it.name)
-            }
+
+        // Do a full check of every "where used" link type, same as the DITA generation. Only way to be sure that
+        // every possible link is captured
+        Map<String, NhsDataDictionaryComponent> pathLookup = [:]
+        dataDictionary.allComponents.each { component ->
+            pathLookup[component.getMauroPath()] = component
         }
+
+        dataDictionary.allComponents.each {component ->
+            component.replaceLinksInDefinition(pathLookup)
+            component.updateWhereUsed()
+        }
+
         NhsDataDictionaryComponent component = getByCatalogueItemId(UUID.fromString(id), dataDictionary)
-        String itemLink = component.getMauroPath()
-        List<NhsDataDictionaryComponent> whereUsedComponents = dataDictionary.getAllComponents().
-            findAll {it.definition.contains(itemLink)}
-        return whereUsedComponents.
-            sort { it.name}.
-            collect {new StereotypedCatalogueItem(it)}
+        component.whereUsed
+            .sort { it.key.name }
+            .collect { item, text -> new StereotypedCatalogueItem(item, text) }
     }
 
     static Pattern pattern = Pattern.compile("<a\\s+[^>]*?href=\"([^\"]+)\"[^>]*>(.*?)</a>")

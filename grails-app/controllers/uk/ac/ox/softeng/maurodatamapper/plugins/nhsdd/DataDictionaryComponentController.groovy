@@ -17,11 +17,13 @@
  */
 package uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd
 
-
-import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
 import uk.ac.ox.softeng.maurodatamapper.core.model.facet.MultiFacetAware
 
-abstract class DataDictionaryComponentController<T extends MultiFacetAware> {
+import grails.artefact.Controller
+import grails.artefact.controller.RestResponder
+import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
+
+abstract class DataDictionaryComponentController<T extends MultiFacetAware> implements Controller, RestResponder {
 	static responseFormats = ['json', 'xml']
 
     DataSetService dataSetService
@@ -49,7 +51,8 @@ abstract class DataDictionaryComponentController<T extends MultiFacetAware> {
     }
 
     def whereUsed() {
-        respond getService().getWhereUsed(UUID.fromString(params.versionedFolderId), params[getParameterIdKey()])
+        List<StereotypedCatalogueItem> whereUsed =  getService().getWhereUsed(UUID.fromString(params.versionedFolderId), params[getParameterIdKey()])
+        respond whereUsed
     }
 
 }

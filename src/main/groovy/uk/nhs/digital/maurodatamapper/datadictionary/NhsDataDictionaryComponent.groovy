@@ -607,7 +607,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
                     String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
                     source = source.replace(matcher.group(0), replacement)
                     if(this != component) {
-                        component.whereUsed[this] = "references in description ${this.name}".toString()
+                        // In the description, use the other component name in it to match the current live published dictionary content
+                        component.whereUsed[this] = "references in description ${component.name}".toString()
 
                     }
                 } else {
