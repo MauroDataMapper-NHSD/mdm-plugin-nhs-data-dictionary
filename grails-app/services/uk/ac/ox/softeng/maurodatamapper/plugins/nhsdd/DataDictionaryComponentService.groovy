@@ -23,6 +23,9 @@ import uk.ac.ox.softeng.maurodatamapper.core.container.Folder
 import uk.ac.ox.softeng.maurodatamapper.core.container.FolderService
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolderService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.Edit
+import uk.ac.ox.softeng.maurodatamapper.core.facet.EditService
+import uk.ac.ox.softeng.maurodatamapper.core.facet.EditTitle
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.core.facet.MetadataService
 import uk.ac.ox.softeng.maurodatamapper.core.model.CatalogueItem
@@ -48,6 +51,9 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
+
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBranch
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDChangeLog
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -69,6 +75,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     CodeSetService codeSetService
     FolderService folderService
     VersionedFolderService versionedFolderService
+    EditService editService
 
     PathService pathService
 
@@ -350,7 +357,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         }
     }
 
-    void nhsDataDictionaryComponentFromItem(T catalogueItem, NhsDataDictionaryComponent component, List<Metadata> metadata = null) {
+    void nhsDataDictionaryComponentFromItem(NhsDataDictionary dataDictionary, T catalogueItem, NhsDataDictionaryComponent component, List<Metadata> metadata = null) {
         component.name = catalogueItem.label
         component.definition = catalogueItem.description?:""
         component.catalogueItem = catalogueItem
@@ -384,6 +391,40 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         NhsDataDictionary.getAllMetadataKeys().each {key ->
             component.otherProperties[key] = metadata.find {it.key == key}?.value
         }
+
+        setNhsDataDictionaryComponentChangeLog(dataDictionary, component)
+    }
+
+    static Pattern CHANGE_LOG_BRANCH_NAME_PATTERN = Pattern.compile(/(?<=\$)(.*?(?='))/)
+
+    void setNhsDataDictionaryComponentChangeLog(NhsDataDictionary dataDictionary, NhsDataDictionaryComponent component) {
+        component.changeLogHeaderText = dataDictionary.changeLogHeaderText
+        component.changeLogFooterText = dataDictionary.changeLogFooterText
+
+        List<Edit> mergeEdits = getMergeEditsForChangeLog(component)
+        if (mergeEdits.empty) {
+            return
+        }
+
+        Set<String> branchNames = mergeEdits
+            .collect {edit -> edit.description.find(CHANGE_LOG_BRANCH_NAME_PATTERN) }
+            .findAll { branchName -> branchName != null }
+            .toSet()
+
+        if (branchNames.empty) {
+            return
+        }
+
+        component.changeLog = branchNames
+            .findAll { branchName -> dataDictionary.workItemBranches.containsKey(branchName) }
+            .collect { branchName ->
+                NhsDDBranch branch = dataDictionary.workItemBranches.get(branchName)
+                new NhsDDChangeLog(branch, dataDictionary.changeRequestUrl)
+            }
+    }
+
+    List<Edit> getMergeEditsForChangeLog(NhsDataDictionaryComponent component) {
+        editService.findAllByResourceAndTitle(component.catalogueItem.domainType, component.catalogueItem.id, EditTitle.MERGE)
     }
 
     Map<String, D> collectNhsDataDictionaryComponents(Collection<T> catalogueItems, NhsDataDictionary dataDictionary, Map<UUID, Metadata> metadataMap = null) {

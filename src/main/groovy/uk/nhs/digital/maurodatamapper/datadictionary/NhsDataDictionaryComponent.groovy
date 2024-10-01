@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
@@ -57,6 +58,10 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     Map<String, String> otherProperties = [:]
 
     Map<NhsDataDictionaryComponent, String> whereUsed = [:]
+
+    List<NhsDDChangeLog> changeLog = []
+    String changeLogHeaderText = ""
+    String changeLogFooterText = ""
 
     abstract String calculateShortDescription()
 
@@ -496,6 +501,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         if(whereUsed) {
             topics.add(whereUsedTopic())
         }
+        topics.add(changeLogTopic())
         return topics
     }
 
@@ -571,6 +577,42 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         }
     }
 
+    Topic changeLogTopic() {
+        Topic.build(id: getDitaKey() + "_changeLog") {
+            title "Change Log"
+            body {
+                if (changeLog && !changeLog.empty && changeLogHeaderText) {
+                    div HtmlHelper.replaceHtmlWithDita(changeLogHeaderText)
+                }
+                if (changeLog && !changeLog.empty) {
+                    simpletable(relColWidth: new SpaceSeparatedStringList (["2*","5*","3*"]), outputClass: "table table-sm table-striped") {
+                        stHead (outputClass: "thead-light") {
+                            stentry "Change Request"
+                            stentry "Change Request Description"
+                            stentry "Implementation Date"
+                        }
+                        changeLog.each { entry ->
+                            strow {
+                                stentry {
+                                    if (entry.referenceUrl) {
+                                        xRef getExternalXRef(entry.referenceUrl, entry.reference)
+                                    }
+                                    else {
+                                        txt entry.reference
+                                    }
+                                }
+                                stentry entry.description
+                                stentry entry.implementationDate
+                            }
+                        }
+                    }
+                }
+                if (changeLogFooterText) {
+                    div HtmlHelper.replaceHtmlWithDita(changeLogFooterText)
+                }
+            }
+        }
+    }
 
     XRef calculateXRef() {
         XRef.build(
@@ -579,6 +621,16 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             format: "html"
         ) {
             txt getNameWithRetired()
+        }
+    }
+
+    XRef getExternalXRef(String url, String text) {
+        XRef.build(
+            scope: Scope.EXTERNAL,
+            format: "html",
+            href: url
+        ) {
+            txt text
         }
     }
 

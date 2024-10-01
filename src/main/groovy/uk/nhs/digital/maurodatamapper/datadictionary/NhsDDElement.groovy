@@ -465,6 +465,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         if(instantiatesAttributes) {
             topics.add(getAttributesTopic())
         }
+        topics.add(changeLogTopic())
         return topics
     }
 

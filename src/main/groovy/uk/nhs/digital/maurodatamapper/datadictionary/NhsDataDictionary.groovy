@@ -65,6 +65,8 @@ class NhsDataDictionary {
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE = "dataSetReference"
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO = "dataSetReferenceTo"
 
+    static final String CHANGE_REQUEST_NUMBER_TOKEN = "{cr_number}"
+
     /**
      * This is the HTML link pattern to use when reading the XML ingest files
      */
@@ -72,6 +74,9 @@ class NhsDataDictionary {
 
     String retiredItemText = ""
     String preparatoryItemText = ""
+    String changeRequestUrl = ""
+    String changeLogHeaderText = ""
+    String changeLogFooterText = ""
 
     Map<String, String> workItemDetails = [:]
 
@@ -107,6 +112,11 @@ class NhsDataDictionary {
     String branchName = "main"
 
     VersionedFolder containingVersionedFolder
+
+    /**
+     * Stores a map of every work item branch available (i.e. branches where changes are made), where the key is the branch name
+     */
+    Map<String, NhsDDBranch> workItemBranches = [:]
 
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
         "NhsDDAttribute": attributes,

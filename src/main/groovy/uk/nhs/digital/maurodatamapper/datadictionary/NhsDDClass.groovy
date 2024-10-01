@@ -140,6 +140,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         if(getAliases()) {
             topics.add(aliasesTopic())
         }
+        topics.add(changeLogTopic())
         return topics
     }
 
