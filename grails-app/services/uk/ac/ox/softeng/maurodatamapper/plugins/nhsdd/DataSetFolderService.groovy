@@ -67,10 +67,7 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
                 dataSetFolder.dataSets[it.label] = childDataSet
             }
         }
-//        folderFolder.childFolders.each { it ->
-//            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary, [])
-//            dataSetFolder.childFolders[it.label] = childFolder
-//        }
+
         return dataSetFolder
     }
 
