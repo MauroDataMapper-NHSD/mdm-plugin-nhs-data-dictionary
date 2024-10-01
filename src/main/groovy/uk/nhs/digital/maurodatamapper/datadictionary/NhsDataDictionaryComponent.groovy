@@ -73,12 +73,16 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         "true" == otherProperties["isPreparatory"]
     }
 
+    boolean isActivePage() {
+        !isRetired() && !isPreparatory()
+    }
+
     String getUin() {
         otherProperties["uin"]
     }
 
     String getShortDescription() {
-        if(otherProperties["shortDescription"]){
+        if(otherProperties["shortDescription"] && isActivePage()){
             return otherProperties["shortDescription"]
         } else {
             return calculateShortDescription()

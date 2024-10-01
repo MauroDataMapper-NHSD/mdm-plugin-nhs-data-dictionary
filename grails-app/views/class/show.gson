@@ -7,6 +7,8 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDClass, stereotype: "class"]
 json {
-    attributes g.render(nhsDDClass.allAttributes().collect {new StereotypedCatalogueItem(it.catalogueItem, "attribute")})
-    relationships g.render(nhsDDClass.classRelationships.collect {new StereotypedClassRelationship(it)})
+    if (nhsDDClass.isActivePage()) {
+        attributes g.render(nhsDDClass.allAttributes().collect {new StereotypedCatalogueItem(it.catalogueItem, "attribute")})
+        relationships g.render(nhsDDClass.classRelationships.collect {new StereotypedClassRelationship(it)})
+    }
 }

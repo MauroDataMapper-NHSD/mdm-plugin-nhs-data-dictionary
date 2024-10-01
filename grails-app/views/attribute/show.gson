@@ -6,15 +6,8 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDAttribute, stereotype: "attribute"]
 json {
-    if (!nhsDDAttribute.isRetired() && !nhsDDAttribute.isPreparatory()) {
+    if (nhsDDAttribute.isActivePage()) {
         nationalCodes g.render (nhsDDAttribute.codes.findAll { !it.isDefault}.sort{it.webOrder})
+        dataElements g.render(nhsDDAttribute.instantiatedByElements.collect {new StereotypedCatalogueItem(it.catalogueItem, "element")})
     }
-
-    if(nhsDDAttribute.otherProperties["formatLength"]) {
-        formatLength nhsDDAttribute.otherProperties["formatLength"]
-    }
-    if(nhsDDAttribute.otherProperties["formatLink"]) {
-        formatLink nhsDDAttribute.otherProperties["formatLink"]
-    }
-    dataElements g.render(nhsDDAttribute.instantiatedByElements.collect {new StereotypedCatalogueItem(it.catalogueItem, "element")})
 }

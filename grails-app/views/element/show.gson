@@ -6,16 +6,17 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDElement, stereotype: "element"]
 json {
-    if (!nhsDDElement.isRetired() && !nhsDDElement.isPreparatory()) {
+    if (nhsDDElement.isActivePage()) {
         nationalCodes g.render (nhsDDElement.codes.findAll { !it.isDefault}.sort{it.webOrder})
         defaultCodes g.render (nhsDDElement.codes.findAll { it.isDefault}.sort {it.code})
-    }
 
-    if(!nhsDDElement.isRetired() && !nhsDDElement.isPreparatory() && nhsDDElement.otherProperties["formatLength"]) {
-        formatLength nhsDDElement.otherProperties["formatLength"]
+        if (nhsDDElement.otherProperties["formatLength"]) {
+            formatLength nhsDDElement.otherProperties["formatLength"]
+        }
+        if (nhsDDElement.otherProperties["formatLink"]) {
+            formatLink nhsDDElement.otherProperties["formatLink"]
+        }
+
+        attributes g.render(nhsDDElement.instantiatesAttributes.collect {new StereotypedCatalogueItem(it.catalogueItem, "attribute")})
     }
-    if(!nhsDDElement.isRetired() && !nhsDDElement.isPreparatory() && nhsDDElement.otherProperties["formatLink"]) {
-        formatLink nhsDDElement.otherProperties["formatLink"]
-    }
-    attributes g.render(nhsDDElement.instantiatesAttributes.collect {new StereotypedCatalogueItem(it.catalogueItem, "attribute")})
 }
