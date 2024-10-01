@@ -53,6 +53,7 @@ import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.hibernate.SessionFactory
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBranch
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClassRelationship
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
@@ -95,14 +96,23 @@ import java.util.zip.ZipOutputStream
 class NhsDataDictionaryService {
 
     static final Map<String, String> KNOWN_KEYS = [
-        'retired.template': '<p>This item has been retired from the NHS Data Model and Dictionary.</p>' +
+        (API_PROPERTY_RETIRED_TEMPLATE): '<p>This item has been retired from the NHS Data Model and Dictionary.</p>' +
                             '<p>The last version of this item is available in the ?????? release of the NHS Data Model and Dictionary.</p>' +
                            '<p>Access to the last live version of this item can be obtained by emailing <a href=\"mailto:information.standards@nhs' +
                            '.net\">information.standards@nhs.net</a> with "NHS Data Model and Dictionary - Archive Request" in the email subject ' +
                             'line.</p>',
-        'preparatory.template': '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>']
+        (API_PROPERTY_PREPARATORY_TEMPLATE): '<p><b>This item is being used for development purposes and has not yet been approved.</b></p>',
+        (API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL): "https://mauro.dataproducts.nhs.uk/changerequest/$NhsDataDictionary.CHANGE_REQUEST_NUMBER_TOKEN",
+        (API_PROPERTY_CHANGE_LOG_HEADER_TEXT): "<p>Click on the links below to view the change requests this item is part of:</p>",
+        (API_PROPERTY_CHANGE_LOG_FOOTER_TEXT): "<p>Click <a href='https://www.datadictionary.nhs.uk/archive'>here</a> to see the Change Log Information for changes before January 2025.</p>"
+    ]
 
     static final String NHSDD_PROPERTY_CATEGORY = 'NHS Data Dictionary'
+    static final String API_PROPERTY_RETIRED_TEMPLATE = 'retired.template'
+    static final String API_PROPERTY_PREPARATORY_TEMPLATE = 'preparatory.template'
+    static final String API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL = 'changelog.url.changerequest'
+    static final String API_PROPERTY_CHANGE_LOG_HEADER_TEXT = 'changelog.headertext'
+    static final String API_PROPERTY_CHANGE_LOG_FOOTER_TEXT = 'changelog.footertext'
 
     TerminologyService terminologyService
     DataModelService dataModelService
@@ -909,25 +919,61 @@ class NhsDataDictionaryService {
 
     NhsDataDictionary newDataDictionary() {
         NhsDataDictionary nhsDataDictionary = new NhsDataDictionary()
-        setTemplateText(nhsDataDictionary)
+        setApiProperties(nhsDataDictionary)
+        loadBranchInformation(nhsDataDictionary)
         return nhsDataDictionary
     }
 
-    void setTemplateText(NhsDataDictionary dataDictionary) {
+    void setApiProperties(NhsDataDictionary dataDictionary) {
         ApiProperty.findAllByCategory(NHSDD_PROPERTY_CATEGORY).each {apiProperty ->
-            if(apiProperty.key == "retired.template") {
+            if(apiProperty.key == API_PROPERTY_RETIRED_TEMPLATE) {
                 dataDictionary.retiredItemText = apiProperty.value
             }
-            if(apiProperty.key == "preparatory.template") {
+            if(apiProperty.key == API_PROPERTY_PREPARATORY_TEMPLATE) {
                 dataDictionary.preparatoryItemText = apiProperty.value
+            }
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL) {
+                dataDictionary.changeRequestUrl = apiProperty.value
+            }
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_HEADER_TEXT) {
+                dataDictionary.changeLogHeaderText = apiProperty.value
+            }
+            if (apiProperty.key == API_PROPERTY_CHANGE_LOG_FOOTER_TEXT) {
+                dataDictionary.changeLogFooterText = apiProperty.value
             }
         }
         if(!dataDictionary.preparatoryItemText) {
-            dataDictionary.preparatoryItemText = KNOWN_KEYS["preparatory.template"]
+            dataDictionary.preparatoryItemText = KNOWN_KEYS[API_PROPERTY_PREPARATORY_TEMPLATE]
         }
         if(!dataDictionary.retiredItemText) {
-            dataDictionary.preparatoryItemText = KNOWN_KEYS["retired.template"]
+            dataDictionary.preparatoryItemText = KNOWN_KEYS[API_PROPERTY_RETIRED_TEMPLATE]
         }
+        if (!dataDictionary.changeRequestUrl) {
+            dataDictionary.changeRequestUrl = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_CHANGE_REQUEST_URL]
+        }
+        if (!dataDictionary.changeLogHeaderText) {
+            dataDictionary.changeLogHeaderText = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_HEADER_TEXT]
+        }
+        if (!dataDictionary.changeLogFooterText) {
+            dataDictionary.changeLogFooterText = KNOWN_KEYS[API_PROPERTY_CHANGE_LOG_FOOTER_TEXT]
+        }
+    }
+
+    void loadBranchInformation(NhsDataDictionary dataDictionary) {
+        List<VersionedFolder> versionedFolders = VersionedFolder
+            .findAll()
+            .findAll {it.label.startsWith("NHS Data Dictionary") }
+
+        if (versionedFolders.empty) {
+            return
+        }
+
+        versionedFolders
+            .collect {versionedFolder -> new NhsDDBranch(versionedFolder) }
+            .findAll {branch -> !branch.finalised && branch.branchName }
+            .each { branch ->
+                dataDictionary.workItemBranches[branch.branchName] = branch
+            }
     }
 
     def diff(UUID versionedFolderId) {

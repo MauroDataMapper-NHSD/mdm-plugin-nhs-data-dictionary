@@ -62,7 +62,7 @@ class DataSetConstraintService extends DataDictionaryComponentService<Term, NhsD
     @Override
     NhsDDDataSetConstraint getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDDataSetConstraint dataSetConstraint = new NhsDDDataSetConstraint()
-        nhsDataDictionaryComponentFromItem(catalogueItem, dataSetConstraint, metadata)
+        nhsDataDictionaryComponentFromItem(dataDictionary, catalogueItem, dataSetConstraint, metadata)
         dataSetConstraint.dataDictionary = dataDictionary
         return dataSetConstraint
     }

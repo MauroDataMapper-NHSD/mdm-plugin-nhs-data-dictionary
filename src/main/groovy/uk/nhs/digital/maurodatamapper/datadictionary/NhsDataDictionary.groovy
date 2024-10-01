@@ -64,10 +64,15 @@ class NhsDataDictionary {
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE = "dataSetReference"
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO = "dataSetReferenceTo"
 
+    static final String CHANGE_REQUEST_NUMBER_TOKEN = "{cr_number}"
+
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 
     String retiredItemText = ""
     String preparatoryItemText = ""
+    String changeRequestUrl = ""
+    String changeLogHeaderText = ""
+    String changeLogFooterText = ""
 
     Map<String, String> workItemDetails = [:]
 
@@ -103,6 +108,11 @@ class NhsDataDictionary {
     String branchName = "main"
 
     VersionedFolder containingVersionedFolder
+
+    /**
+     * Stores a map of every work item branch available (i.e. branches where changes are made), where the key is the branch name
+     */
+    Map<String, NhsDDBranch> workItemBranches = [:]
 
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
         "NhsDDAttribute": attributes,
@@ -178,7 +188,8 @@ class NhsDataDictionary {
                 log.info("Building ${componentClassName}...")
                 long componentStartTime = System.currentTimeMillis()
                 if(publishOptions.isPublishableComponent(dummyComponent)) {
-                    xml[dummyComponent.getXmlNodeName()] /*.sort {it.name.text()} */.each {node ->
+                    xml[dummyComponent.getXmlNodeName()] /*.sort {it.name.text()} */
+    .each {node ->
                         NhsDataDictionaryComponent component = (NhsDataDictionaryComponent) Class.forName(componentNameWithPackage).getConstructor()
                             .newInstance()
                         if (component.isValidXmlNode(node)) {

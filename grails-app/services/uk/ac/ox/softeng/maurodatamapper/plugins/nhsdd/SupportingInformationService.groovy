@@ -58,7 +58,7 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
     @Override
     NhsDDSupportingInformation getNhsDataDictionaryComponentFromCatalogueItem(Term catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDSupportingInformation supportingInformation = new NhsDDSupportingInformation()
-        nhsDataDictionaryComponentFromItem(catalogueItem, supportingInformation, metadata)
+        nhsDataDictionaryComponentFromItem(dataDictionary, catalogueItem, supportingInformation, metadata)
         supportingInformation.dataDictionary = dataDictionary
         return supportingInformation
     }
