@@ -63,12 +63,14 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
         }
         dataModelService.findAllByFolderId(folderFolder.id).each {
             NhsDDDataSet childDataSet = dataSetService.getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary)
-            dataSetFolder.dataSets[it.label] = childDataSet
+            if (!childDataSet.isRetired()) {
+                dataSetFolder.dataSets[it.label] = childDataSet
+            }
         }
-        folderFolder.childFolders.each { it ->
-            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary, [])
-            dataSetFolder.childFolders[it.label] = childFolder
-        }
+//        folderFolder.childFolders.each { it ->
+//            NhsDDDataSetFolder childFolder = getNhsDataDictionaryComponentFromCatalogueItem(it, dataDictionary, [])
+//            dataSetFolder.childFolders[it.label] = childFolder
+//        }
         return dataSetFolder
     }
 

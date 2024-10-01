@@ -168,12 +168,15 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     Set<NhsDDElement> getAllForAttribute(UUID versionedFolderId, NhsDDAttribute nhsDDAttribute) {
-        SemanticLink.byTargetMultiFacetAwareItemId(nhsDDAttribute.catalogueItem.id).list().collect { link ->
-            DataElement.get(link.multiFacetAwareItemId)
-        }.collect { dataElement ->
-            dataElement.metadata.size() // For later conversion to stereotyped item and to find out if retired
-            getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
-        }
+        SemanticLink.byTargetMultiFacetAwareItemId(nhsDDAttribute.catalogueItem.id)
+            .list()
+            .collect { link -> DataElement.get(link.multiFacetAwareItemId) }
+            .collect { dataElement ->
+                dataElement.metadata.size() // For later conversion to stereotyped item and to find out if retired
+                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
+            }
+            .findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
     }
 
     @Deprecated

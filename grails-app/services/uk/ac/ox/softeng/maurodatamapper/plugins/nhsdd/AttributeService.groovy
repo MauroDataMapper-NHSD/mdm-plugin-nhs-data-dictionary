@@ -64,12 +64,14 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     Set<NhsDDAttribute> getAllForElement(UUID versionedFolderId, NhsDDElement nhsDDElement) {
         List<String> linkedAttributeList = elementService.getLinkedAttributes(nhsDDElement.catalogueItem)
 
-        nhsDDElement.catalogueItem.semanticLinks.collect {link ->
-            DataElement.get(link.targetMultiFacetAwareItemId)
-        }.collect {
-            it.getMetadata().size() // For later getting retired property
-            getNhsDataDictionaryComponentFromCatalogueItem(it, nhsDataDictionaryService.newDataDictionary())
-        }
+        nhsDDElement.catalogueItem.semanticLinks
+            .collect {link -> DataElement.get(link.targetMultiFacetAwareItemId) }
+            .collect {dataElement ->
+                dataElement.getMetadata().size() // For later getting retired property
+                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
+            }
+            .findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
     }
 
 
