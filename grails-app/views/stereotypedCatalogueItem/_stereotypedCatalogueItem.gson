@@ -10,4 +10,5 @@ json {
     stereotype stereotypedCatalogueItem.stereotype
     isRetired stereotypedCatalogueItem.isRetired
     key stereotypedCatalogueItem.key
+    description stereotypedCatalogueItem.description
 }

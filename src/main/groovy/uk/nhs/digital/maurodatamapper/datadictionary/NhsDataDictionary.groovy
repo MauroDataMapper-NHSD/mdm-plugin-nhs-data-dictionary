@@ -381,7 +381,8 @@ class NhsDataDictionary {
                 String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
                 source = source.replace(matcher.group(0), replacement)
                 if (sourceComponent && sourceComponent != component) {
-                    component.whereUsed[sourceComponent] = "references in description ${sourceComponent.name}".toString()
+                    // In the description, use the source component name in it to match the current live published dictionary content
+                    component.whereUsed[sourceComponent] = "references in description ${component.name}".toString()
 
                 }
             }
