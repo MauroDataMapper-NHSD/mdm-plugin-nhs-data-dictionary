@@ -21,7 +21,6 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
@@ -130,21 +129,23 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        topics.add(classLinksTopic())
-        if(classRelationships) {
-            topics.add(classRelationshipsTopic())
-        }
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
-        }
-        if(getAliases()) {
-            topics.add(aliasesTopic())
+        if (isActivePage()) {
+            topics.add(attributesTopic())
+            if (classRelationships) {
+                topics.add(classRelationshipsTopic())
+            }
+            if (whereUsed) {
+                topics.add(whereUsedTopic())
+            }
+            if (getAliases()) {
+                topics.add(aliasesTopic())
+            }
         }
         topics.add(changeLogTopic())
         return topics
     }
 
-    Topic classLinksTopic() {
+    Topic attributesTopic() {
         List<NhsDDAttribute> attributes = allAttributes().findAll { !it.isRetired() }
 
         Topic.build (id: getDitaKey() + "_attributes") {
@@ -185,6 +186,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             }
         }
     }
+
     Topic classRelationshipsTopic() {
         Topic.build(id: getDitaKey() + "_relationships") {
             title "Relationships"

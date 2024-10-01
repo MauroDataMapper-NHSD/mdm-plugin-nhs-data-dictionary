@@ -70,8 +70,8 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 dataElement.getMetadata().size() // For later getting retired property
                 getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
             }
-            .findAll { element -> !element.isRetired() }
-            .sort { element -> element.name }
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
     }
 
 

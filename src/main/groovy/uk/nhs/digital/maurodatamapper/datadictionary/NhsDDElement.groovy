@@ -222,19 +222,22 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {
-                if(otherProperties["attributeText"]) {
-                    div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
-                } else {
-                    if(instantiatesAttributes.size() == 1) {
-                        p {
-                            xRef this.calculateXRef()
-                            text " is the same as attribute "
-                            xRef instantiatesAttributes[0].calculateXRef()
-                            text "."
+                if (isActivePage()) {
+                    if (otherProperties["attributeText"]) {
+                        div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
+                    } else {
+                        if (instantiatesAttributes.size() == 1) {
+                            p {
+                                xRef this.calculateXRef()
+                                text " is the same as attribute "
+                                xRef instantiatesAttributes[0].calculateXRef()
+                                text "."
+                            }
                         }
                     }
                 }
-                if(definition) {
+
+                if (definition) {
                     div HtmlHelper.replaceHtmlWithDita(definition.replace('<table', '<table class=\"table-striped\"'))
                 }
             }
@@ -444,26 +447,28 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
 
-        if(!isPreparatory() && !isRetired() && (otherProperties["formatLength"] || otherProperties["formatLink"])) {
+        if (isActivePage() && (otherProperties["formatLength"] || otherProperties["formatLink"])) {
             topics.add(getFormatLengthTopic())
         }
 
         topics.add(descriptionTopic())
 
-        if(!isPreparatory() && !isRetired() && hasNationalCodes()) {
-            topics.add(getNationalCodesTopic())
-        }
-        if(!isPreparatory() && !isRetired() && hasDefaultCodes()) {
-            topics.add(getDefaultCodesTopic())
-        }
-        if(getAliases()) {
-            topics.add(aliasesTopic())
-        }
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
-        }
-        if(instantiatesAttributes) {
-            topics.add(getAttributesTopic())
+        if (isActivePage()) {
+            if (hasNationalCodes()) {
+                topics.add(getNationalCodesTopic())
+            }
+            if (hasDefaultCodes()) {
+                topics.add(getDefaultCodesTopic())
+            }
+            if (getAliases()) {
+                topics.add(aliasesTopic())
+            }
+            if (whereUsed) {
+                topics.add(whereUsedTopic())
+            }
+            if (instantiatesAttributes) {
+                topics.add(getLinkedAttributesTopic())
+            }
         }
         topics.add(changeLogTopic())
         return topics
@@ -519,17 +524,20 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 
 
-    Topic getAttributesTopic() {
+    Topic getLinkedAttributesTopic() {
         String attributesTitle = instantiatesAttributes.size() > 1?"Attributes":"Attribute"
         Topic.build (id: getDitaKey() + "_attributes") {
             title attributesTitle
             body {
                 ul {
-                    instantiatesAttributes.each { NhsDDAttribute attribute ->
-                        li {
-                            xRef (attribute.calculateXRef())
+                    instantiatesAttributes
+                        .findAll { attribute -> !attribute.isRetired() }
+                        .sort { attribute -> attribute.name }
+                        .each { attribute ->
+                            li {
+                                xRef (attribute.calculateXRef())
+                            }
                         }
-                    }
                 }
             }
         }

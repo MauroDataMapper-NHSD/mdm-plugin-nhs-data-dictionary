@@ -208,17 +208,19 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        if(!isPreparatory() && !isRetired() && this.codes) {
-            topics.add(getNationalCodesTopic())
-        }
-        if(getAliases()) {
-            topics.add(aliasesTopic())
-        }
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
-        }
-        if(instantiatedByElements) {
-            topics.add(getDataElementsTopic())
+        if (isActivePage()) {
+            if (this.codes) {
+                topics.add(getNationalCodesTopic())
+            }
+            if (getAliases()) {
+                topics.add(aliasesTopic())
+            }
+            if (whereUsed) {
+                topics.add(whereUsedTopic())
+            }
+            if (instantiatedByElements) {
+                topics.add(getLinkedElementsTopic())
+            }
         }
         topics.add(changeLogTopic())
         return topics
@@ -237,16 +239,19 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         orderedCodes
     }
 
-    Topic getDataElementsTopic() {
+    Topic getLinkedElementsTopic() {
         Topic.build (id: getDitaKey() + "_dataElements") {
             title "Data Elements"
             body {
                 ul {
-                    instantiatedByElements.each { NhsDDElement element ->
-                        li {
-                            xRef (element.calculateXRef())
+                    instantiatedByElements
+                        .<NhsDDElement>findAll { element -> !element.isRetired() }
+                        .sort { element -> element.name }
+                        .each { element ->
+                            li {
+                                xRef (element.calculateXRef())
+                            }
                         }
-                    }
                 }
             }
         }
