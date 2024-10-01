@@ -9,8 +9,8 @@ Repository holding the Mauro plugin to manage operations on the NHS Data Diction
 
 | Branch  | Build Status |
 | ------- | ------- | 
-| main    | [![Build Status](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml/badge.svg?branch=develop)](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml) |
-| develop | [![Build Status](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml/badge.svg?branch=main)](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml) |
+| main    | [![Build Status](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml/badge.svg?branch=main)](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml) |
+| develop | [![Build Status](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml/badge.svg?branch=develop)](https://github.com/MauroDataMapper-NHSD/mdm-plugin-nhs-data-dictionary/actions/workflows/gradle.yml) |
 
 This plugin is one part of the whole Mauro solution to support the NHS Data Dictionary authoring and publication. The full solution comprises of:
 
@@ -26,6 +26,7 @@ This plugin is one part of the whole Mauro solution to support the NHS Data Dict
 
 Apart from this README, which provides the basic setup required for development, further documentation can be found under [documentation](/docs) folder:
 
+- [Configuration](/docs/configuration.md)
 - [HTTP Endpoints](/docs/endpoints.md)
 - [Previews](/docs/previews.md)
 - [Publication](/docs/publication.md)

@@ -46,7 +46,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         NhsDDClass nhsClass = getNhsDataDictionaryComponentFromCatalogueItem(dataClass, dataDictionary)
         nhsClass.definition = convertLinksInDescription(versionedFolderId, nhsClass.getDescription())
 
-        List<NhsDDAttribute> attributes = getAttributesForShow(nhsClass)
+        List<NhsDDAttribute> attributes = getAttributesForShow(nhsClass, dataDictionary)
         // Assign the attribute by key and non-key types. The NhsDDClass.allAttributes() method will combine them
         nhsClass.keyAttributes = attributes.findAll { it.isKey }.sort { it.name }
         nhsClass.otherAttributes = attributes.findAll { !it.isKey }.sort { it.name }
@@ -63,7 +63,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         return nhsClass
     }
 
-    List<NhsDDAttribute> getAttributesForShow(NhsDDClass nhsClass) {
+    List<NhsDDAttribute> getAttributesForShow(NhsDDClass nhsClass, NhsDataDictionary dataDictionary) {
         Set<DataElement> attributeDataElements = nhsClass.catalogueItem.dataElements.findAll {
             !(it.dataType instanceof ReferenceType)
         }
@@ -72,7 +72,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
         attributeDataElements
             .collect {dataElement ->
                 NhsDDAttribute nhsAttribute = new NhsDDAttribute()
-                attributeService.nhsDataDictionaryComponentFromItem(dataElement, nhsAttribute, dataElement.metadata.toList())
+                attributeService.nhsDataDictionaryComponentFromItem(dataDictionary, dataElement, nhsAttribute, dataElement.metadata.toList())
                 nhsAttribute
             }
         .findAll { nhsAttribute ->
@@ -114,7 +114,7 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     @Override
     NhsDDClass getNhsDataDictionaryComponentFromCatalogueItem(DataClass catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDClass clazz = new NhsDDClass()
-        nhsDataDictionaryComponentFromItem(catalogueItem, clazz, metadata)
+        nhsDataDictionaryComponentFromItem(dataDictionary, catalogueItem, clazz, metadata)
         clazz.dataDictionary = dataDictionary
         return clazz
     }

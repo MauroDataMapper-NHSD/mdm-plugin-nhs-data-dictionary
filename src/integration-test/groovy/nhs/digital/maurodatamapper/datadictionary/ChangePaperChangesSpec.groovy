@@ -707,42 +707,72 @@ class NhsDDClassChangePaperChangesSpec extends ChangePaperChangesSpec  {
             !preferDitaDetail
             htmlDetail == """<div>
   <p>Attributes of this Class are:</p>
-  <div>
-    <span class='attribute-name'>SERVICE REPORT IDENTIFIER</span>
-    <span class='attribute-key'>Key</span>
-  </div>
-  <div>
-    <span class='attribute-name'>SERVICE REPORT ISSUE DATE</span>
-  </div>
-  <div>
-    <span class='attribute-name new'>SERVICE REPORT ISSUE TIME</span>
-  </div>
-  <div>
-    <span class='attribute-name'>SERVICE REPORT STATUS</span>
-  </div>
-  <div>
-    <span class='attribute-name deleted'>SERVICE REPORT STATUS CODE</span>
-  </div>
+  <table class='attribute-table'>
+    <thead>
+      <th width='5%'>Key</th>
+      <th width='95%'>Attribute Name</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td>K</td>
+        <td>SERVICE REPORT IDENTIFIER</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>SERVICE REPORT ISSUE DATE</td>
+      </tr>
+      <tr>
+        <td class='new'></td>
+        <td class='new'>SERVICE REPORT ISSUE TIME</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>SERVICE REPORT STATUS</td>
+      </tr>
+      <tr>
+        <td class='deleted'></td>
+        <td class='deleted'>SERVICE REPORT STATUS CODE</td>
+      </tr>
+    </tbody>
+  </table>
 </div>"""
             ditaXml == """<div>
   <div>
     <p>Attributes of this Class are:</p>
-    <div>
-      <ph outputclass='attribute-name'>SERVICE REPORT IDENTIFIER</ph>
-      <ph outputclass='attribute-key'>Key</ph>
-    </div>
-    <div>
-      <ph outputclass='attribute-name'>SERVICE REPORT ISSUE DATE</ph>
-    </div>
-    <div>
-      <ph outputclass='attribute-name new'>SERVICE REPORT ISSUE TIME</ph>
-    </div>
-    <div>
-      <ph outputclass='attribute-name'>SERVICE REPORT STATUS</ph>
-    </div>
-    <div>
-      <ph outputclass='attribute-name deleted'>SERVICE REPORT STATUS CODE</ph>
-    </div>
+    <table outputclass='attribute-table'>
+      <tgroup cols='2'>
+        <colspec colname='col0' colwidth='5*' />
+        <colspec colname='col1' colwidth='95*' />
+        <thead>
+          <row>
+            <entry scope='col'>Key</entry>
+            <entry scope='col'>Attribute Name</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>K</entry>
+            <entry>SERVICE REPORT IDENTIFIER</entry>
+          </row>
+          <row>
+            <entry />
+            <entry>SERVICE REPORT ISSUE DATE</entry>
+          </row>
+          <row>
+            <entry outputclass='new' />
+            <entry outputclass='new'>SERVICE REPORT ISSUE TIME</entry>
+          </row>
+          <row>
+            <entry />
+            <entry>SERVICE REPORT STATUS</entry>
+          </row>
+          <row>
+            <entry outputclass='deleted' />
+            <entry outputclass='deleted'>SERVICE REPORT STATUS CODE</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
   </div>
 </div>"""
         }

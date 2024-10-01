@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary
 import uk.ac.ox.softeng.maurodatamapper.core.container.VersionedFolder
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryComponentService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 
 import grails.gorm.transactions.Transactional
@@ -64,10 +65,18 @@ class NhsDataDictionary {
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE = "dataSetReference"
     static final String DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO = "dataSetReferenceTo"
 
+    static final String CHANGE_REQUEST_NUMBER_TOKEN = "{cr_number}"
+
+    /**
+     * This is the HTML link pattern to use when reading the XML ingest files
+     */
     static Pattern pattern = Pattern.compile("<a[\\s]*(?:uin=\"[^\"]*\")?[\\s]*href=\"([^\"]*)\"[\\s]*(?:uin=\"[^\"]*\")?>([^<]*)</a>")
 
     String retiredItemText = ""
     String preparatoryItemText = ""
+    String changeRequestUrl = ""
+    String changeLogHeaderText = ""
+    String changeLogFooterText = ""
 
     Map<String, String> workItemDetails = [:]
 
@@ -103,6 +112,11 @@ class NhsDataDictionary {
     String branchName = "main"
 
     VersionedFolder containingVersionedFolder
+
+    /**
+     * Stores a map of every work item branch available (i.e. branches where changes are made), where the key is the branch name
+     */
+    Map<String, NhsDDBranch> workItemBranches = [:]
 
     Map<String, Map<String, NhsDataDictionaryComponent>> componentClasses = [
         "NhsDDAttribute": attributes,
@@ -348,6 +362,36 @@ class NhsDataDictionary {
             }
         }
         return input
+    }
+
+    static String replaceLinksInStringAndUpdateWhereUsed(
+        String source,
+        Map<String, NhsDataDictionaryComponent> pathLookup,
+        NhsDataDictionaryComponent sourceComponent) {
+        if (!source) {
+            return source
+        }
+
+        Matcher matcher = DataDictionaryComponentService.pattern.matcher(source)
+        while (matcher.find()) {
+            NhsDataDictionaryComponent component = pathLookup[matcher.group(1)]
+
+            if (component) {
+                String text = matcher.group(2).replaceAll("_"," ")
+                String replacement = "<a class='${component.getOutputClass()}' href=\"${component.getDitaKey()}\">${text}</a>"
+                source = source.replace(matcher.group(0), replacement)
+                if (sourceComponent && sourceComponent != component) {
+                    // In the description, use the source component name in it to match the current live published dictionary content
+                    component.whereUsed[sourceComponent] = "references in description ${component.name}".toString()
+
+                }
+            }
+            else {
+                log.info("Cannot match component: ${matcher.group(1)}")
+            }
+        }
+
+        return source
     }
 
 
