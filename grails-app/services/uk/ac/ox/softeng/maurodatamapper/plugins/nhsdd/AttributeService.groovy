@@ -45,6 +45,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 class AttributeService extends DataDictionaryComponentService<DataElement, NhsDDAttribute> {
 
     ElementService elementService
+    ClassService classService
 
     @Override
     NhsDDAttribute show(UUID versionedFolderId, String id) {
@@ -105,6 +106,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 attribute.codes.add(code)
             }
         }
+        attribute.parentClass = classService.getNhsDataDictionaryComponentFromCatalogueItem(catalogueItem.dataClass, dataDictionary, metadata)
         attribute.dataDictionary = dataDictionary
         return attribute
 

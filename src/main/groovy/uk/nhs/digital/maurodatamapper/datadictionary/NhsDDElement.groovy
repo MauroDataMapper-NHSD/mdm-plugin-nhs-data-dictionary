@@ -68,20 +68,34 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         otherProperties["formatLength"]
     }
 
+    String previewAttributeText
+
+    boolean isEmptyDescription() {
+        !description || description == "<div/>"
+    }
+
     @Override
     String calculateShortDescription() {
         if(isPreparatory()) {
             return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
+                List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll { !it.isRetired() }
                 String firstSentence = getFirstSentence()
-                if (!description && instantiatesAttributes.size() == 1) {
-                    return instantiatesAttributes[0].getShortDescription()
-                } else if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && instantiatesAttributes.size() == 1) {
-                    return instantiatesAttributes[0].getShortDescription()
-                } else if(firstSentence) {
+                boolean missingDescription = isEmptyDescription()
+                if (missingDescription && otherProperties["attributeText"]) {
+                    return getSentence(otherProperties["attributeText"], 0)
+                }
+                else if (missingDescription && activeAttributes.size() == 1) {
+                    return activeAttributes[0].getShortDescription()
+                }
+                else if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && activeAttributes.size() == 1) {
+                    return activeAttributes[0].getShortDescription()
+                }
+                else if (firstSentence) {
                     return firstSentence
-                } else {
+                }
+                else {
                     System.err.println("Couldn't set short description: $stereotype $name")
                     System.err.println("$description")
                 }
@@ -217,6 +231,24 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 */
 
+    String getAttributeTextAsHtml() {
+        if (!isActivePage()) {
+            return null
+        }
+
+        if (otherProperties["attributeText"]) {
+            return otherProperties["attributeText"]
+        }
+
+        List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
+        if (activeAttributes.size() == 1) {
+            NhsDDAttribute attribute = activeAttributes[0]
+            return "<a href=\"${this.getMauroPath()}\">${this.name}</a> is the same as attribute <a href=\"${attribute.getMauroPath()}\">${attribute.name}</a>."
+        }
+
+        return null
+    }
+
     @Override
     Topic descriptionTopic() {
         Topic.build (id: getDitaKey() + "_description") {
@@ -225,12 +257,14 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
                 if (isActivePage()) {
                     if (otherProperties["attributeText"]) {
                         div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
-                    } else {
-                        if (instantiatesAttributes.size() == 1) {
+                    }
+                    else {
+                        List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
+                        if (activeAttributes.size() == 1) {
                             p {
                                 xRef this.calculateXRef()
                                 text " is the same as attribute "
-                                xRef instantiatesAttributes[0].calculateXRef()
+                                xRef activeAttributes[0].calculateXRef()
                                 text "."
                             }
                         }

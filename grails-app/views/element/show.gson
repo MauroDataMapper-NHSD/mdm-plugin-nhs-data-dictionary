@@ -6,6 +6,7 @@ model {
 }
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDElement, stereotype: "element"]
 json {
+    attributeText nhsDDElement.previewAttributeText
     if (nhsDDElement.isActivePage()) {
         nationalCodes g.render (nhsDDElement.codes.findAll { !it.isDefault}.sort{it.webOrder})
         defaultCodes g.render (nhsDDElement.codes.findAll { it.isDefault}.sort {it.code})
