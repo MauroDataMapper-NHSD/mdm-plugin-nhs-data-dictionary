@@ -219,7 +219,10 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
                 topics.add(whereUsedTopic())
             }
             if (instantiatedByElements) {
-                topics.add(getLinkedElementsTopic())
+                Topic linkedElementsTopic = getLinkedElementsTopic()
+                if (linkedElementsTopic) {
+                    topics.add(linkedElementsTopic)
+                }
             }
         }
         topics.add(changeLogTopic())
@@ -240,18 +243,23 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     }
 
     Topic getLinkedElementsTopic() {
+        def elements = instantiatedByElements
+            .<NhsDDElement>findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
+
+        if (elements.empty) {
+            return null
+        }
+
         Topic.build (id: getDitaKey() + "_dataElements") {
             title "Data Elements"
             body {
                 ul {
-                    instantiatedByElements
-                        .<NhsDDElement>findAll { element -> !element.isRetired() }
-                        .sort { element -> element.name }
-                        .each { element ->
-                            li {
-                                xRef (element.calculateXRef())
-                            }
+                    elements.each { element ->
+                        li {
+                            xRef (element.calculateXRef())
                         }
+                    }
                 }
             }
         }

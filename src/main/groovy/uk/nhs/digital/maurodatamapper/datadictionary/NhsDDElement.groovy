@@ -467,7 +467,10 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
                 topics.add(whereUsedTopic())
             }
             if (instantiatesAttributes) {
-                topics.add(getLinkedAttributesTopic())
+                Topic linkedAttributesTopic = getLinkedAttributesTopic()
+                if (linkedAttributesTopic) {
+                    topics.add(linkedAttributesTopic)
+                }
             }
         }
         topics.add(changeLogTopic())
@@ -525,19 +528,24 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
 
 
     Topic getLinkedAttributesTopic() {
-        String attributesTitle = instantiatesAttributes.size() > 1?"Attributes":"Attribute"
+        List<NhsDDAttribute> attributes = instantiatesAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
+
+        if (attributes.empty) {
+            return null
+        }
+
+        String attributesTitle = attributes.size() > 1 ? "Attributes" : "Attribute"
         Topic.build (id: getDitaKey() + "_attributes") {
             title attributesTitle
             body {
                 ul {
-                    instantiatesAttributes
-                        .findAll { attribute -> !attribute.isRetired() }
-                        .sort { attribute -> attribute.name }
-                        .each { attribute ->
-                            li {
-                                xRef (attribute.calculateXRef())
-                            }
+                    attributes.each { attribute ->
+                        li {
+                            xRef (attribute.calculateXRef())
                         }
+                    }
                 }
             }
         }
