@@ -131,15 +131,18 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         List<Topic> topics = []
         topics.add(descriptionTopic())
 
-        if(!isRetired() && getDataSetClasses()) {
-            topics.add(specificationTopic())
+        if (isActivePage()) {
+            if (getDataSetClasses()) {
+                topics.add(specificationTopic())
+            }
+            if (getAliases()) {
+                topics.add(aliasesTopic())
+            }
+            if (whereUsed) {
+                topics.add(whereUsedTopic())
+            }
         }
-        if(getAliases()) {
-            topics.add(aliasesTopic())
-        }
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
-        }
+
         topics.add(changeLogTopic())
         return topics
     }

@@ -897,6 +897,7 @@ class NhsDataDictionaryService {
     File generateWebsite(UUID versionedFolderId, PublishOptions publishOptions) {
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
+        thisDataDictionary.branchName = thisDictionary.finalised ? thisDictionary.modelVersionTag : thisDictionary.branchName
 
         //Path outputPath = Files.createTempDirectory('website')
 

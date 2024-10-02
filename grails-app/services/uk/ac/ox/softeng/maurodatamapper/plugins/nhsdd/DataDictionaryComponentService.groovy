@@ -76,10 +76,6 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
     FolderService folderService
     VersionedFolderService versionedFolderService
     EditService editService
-
-    PathService pathService
-
-    MetadataService metadataService
     AuthorityService authorityService
 
     @Autowired
@@ -132,6 +128,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
 
         NhsDataDictionaryComponent component = getByCatalogueItemId(UUID.fromString(id), dataDictionary)
         component.whereUsed
+            .findAll { !it.key.isRetired() }
             .sort { it.key.name }
             .collect { item, text -> new StereotypedCatalogueItem(item, text) }
     }

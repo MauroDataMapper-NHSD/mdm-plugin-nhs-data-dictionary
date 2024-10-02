@@ -45,6 +45,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 class AttributeService extends DataDictionaryComponentService<DataElement, NhsDDAttribute> {
 
     ElementService elementService
+    ClassService classService
 
     @Override
     NhsDDAttribute show(UUID versionedFolderId, String id) {
@@ -64,12 +65,14 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     Set<NhsDDAttribute> getAllForElement(UUID versionedFolderId, NhsDDElement nhsDDElement) {
         List<String> linkedAttributeList = elementService.getLinkedAttributes(nhsDDElement.catalogueItem)
 
-        nhsDDElement.catalogueItem.semanticLinks.collect {link ->
-            DataElement.get(link.targetMultiFacetAwareItemId)
-        }.collect {
-            it.getMetadata().size() // For later getting retired property
-            getNhsDataDictionaryComponentFromCatalogueItem(it, nhsDataDictionaryService.newDataDictionary())
-        }
+        nhsDDElement.catalogueItem.semanticLinks
+            .collect {link -> DataElement.get(link.targetMultiFacetAwareItemId) }
+            .collect {dataElement ->
+                dataElement.getMetadata().size() // For later getting retired property
+                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
+            }
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
     }
 
 
@@ -103,6 +106,7 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
                 attribute.codes.add(code)
             }
         }
+        attribute.parentClass = classService.getNhsDataDictionaryComponentFromCatalogueItem(catalogueItem.dataClass, dataDictionary, metadata)
         attribute.dataDictionary = dataDictionary
         return attribute
 

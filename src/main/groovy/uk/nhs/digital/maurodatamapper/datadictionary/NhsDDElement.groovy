@@ -68,20 +68,34 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         otherProperties["formatLength"]
     }
 
+    String previewAttributeText
+
+    boolean isEmptyDescription() {
+        !description || description == "<div/>"
+    }
+
     @Override
     String calculateShortDescription() {
         if(isPreparatory()) {
             return "This item is being used for development purposes and has not yet been approved."
         } else {
             try {
+                List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll { !it.isRetired() }
                 String firstSentence = getFirstSentence()
-                if (!description && instantiatesAttributes.size() == 1) {
-                    return instantiatesAttributes[0].getShortDescription()
-                } else if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && instantiatesAttributes.size() == 1) {
-                    return instantiatesAttributes[0].getShortDescription()
-                } else if(firstSentence) {
+                boolean missingDescription = isEmptyDescription()
+                if (missingDescription && otherProperties["attributeText"]) {
+                    return getSentence(otherProperties["attributeText"], 0)
+                }
+                else if (missingDescription && activeAttributes.size() == 1) {
+                    return activeAttributes[0].getShortDescription()
+                }
+                else if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && activeAttributes.size() == 1) {
+                    return activeAttributes[0].getShortDescription()
+                }
+                else if (firstSentence) {
                     return firstSentence
-                } else {
+                }
+                else {
                     System.err.println("Couldn't set short description: $stereotype $name")
                     System.err.println("$description")
                 }
@@ -217,24 +231,47 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 */
 
+    String getAttributeTextAsHtml() {
+        if (!isActivePage()) {
+            return null
+        }
+
+        if (otherProperties["attributeText"]) {
+            return otherProperties["attributeText"]
+        }
+
+        List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
+        if (activeAttributes.size() == 1) {
+            NhsDDAttribute attribute = activeAttributes[0]
+            return "<a href=\"${this.getMauroPath()}\">${this.name}</a> is the same as attribute <a href=\"${attribute.getMauroPath()}\">${attribute.name}</a>."
+        }
+
+        return null
+    }
+
     @Override
     Topic descriptionTopic() {
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {
-                if(otherProperties["attributeText"]) {
-                    div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
-                } else {
-                    if(instantiatesAttributes.size() == 1) {
-                        p {
-                            xRef this.calculateXRef()
-                            text " is the same as attribute "
-                            xRef instantiatesAttributes[0].calculateXRef()
-                            text "."
+                if (isActivePage()) {
+                    if (otherProperties["attributeText"]) {
+                        div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
+                    }
+                    else {
+                        List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
+                        if (activeAttributes.size() == 1) {
+                            p {
+                                xRef this.calculateXRef()
+                                text " is the same as attribute "
+                                xRef activeAttributes[0].calculateXRef()
+                                text "."
+                            }
                         }
                     }
                 }
-                if(definition) {
+
+                if (definition) {
                     div HtmlHelper.replaceHtmlWithDita(definition.replace('<table', '<table class=\"table-striped\"'))
                 }
             }
@@ -444,26 +481,31 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
 
-        if(!isPreparatory() && !isRetired() && (otherProperties["formatLength"] || otherProperties["formatLink"])) {
+        if (isActivePage() && (otherProperties["formatLength"] || otherProperties["formatLink"])) {
             topics.add(getFormatLengthTopic())
         }
 
         topics.add(descriptionTopic())
 
-        if(!isPreparatory() && !isRetired() && hasNationalCodes()) {
-            topics.add(getNationalCodesTopic())
-        }
-        if(!isPreparatory() && !isRetired() && hasDefaultCodes()) {
-            topics.add(getDefaultCodesTopic())
-        }
-        if(getAliases()) {
-            topics.add(aliasesTopic())
-        }
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
-        }
-        if(instantiatesAttributes) {
-            topics.add(getAttributesTopic())
+        if (isActivePage()) {
+            if (hasNationalCodes()) {
+                topics.add(getNationalCodesTopic())
+            }
+            if (hasDefaultCodes()) {
+                topics.add(getDefaultCodesTopic())
+            }
+            if (getAliases()) {
+                topics.add(aliasesTopic())
+            }
+            if (whereUsed) {
+                topics.add(whereUsedTopic())
+            }
+            if (instantiatesAttributes) {
+                Topic linkedAttributesTopic = getLinkedAttributesTopic()
+                if (linkedAttributesTopic) {
+                    topics.add(linkedAttributesTopic)
+                }
+            }
         }
         topics.add(changeLogTopic())
         return topics
@@ -519,13 +561,21 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 
 
-    Topic getAttributesTopic() {
-        String attributesTitle = instantiatesAttributes.size() > 1?"Attributes":"Attribute"
+    Topic getLinkedAttributesTopic() {
+        List<NhsDDAttribute> attributes = instantiatesAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
+
+        if (attributes.empty) {
+            return null
+        }
+
+        String attributesTitle = attributes.size() > 1 ? "Attributes" : "Attribute"
         Topic.build (id: getDitaKey() + "_attributes") {
             title attributesTitle
             body {
                 ul {
-                    instantiatesAttributes.each { NhsDDAttribute attribute ->
+                    attributes.each { attribute ->
                         li {
                             xRef (attribute.calculateXRef())
                         }

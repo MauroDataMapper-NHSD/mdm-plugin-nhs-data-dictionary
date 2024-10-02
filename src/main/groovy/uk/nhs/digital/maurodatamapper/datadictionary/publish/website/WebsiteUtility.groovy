@@ -116,7 +116,7 @@ class WebsiteUtility {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy")
         String date = simpleDateFormat.format(new Date())
 
-        String filename = dataDictionary.branchName + '-' + date + ".zip"
+        String filename = "website-${dataDictionary.branchName}-${date}.zip"
 
         long startTime = System.currentTimeMillis()
         ZipFile zipFile = new ZipFile(outputPath.toString() + File.separator + filename)

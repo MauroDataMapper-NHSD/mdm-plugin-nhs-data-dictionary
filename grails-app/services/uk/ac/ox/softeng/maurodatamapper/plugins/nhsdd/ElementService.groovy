@@ -39,7 +39,6 @@ import uk.ac.ox.softeng.maurodatamapper.util.GormUtils
 
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.StringUtils
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDCode
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
@@ -61,6 +60,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, dataDictionary)
         element.instantiatesAttributes.addAll(attributeService.getAllForElement(versionedFolderId, element))
         element.definition = convertLinksInDescription(versionedFolderId, element.getDescription())
+        element.previewAttributeText = convertLinksInDescription(versionedFolderId, element.getAttributeTextAsHtml())
         element.codes.each {code ->
             if(code.webPresentation) {
                 code.webPresentation = convertLinksInDescription(versionedFolderId, code.webPresentation)
@@ -168,12 +168,15 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     }
 
     Set<NhsDDElement> getAllForAttribute(UUID versionedFolderId, NhsDDAttribute nhsDDAttribute) {
-        SemanticLink.byTargetMultiFacetAwareItemId(nhsDDAttribute.catalogueItem.id).list().collect { link ->
-            DataElement.get(link.multiFacetAwareItemId)
-        }.collect { dataElement ->
-            dataElement.metadata.size() // For later conversion to stereotyped item and to find out if retired
-            getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
-        }
+        SemanticLink.byTargetMultiFacetAwareItemId(nhsDDAttribute.catalogueItem.id)
+            .list()
+            .collect { link -> DataElement.get(link.multiFacetAwareItemId) }
+            .collect { dataElement ->
+                dataElement.metadata.size() // For later conversion to stereotyped item and to find out if retired
+                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
+            }
+            .findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
     }
 
     @Deprecated

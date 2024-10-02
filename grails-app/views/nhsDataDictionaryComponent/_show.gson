@@ -9,9 +9,13 @@ json {
         catalogueId nhsDataDictionaryComponent.getCatalogueItemIdAsString()
         name        nhsDataDictionaryComponent.getNameWithRetired()
         stereotype  stereotype
+        isRetired nhsDataDictionaryComponent.isRetired()
+        isPreparatory nhsDataDictionaryComponent.isPreparatory()
         shortDescription nhsDataDictionaryComponent.getShortDescription()
         description nhsDataDictionaryComponent.getDescription()
-        alsoKnownAs nhsDataDictionaryComponent.getAliases()
+        if (nhsDataDictionaryComponent.isActivePage()) {
+            alsoKnownAs nhsDataDictionaryComponent.getAliases()
+        }
         changeLog {
             headerText nhsDataDictionaryComponent.changeLogHeaderText
             footerText nhsDataDictionaryComponent.changeLogFooterText

@@ -73,12 +73,16 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         "true" == otherProperties["isPreparatory"]
     }
 
+    boolean isActivePage() {
+        !isRetired() && !isPreparatory()
+    }
+
     String getUin() {
         otherProperties["uin"]
     }
 
     String getShortDescription() {
-        if(otherProperties["shortDescription"]){
+        if(otherProperties["shortDescription"] && isActivePage()){
             return otherProperties["shortDescription"]
         } else {
             return calculateShortDescription()
@@ -495,11 +499,13 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
-        if(getAliases()) {
-            topics.add(aliasesTopic())
-        }
-        if(whereUsed) {
-            topics.add(whereUsedTopic())
+        if (isActivePage()) {
+            if (getAliases()) {
+                topics.add(aliasesTopic())
+            }
+            if (whereUsed) {
+                topics.add(whereUsedTopic())
+            }
         }
         topics.add(changeLogTopic())
         return topics
@@ -541,16 +547,18 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
                         stentry "Link"
                         stentry "How used"
                     }
-                    whereUsed.sort {it.key.name}.each {component, text ->
-                        strow {
-                            stentry component.stereotype
-                            stentry {
-                                xRef component.calculateXRef()
+                    whereUsed
+                        .findAll { !it.key.isRetired() }
+                        .sort { it.key.name }
+                        .each {component, text ->
+                            strow {
+                                stentry component.stereotype
+                                stentry {
+                                    xRef component.calculateXRef()
+                                }
+                                stentry text
                             }
-                            stentry text
                         }
-                    }
-
                 }
             }
         }
