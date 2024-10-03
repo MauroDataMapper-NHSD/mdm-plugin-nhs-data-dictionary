@@ -356,9 +356,15 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     Change createFormatLengthChange(NhsDDElement previousElement) {
         String currentFormatLength = this.formatLength
         XRef currentFormatLinkXref = this.formatLinkXref
+        boolean hasCurrentFormatLength = currentFormatLength || currentFormatLinkXref
 
         String previousFormatLength = previousElement?.formatLength
         XRef previousFormatLinkXref = previousElement?.formatLinkXref
+        boolean hasPreviousFormatLength = previousFormatLength || previousFormatLinkXref
+
+        if (!hasCurrentFormatLength && !hasPreviousFormatLength) {
+            return null
+        }
 
         String htmlDetail = createFormatLengthChangeHtml(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
         DitaElement ditaDetail = createFormatLengthChangeDita(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
