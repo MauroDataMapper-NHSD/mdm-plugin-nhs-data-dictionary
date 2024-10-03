@@ -275,7 +275,7 @@ class ChangePaper {
         changedItems += new StereotypedChange(stereotypeName: "Class",
               changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary?.classes))
 
-        List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets, includeDataSets)
+        List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets)
 
         changedItems += new StereotypedChange(stereotypeName: "Data Set",
               changedItems: dataSetChanges)
@@ -356,12 +356,11 @@ class ChangePaper {
 
     private static List<ChangedItem> compareMaps(
         Map<String, NhsDataDictionaryComponent> newList,
-        Map<String, NhsDataDictionaryComponent> oldList,
-        boolean includeDataSets = false) {
+        Map<String, NhsDataDictionaryComponent> oldList) {
         List<ChangedItem> changedItems = []
         newList.sort{ it.key }.each {name, component ->
             NhsDataDictionaryComponent previousComponent = oldList?[name]
-            List<Change> changes = component.getChanges(previousComponent, includeDataSets)
+            List<Change> changes = component.getChanges(previousComponent)
             if (changes) {
                 changedItems.add(new ChangedItem(
                     dictionaryComponent: component,

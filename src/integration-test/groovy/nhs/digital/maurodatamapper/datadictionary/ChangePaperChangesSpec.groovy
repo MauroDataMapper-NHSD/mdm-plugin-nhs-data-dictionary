@@ -59,22 +59,24 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             change
         }
 
+        String ditaXml = change.ditaDetail.toXmlString()
+
         verifyAll(change) {
             changeType == NEW_TYPE
             stereotype == expectedStereotype
             !oldItem
             newItem == currentComponent
-            !preferDitaDetail
-            htmlDetail == "<div>\n" +
-            "  <div class='new'>The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was received.</div>\n" +
-            "</div>"
-            ditaDetail.toXmlString() == "<div outputclass='new'>\n" +
-            "  <div>The time the \n" +
-            "\n" +
-            "    <xref keyref='DIAGNOSTIC%20TEST%20REQUEST' scope='local'>DIAGNOSTIC TEST REQUEST</xref> was received.\n" +
-            "\n" +
-            "  </div>\n" +
-            "</div>"
+            preferDitaDetail
+            htmlDetail == """<div>
+  <div class='new'>The time the <a href="DIAGNOSTIC TEST REQUEST">DIAGNOSTIC TEST REQUEST</a> was received.</div>
+</div>"""
+            ditaXml == """<div outputclass='new'>
+  <div>The time the 
+
+    <xref keyref='DIAGNOSTIC%20TEST%20REQUEST' scope='local'>DIAGNOSTIC TEST REQUEST</xref> was received.
+
+  </div>
+</div>"""
         }
     }
 
@@ -106,23 +108,16 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             oldItem == previousComponent
             newItem == currentComponent
             !preferDitaDetail
-            htmlDetail == "<div>\n" +
-            "  <div>The time the <a href=\"DIAGNOSTIC TEST REQUEST\">DIAGNOSTIC TEST REQUEST</a> was <span class=\"diff-html-removed\" id=\"removed-diff-0\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">received</span><span class=\"diff-html-added\" id=\"added-diff-0\" previous=\"removed-diff-0\" changeId=\"added-diff-0\" next=\"last-diff\">obtained</span>.</div>\n" +
-            "</div>"
+            htmlDetail == """<div>
+  <div>The time the <a href="DIAGNOSTIC TEST REQUEST">DIAGNOSTIC TEST REQUEST</a> was <span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">received</span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">obtained</span>.</div>
+</div>"""
             ditaXml == """<div>
-  <div outputclass='deleted'>
-    <div>The time the 
+  <div>The time the 
 
-      <xref keyref='DIAGNOSTIC%20TEST%20REQUEST' scope='local'>DIAGNOSTIC TEST REQUEST</xref> was received.
+    <xref keyref='DIAGNOSTIC%20TEST%20REQUEST' scope='local'>DIAGNOSTIC TEST REQUEST</xref> was 
 
-    </div>
-  </div>
-  <div outputclass='new'>
-    <div>The time the 
-
-      <xref keyref='DIAGNOSTIC%20TEST%20REQUEST' scope='local'>DIAGNOSTIC TEST REQUEST</xref> was obtained.
-
-    </div>
+    <ph id='removed-diff-0' outputclass='diff-html-removed'>received</ph>
+    <ph id='added-diff-0' outputclass='diff-html-added'>obtained</ph>.
   </div>
 </div>"""
         }
@@ -230,13 +225,12 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             !oldItem
             newItem == currentComponent
-            preferDitaDetail
             htmlDetail == """<div>
   <p>This Attribute is also known by these names:</p>
   <table class='alias-table'>
     <thead>
-      <th>Context</th>
-      <th>Alias</th>
+      <th width='34%'>Context</th>
+      <th width='66%'>Alias</th>
     </thead>
     <tbody>
       <tr>
@@ -251,29 +245,31 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
   </table>
 </div>"""
             aliasDitaXml == """<div>
-  <p>This Attribute is also known by these names:</p>
-  <simpletable relcolwidth='1* 2*'>
-    <sthead>
-      <stentry>Context</stentry>
-      <stentry>Alias</stentry>
-    </sthead>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>Also known as</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>Plural</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</ph>
-      </stentry>
-    </strow>
-  </simpletable>
+  <div>
+    <p>This Attribute is also known by these names:</p>
+    <table outputclass='alias-table'>
+      <tgroup cols='2'>
+        <colspec colname='col0' colwidth='34*' />
+        <colspec colname='col1' colwidth='66*' />
+        <thead>
+          <row>
+            <entry scope='col'>Context</entry>
+            <entry scope='col'>Alias</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry outputclass='new'>Also known as</entry>
+            <entry outputclass='new'>DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP</entry>
+          </row>
+          <row>
+            <entry outputclass='new'>Plural</entry>
+            <entry outputclass='new'>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </div>
 </div>"""
         }
     }
@@ -322,13 +318,12 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
-            preferDitaDetail
             htmlDetail == """<div>
   <p>This Attribute is also known by these names:</p>
   <table class='alias-table'>
     <thead>
-      <th>Context</th>
-      <th>Alias</th>
+      <th width='34%'>Context</th>
+      <th width='66%'>Alias</th>
     </thead>
     <tbody>
       <tr>
@@ -355,53 +350,43 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
   </table>
 </div>"""
             aliasDitaXml == """<div>
-  <p>This Attribute is also known by these names:</p>
-  <simpletable relcolwidth='1* 2*'>
-    <sthead>
-      <stentry>Context</stentry>
-      <stentry>Alias</stentry>
-    </sthead>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>Also known as</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIME TRACKING</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry>
-        <ph>Plural</ph>
-      </stentry>
-      <stentry>
-        <ph>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>Schema</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>DIAGNOSTIC SCHEMA</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='deleted'>
-        <ph>Also known as</ph>
-      </stentry>
-      <stentry outputclass='deleted'>
-        <ph>Also known as</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='deleted'>
-        <ph>Formerly</ph>
-      </stentry>
-      <stentry outputclass='deleted'>
-        <ph>Formerly</ph>
-      </stentry>
-    </strow>
-  </simpletable>
+  <div>
+    <p>This Attribute is also known by these names:</p>
+    <table outputclass='alias-table'>
+      <tgroup cols='2'>
+        <colspec colname='col0' colwidth='34*' />
+        <colspec colname='col1' colwidth='66*' />
+        <thead>
+          <row>
+            <entry scope='col'>Context</entry>
+            <entry scope='col'>Alias</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry outputclass='new'>Also known as</entry>
+            <entry outputclass='new'>DIAGNOSTIC TEST REQUEST RECEIVED TIME TRACKING</entry>
+          </row>
+          <row>
+            <entry>Plural</entry>
+            <entry>DIAGNOSTIC TEST REQUEST RECEIVED TIMES</entry>
+          </row>
+          <row>
+            <entry outputclass='new'>Schema</entry>
+            <entry outputclass='new'>DIAGNOSTIC SCHEMA</entry>
+          </row>
+          <row>
+            <entry outputclass='deleted'>Also known as</entry>
+            <entry outputclass='deleted'>DIAGNOSTIC TEST REQUEST RECEIVED TIMESTAMP</entry>
+          </row>
+          <row>
+            <entry outputclass='deleted'>Formerly</entry>
+            <entry outputclass='deleted'>DIAGNOSTIC ASSESSMENT REQUEST RECEIVED TIMES</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </div>
 </div>"""
         }
     }
