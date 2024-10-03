@@ -235,9 +235,11 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             changes.add(descriptionChange)
         }
 
-        Change aliasesChange = createAliasesChange(previousComponent)
-        if (aliasesChange) {
-            changes.add(aliasesChange)
+        if (isActivePage()) {
+            Change aliasesChange = createAliasesChange(previousComponent)
+            if (aliasesChange) {
+                changes.add(aliasesChange)
+            }
         }
 
         changes
