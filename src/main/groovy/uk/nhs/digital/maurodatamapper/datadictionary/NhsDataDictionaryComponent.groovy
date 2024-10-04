@@ -339,36 +339,6 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         }
     }
 
-//    Change createStandardDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-//        if (!previousComponent) {
-//            return createNewComponentChange()
-//        }
-//
-//        return createUpdatedDescriptionChange(previousComponent, includeDataSets)
-//    }
-//
-//    Change createNewComponentChange() {
-//        StringWriter stringWriter = new StringWriter()
-//        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-//
-//        markupBuilder.div {
-//            div (class: "new") {
-//                mkp.yieldUnescaped(this.description)
-//            }
-//        }
-//
-//        new Change(
-//            changeType: Change.NEW_TYPE,
-//            stereotype: stereotype,
-//            oldItem: null,
-//            newItem: this,
-//            htmlDetail: stringWriter.toString(),
-//            ditaDetail: Div.build(outputClass: "new") {
-//                div HtmlHelper.replaceHtmlWithDita(this.description)
-//            }
-//        )
-//    }
-
     Change createRetiredComponentChange(NhsDataDictionaryComponent previousComponent) {
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
@@ -400,53 +370,6 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             }
         )
     }
-
-//    Change createUpdatedDescriptionChange(NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-//        // There could be really complex HTML which really messes up the diff output, particular when HTML tables
-//        // merge cells together, the diff tags added back don't align correctly. So just ignore this for now!
-//        boolean currentContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(this.description)
-//        boolean previousContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(previousComponent.description)
-//        boolean canDiffContent = !currentContainsHtmlTable && !previousContainsHtmlTable
-//
-//        String diffHtml = ""
-//        if (!canDiffContent) {
-//            log.warn("HTML in ${this.stereotype} '${this.name}' contains table, cannot produce diff")
-//            diffHtml = this.description
-//        }
-//        else {
-//            diffHtml = DaisyDiffHelper.diff(previousComponent.description, this.description)
-//        }
-//
-//        StringWriter stringWriter = new StringWriter()
-//        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-//
-//        markupBuilder.div {
-//            if (!canDiffContent) {
-//                markupBuilder.p(class: "info-message") {
-//                    mkp.yield("Contains content that cannot be directly compared. This is the current content.")
-//                }
-//            }
-//            markupBuilder.div {
-//                mkp.yieldUnescaped(diffHtml)
-//            }
-//        }
-//
-//        new Change(
-//            changeType: Change.UPDATED_DESCRIPTION_TYPE,
-//            stereotype: stereotype,
-//            oldItem: previousComponent,
-//            newItem: this,
-//            htmlDetail: stringWriter.toString(),
-//            ditaDetail: Div.build {
-//                div (outputClass: "deleted") {
-//                    div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-//                }
-//                div (outputClass: "new") {
-//                    div HtmlHelper.replaceHtmlWithDita(this.description)
-//                }
-//            }
-//        )
-//    }
 
     Change createAliasesChange(NhsDataDictionaryComponent previousComponent) {
         Map<String, String> currentAliases = getAliases()
@@ -511,100 +434,6 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
         createChange(Change.ALIASES_TYPE, previousComponent, htmlWriter)
     }
-
-//    String createAliasTableChangeHtml(Map<String, String> currentAliases, Map<String, String> previousAliases) {
-//        StringWriter stringWriter = new StringWriter()
-//        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-//
-//        markupBuilder.div {
-//            p "This ${getStereotype()} is also known by these names:"
-//            table(class: "alias-table") {
-//                thead {
-//                    th "Context"
-//                    th "Alias"
-//                }
-//                tbody {
-//                    currentAliases.each {context, alias ->
-//                        if (!previousAliases.containsKey(context) || (previousAliases.containsKey(context) && previousAliases[context] != alias)) {
-//                            markupBuilder.tr {
-//                                markupBuilder.td(class: "new") {
-//                                    mkp.yield(context)
-//                                }
-//                                markupBuilder.td(class: "new") {
-//                                    mkp.yield(alias)
-//                                }
-//                            }
-//                        } else {
-//                            markupBuilder.tr {
-//                                td context
-//                                td alias
-//                            }
-//                        }
-//                    }
-//                    previousAliases.each {context, alias ->
-//                        if (!currentAliases.containsKey(context) || (currentAliases.containsKey(context) && currentAliases[context] != alias)) {
-//                            markupBuilder.tr {
-//                                markupBuilder.td(class: "deleted") {
-//                                    mkp.yield(context)
-//                                }
-//                                markupBuilder.td(class: "deleted") {
-//                                    mkp.yield(alias)
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        return stringWriter.toString()
-//    }
-//
-//    DitaElement createAliasTableChangeDita(Map<String, String> currentAliases, Map<String, String> previousAliases) {
-//        Div.build {
-//            p "This ${getStereotype()} is also known by these names:"
-//            simpletable(relColWidth: new SpaceSeparatedStringList (["1*","2*"])) {
-//                stHead {
-//                    stentry "Context"
-//                    stentry "Alias"
-//                }
-//                currentAliases.each { context, alias ->
-//                    if (!previousAliases.containsKey(context) || (previousAliases.containsKey(context) && previousAliases[context] != alias)) {
-//                        strow {
-//                            stentry(outputClass: "new") {
-//                                ph context
-//                            }
-//                            stentry(outputClass: "new") {
-//                                ph alias
-//                            }
-//                        }
-//                    }
-//                    else {
-//                        strow {
-//                            stentry {
-//                                ph context
-//                            }
-//                            stentry {
-//                                ph alias
-//                            }
-//                        }
-//                    }
-//                }
-//                previousAliases.each { context, alias ->
-//                    if (!currentAliases.containsKey(context) || (currentAliases.containsKey(context) && currentAliases[context] != alias)) {
-//                        strow {
-//                            stentry(outputClass: "deleted") {
-//                                ph context
-//                            }
-//                            stentry(outputClass: "deleted") {
-//                                ph context
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     DitaMap generateMap() {
         DitaMap.build(
