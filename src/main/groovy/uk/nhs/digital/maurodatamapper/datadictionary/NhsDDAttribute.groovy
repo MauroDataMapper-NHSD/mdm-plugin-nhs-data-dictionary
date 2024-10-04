@@ -23,9 +23,10 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 
 @Slf4j
-class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
+class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, ChangeAware {
 
     @Override
     String getStereotype() {
@@ -277,4 +278,8 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
+    @Override
+    String getDiscriminator() {
+        return name
+    }
 }
