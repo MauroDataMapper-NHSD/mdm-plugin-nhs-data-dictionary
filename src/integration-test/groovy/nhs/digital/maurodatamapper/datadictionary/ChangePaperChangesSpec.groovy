@@ -914,7 +914,7 @@ class NhsDDDataSetChangePaperChangesSpec extends ChangePaperChangesSpec {
             ])
 
         when: "finding the changes"
-        List<Change> changes = currentComponent.getChanges(previousComponent, true)
+        List<Change> changes = currentComponent.getChanges(previousComponent)
 
         then: "the expected change object is returned"
         with {
@@ -1111,7 +1111,7 @@ class NhsDDDataSetChangePaperChangesSpec extends ChangePaperChangesSpec {
             ])
 
         when: "finding the changes"
-        List<Change> changes = currentComponent.getChanges(previousComponent, true)
+        List<Change> changes = currentComponent.getChanges(previousComponent)
 
         then: "the expected change object is returned"
         with {
@@ -1271,122 +1271,6 @@ class NhsDDDataSetChangePaperChangesSpec extends ChangePaperChangesSpec {
 //    </table>
 //  </div>
 //</div>"""
-        }
-    }
-
-    void "should return changes for a new data set without data set specification"() {
-        given: "there is no previous component"
-        NhsDDDataSet previousComponent = null
-
-        and: "there is a current component"
-        NhsDDDataSet currentComponent = new NhsDDDataSet(
-            name: "Diagnostic Imaging Data Set",
-            definition: "This is a data set for <a href=\"Diagnostic Imaging Data Set\">Diagnostic Imaging</a>.",
-            dataSetClasses: [
-                new NhsDDDataSetClass(
-                    name: "PERSONAL AND DEMOGRAPHIC",
-                    description: "at least one of these data items must be present.",
-                    dataSetElements: [
-                        createDataSetElement("NHS NUMBER", "R"),
-                        createDataSetElement("NHS NUMBER STATUS INDICATOR CODE", "R"),
-                        createDataSetElement("PERSON BIRTH DATE", "R"),
-                    ]
-                ),
-                new NhsDDDataSetClass(
-                    name: "REFERRALS",
-                    description: "One occurrence of this group is required.",
-                    dataSetElements: [
-                        createDataSetElement("PATIENT SOURCE SETTING TYPE (DIAGNOSTIC IMAGING)", "M"),
-                        createDataSetElement("REFERRER CODE", "R"),
-                        createDataSetElement("DIAGNOSTIC TEST REQUEST DATE", "R"),
-                    ]
-                )
-            ])
-
-        when: "finding the changes"
-        List<Change> changes = currentComponent.getChanges(previousComponent, false)
-
-        then: "the expected change object is returned"
-        with {
-            changes.size() == 1
-        }
-
-        Change newChange = changes.first()
-        verifyAll(newChange) {
-            changeType == NEW_TYPE
-            stereotype == expectedStereotype
-            !oldItem
-            newItem == currentComponent
-        }
-    }
-
-    void "should return changes for an updated data set without data set specification"() {
-        given: "there is a previous component"
-        NhsDDDataSet previousComponent = new NhsDDDataSet(
-            name: "Diagnostic Imaging Data Set",
-            definition: "This is a data set for <a href=\"Diagnostic Imaging Data Set\">Diagnostic Imaging</a>.",
-            dataSetClasses: [
-                new NhsDDDataSetClass(
-                    name: "PERSONAL AND DEMOGRAPHIC",
-                    description: "at least one of these data items must be present.",
-                    dataSetElements: [
-                        createDataSetElement("NHS NUMBER", "R"),
-                        createDataSetElement("NHS NUMBER STATUS INDICATOR CODE", "R"),
-                        createDataSetElement("PERSON BIRTH DATE", "R"),
-                    ]
-                ),
-                new NhsDDDataSetClass(
-                    name: "REFERRALS",
-                    description: "One occurrence of this group is required.",
-                    dataSetElements: [
-                        createDataSetElement("PATIENT SOURCE SETTING TYPE (DIAGNOSTIC IMAGING)", "M"),
-                        createDataSetElement("REFERRER CODE", "R"),
-                        createDataSetElement("DIAGNOSTIC TEST REQUEST DATE", "R"),
-                    ]
-                )
-            ])
-
-        and: "there is a current component"
-        NhsDDDataSet currentComponent = new NhsDDDataSet(
-            name: "Diagnostic Imaging Data Set",
-            definition: "This is an updated data set for <a href=\"Diagnostic Imaging Data Set\">Diagnostic Imaging</a>.",
-            dataSetClasses: [
-                new NhsDDDataSetClass(
-                    name: "PERSONAL AND DEMOGRAPHIC",
-                    description: "at least one of these data items must be present.",
-                    dataSetElements: [
-                        createDataSetElement("NHS NUMBER", "R"),
-                        createDataSetElement("NHS NUMBER STATUS INDICATOR CODE", "R"),
-                        createDataSetElement("PERSON BIRTH DATE", "R"),
-                        createDataSetElement("ETHNIC CATEGORY 2021", "P"),
-                    ]
-                ),
-                new NhsDDDataSetClass(
-                    name: "REFERRALS",
-                    description: "One occurrence of this group is required.",
-                    dataSetElements: [
-                        createDataSetElement("PATIENT SOURCE SETTING TYPE (DIAGNOSTIC IMAGING)", "M"),
-                        createDataSetElement("REFERRER CODE", "R"),
-                        createDataSetElement("DIAGNOSTIC TEST REQUEST DATE", "R"),
-                        createDataSetElement("DIAGNOSTIC TEST REQUEST TIME", "R"),
-                    ]
-                )
-            ])
-
-        when: "finding the changes"
-        List<Change> changes = currentComponent.getChanges(previousComponent, false)
-
-        then: "the expected change object is returned"
-        with {
-            changes.size() == 1
-        }
-
-        Change newChange = changes.first()
-        verifyAll(newChange) {
-            changeType == UPDATED_DESCRIPTION_TYPE
-            stereotype == expectedStereotype
-            oldItem == previousComponent
-            newItem == currentComponent
         }
     }
 }

@@ -167,6 +167,10 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
 
     String getStructureAsHtml() {
+        if (this.dataSetClasses.empty) {
+            return ""
+        }
+
         StringWriter stringWriter = new StringWriter()
         MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
         markupBuilder.setEscapeAttributes(false)
@@ -195,49 +199,68 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
     @Override
-    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
-        if (standardDescriptionChange) {
-            changes.add(standardDescriptionChange)
+    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
+        List<Change> changes = []
+
+        Change descriptionChange = createDescriptionChange(previousComponent)
+        if (descriptionChange) {
+            changes.add(descriptionChange)
         }
 
-        // Data set tables should only be included if specifically requested
-        if (includeDataSets) {
+        if (isActivePage()) {
             Change specificationChange = createSpecificationChange(previousComponent as NhsDDDataSet)
             if (specificationChange) {
                 changes.add(specificationChange)
             }
+
+            Change aliasesChange = createAliasesChange(previousComponent)
+            if (aliasesChange) {
+                changes.add(aliasesChange)
+            }
         }
 
-        // Aliases should only be added if the component is new or updated
-        Change aliasesChange = createAliasesChange(previousComponent)
-        if (aliasesChange) {
-            changes.add(aliasesChange)
-        }
+        changes
     }
 
+    //    @Override
+//    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
+//        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
+//        if (standardDescriptionChange) {
+//            changes.add(standardDescriptionChange)
+//        }
+//
+//        // Data set tables should only be included if specifically requested
+//        if (includeDataSets) {
+//            Change specificationChange = createSpecificationChange(previousComponent as NhsDDDataSet)
+//            if (specificationChange) {
+//                changes.add(specificationChange)
+//            }
+//        }
+//
+//        // Aliases should only be added if the component is new or updated
+//        Change aliasesChange = createAliasesChange(previousComponent)
+//        if (aliasesChange) {
+//            changes.add(aliasesChange)
+//        }
+//    }
+
     Change createSpecificationChange(NhsDDDataSet previousDataSet) {
-        if (this.dataSetClasses.empty || (previousDataSet && previousDataSet.dataSetClasses.empty)) {
+        String currentHtml = this.structureAsHtml
+        String previousHtml = previousDataSet?.structureAsHtml ?: ""
+
+        if (currentHtml == previousHtml) {
+            // Identical specs. If this is a new item, this will never be true so will always include a "Specification" change
             return null
         }
 
         // TODO: show previous as well?
-        String currentHtmlDetail = this.createSpecificationChangeHtml()
-        DitaElement currentDitaDetail = this.createSpecificationChangeDita()
+        // Showing a full comparison of the data set spec is too complicated right now, just have to show the current specification
+        StringWriter htmlWriter = new StringWriter()
+        htmlWriter.write(currentHtml)
 
-        new Change(
-            changeType: Change.SPECIFICATION_TYPE,
-            stereotype: stereotype,
-            oldItem: previousDataSet,
-            newItem: this,
-            htmlDetail: currentHtmlDetail,
-            ditaDetail: currentDitaDetail,
-            preferDitaDetail: true
-        )
-    }
+        DitaElement ditaElement = this.createSpecificationChangeDita()
 
-    String createSpecificationChangeHtml() {
-        this.structureAsHtml
+        createChange(Change.SPECIFICATION_TYPE, previousDataSet, htmlWriter, ditaElement, true)
     }
 
     DitaElement createSpecificationChangeDita() {
