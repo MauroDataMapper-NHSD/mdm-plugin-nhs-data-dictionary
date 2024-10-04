@@ -30,10 +30,11 @@ import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
 @Slf4j
-class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
+class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAware {
 
     @Override
     String getStereotype() {
@@ -592,5 +593,8 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
-
+    @Override
+    String getDiscriminator() {
+        name
+    }
 }

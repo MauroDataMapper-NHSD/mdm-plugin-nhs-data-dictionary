@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.util.logging.Slf4j
+import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
@@ -183,6 +184,11 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
             if (aliasesChange) {
                 changes.add(aliasesChange)
             }
+
+            Change linkedElementsChange = createLinkedElementsChange(previousComponent)
+            if (linkedElementsChange) {
+                changes.add(linkedElementsChange)
+            }
         }
 
         changes
@@ -204,6 +210,31 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.NATIONAL_CODES_TYPE, currentCodes, previousCodes)
 
         createChange(Change.NATIONAL_CODES_TYPE, previousAttribute, htmlWriter)
+    }
+
+    Change createLinkedElementsChange(NhsDDAttribute previousAttribute) {
+        List<NhsDDElement> currentElements = instantiatedByElements
+            .<NhsDDElement>findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
+
+        List<NhsDDElement> previousElements = previousAttribute
+            ? previousAttribute.instantiatedByElements
+                .<NhsDDElement>findAll { element -> !element.isRetired() }
+                .sort { element -> element.name }
+            : []
+
+        if (currentElements.empty && previousElements.empty) {
+            return null
+        }
+
+        if (ChangeFunctions.areEqual(currentElements, previousElements)) {
+            // Identical lists. If this is a new item, this will never be true so will always include a "Data Elements" change
+            return null
+        }
+
+        StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Data Elements", currentElements, previousElements)
+
+        createChange(Change.CHANGED_ELEMENTS_TYPE, previousAttribute, htmlWriter)
     }
 
     @Override

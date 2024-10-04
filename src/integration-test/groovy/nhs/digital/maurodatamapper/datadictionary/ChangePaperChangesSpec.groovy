@@ -632,6 +632,126 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
 </div>"""
         }
     }
+
+    void "should return changes for a new attribute with linked elements"() {
+        given: "there is no previous component"
+        NhsDDAttribute previousComponent = null
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "ABLATIVE THERAPY TYPE",
+            definition: "The type of <a href=\"ABLATIVE THERAPY TYPE\">ABLATIVE THERAPY TYPE</a>.")
+        currentComponent.instantiatedByElements.add(new NhsDDElement(name: "ABLATIVE THERAPY TYPE"))
+        currentComponent.instantiatedByElements.add(new NhsDDElement(name: "ACTIVITY OFFER DATE"))
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected changes are returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change newChange = changes.first()
+        verifyAll(newChange) {
+            changeType == NEW_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+        }
+
+        Change nationalCodesChange = changes.last()
+        String ditaXml = nationalCodesChange.ditaDetail.toXmlString()
+        verifyAll(nationalCodesChange) {
+            changeType == CHANGED_ELEMENTS_TYPE
+            stereotype == expectedStereotype
+            !oldItem
+            newItem == currentComponent
+            htmlDetail == """<div>
+  <p>
+    <b>Data Elements</b>
+  </p>
+  <ul>
+    <li class='new'>ABLATIVE THERAPY TYPE</li>
+    <li class='new'>ACTIVITY OFFER DATE</li>
+  </ul>
+</div>"""
+            ditaXml == """<div>
+  <div>
+    <p>
+      <b>Data Elements</b>
+    </p>
+    <ul>
+      <li outputclass='new'>ABLATIVE THERAPY TYPE</li>
+      <li outputclass='new'>ACTIVITY OFFER DATE</li>
+    </ul>
+  </div>
+</div>"""
+        }
+    }
+
+    void "should return changes for an attribute with updated linked elements"() {
+        given: "there is a previous component"
+        NhsDDAttribute previousComponent = new NhsDDAttribute(
+            name: "ABLATIVE THERAPY TYPE",
+            definition: "The type of <a href=\"ABLATIVE THERAPY TYPE\">ABLATIVE THERAPY TYPE</a>.")
+        previousComponent.instantiatedByElements.add(new NhsDDElement(name: "ABLATIVE THERAPY TYPE"))
+        previousComponent.instantiatedByElements.add(new NhsDDElement(name: "ACTIVITY OFFER DATE"))
+
+        and: "there is a current component"
+        NhsDDAttribute currentComponent = new NhsDDAttribute(
+            name: "ABLATIVE THERAPY TYPE",
+            definition: "The form of <a href=\"ABLATIVE THERAPY TYPE\">ABLATIVE THERAPY TYPE</a>.")
+        currentComponent.instantiatedByElements.add(new NhsDDElement(name: "ABLATIVE THERAPY TYPE"))    // Unchanged
+        currentComponent.instantiatedByElements.add(new NhsDDElement(name: "ACTIVITY UNIT PRICE"))      // New
+
+        when: "finding the changes"
+        List<Change> changes = currentComponent.getChanges(previousComponent)
+
+        then: "the expected changes are returned"
+        with {
+            changes.size() == 2
+        }
+
+        Change updatedChange = changes.first()
+        verifyAll(updatedChange) {
+            changeType == UPDATED_DESCRIPTION_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+        }
+
+        Change nationalCodesChange = changes.last()
+        String ditaXml = nationalCodesChange.ditaDetail.toXmlString()
+        verifyAll(nationalCodesChange) {
+            changeType == CHANGED_ELEMENTS_TYPE
+            stereotype == expectedStereotype
+            oldItem == previousComponent
+            newItem == currentComponent
+            htmlDetail == """<div>
+  <p>
+    <b>Data Elements</b>
+  </p>
+  <ul>
+    <li>ABLATIVE THERAPY TYPE</li>
+    <li class='new'>ACTIVITY UNIT PRICE</li>
+    <li class='deleted'>ACTIVITY OFFER DATE</li>
+  </ul>
+</div>"""
+            ditaXml == """<div>
+  <div>
+    <p>
+      <b>Data Elements</b>
+    </p>
+    <ul>
+      <li>ABLATIVE THERAPY TYPE</li>
+      <li outputclass='new'>ACTIVITY UNIT PRICE</li>
+      <li outputclass='deleted'>ACTIVITY OFFER DATE</li>
+    </ul>
+  </div>
+</div>"""
+        }
+    }
 }
 
 @Integration
