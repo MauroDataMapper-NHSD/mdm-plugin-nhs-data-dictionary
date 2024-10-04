@@ -786,22 +786,16 @@ class NhsDDElementChangePaperChangesSpec extends ChangePaperChangesSpec {
             newItem == currentComponent
             preferDitaDetail
             htmlDetail == """<div class='format-length-detail'>
-  <dl>
-    <dt>Format / Length</dt>
-    <dd>
-      <p class='new'>an8 HH:MM:SS</p>
-    </dd>
-  </dl>
+  <p>
+    <b>Format / Length</b>
+  </p>
+  <p class='new'>an8 HH:MM:SS</p>
 </div>"""
             formatChangeDitaXml == """<div>
-  <dl>
-    <dlentry>
-      <dt>Format / Length</dt>
-      <dd>
-        <p outputclass='new'>an8 HH:MM:SS</p>
-      </dd>
-    </dlentry>
-  </dl>
+  <p>
+    <b>Format / Length</b>
+  </p>
+  <p outputclass='new'>an8 HH:MM:SS</p>
 </div>"""
         }
 
@@ -849,24 +843,18 @@ class NhsDDElementChangePaperChangesSpec extends ChangePaperChangesSpec {
             newItem == currentComponent
             preferDitaDetail
             htmlDetail == """<div class='format-length-detail'>
-  <dl>
-    <dt>Format / Length</dt>
-    <dd>
-      <p class='new'>min an5 max an9</p>
-      <p class='deleted'>an8 HH:MM:SS</p>
-    </dd>
-  </dl>
+  <p>
+    <b>Format / Length</b>
+  </p>
+  <p class='new'>min an5 max an9</p>
+  <p class='deleted'>an8 HH:MM:SS</p>
 </div>"""
             formatChangeDitaXml == """<div>
-  <dl>
-    <dlentry>
-      <dt>Format / Length</dt>
-      <dd>
-        <p outputclass='new'>min an5 max an9</p>
-        <p outputclass='deleted'>an8 HH:MM:SS</p>
-      </dd>
-    </dlentry>
-  </dl>
+  <p>
+    <b>Format / Length</b>
+  </p>
+  <p outputclass='new'>min an5 max an9</p>
+  <p outputclass='deleted'>an8 HH:MM:SS</p>
 </div>"""
         }
 
