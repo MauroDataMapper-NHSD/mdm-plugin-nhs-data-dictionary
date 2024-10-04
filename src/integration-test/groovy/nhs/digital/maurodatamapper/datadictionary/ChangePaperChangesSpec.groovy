@@ -429,12 +429,14 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             !oldItem
             newItem == currentComponent
-            preferDitaDetail
             htmlDetail == """<div>
+  <p>
+    <b>National Codes</b>
+  </p>
   <table class='codes-table'>
     <thead>
-      <th>Code</th>
-      <th>Description</th>
+      <th width='20%'>Code</th>
+      <th width='80%'>Description</th>
     </thead>
     <tbody>
       <tr>
@@ -457,47 +459,41 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
   </table>
 </div>"""
             ditaXml == """<div>
-  <p>
-    <b>National Codes</b>
-  </p>
-  <simpletable relcolwidth='1* 4*'>
-    <sthead>
-      <stentry>Code</stentry>
-      <stentry>Description</stentry>
-    </sthead>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>9</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>Not Known (Not Recorded)</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>M</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>Microwave Ablation</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>7</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>Other Ablative Therapy (not listed)</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>8</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>Other Ablative Treatment (not listed) (Retired 1 April 2024)</ph>
-      </stentry>
-    </strow>
-  </simpletable>
+  <div>
+    <p>
+      <b>National Codes</b>
+    </p>
+    <table outputclass='codes-table'>
+      <tgroup cols='2'>
+        <colspec colname='col0' colwidth='20*' />
+        <colspec colname='col1' colwidth='80*' />
+        <thead>
+          <row>
+            <entry scope='col'>Code</entry>
+            <entry scope='col'>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry outputclass='new'>9</entry>
+            <entry outputclass='new'>Not Known (Not Recorded)</entry>
+          </row>
+          <row>
+            <entry outputclass='new'>M</entry>
+            <entry outputclass='new'>Microwave Ablation</entry>
+          </row>
+          <row>
+            <entry outputclass='new'>7</entry>
+            <entry outputclass='new'>Other Ablative Therapy (not listed)</entry>
+          </row>
+          <row>
+            <entry outputclass='new'>8</entry>
+            <entry outputclass='new'>Other Ablative Treatment (not listed) (Retired 1 April 2024)</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </div>
 </div>"""
         }
     }
@@ -548,12 +544,14 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
-            preferDitaDetail
             htmlDetail == """<div>
+  <p>
+    <b>National Codes</b>
+  </p>
   <table class='codes-table'>
     <thead>
-      <th>Code</th>
-      <th>Description</th>
+      <th width='20%'>Code</th>
+      <th width='80%'>Description</th>
     </thead>
     <tbody>
       <tr>
@@ -584,67 +582,53 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
   </table>
 </div>"""
             ditaXml == """<div>
-  <p>
-    <b>National Codes</b>
-  </p>
-  <simpletable relcolwidth='1* 4*'>
-    <sthead>
-      <stentry>Code</stentry>
-      <stentry>Description</stentry>
-    </sthead>
-    <strow>
-      <stentry>
-        <ph>9</ph>
-      </stentry>
-      <stentry>
-        <ph>Not Known (Not Recorded)</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry>
-        <ph>M</ph>
-      </stentry>
-      <stentry>
-        <ph>Microwave Ablation</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>R</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <div>
-          <p>
-            <xref keyref='te:NHS%20Business%20Definitions|tm:Radiofrequency%20Ablation' scope='local'>Radiofrequency Ablation</xref>
-          </p>
-        </div>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='new'>
-        <ph>8</ph>
-      </stentry>
-      <stentry outputclass='new'>
-        <ph>Other Ablative Treatment (not listed) (Retired 1 May 2024)</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='deleted'>
-        <ph>7</ph>
-      </stentry>
-      <stentry outputclass='deleted'>
-        <ph>Other Ablative Therapy (not listed)</ph>
-      </stentry>
-    </strow>
-    <strow>
-      <stentry outputclass='deleted'>
-        <ph>8</ph>
-      </stentry>
-      <stentry outputclass='deleted'>
-        <ph>Other Ablative Treatment (not listed) (Retired 1 April 2024)</ph>
-      </stentry>
-    </strow>
-  </simpletable>
+  <div>
+    <p>
+      <b>National Codes</b>
+    </p>
+    <table outputclass='codes-table'>
+      <tgroup cols='2'>
+        <colspec colname='col0' colwidth='20*' />
+        <colspec colname='col1' colwidth='80*' />
+        <thead>
+          <row>
+            <entry scope='col'>Code</entry>
+            <entry scope='col'>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>9</entry>
+            <entry>Not Known (Not Recorded)</entry>
+          </row>
+          <row>
+            <entry>M</entry>
+            <entry>Microwave Ablation</entry>
+          </row>
+          <row>
+            <entry outputclass='new'>R</entry>
+            <entry outputclass='new'>
+              <p>
+                <xref keyref='te:NHS%20Business%20Definitions|tm:Radiofrequency%20Ablation' scope='local'>Radiofrequency Ablation</xref>
+              </p>
+            </entry>
+          </row>
+          <row>
+            <entry outputclass='new'>8</entry>
+            <entry outputclass='new'>Other Ablative Treatment (not listed) (Retired 1 May 2024)</entry>
+          </row>
+          <row>
+            <entry outputclass='deleted'>7</entry>
+            <entry outputclass='deleted'>Other Ablative Therapy (not listed)</entry>
+          </row>
+          <row>
+            <entry outputclass='deleted'>8</entry>
+            <entry outputclass='deleted'>Other Ablative Treatment (not listed) (Retired 1 April 2024)</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </div>
 </div>"""
         }
     }
