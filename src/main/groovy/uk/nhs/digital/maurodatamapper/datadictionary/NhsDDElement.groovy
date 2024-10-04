@@ -315,6 +315,11 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
             if (aliasesChange) {
                 changes.add(aliasesChange)
             }
+
+            Change linkedAttributesChange = createLinkedAttributesChange(previousComponent as NhsDDElement)
+            if (linkedAttributesChange) {
+                changes.add(linkedAttributesChange)
+            }
         }
 
         changes
@@ -354,6 +359,31 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.DEFAULT_CODES_TYPE, currentCodes, previousCodes)
 
         createChange(Change.DEFAULT_CODES_TYPE, previousElement, htmlWriter)
+    }
+
+    Change createLinkedAttributesChange(NhsDDElement previousElement) {
+        List<NhsDDAttribute> currentAttributes = instantiatesAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
+
+        List<NhsDDAttribute> previousAttributes = previousElement
+            ? previousElement.instantiatesAttributes
+                .findAll { attribute -> !attribute.isRetired() }
+                .sort { attribute -> attribute.name }
+            : []
+
+        if (currentAttributes.empty && previousAttributes.empty) {
+            return null
+        }
+
+        if (ChangeFunctions.areEqual(currentAttributes, previousAttributes)) {
+            // Identical lists. If this is a new item, this will never be true so will always include an "Attributes" change
+            return null
+        }
+
+        StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Attributes", currentAttributes, previousAttributes)
+
+        createChange(Change.CHANGED_ATTRIBUTES_TYPE, previousElement, htmlWriter)
     }
 
     Change createFormatLengthChange(NhsDDElement previousElement) {

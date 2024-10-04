@@ -185,7 +185,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
                 changes.add(aliasesChange)
             }
 
-            Change linkedElementsChange = createLinkedElementsChange(previousComponent)
+            Change linkedElementsChange = createLinkedElementsChange(previousComponent as NhsDDAttribute)
             if (linkedElementsChange) {
                 changes.add(linkedElementsChange)
             }
