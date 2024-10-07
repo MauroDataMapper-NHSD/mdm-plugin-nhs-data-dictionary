@@ -302,73 +302,12 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             }
         }
 
-        createChange(Change.UPDATED_DESCRIPTION_TYPE, previousComponent, htmlWriter)
-    }
-
-    @Deprecated
-    void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-        if (!previousComponent) {
-            buildComponentDetailsChangeList(changes, null, includeDataSets)
-        }
-        else if (isRetired() && !previousComponent.isRetired()) {
-            Change retiredChange = createRetiredComponentChange(previousComponent)
-            changes.add(retiredChange)
-        }
-        // To get accurate description comparison, we have to load all strings as HTML Dom trees and compare them. A simple
-        // string comparison won't do anymore - because you could have superfluous whitespace between HTML tags that a string compare will
-        // just consider "different" when semantically it isn't. _However_, this HTML comparison is *incredibly* slow across comparing
-        // two dictionary branches now! If you want to test it faster, uncomment the line below and remember to put it back before you commit
-        //else if (description != previousComponent.description) { // DEBUG
-        else if (DaisyDiffHelper.calculateDifferences(description, previousComponent.description).length > 0) {
-            buildComponentDetailsChangeList(changes, previousComponent, includeDataSets)
-        }
-    }
-
-
-    @Deprecated
-    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
-        if (standardDescriptionChange) {
-            changes.add(standardDescriptionChange)
+        String changeType = Change.UPDATED_DESCRIPTION_TYPE
+        if (isRetired() && !previousComponent.isRetired()) {
+            changeType = Change.RETIRED_TYPE
         }
 
-        // Aliases should only be added if the component is new or updated
-        Change aliasesChange = createAliasesChange(previousComponent)
-        if (aliasesChange) {
-            changes.add(aliasesChange)
-        }
-    }
-
-    Change createRetiredComponentChange(NhsDataDictionaryComponent previousComponent) {
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-
-        markupBuilder.div {
-            /*div (class: "deleted") {
-                mkp.yieldUnescaped(previousComponent.description)
-            }
-            div (class: "new") {
-                mkp.yieldUnescaped(this.description)
-            }*/
-
-            mkp.yieldUnescaped(DaisyDiffHelper.diff(previousComponent.description, this.description))
-        }
-
-        new Change(
-            changeType: Change.RETIRED_TYPE,
-            stereotype: stereotype,
-            oldItem: previousComponent,
-            newItem: this,
-            htmlDetail: stringWriter.toString(),
-            ditaDetail: Div.build {
-                div (outputClass: "deleted") {
-                    div HtmlHelper.replaceHtmlWithDita(previousComponent.description)
-                }
-                div (outputClass: "new") {
-                    div HtmlHelper.replaceHtmlWithDita(this.description)
-                }
-            }
-        )
+        createChange(changeType, previousComponent, htmlWriter)
     }
 
     Change createAliasesChange(NhsDataDictionaryComponent previousComponent) {

@@ -184,8 +184,9 @@ class NhsDDAttributeChangePaperChangesSpec extends ChangePaperChangesSpec  {
             stereotype == expectedStereotype
             oldItem == previousComponent
             newItem == currentComponent
-            !preferDitaDetail
-            htmlDetail == "<div><span class=\"diff-html-removed\" id=\"removed-diff-0\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">The time the </span><a href=\"DIAGNOSTIC TEST REQUEST\"><span class=\"diff-html-removed\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\">DIAGNOSTIC TEST REQUEST</span></a><span class=\"diff-html-removed\" previous=\"first-diff\" changeId=\"removed-diff-0\" next=\"added-diff-0\"> was received</span><span class=\"diff-html-added\" id=\"added-diff-0\" previous=\"removed-diff-0\" changeId=\"added-diff-0\" next=\"last-diff\">This item has been retired from the NHS Data Model and Dictionary</span>.</div>"
+            htmlDetail == """<div>
+  <div><span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">The time the </span><a href="DIAGNOSTIC TEST REQUEST"><span class="diff-html-removed" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">DIAGNOSTIC TEST REQUEST</span></a><span class="diff-html-removed" previous="first-diff" changeId="removed-diff-0" next="added-diff-0"> was received</span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">This item has been retired from the NHS Data Model and Dictionary</span>.</div>
+</div>"""
         }
     }
 
