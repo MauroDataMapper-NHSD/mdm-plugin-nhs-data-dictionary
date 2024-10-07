@@ -6,6 +6,7 @@ model {
 json {
 
     name changedItem.dictionaryComponent.name
+    summaryOfChanges changedItem.summaryOfChanges
     changes g.render (changedItem.changes)
 
 }

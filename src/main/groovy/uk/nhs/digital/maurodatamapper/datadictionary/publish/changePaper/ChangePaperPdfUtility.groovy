@@ -186,10 +186,7 @@ class ChangePaperPdfUtility {
                             }
                         }
                         stentry {
-                            String changeText = changedItem.changes.collect {
-                                it.changeType
-                            }.join(", ")
-                            p changeText
+                            p changedItem.getSummaryOfChanges()
                         }
                     }
                 }
