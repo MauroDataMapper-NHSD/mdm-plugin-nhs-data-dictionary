@@ -288,7 +288,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []
 
-        if (isActivePage() && hasFormatLength()) {
+        if (isActivePage()) {
             Change formatLengthChange = createFormatLengthChange(previousComponent as NhsDDElement)
             if (formatLengthChange) {
                 changes.add(formatLengthChange)
@@ -387,124 +387,24 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
     }
 
     Change createFormatLengthChange(NhsDDElement previousElement) {
-        boolean hasCurrentFormatLength = this.hasFormatLength()
-        boolean hasPreviousFormatLength = previousElement?.hasFormatLength() ?: false
+        def currentFormatLength = new NhsDDFormatLength(this)
+        def previousFormatLength = previousElement ? new NhsDDFormatLength(previousElement) : NhsDDFormatLength.EMPTY
 
-        if (!hasCurrentFormatLength && !hasPreviousFormatLength) {
+        if (currentFormatLength.empty() && previousFormatLength.empty()) {
             return null
         }
 
-        String currentFormatLength = this.formatLength
-        XRef currentFormatLinkXref = this.formatLinkXref
+        boolean isNewItem = previousElement == null
 
-        String previousFormatLength = previousElement?.formatLength
-        XRef previousFormatLinkXref = previousElement?.formatLinkXref
+        if (!isNewItem && currentFormatLength.equals(previousFormatLength)) {
+            // Identical, nothing to show. If it's a new item though, always show this
+            return null
+        }
 
-        StringWriter htmlWriter = createFormatLengthChangeHtml(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
-        DitaElement ditaElement = createFormatLengthChangeDita(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
+        StringWriter htmlWriter = currentFormatLength.getChangeHtml(previousFormatLength)
+        DitaElement ditaElement = currentFormatLength.getChangeDita(previousFormatLength)
 
         createChange(Change.FORMAT_LENGTH_TYPE, previousElement, htmlWriter, ditaElement, true)
-    }
-
-    static StringWriter createFormatLengthChangeHtml(String currentFormatLength, XRef currentFormatLinkXref, String previousFormatLength, XRef previousFormatLinkXref) {
-        StringWriter htmlWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(htmlWriter)
-
-        markupBuilder.div(class: "format-length-detail") {
-            p {
-                b "Format / Length"
-            }
-            if (currentFormatLinkXref) {
-                if (!previousFormatLinkXref) {
-                    markupBuilder.p(class: "new") {
-                        // TODO: not sure what to output for HTML here, but just for preview
-                        mkp.yield("See ${currentFormatLinkXref.toXmlString()}")
-                    }
-                }
-                else {
-                    markupBuilder.p {
-                        // TODO: not sure what to output for HTML here, but just for preview
-                        mkp.yield("See ${currentFormatLinkXref.toXmlString()}")
-                    }
-                }
-            }
-            else {
-                if (!previousFormatLength || (previousFormatLength && previousFormatLength != currentFormatLength)) {
-                    markupBuilder.p(class: "new") {
-                        mkp.yield(currentFormatLength)
-                    }
-                    if (previousFormatLength) {
-                        markupBuilder.p(class: "deleted") {
-                            mkp.yield(previousFormatLength)
-                        }
-                    }
-                }
-                else if (!currentFormatLength || (currentFormatLength && currentFormatLength != previousFormatLength)) {
-                    markupBuilder.p(class: "deleted") {
-                        mkp.yield(currentFormatLength)
-                    }
-                    if (currentFormatLength) {
-                        markupBuilder.p(class: "new") {
-                            mkp.yield(currentFormatLength)
-                        }
-                    }
-                }
-                else {
-                    markupBuilder.p {
-                        mkp.yield(currentFormatLength)
-                    }
-                }
-            }
-        }
-
-        htmlWriter
-    }
-
-    static DitaElement createFormatLengthChangeDita(String currentFormatLength, XRef currentFormatLinkXref, String previousFormatLength, XRef previousFormatLinkXref) {
-        Div.build {
-            p {
-                b "Format / Length"
-            }
-            if (currentFormatLinkXref) {
-                if (!previousFormatLinkXref) {
-                    p(outputClass: "new") {
-                        txt "See "
-                        xRef currentFormatLinkXref
-                    }
-                }
-                else {
-                    p {
-                        txt "See "
-                        xRef currentFormatLinkXref
-                    }
-                }
-            }
-            else {
-                if (!previousFormatLength || (previousFormatLength && previousFormatLength != currentFormatLength)) {
-                    p(outputClass: "new") {
-                        txt currentFormatLength
-                    }
-                    if (previousFormatLength) {
-                        p(outputClass: "deleted") {
-                            txt previousFormatLength
-                        }
-                    }
-                }
-                else if (!currentFormatLength || (currentFormatLength && currentFormatLength != previousFormatLength)) {
-                    p(outputClass: "deleted") {
-                        txt currentFormatLength
-                    }
-                    if (currentFormatLength) {
-                        p(outputClass: "new") {
-                            txt currentFormatLength
-                        }
-                    }
-                }
-                else {
-                    p currentFormatLength
-                }
-            }
-        }
     }
 
     @Override
