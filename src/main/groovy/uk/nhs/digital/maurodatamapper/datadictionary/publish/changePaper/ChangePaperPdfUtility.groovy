@@ -203,10 +203,7 @@ class ChangePaperPdfUtility {
 
             Topic subTopic = Topic.build(id: changedItem.dictionaryComponent.getDitaKey()) {
                 title changedItem.dictionaryComponent.name
-                String changeText = changedItem.changes.collect {
-                    it.changeType
-                }.join(", ")
-                shortdesc "Change to ${stereotypedChange.stereotypeName}: ${changeText}"
+                shortdesc "Change to ${stereotypedChange.stereotypeName}: ${changedItem.summaryOfChanges}"
 
                 body {
                     changedItem.changes.each {change ->
