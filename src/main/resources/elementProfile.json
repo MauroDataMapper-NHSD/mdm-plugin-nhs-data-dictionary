@@ -72,14 +72,6 @@
     "sectionDescription": "The attributes that this element instantiates",
     "fields": [
       {
-        "fieldName": "Linked Attributes",
-        "metadataPropertyName": "linkedAttributes",
-        "description": "The names of attributes that this element instantiates (separated with a semi-colon (';'))",
-        "minMultiplicity": 0,
-        "maxMultiplicity": 1,
-        "dataType": "string"
-      },
-      {
         "fieldName": "Attribute Text",
         "metadataPropertyName": "attributeText",
         "description": "Override the default-generated description text to explain which attributes are instantiated by this element",
