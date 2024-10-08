@@ -222,28 +222,6 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         changes
     }
 
-    //    @Override
-//    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-//        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
-//        if (standardDescriptionChange) {
-//            changes.add(standardDescriptionChange)
-//        }
-//
-//        // Data set tables should only be included if specifically requested
-//        if (includeDataSets) {
-//            Change specificationChange = createSpecificationChange(previousComponent as NhsDDDataSet)
-//            if (specificationChange) {
-//                changes.add(specificationChange)
-//            }
-//        }
-//
-//        // Aliases should only be added if the component is new or updated
-//        Change aliasesChange = createAliasesChange(previousComponent)
-//        if (aliasesChange) {
-//            changes.add(aliasesChange)
-//        }
-//    }
-
     Change createSpecificationChange(NhsDDDataSet previousDataSet) {
         String currentHtml = this.structureAsHtml
         String previousHtml = previousDataSet?.structureAsHtml ?: ""
