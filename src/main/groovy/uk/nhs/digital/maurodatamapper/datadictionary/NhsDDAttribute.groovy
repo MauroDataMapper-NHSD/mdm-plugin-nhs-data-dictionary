@@ -22,10 +22,13 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.util.logging.Slf4j
+import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
 @Slf4j
-class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
+class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, ChangeAware {
 
     @Override
     String getStereotype() {
@@ -163,45 +166,75 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
     }
 
     @Override
-    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
-        if (standardDescriptionChange) {
-            changes.add(standardDescriptionChange)
+    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
+        List<Change> changes = []
+
+        Change descriptionChange = createDescriptionChange(previousComponent)
+        if (descriptionChange) {
+            changes.add(descriptionChange)
         }
 
-        // National codes should only be added if the component is new or updated
-        Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDAttribute)
-        if (nationalCodesChange) {
-            changes.add(nationalCodesChange)
+        if (isActivePage()) {
+            Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDAttribute)
+            if (nationalCodesChange) {
+                changes.add(nationalCodesChange)
+            }
+
+            Change aliasesChange = createAliasesChange(previousComponent)
+            if (aliasesChange) {
+                changes.add(aliasesChange)
+            }
+
+            Change linkedElementsChange = createLinkedElementsChange(previousComponent as NhsDDAttribute)
+            if (linkedElementsChange) {
+                changes.add(linkedElementsChange)
+            }
         }
 
-        // Aliases should only be added if the component is new or updated
-        Change aliasesChange = createAliasesChange(previousComponent)
-        if (aliasesChange) {
-            changes.add(aliasesChange)
-        }
+        changes
     }
 
     Change createNationalCodesChange(NhsDDAttribute previousAttribute) {
         List<NhsDDCode> currentCodes = this.getOrderedNationalCodes()
         List<NhsDDCode> previousCodes = previousAttribute ? previousAttribute.getOrderedNationalCodes() : []
 
-        if (currentCodes.isEmpty() && previousCodes.isEmpty()) {
+        if (currentCodes.empty && previousCodes.empty) {
             return null
         }
 
-        String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
-        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes, Change.NATIONAL_CODES_TYPE)
+        if (ChangeFunctions.areEqual(currentCodes, previousCodes)) {
+            // Identical lists. If this is a new item, this will never be true so will always include a "Codes" change
+            return null
+        }
 
-        new Change(
-            changeType: Change.NATIONAL_CODES_TYPE,
-            stereotype: stereotype,
-            oldItem: previousAttribute,
-            newItem: this,
-            htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail,
-            preferDitaDetail: true
-        )
+        StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.NATIONAL_CODES_TYPE, currentCodes, previousCodes)
+
+        createChange(Change.NATIONAL_CODES_TYPE, previousAttribute, htmlWriter)
+    }
+
+    Change createLinkedElementsChange(NhsDDAttribute previousAttribute) {
+        List<NhsDDElement> currentElements = instantiatedByElements
+            .<NhsDDElement>findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
+
+        List<NhsDDElement> previousElements = previousAttribute
+            ? previousAttribute.instantiatedByElements
+                .<NhsDDElement>findAll { element -> !element.isRetired() }
+                .sort { element -> element.name }
+            : []
+
+        if (currentElements.empty && previousElements.empty) {
+            return null
+        }
+
+        if (ChangeFunctions.areEqual(currentElements, previousElements)) {
+            // Identical lists. If this is a new item, this will never be true so will always include a "Data Elements" change
+            return null
+        }
+
+        StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Data Elements", currentElements, previousElements)
+
+        createChange(Change.CHANGED_ELEMENTS_TYPE, previousAttribute, htmlWriter)
     }
 
     @Override
@@ -277,4 +310,8 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
+    @Override
+    String getDiscriminator() {
+        return name
+    }
 }

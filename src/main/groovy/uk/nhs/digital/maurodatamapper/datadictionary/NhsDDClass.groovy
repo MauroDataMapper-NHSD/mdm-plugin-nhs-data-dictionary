@@ -18,14 +18,13 @@
 package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
-import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
 @Slf4j
 class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
@@ -213,98 +212,52 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     }
 
     @Override
-    void buildChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-        // Run standard change checks first
-        NhsDataDictionaryComponent.super.buildChangeList(changes, previousComponent, includeDataSets)
+    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
+        List<Change> changes = []
 
-        NhsDDClass previousClass = previousComponent as NhsDDClass
-        if (!previousClass) {
-            return
+        Change descriptionChange = createDescriptionChange(previousComponent)
+        if (descriptionChange) {
+            changes.add(descriptionChange)
         }
 
-        Change changedAttributesChange = createChangedAttributesChange(previousClass)
-        if (changedAttributesChange) {
-            changes.add(changedAttributesChange)
+        if (isActivePage()) {
+            Change attributesChange = createAttributesChange(previousComponent as NhsDDClass)
+            if (attributesChange) {
+                changes.add(attributesChange)
+            }
+
+            Change relationshipsChange = createRelationshipsChange(previousComponent as NhsDDClass)
+            if (relationshipsChange) {
+                changes.add(relationshipsChange)
+            }
+
+            Change aliasesChange = createAliasesChange(previousComponent)
+            if (aliasesChange) {
+                changes.add(aliasesChange)
+            }
         }
 
-        Change changedRelationshipsChange = createChangedRelationshipsChange(previousClass)
-        if (changedRelationshipsChange) {
-            changes.add(changedRelationshipsChange)
-        }
+        changes
     }
 
-    Change createChangedAttributesChange(NhsDDClass previousClass) {
+    Change createAttributesChange(NhsDDClass previousClass) {
         List<NhsDDAttribute> currentAttributes = this.allAttributes().findAll { !it.isRetired() }
-        List<NhsDDAttribute> previousAttributes = previousClass.allAttributes().findAll { !it.isRetired() }
+        List<NhsDDAttribute> previousAttributes = previousClass ? previousClass.allAttributes().findAll { !it.isRetired() } : []
 
-        // Find all attributes in this one but not the previous - "new attributes"
-        List<NhsDDAttribute> newAttributes = currentAttributes.findAll { currentAttribute ->
-            !previousAttributes.find {previousAttribute -> previousAttribute.name == currentAttribute.name }
+        if (ChangeFunctions.areEqual(currentAttributes, previousAttributes)) {
+            // Identical lists. If this is a new item, this will never be true so will always include an "Attributes" change
+            return null
         }
 
-        // Find all the attributes in the previous one but not this one - "removed attributes"
-        List<NhsDDAttribute> removedAttributes = previousAttributes.findAll {previousAttribute ->
-            !currentAttributes.find {currentAttribute -> currentAttribute.name == previousAttribute.name }
-        }
+        List<NhsDDAttribute> newAttributes = ChangeFunctions.getDifferences(currentAttributes, previousAttributes)
+        List<NhsDDAttribute> removedAttributes = ChangeFunctions.getDifferences(previousAttributes, currentAttributes)
 
         if (newAttributes.empty && removedAttributes.empty) {
             return null
         }
 
-        String htmlDetail = createAttributesTableChangeHtml(currentAttributes, newAttributes, removedAttributes)
-        Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
-
-        new Change(
-            changeType: Change.CHANGED_ATTRIBUTES_TYPE,
-            stereotype: stereotype,
-            oldItem: previousClass,
-            newItem: this,
-            htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail
-        )
-    }
-
-    Change createChangedRelationshipsChange(NhsDDClass previousClass) {
-        List<NhsDDClassRelationship> currentRelationships = this.allRelationships()
-        List<NhsDDClassRelationship> previousRelationships = previousClass.allRelationships()
-
-        // Find all relationships in this one but not the previous - "new relationships"
-        List<NhsDDClassRelationship> newRelationships = currentRelationships.findAll {currentRelationship ->
-            !previousRelationships.find { previousRelationship ->
-                previousRelationship.changePaperDiscriminator == currentRelationship.changePaperDiscriminator
-            }
-        }
-
-        // Find all the relationships in the previous one but not this one - "removed relationships"
-        List<NhsDDClassRelationship> removedRelationships = previousRelationships.findAll {previousRelationship ->
-            !currentRelationships.find {currentRelationship ->
-                currentRelationship.changePaperDiscriminator == previousRelationship.changePaperDiscriminator
-            }
-        }
-
-        if (newRelationships.empty && removedRelationships.empty) {
-            return null
-        }
-
-        String htmlDetail = createRelationshipsTableChangeHtml(name, currentRelationships, newRelationships, removedRelationships)
-        Div ditaDetail = HtmlHelper.replaceHtmlWithDita(htmlDetail)
-
-        new Change(
-            changeType: Change.CHANGED_RELATIONSHIPS_TYPE,
-            stereotype: stereotype,
-            oldItem: previousClass,
-            newItem: this,
-            htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail
-        )
-    }
-
-    static String createAttributesTableChangeHtml(
-        List<NhsDDAttribute> currentAttributes,
-        List<NhsDDAttribute> newAttributes,
-        List<NhsDDAttribute> removedAttributes) {
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+        StringWriter htmlWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(htmlWriter)
 
         markupBuilder.div {
             p "Attributes of this Class are:"
@@ -351,18 +304,29 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             }
         }
 
-        return stringWriter.toString()
+        createChange(Change.CHANGED_ATTRIBUTES_TYPE, previousClass, htmlWriter)
     }
 
-    static String createRelationshipsTableChangeHtml(
-        String sourceName,
-        List<NhsDDClassRelationship> currentRelationships,
-        List<NhsDDClassRelationship> newRelationships,
-        List<NhsDDClassRelationship> removedRelationships) {
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+    Change createRelationshipsChange(NhsDDClass previousClass) {
+        List<NhsDDClassRelationship> currentRelationships = this.allRelationships()
+        List<NhsDDClassRelationship> previousRelationships = previousClass ? previousClass.allRelationships() : []
 
-        String title = "Each $sourceName"
+        if (ChangeFunctions.areEqual(currentRelationships, previousRelationships)) {
+            // Identical lists. If this is a new item, this will never be true so will always include a "Relationships" change
+            return null
+        }
+
+        List<NhsDDClassRelationship> newRelationships = ChangeFunctions.getDifferences(currentRelationships, previousRelationships)
+        List<NhsDDClassRelationship> removedRelationships = ChangeFunctions.getDifferences(previousRelationships, currentRelationships)
+
+        if (newRelationships.empty && removedRelationships.empty) {
+            return null
+        }
+
+        StringWriter htmlWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(htmlWriter)
+
+        String title = "Each $name"
 
         markupBuilder.div {
             p title
@@ -380,7 +344,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
                 }
                 tbody {
                     currentRelationships.each {relationship ->
-                        if (newRelationships.any {it.changePaperDiscriminator == relationship.changePaperDiscriminator}) {
+                        if (newRelationships.any {it.discriminator == relationship.discriminator}) {
                             markupBuilder.tr {
                                 markupBuilder.td(class: "new") {
                                     mkp.yield(relationship.isKey ? "K" : "")
@@ -419,6 +383,6 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             }
         }
 
-        return stringWriter.toString()
+        createChange(Change.CHANGED_RELATIONSHIPS_TYPE, previousClass, htmlWriter)
     }
 }

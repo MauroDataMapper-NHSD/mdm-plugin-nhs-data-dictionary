@@ -30,9 +30,11 @@ import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
 @Slf4j
-class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
+class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAware {
 
     @Override
     String getStereotype() {
@@ -66,6 +68,10 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
 
         otherProperties["formatLength"]
+    }
+
+    boolean hasFormatLength() {
+        otherProperties["formatLength"] || otherProperties["formatLink"]
     }
 
     String previewAttributeText
@@ -279,209 +285,133 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
     }
 
     @Override
-    void buildComponentDetailsChangeList(List<Change> changes, NhsDataDictionaryComponent previousComponent, boolean includeDataSets) {
-        Change formatLengthChange = createFormatLengthChange(previousComponent as NhsDDElement)
-        if (formatLengthChange) {
-            changes.add(formatLengthChange)
+    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
+        List<Change> changes = []
+
+        if (isActivePage()) {
+            Change formatLengthChange = createFormatLengthChange(previousComponent as NhsDDElement)
+            if (formatLengthChange) {
+                changes.add(formatLengthChange)
+            }
         }
 
-        Change standardDescriptionChange = createStandardDescriptionChange(previousComponent, includeDataSets)
-        if (standardDescriptionChange) {
-            changes.add(standardDescriptionChange)
+        Change descriptionChange = createDescriptionChange(previousComponent)
+        if (descriptionChange) {
+            changes.add(descriptionChange)
         }
 
-        // National codes should only be added if the component is new or updated
-        Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDElement)
-        if (nationalCodesChange) {
-            changes.add(nationalCodesChange)
+        if (isActivePage()) {
+            Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDElement)
+            if (nationalCodesChange) {
+                changes.add(nationalCodesChange)
+            }
+
+            Change defaultCodesChange = createDefaultCodesChange(previousComponent as NhsDDElement)
+            if (defaultCodesChange) {
+                changes.add(defaultCodesChange)
+            }
+
+            Change aliasesChange = createAliasesChange(previousComponent)
+            if (aliasesChange) {
+                changes.add(aliasesChange)
+            }
+
+            Change linkedAttributesChange = createLinkedAttributesChange(previousComponent as NhsDDElement)
+            if (linkedAttributesChange) {
+                changes.add(linkedAttributesChange)
+            }
         }
 
-        // Default codes should only be added if the component is new or updated
-        Change defaultCodesChange = createDefaultCodesChange(previousComponent as NhsDDElement)
-        if (defaultCodesChange) {
-            changes.add(defaultCodesChange)
-        }
-
-        // Aliases should only be added if the component is new or updated
-        Change aliasesChange = createAliasesChange(previousComponent)
-        if (aliasesChange) {
-            changes.add(aliasesChange)
-        }
+        changes
     }
 
     Change createNationalCodesChange(NhsDDElement previousElement) {
         List<NhsDDCode> currentCodes = this.getOrderedNationalCodes()
         List<NhsDDCode> previousCodes = previousElement ? previousElement.getOrderedNationalCodes() : []
 
-        if (currentCodes.isEmpty() && previousCodes.isEmpty()) {
+        if (currentCodes.empty && previousCodes.empty) {
             return null
         }
 
-        String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
-        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes, Change.NATIONAL_CODES_TYPE)
+        if (ChangeFunctions.areEqual(currentCodes, previousCodes)) {
+            // Identical lists. If this is a new item, this will never be true so will always include a "Codes" change
+            return null
+        }
 
-        new Change(
-            changeType: Change.NATIONAL_CODES_TYPE,
-            stereotype: stereotype,
-            oldItem: previousElement,
-            newItem: this,
-            htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail,
-            preferDitaDetail: true
-        )
+        StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.NATIONAL_CODES_TYPE, currentCodes, previousCodes)
+
+        createChange(Change.NATIONAL_CODES_TYPE, previousElement, htmlWriter)
     }
 
     Change createDefaultCodesChange(NhsDDElement previousElement) {
         List<NhsDDCode> currentCodes = this.getOrderedDefaultCodes()
         List<NhsDDCode> previousCodes = previousElement ? previousElement.getOrderedDefaultCodes() : []
 
-        if (currentCodes.isEmpty() && previousCodes.isEmpty()) {
+        if (currentCodes.empty && previousCodes.empty) {
             return null
         }
 
-        String htmlDetail = NhsDDCode.createCodesTableChangeHtml(currentCodes, previousCodes)
-        DitaElement ditaDetail = NhsDDCode.createCodesTableChangeDita(currentCodes, previousCodes, Change.DEFAULT_CODES_TYPE)
+        if (ChangeFunctions.areEqual(currentCodes, previousCodes)) {
+            // Identical lists. If this is a new item, this will never be true so will always include a "Codes" change
+            return null
+        }
 
-        new Change(
-            changeType: Change.DEFAULT_CODES_TYPE,
-            stereotype: stereotype,
-            oldItem: previousElement,
-            newItem: this,
-            htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail,
-            preferDitaDetail: true
-        )
+        StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.DEFAULT_CODES_TYPE, currentCodes, previousCodes)
+
+        createChange(Change.DEFAULT_CODES_TYPE, previousElement, htmlWriter)
+    }
+
+    Change createLinkedAttributesChange(NhsDDElement previousElement) {
+        List<NhsDDAttribute> currentAttributes = instantiatesAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
+
+        List<NhsDDAttribute> previousAttributes = previousElement
+            ? previousElement.instantiatesAttributes
+                .findAll { attribute -> !attribute.isRetired() }
+                .sort { attribute -> attribute.name }
+            : []
+
+        if (currentAttributes.empty && previousAttributes.empty) {
+            return null
+        }
+
+        if (ChangeFunctions.areEqual(currentAttributes, previousAttributes)) {
+            // Identical lists. If this is a new item, this will never be true so will always include an "Attributes" change
+            return null
+        }
+
+        StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Attributes", currentAttributes, previousAttributes)
+
+        createChange(Change.CHANGED_ATTRIBUTES_TYPE, previousElement, htmlWriter)
     }
 
     Change createFormatLengthChange(NhsDDElement previousElement) {
-        String currentFormatLength = this.formatLength
-        XRef currentFormatLinkXref = this.formatLinkXref
+        def currentFormatLength = new NhsDDFormatLength(this)
+        def previousFormatLength = previousElement ? new NhsDDFormatLength(previousElement) : NhsDDFormatLength.EMPTY
 
-        String previousFormatLength = previousElement?.formatLength
-        XRef previousFormatLinkXref = previousElement?.formatLinkXref
-
-        String htmlDetail = createFormatLengthChangeHtml(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
-        DitaElement ditaDetail = createFormatLengthChangeDita(currentFormatLength, currentFormatLinkXref, previousFormatLength, previousFormatLinkXref)
-
-        new Change(
-            changeType: Change.FORMAT_LENGTH_TYPE,
-            stereotype: stereotype,
-            oldItem: previousElement,
-            newItem: this,
-            htmlDetail: htmlDetail,
-            ditaDetail: ditaDetail,
-            preferDitaDetail: true
-        )
-    }
-
-    static String createFormatLengthChangeHtml(String currentFormatLength, XRef currentFormatLinkXref, String previousFormatLength, XRef previousFormatLinkXref) {
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-
-        markupBuilder.div(class: "format-length-detail") {
-            dl {
-                dt "Format / Length"
-                dd {
-                    if (currentFormatLinkXref) {
-                        if (!previousFormatLinkXref) {
-                            markupBuilder.p(class: "new") {
-                                // TODO: not sure what to output for HTML here, but just for preview
-                                mkp.yield("See ${currentFormatLinkXref.toXmlString()}")
-                            }
-                        }
-                        else {
-                            markupBuilder.p {
-                                // TODO: not sure what to output for HTML here, but just for preview
-                                mkp.yield("See ${currentFormatLinkXref.toXmlString()}")
-                            }
-                        }
-                    }
-                    else {
-                        if (!previousFormatLength || (previousFormatLength && previousFormatLength != currentFormatLength)) {
-                            markupBuilder.p(class: "new") {
-                                mkp.yield(currentFormatLength)
-                            }
-                            if (previousFormatLength) {
-                                markupBuilder.p(class: "deleted") {
-                                    mkp.yield(previousFormatLength)
-                                }
-                            }
-                        } else if (!currentFormatLength || (currentFormatLength && currentFormatLength != previousFormatLength)) {
-                            markupBuilder.p(class: "deleted") {
-                                mkp.yield(currentFormatLength)
-                            }
-                            if (currentFormatLength) {
-                                markupBuilder.p(class: "new") {
-                                    mkp.yield(currentFormatLength)
-                                }
-                            }
-                        } else {
-                            markupBuilder.p {
-                                mkp.yield(currentFormatLength)
-                            }
-                        }
-                    }
-                }
-            }
+        if (currentFormatLength.empty() && previousFormatLength.empty()) {
+            return null
         }
 
-        return stringWriter.toString()
-    }
+        boolean isNewItem = previousElement == null
 
-    static DitaElement createFormatLengthChangeDita(String currentFormatLength, XRef currentFormatLinkXref, String previousFormatLength, XRef previousFormatLinkXref) {
-        Div.build {
-            dl {
-                dlentry {
-                    dt "Format / Length"
-                    dd {
-                        if (currentFormatLinkXref) {
-                            if (!previousFormatLinkXref) {
-                                p(outputClass: "new") {
-                                    txt "See "
-                                    xRef currentFormatLinkXref
-                                }
-                            }
-                            else {
-                                p {
-                                    txt "See "
-                                    xRef currentFormatLinkXref
-                                }
-                            }
-                        }
-                        else {
-                            if (!previousFormatLength || (previousFormatLength && previousFormatLength != currentFormatLength)) {
-                                p(outputClass: "new") {
-                                    txt currentFormatLength
-                                }
-                                if (previousFormatLength) {
-                                    p(outputClass: "deleted") {
-                                        txt previousFormatLength
-                                    }
-                                }
-                            } else if (!currentFormatLength || (currentFormatLength && currentFormatLength != previousFormatLength)) {
-                                p(outputClass: "deleted") {
-                                    txt currentFormatLength
-                                }
-                                if (currentFormatLength) {
-                                    p(outputClass: "new") {
-                                        txt currentFormatLength
-                                    }
-                                }
-                            } else {
-                                p currentFormatLength
-                            }
-                        }
-                    }
-                }
-            }
+        if (!isNewItem && currentFormatLength.equals(previousFormatLength)) {
+            // Identical, nothing to show. If it's a new item though, always show this
+            return null
         }
+
+        StringWriter htmlWriter = currentFormatLength.getChangeHtml(previousFormatLength)
+        DitaElement ditaElement = currentFormatLength.getChangeDita(previousFormatLength)
+
+        createChange(Change.FORMAT_LENGTH_TYPE, previousElement, htmlWriter, ditaElement, true)
     }
 
     @Override
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
 
-        if (isActivePage() && (otherProperties["formatLength"] || otherProperties["formatLink"])) {
+        if (isActivePage() && hasFormatLength()) {
             topics.add(getFormatLengthTopic())
         }
 
@@ -593,5 +523,8 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement> {
         }
     }
 
-
+    @Override
+    String getDiscriminator() {
+        name
+    }
 }

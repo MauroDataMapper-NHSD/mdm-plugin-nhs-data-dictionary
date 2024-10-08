@@ -15,27 +15,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
+package nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import spock.lang.Specification
 
-class ChangedItem {
-    NhsDataDictionaryComponent dictionaryComponent
-    List<Change> changes = []
-
-    String getSummaryOfChanges() {
-        if (changes.empty) {
-            return ""
-        }
-
-        if (changes.any { it.changeType == Change.NEW_TYPE }) {
-            return Change.NEW_TYPE
-        }
-
-        if (changes.any { it.changeType == Change.RETIRED_TYPE }) {
-            return Change.RETIRED_TYPE
-        }
-
-        changes.collect { it.changeType }.join(", ")
-    }
+abstract class ChangePaperChangesSpec extends Specification {
+    abstract getExpectedStereotype()
 }
+
+
+

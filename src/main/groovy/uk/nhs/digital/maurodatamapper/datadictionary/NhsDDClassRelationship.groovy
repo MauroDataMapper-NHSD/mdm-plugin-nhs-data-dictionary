@@ -19,7 +19,9 @@ package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 
-class NhsDDClassRelationship {
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+
+class NhsDDClassRelationship implements ChangeAware {
 
     String relationshipDescription
     NhsDDClass targetClass
@@ -34,7 +36,10 @@ class NhsDDClassRelationship {
      * This describes the full description of the relationship, including relationship label, target class and key. This should
      * be used in comparisons.
      */
-    String changePaperDiscriminator
+    @Override
+    String getDiscriminator() {
+        "${isKey ? "Key: " : ""}$relationshipDescription $targetClass.name"
+    }
 
     NhsDDClassRelationship() {
     }
@@ -52,7 +57,6 @@ class NhsDDClassRelationship {
         this.isKey = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_KEY_METADATA_KEY }?.value == "true" ?: false
         this.isChoice = relationshipElement.metadata.find { it.key == NhsDDClassLink.IS_CHOICE_METADATA_KEY }?.value == "true" ?: false
         this.relationshipDescription = this.buildDescription()
-        this.changePaperDiscriminator = "${isKey ? "Key: " : ""}$relationshipDescription $targetClass.name"
     }
 
     String buildDescription() {

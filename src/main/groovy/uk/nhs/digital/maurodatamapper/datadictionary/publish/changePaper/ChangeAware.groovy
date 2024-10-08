@@ -17,25 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
-
-class ChangedItem {
-    NhsDataDictionaryComponent dictionaryComponent
-    List<Change> changes = []
-
-    String getSummaryOfChanges() {
-        if (changes.empty) {
-            return ""
-        }
-
-        if (changes.any { it.changeType == Change.NEW_TYPE }) {
-            return Change.NEW_TYPE
-        }
-
-        if (changes.any { it.changeType == Change.RETIRED_TYPE }) {
-            return Change.RETIRED_TYPE
-        }
-
-        changes.collect { it.changeType }.join(", ")
-    }
+interface ChangeAware {
+    String getDiscriminator()
 }

@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat
 
 class ChangePaper {
 
+    /*
     static String example1 = "<p>Here is some text</p>"
 
     static String example2 = "<p>Here is some more text</p>"
@@ -96,6 +97,7 @@ class ChangePaper {
                      "Mandation column indicates the recommendation for the inclusion of data.</p>    <ul>       <li>          <div>M = Mandatory: " +
                      "this data element is mandatory and the technical process (e.g. submission of the data set, production of output etc) cannot " +
                      "be completed without this data element being present.</div>       </li>    </ul>"
+     */
 
 /*    static void main(String[] args) {
 
@@ -203,6 +205,8 @@ class ChangePaper {
 
 */
 
+    private static final String DEFAULT_CONTACT_DETAILS = '<p>For enquiries about this Change Request, please email <a href="mailto:information.standards@nhs.net">information.standards@nhs.net</a>.</p>'
+
     List<StereotypedChange> stereotypedChanges = []
 
     String reference
@@ -214,6 +218,7 @@ class ChangePaper {
     String publicationDate
     String background
     String sponsor
+    String contactDetails
 
     ChangePaper(NhsDataDictionary nhsDataDictionary, NhsDataDictionary oldDataDictionary, boolean includeDataSets = false) {
         reference = nhsDataDictionary.workItemDetails['reference'] ?: 'CRXXXX'
@@ -224,6 +229,7 @@ class ChangePaper {
         reasonForChange = nhsDataDictionary.workItemDetails['reasonForChange'] ?: 'Change to definitions'
         background = nhsDataDictionary.workItemDetails['backgroundText'] ?: backgroundText()
         sponsor = nhsDataDictionary.workItemDetails['sponsor'] ?: 'NHS England'
+        contactDetails = nhsDataDictionary.workItemDetails['contactDetails'] ?: DEFAULT_CONTACT_DETAILS
 
         SimpleDateFormat publicationDateFormat = new SimpleDateFormat("dd MMMM yyyy")
         publicationDate = publicationDateFormat.format(new Date())
@@ -244,6 +250,7 @@ class ChangePaper {
         response['Publication Date'] = publicationDate
         response['Background'] = background
         response['Sponsor'] = sponsor
+        response['Contact Details'] = contactDetails
 
         return response
     }
@@ -268,7 +275,7 @@ class ChangePaper {
         changedItems += new StereotypedChange(stereotypeName: "Class",
               changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary?.classes))
 
-        List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets, includeDataSets)
+        List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets)
 
         changedItems += new StereotypedChange(stereotypeName: "Data Set",
               changedItems: dataSetChanges)
@@ -349,12 +356,11 @@ class ChangePaper {
 
     private static List<ChangedItem> compareMaps(
         Map<String, NhsDataDictionaryComponent> newList,
-        Map<String, NhsDataDictionaryComponent> oldList,
-        boolean includeDataSets = false) {
+        Map<String, NhsDataDictionaryComponent> oldList) {
         List<ChangedItem> changedItems = []
         newList.sort{ it.key }.each {name, component ->
             NhsDataDictionaryComponent previousComponent = oldList?[name]
-            List<Change> changes = component.getChanges(previousComponent, includeDataSets)
+            List<Change> changes = component.getChanges(previousComponent)
             if (changes) {
                 changedItems.add(new ChangedItem(
                     dictionaryComponent: component,

@@ -17,22 +17,18 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import uk.ac.ox.softeng.maurodatamapper.terminology.item.Term
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
-class NhsDDCode {
+class NhsDDCode implements ChangeAware {
 
     String code
     String definition
@@ -127,20 +123,33 @@ class NhsDDCode {
         }
     }
 
-    static String createCodesTableChangeHtml(List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes) {
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
+    static StringWriter createCodesTableChangeHtml(String title, List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes) {
+        List<NhsDDCode> newCodes = ChangeFunctions.getDifferences(currentCodes, previousCodes)
+        List<NhsDDCode> removedCodes = ChangeFunctions.getDifferences(previousCodes, currentCodes)
+
+        if (newCodes.empty && removedCodes.empty) {
+            return null
+        }
+
+        StringWriter htmlWriter = new StringWriter()
+        MarkupBuilder markupBuilder = new MarkupBuilder(htmlWriter)
 
         markupBuilder.div {
+            p {
+                b title
+            }
             table(class: "codes-table") {
                 thead {
-                    th "Code"
-                    th "Description"
+                    markupBuilder.th(width: "20%") {
+                        mkp.yield("Code")
+                    }
+                    markupBuilder.th(width: "80%") {
+                        mkp.yield("Description")
+                    }
                 }
                 tbody {
                     currentCodes.each { code ->
-                        NhsDDCode existing = previousCodes.find { previous -> previous.code == code.code }
-                        if (!existing || (existing && existing.definition != code.definition)) {
+                        if (newCodes.any { it.discriminator == code.discriminator }) {
                             markupBuilder.tr {
                                 markupBuilder.td(class: "new") {
                                     mkp.yield(code.code)
@@ -149,8 +158,7 @@ class NhsDDCode {
                                     code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             markupBuilder.tr {
                                 td code.code
                                 td {
@@ -159,16 +167,13 @@ class NhsDDCode {
                             }
                         }
                     }
-                    previousCodes.each { code ->
-                        NhsDDCode existing = currentCodes.find { current -> current.code == code.code }
-                        if (!existing || (existing && existing.definition != code.definition)) {
-                            markupBuilder.tr {
-                                markupBuilder.td(class: "deleted") {
-                                    mkp.yield(code.code)
-                                }
-                                markupBuilder.td(class: "deleted") {
-                                    code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
-                                }
+                    removedCodes.each { code ->
+                        markupBuilder.tr {
+                            markupBuilder.td(class: "deleted") {
+                                mkp.yield(code.code)
+                            }
+                            markupBuilder.td(class: "deleted") {
+                                code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
                             }
                         }
                     }
@@ -176,72 +181,11 @@ class NhsDDCode {
             }
         }
 
-        return stringWriter.toString()
+        htmlWriter
     }
 
-    static DitaElement createCodesTableChangeDita(List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes, String title) {
-        Div.build {
-            p {
-                b title
-            }
-            simpletable(relColWidth: new SpaceSeparatedStringList (["1*", "4*"])) {
-                stHead {
-                    stentry "Code"
-                    stentry "Description"
-                }
-                currentCodes.each { code ->
-                    NhsDDCode existing = previousCodes.find { previous -> previous.code == code.code }
-                    if (!existing || (existing && existing.definition != code.definition)) {
-                        strow {
-                            stentry(outputClass: "new") {
-                                ph code.code
-                            }
-                            stentry(outputClass: "new") {
-                                if (code.webPresentation) {
-                                    div HtmlHelper.replaceHtmlWithDita(code.webPresentation)
-                                }
-                                else {
-                                    ph code.definition
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        strow {
-                            stentry {
-                                ph code.code
-                            }
-                            stentry {
-                                if (code.webPresentation) {
-                                    div HtmlHelper.replaceHtmlWithDita(code.webPresentation)
-                                }
-                                else {
-                                    ph code.definition
-                                }
-                            }
-                        }
-                    }
-                }
-                previousCodes.each { code ->
-                    NhsDDCode existing = currentCodes.find { current -> current.code == code.code }
-                    if (!existing || (existing && existing.definition != code.definition)) {
-                        strow {
-                            stentry(outputClass: "deleted") {
-                                ph code.code
-                            }
-                            stentry(outputClass: "deleted") {
-                                if (code.webPresentation) {
-                                    div HtmlHelper.replaceHtmlWithDita(code.webPresentation)
-                                }
-                                else {
-                                    ph code.definition
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    @Override
+    String getDiscriminator() {
+        "${code} - ${definition}"
     }
-
 }
