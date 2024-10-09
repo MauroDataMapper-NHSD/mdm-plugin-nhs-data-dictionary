@@ -33,6 +33,12 @@ import groovy.xml.MarkupBuilder
 import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesTable
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Text
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 import java.time.LocalDate
@@ -49,6 +55,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     NhsDataDictionary dataDictionary
 
     T catalogueItem
+    UUID catalogueItemId
+    UUID branchId
     String catalogueItemModelId
     String catalogueItemParentId
 
@@ -107,8 +115,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
-        if(xml.name.size() > 0 && xml.name.text()) {
-            this.name = xml.name[0].text().replace("_", " ")
+        if(xml.title.size() > 0 && xml.title.text()) {
+            this.name = xml.title[0].text().replace("_", " ")
         } else { // This should only apply for dataSetConstraints
             this.name = xml."class".name.text().replace("_", " ")
         }
@@ -396,6 +404,43 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             return LocalDate.parse(otherProperties["validFrom"] as CharSequence, formatter);
         }
         return null
+    }
+
+    DictionaryItem getPublishStructure() {
+        DictionaryItemState state = isRetired()
+            ? DictionaryItemState.RETIRED
+            : isPreparatory()
+            ? DictionaryItemState.PREPARATORY
+            : DictionaryItemState.ACTIVE
+
+        def dictionaryItem = new DictionaryItem(
+            catalogueItem.id,
+            dataDictionary.containingVersionedFolder.id,
+            stereotype,
+            name,
+            state,
+            outputClass,
+            shortDescription)
+
+        String descriptionText = definition
+            ? definition.replace('<table', '<table class=\"table-striped\"')
+            : ""
+        dictionaryItem.addSection(
+            new Section(dictionaryItem, "description", "Description")
+                .addContent(new Text(descriptionText)))
+
+        if (state == DictionaryItemState.ACTIVE) {
+            List<AliasesRow> aliasesRows = getAliases().collect {context, alias -> new AliasesRow(context, alias)}
+            dictionaryItem.addSection(
+                new Section(dictionaryItem, "aliases", "Also Known As")
+                    .addContent(new AliasesTable(dictionaryItem, aliasesRows)))
+
+            // TODO: Where Used table
+        }
+
+        // TODO: Change Log table
+
+        dictionaryItem
     }
 
     List<Topic> getWebsiteTopics() {
