@@ -1,80 +1,27 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Simpletable
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 
 import groovy.xml.MarkupBuilder
 
-class WhereUsedTable implements DitaAware<Simpletable>, HtmlBuilder {
-    final List<WhereUsedRow> rows
+class WhereUsedTable extends StandardTable<WhereUsedRow> {
+    static final List<StandardColumn> COLUMNS = [
+        new StandardColumn("Type", "1*", "15%"),
+        new StandardColumn("Link", "3*", "45%"),
+        new StandardColumn("How used", "2*", "40%"),
+    ]
 
     WhereUsedTable(List<WhereUsedRow> rows) {
-        this.rows = rows
+        super(rows)
     }
 
     @Override
-    Simpletable generateDita() {
-        Simpletable.build(relColWidth: new SpaceSeparatedStringList (["1*","3*","2*"]), outputClass: "table table-sm table-striped") {
-            stHead (outputClass: "thead-light") {
-                stentry "Type"
-                stentry "Link"
-                stentry "How used"
-            }
-            rows.each { row ->
-                strow {
-                    stentry row.type
-                    stentry {
-                        xRef row.link.generateDita()
-                    }
-                    stentry row.usage
-                }
-            }
-        }
-    }
-
-    @Override
-    void buildHtml(MarkupBuilder builder) {
-        builder.div(class: "simpletable-container") {
-            builder.table(class: "- topic/simpletable simpletable table table-striped table-sm") {
-                colgroup {
-                    builder.col(style: "width: 15%")
-                    builder.col(style: "width: 45%")
-                    builder.col(style: "width: 40%")
-                }
-                thead {
-                    builder.tr(class: "- topic/sthead sthead thead-light") {
-                        builder.th(class: "- topic/stentry stentry") {
-                            mkp.yield("Type")
-                        }
-                        builder.th(class: "- topic/stentry stentry") {
-                            mkp.yield("Link")
-                        }
-                        builder.th(class: "- topic/stentry stentry") {
-                            mkp.yield("How used")
-                        }
-                    }
-                }
-                tbody {
-                    rows.each { row ->
-                        builder.tr(class: "- topic/strow strow") {
-                            builder.td(class: "- topic/stentry stentry") {
-                                mkp.yield(row.type)
-                            }
-                            builder.td(class: "- topic/stentry stentry") {
-                                row.link.buildHtml(builder)
-                            }
-                            builder.td(class: "- topic/stentry stentry") {
-                                mkp.yield(row.usage)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    protected List<StandardColumn> getColumnDefinitions() {
+        COLUMNS
     }
 }
 
-class WhereUsedRow {
+class WhereUsedRow extends StandardRow {
     final String type
     final ItemLink link
     final String usage
@@ -83,5 +30,31 @@ class WhereUsedRow {
         this.type = type
         this.link = link
         this.usage = usage
+    }
+
+    @Override
+    Strow generateDita() {
+        Strow.build() {
+            stentry type
+            stentry {
+                xRef link.generateDita()
+            }
+            stentry usage
+        }
+    }
+
+    @Override
+    void buildHtml(MarkupBuilder builder) {
+        builder.tr(class: HtmlConstants.CSS_TABLE_ROW) {
+            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
+                mkp.yield(type)
+            }
+            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
+                link.buildHtml(builder)
+            }
+            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
+                mkp.yield(usage)
+            }
+        }
     }
 }

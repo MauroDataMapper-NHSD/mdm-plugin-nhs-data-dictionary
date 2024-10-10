@@ -27,7 +27,7 @@ class AliasesSection extends Section {
 
     @Override
     void buildHtml(MarkupBuilder builder) {
-        builder.p(class: "- topic/p p") {
+        builder.p(class: HtmlConstants.CSS_TOPIC_PARAGRAPH) {
             mkp.yield(headerText)
         }
 

@@ -74,15 +74,15 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware {
         StringWriter writer = new StringWriter()
         MarkupBuilder builder = new MarkupBuilder(writer)
 
-        String titleCssClass = "title topictitle1 ${outputClass}"
+        String titleCssClass = "${HtmlConstants.CSS_TOPIC_TITLE} ${outputClass}"
 
         builder.h1(class: titleCssClass) {
             mkp.yield(getOfficialName())
         }
 
         if (description) {
-            builder.div(class: "- topic/body body") {
-                builder.p(class: "- topic/shortdesc shortdesc") {
+            builder.div(class: HtmlConstants.CSS_TOPIC_BODY) {
+                builder.p(class: HtmlConstants.CSS_TOPIC_SHORTDESC) {
                     mkp.yield(description)
                 }
             }

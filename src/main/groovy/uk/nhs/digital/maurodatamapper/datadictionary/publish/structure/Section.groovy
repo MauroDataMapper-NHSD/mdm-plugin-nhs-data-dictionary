@@ -34,7 +34,7 @@ abstract class Section implements DitaAware<Topic>, HtmlAware, HtmlBuilder {
         StringWriter writer = new StringWriter()
         MarkupBuilder builder = new MarkupBuilder(writer)
 
-        builder.div(class: "- topic/body body") {
+        builder.div(class: HtmlConstants.CSS_TOPIC_BODY) {
             buildHtml(builder)
         }
 

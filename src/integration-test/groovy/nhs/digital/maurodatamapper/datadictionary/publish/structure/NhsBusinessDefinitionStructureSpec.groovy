@@ -211,7 +211,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             aliasesHtml == """<div class='- topic/body body'>
   <p class='- topic/p p'>This NHS Business Definition is also known by these names:</p>
   <div class='simpletable-container'>
-    <table class='- topic/simpletable simpletable table table-striped table-sm'>
+    <table class='- topic/simpletable simpletable table table-sm table-striped'>
       <colgroup>
         <col style='width: 34%' />
         <col style='width: 66%' />
@@ -241,7 +241,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
                 whereUsedHtml
                 whereUsedHtml == """<div class='- topic/body body'>
   <div class='simpletable-container'>
-    <table class='- topic/simpletable simpletable table table-striped table-sm'>
+    <table class='- topic/simpletable simpletable table table-sm table-striped'>
       <colgroup>
         <col style='width: 15%' />
         <col style='width: 45%' />

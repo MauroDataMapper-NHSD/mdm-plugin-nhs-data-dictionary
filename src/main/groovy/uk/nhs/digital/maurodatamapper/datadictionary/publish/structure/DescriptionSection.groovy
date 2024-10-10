@@ -25,9 +25,9 @@ class DescriptionSection extends Section {
 
     @Override
     void buildHtml(MarkupBuilder builder) {
-        builder.div(class: "- topic/div div") {
+        builder.div(class: HtmlConstants.CSS_TOPIC_DIV) {
             // TODO: prefix sentence - for Element page type (X is the same as Y)
-            builder.p(class: "- topic/p p") {
+            builder.p(class: HtmlConstants.CSS_TOPIC_PARAGRAPH) {
                 mkp.yieldUnescaped(text)
             }
         }
