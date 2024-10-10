@@ -17,7 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -26,18 +25,24 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
-import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryComponentService
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsedRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsedSection
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.regex.Matcher
 
 @Slf4j
 trait NhsDataDictionaryComponent <T extends MdmDomain > {
@@ -49,6 +54,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     NhsDataDictionary dataDictionary
 
     T catalogueItem
+    UUID catalogueItemId
+    UUID branchId
     String catalogueItemModelId
     String catalogueItemParentId
 
@@ -107,8 +114,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
-        if(xml.name.size() > 0 && xml.name.text()) {
-            this.name = xml.name[0].text().replace("_", " ")
+        if(xml.title.size() > 0 && xml.title.text()) {
+            this.name = xml.title[0].text().replace("_", " ")
         } else { // This should only apply for dataSetConstraints
             this.name = xml."class".name.text().replace("_", " ")
         }
@@ -147,6 +154,10 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     abstract String getXmlNodeName()
+
+    void addWhereUsed(NhsDataDictionaryComponent component, String description) {
+        whereUsed[component] = description
+    }
 
     boolean hasNoAliases() {
         return getAliases().size() == 0
@@ -396,6 +407,51 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             return LocalDate.parse(otherProperties["validFrom"] as CharSequence, formatter);
         }
         return null
+    }
+
+    DictionaryItemState getItemState() {
+        isRetired()
+            ? DictionaryItemState.RETIRED
+            : isPreparatory()
+            ? DictionaryItemState.PREPARATORY
+            : DictionaryItemState.ACTIVE
+    }
+
+    DictionaryItem getPublishStructure() {
+        def dictionaryItem = new DictionaryItem(
+            catalogueItemId,
+            branchId,
+            stereotype,
+            name,
+            itemState,
+            outputClass,
+            shortDescription)
+
+        dictionaryItem.addSection(new DescriptionSection(dictionaryItem, definition))
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            if (aliases) {
+                List<AliasesRow> aliasesRows = getAliases()
+                    .collect {context, alias -> new AliasesRow(context, alias)}
+
+                dictionaryItem.addSection(new AliasesSection(dictionaryItem, aliasesRows))
+            }
+
+            if (whereUsed) {
+                List<WhereUsedRow> whereUsedRows = whereUsed
+                    .findAll { it.key.itemState != DictionaryItemState.RETIRED }
+                    .sort { it.key.name }
+                    .collect { component, text ->
+                        new WhereUsedRow(component.stereotype, ItemLink.create(component), text)
+                    }
+
+                dictionaryItem.addSection(new WhereUsedSection(dictionaryItem, whereUsedRows))
+            }
+        }
+
+        // TODO: Change Log table
+
+        dictionaryItem
     }
 
     List<Topic> getWebsiteTopics() {
