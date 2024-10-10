@@ -3,6 +3,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 
 enum DictionaryItemState {
     ACTIVE,
@@ -39,29 +40,25 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware {
     }
 
     DictionaryItem addSection(Section section) {
-        sections.add(section)
+        if (section) {
+            sections.add(section)
+        }
         this
     }
 
     String getOfficialName() {
-        if (state == DictionaryItemState.RETIRED) {
-            return "$name (Retired)"
-        }
-
-        name
+        PublishHelper.createOfficialName(name, state)
     }
 
     String getXrefId() {
-        String encodedName = replaceNonAlphaNumerics(name)
-        String retiredSuffix = state == DictionaryItemState.RETIRED ? "_retired" : ""
-        String key = "${stereotype}_${encodedName}${retiredSuffix}".replace(" ", "_").toLowerCase()
-        key
+        PublishHelper.createXrefId(stereotype, name, state)
     }
 
     @Override
     Topic generateDita() {
         String titleOutputClass = this.outputClass
-        Topic.build(id: getXrefId()) {
+
+        Topic.build(id: xrefId) {
             title (outputClass: titleOutputClass) {
                 text getOfficialName()
             }
@@ -92,13 +89,5 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware {
         }
 
         writer.toString()
-    }
-
-    private static String replaceNonAlphaNumerics(String value) {
-        if (!value) {
-            return ""
-        }
-
-        value.replaceAll("[^A-Za-z0-9- ]", "")
     }
 }

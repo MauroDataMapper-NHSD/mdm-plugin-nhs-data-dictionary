@@ -36,6 +36,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSe
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsedRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsedSection
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 import java.time.LocalDate
@@ -151,6 +154,10 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     abstract String getXmlNodeName()
+
+    void addWhereUsed(NhsDataDictionaryComponent component, String description) {
+        whereUsed[component] = description
+    }
 
     boolean hasNoAliases() {
         return getAliases().size() == 0
@@ -402,29 +409,44 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         return null
     }
 
-    DictionaryItem getPublishStructure() {
-        DictionaryItemState state = isRetired()
+    DictionaryItemState getItemState() {
+        isRetired()
             ? DictionaryItemState.RETIRED
             : isPreparatory()
             ? DictionaryItemState.PREPARATORY
             : DictionaryItemState.ACTIVE
+    }
 
+    DictionaryItem getPublishStructure() {
         def dictionaryItem = new DictionaryItem(
             catalogueItemId,
             branchId,
             stereotype,
             name,
-            state,
+            itemState,
             outputClass,
             shortDescription)
 
         dictionaryItem.addSection(new DescriptionSection(dictionaryItem, definition))
 
-        if (state == DictionaryItemState.ACTIVE) {
-            List<AliasesRow> aliasesRows = getAliases().collect {context, alias -> new AliasesRow(context, alias)}
-            dictionaryItem.addSection(new AliasesSection(dictionaryItem, aliasesRows))
+        if (itemState == DictionaryItemState.ACTIVE) {
+            if (aliases) {
+                List<AliasesRow> aliasesRows = getAliases()
+                    .collect {context, alias -> new AliasesRow(context, alias)}
 
-            // TODO: Where Used table
+                dictionaryItem.addSection(new AliasesSection(dictionaryItem, aliasesRows))
+            }
+
+            if (whereUsed) {
+                List<WhereUsedRow> whereUsedRows = whereUsed
+                    .findAll { it.key.itemState != DictionaryItemState.RETIRED }
+                    .sort { it.key.name }
+                    .collect { component, text ->
+                        new WhereUsedRow(component.stereotype, ItemLink.create(component), text)
+                    }
+
+                dictionaryItem.addSection(new WhereUsedSection(dictionaryItem, whereUsedRows))
+            }
         }
 
         // TODO: Change Log table

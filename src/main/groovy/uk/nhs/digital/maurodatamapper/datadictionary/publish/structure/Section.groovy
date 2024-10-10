@@ -19,7 +19,7 @@ abstract class Section implements DitaAware<Topic>, HtmlAware, HtmlBuilder {
 
     @Override
     Topic generateDita() {
-        String xrefId = "${parent.getXrefId()}_${type}"
+        String xrefId = "${parent.xrefId}_${type}"
 
         Topic.build(id: xrefId) {
             title title

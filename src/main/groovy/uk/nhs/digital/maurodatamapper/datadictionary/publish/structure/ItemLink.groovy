@@ -1,24 +1,62 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
-class ItemLink {
-    final UUID id
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
+
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+
+class ItemLink implements DitaAware<XRef>, HtmlBuilder {
+    final UUID itemId
     final UUID branchId
+
     final String stereotype
     final DictionaryItemState state
-    final String label
+    final String name
+
+    final String outputClass
 
     ItemLink(
-        UUID id,
+        UUID itemId,
         UUID branchId,
         String stereotype,
         DictionaryItemState state,
-        String label) {
-        this.id = id
+        String name,
+        String outputClass) {
+        this.itemId = itemId
         this.branchId = branchId
         this.stereotype = stereotype
         this.state = state
-        this.label = label
+        this.name = name
+        this.outputClass = outputClass
     }
 
-    // TODO: generate link (DITA key and HTML link address)
+    static ItemLink create(NhsDataDictionaryComponent component) {
+        new ItemLink(
+            component.catalogueItemId,
+            component.branchId,
+            component.stereotype,
+            component.itemState,
+            component.name,
+            component.outputClass)
+    }
+
+    @Override
+    XRef generateDita() {
+        String linkOutputClass = outputClass
+        String xrefId = PublishHelper.createXrefId(stereotype, name, state)
+
+        XRef.build(format: "html", keyRef: xrefId, outputClass: linkOutputClass) {
+            txt name
+        }
+    }
+
+    @Override
+    void buildHtml(MarkupBuilder builder) {
+        String href = "#/preview/${branchId}/${outputClass}/${itemId}"
+
+        builder.a(class: outputClass, title: name, href: href) {
+            mkp.yield(name)
+        }
+    }
 }
