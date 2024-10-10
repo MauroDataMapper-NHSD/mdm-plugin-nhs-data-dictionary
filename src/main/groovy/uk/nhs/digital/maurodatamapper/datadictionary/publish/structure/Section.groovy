@@ -1,16 +1,15 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
-class Section implements DitaAware<Topic> {
+import groovy.xml.MarkupBuilder
+
+abstract class Section implements DitaAware<Topic>, HtmlAware, HtmlBuilder {
     final DictionaryItem parent
 
     final String type
     final String title
-
-    final List<ContentAware> contents = []
 
     Section(DictionaryItem parent, String type, String title) {
         this.parent = parent
@@ -18,23 +17,27 @@ class Section implements DitaAware<Topic> {
         this.title = title
     }
 
-    Section addContent(ContentAware content) {
-        this.contents.add(content)
-        this
-    }
-
+    @Override
     Topic generateDita() {
         String xrefId = "${parent.getXrefId()}_${type}"
 
-        List<ContentAware> bodyContents = this.contents
-
         Topic.build(id: xrefId) {
             title title
-            body {
-                bodyContents.each { content ->
-                    div content.generateDita()
-                }
-            }
+            body generateBodyDita()
         }
+    }
+
+    protected abstract Body generateBodyDita()
+
+    @Override
+    String generateHtml() {
+        StringWriter writer = new StringWriter()
+        MarkupBuilder builder = new MarkupBuilder(writer)
+
+        builder.div(class: "- topic/body body") {
+            buildHtml(builder)
+        }
+
+        writer.toString()
     }
 }

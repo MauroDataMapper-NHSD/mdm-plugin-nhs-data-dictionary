@@ -17,7 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.DitaMap
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -26,24 +25,21 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
-import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.DataDictionaryComponentService
+import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
-import uk.ac.ox.softeng.maurodatamapper.traits.domain.MdmDomain
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesRow
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesTable
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Text
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.DDHelperFunctions
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.regex.Matcher
 
 @Slf4j
 trait NhsDataDictionaryComponent <T extends MdmDomain > {
@@ -414,26 +410,19 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             : DictionaryItemState.ACTIVE
 
         def dictionaryItem = new DictionaryItem(
-            catalogueItem.id,
-            dataDictionary.containingVersionedFolder.id,
+            catalogueItemId,
+            branchId,
             stereotype,
             name,
             state,
             outputClass,
             shortDescription)
 
-        String descriptionText = definition
-            ? definition.replace('<table', '<table class=\"table-striped\"')
-            : ""
-        dictionaryItem.addSection(
-            new Section(dictionaryItem, "description", "Description")
-                .addContent(new Text(descriptionText)))
+        dictionaryItem.addSection(new DescriptionSection(dictionaryItem, definition))
 
         if (state == DictionaryItemState.ACTIVE) {
             List<AliasesRow> aliasesRows = getAliases().collect {context, alias -> new AliasesRow(context, alias)}
-            dictionaryItem.addSection(
-                new Section(dictionaryItem, "aliases", "Also Known As")
-                    .addContent(new AliasesTable(dictionaryItem, aliasesRows)))
+            dictionaryItem.addSection(new AliasesSection(dictionaryItem, aliasesRows))
 
             // TODO: Where Used table
         }
