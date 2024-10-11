@@ -18,27 +18,53 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 class AliasesSection extends Section {
     final AliasesTable table
 
     AliasesSection(DictionaryItem parent, AliasesTable table) {
-        super(parent, "aliases", "Also Known As")
-
-        this.table = table
+        this(parent, "Also Known As", table)
     }
 
     AliasesSection(DictionaryItem parent, List<AliasesRow> rows) {
         this(parent, new AliasesTable(rows))
     }
 
+    AliasesSection(DictionaryItem parent, String title, AliasesTable table) {
+        super(parent, "aliases", title)
+
+        this.table = table
+    }
+
     @Override
-    protected Body generateBodyDita() {
+    Section produceDiff(Section previous) {
+        AliasesSection previousSection = previous as AliasesSection
+        AliasesTable diffTable = this.table.produceDiff(previousSection?.table)
+        if (!diffTable) {
+            return null
+        }
+
+        new AliasesSection(this.parent, Change.ALIASES_TYPE, diffTable)
+    }
+
+    @Override
+    protected Body generateBodyDita(PublishContext context) {
         Body.build() {
             p headerText
-            simpletable table.generateDita()
+            simpletable table.generateDita(context)
+        }
+    }
+
+    @Override
+    protected Div generateDivDita(PublishContext context) {
+        Div.build() {
+            p headerText
+            simpletable table.generateDita(context)
         }
     }
 

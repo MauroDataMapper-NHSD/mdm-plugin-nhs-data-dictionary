@@ -18,6 +18,8 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
 class PublishHelper {
     static String createOfficialName(String name, DictionaryItemState state) {
@@ -33,6 +35,17 @@ class PublishHelper {
         String retiredSuffix = state == DictionaryItemState.RETIRED ? "_retired" : ""
         String key = "${stereotype}_${encodedName}${retiredSuffix}".replace(" ", "_").toLowerCase()
         key
+    }
+
+    static String getDiffCssClass(DiffStatus status) {
+        switch (status) {
+            case DiffStatus.NEW:
+                return HtmlConstants.CSS_DIFF_NEW
+            case DiffStatus.REMOVED:
+                return HtmlConstants.CSS_DIFF_DELETED
+            default:
+                return ""
+        }
     }
 
     private static String replaceNonAlphaNumerics(String value) {

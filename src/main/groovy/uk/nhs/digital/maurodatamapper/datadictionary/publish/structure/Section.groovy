@@ -18,11 +18,15 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 
-abstract class Section implements DitaAware<Topic>, HtmlAware, HtmlBuilder {
+abstract class Section implements DitaAware<DitaElement>, HtmlAware, HtmlBuilder, DiffAware<Section, Section> {
     final DictionaryItem parent
 
     final String type
@@ -35,16 +39,25 @@ abstract class Section implements DitaAware<Topic>, HtmlAware, HtmlBuilder {
     }
 
     @Override
-    Topic generateDita() {
-        String xrefId = "${parent.xrefId}_${type}"
+    DitaElement generateDita(PublishContext context) {
+        // Generating the dita for a section is a bit annoying. This could either be a Topic or a Div, depending on
+        // whether the output is for a website or a change paper. But the dita-dsl needs to know the parent object
+        // to understand what child elements are supported, so we have to have two options for generating the same
+        // contents
+        if (context.target == PublishTarget.CHANGE_PAPER) {
+            return generateDivDita(context)
+        }
 
+        String xrefId = "${parent.xrefId}_${type}"
         Topic.build(id: xrefId) {
             title title
-            body generateBodyDita()
+            body generateBodyDita(context)
         }
     }
 
-    protected abstract Body generateBodyDita()
+    protected abstract Body generateBodyDita(PublishContext context)
+
+    protected abstract Div generateDivDita(PublishContext context)
 
     @Override
     String generateHtml() {

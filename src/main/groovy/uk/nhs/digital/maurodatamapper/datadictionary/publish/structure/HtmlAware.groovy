@@ -41,4 +41,7 @@ class HtmlConstants {
     static final CSS_TABLE_TOPIC_HEAD = "- topic/sthead sthead"
     static final CSS_TABLE_ROW = "- topic/strow strow"
     static final CSS_TABLE_ENTRY = "- topic/stentry stentry"
+
+    static final CSS_DIFF_NEW = "new"
+    static final CSS_DIFF_DELETED = "deleted"
 }

@@ -20,6 +20,7 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 
 class WhereUsedTable extends StandardTable<WhereUsedRow> {
     static final List<StandardColumn> COLUMNS = [
@@ -50,11 +51,11 @@ class WhereUsedRow extends StandardRow {
     }
 
     @Override
-    Strow generateDita() {
+    Strow generateDita(PublishContext context) {
         Strow.build() {
             stentry type
             stentry {
-                xRef link.generateDita()
+                xRef link.generateDita(context)
             }
             stentry usage
         }

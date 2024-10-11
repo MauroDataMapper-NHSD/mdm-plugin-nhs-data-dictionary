@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 
 class ItemLink implements DitaAware<XRef>, HtmlBuilder {
@@ -59,7 +60,7 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder {
     }
 
     @Override
-    XRef generateDita() {
+    XRef generateDita(PublishContext context) {
         String linkOutputClass = outputClass
         String xrefId = PublishHelper.createXrefId(stereotype, name, state)
 

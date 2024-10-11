@@ -25,6 +25,9 @@ import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
@@ -35,6 +38,10 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsed
 class NhsBusinessDefinitionStructureSpec extends Specification {
     UUID branchId
     NhsDDBusinessDefinition activeItem
+
+    NhsDDBusinessDefinition previousItemDescriptionChange
+    NhsDDBusinessDefinition previousItemAliasesChange
+    NhsDDBusinessDefinition previousItemAllChange
 
     def setup() {
         branchId = UUID.fromString("782602d4-e153-45d8-a271-eb42396804da")
@@ -77,11 +84,35 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             whereUsedDescription)
 
         activeItem.addWhereUsed(activeItem, whereUsedDescription)
+
+        previousItemDescriptionChange = new NhsDDBusinessDefinition(
+            catalogueItemId: UUID.fromString("22710e00-7c41-4335-97da-2cafe9728804"),
+            branchId: branchId,
+            name: this.activeItem.name,
+            definition: """<p>This is the old description</p>""",
+            otherProperties: this.activeItem.otherProperties)
+
+        previousItemAliasesChange = new NhsDDBusinessDefinition(
+            catalogueItemId: UUID.fromString("8049682f-761f-4eab-b533-c00781615207"),
+            branchId: branchId,
+            name: this.activeItem.name,
+            definition: this.activeItem.definition,
+            otherProperties: [
+                'aliasPlural': "Baby's First Feeds",
+                'aliasAlsoKnownAs': 'Baby Food',
+            ])
+
+        previousItemAllChange = new NhsDDBusinessDefinition(
+            catalogueItemId: UUID.fromString("eeb8929f-819a-4cfe-9209-1e9867fa2b68"),
+            branchId: branchId,
+            name: this.activeItem.name,
+            definition: previousItemDescriptionChange.definition,
+            otherProperties: previousItemAliasesChange.otherProperties)
     }
 
     // TODO: verify correct structures are returned
 
-    void "should render an active item to dita"() {
+    void "should render an active item to website dita"() {
         given: "the publish structure is built"
         DictionaryItem structure = activeItem.getPublishStructure()
         verifyAll {
@@ -89,7 +120,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the publish structure is converted to dita"
-        Topic dita = structure.generateDita()
+        Topic dita = structure.generateDita(new PublishContext(PublishTarget.WEBSITE))
         verifyAll {
             dita
         }
@@ -179,7 +210,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
     }
 
-    void "should render an active item to html"() {
+    void "should render an active item to website html"() {
         given: "the publish structure is built"
         DictionaryItem structure = activeItem.getPublishStructure()
         verifyAll {
@@ -307,4 +338,252 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             }
         }
     }
+
+    void "should produce a diff for a new item to change paper dita"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against no previous item"
+        DictionaryItem diff = structure.produceDiff(null)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed'>
+  <title>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>Change to NHS Business Definition: New</shortdesc>
+  <body>
+    <div outputclass='new'>
+      <div>
+        <p>A 
+
+          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>Baby First Feed</xref> is a 
+
+          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>PERSON PROPERTY</xref> .
+        </p>
+        <p>A 
+
+          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>Baby First Feed</xref> is the first feed given to a baby.
+        </p>
+      </div>
+    </div>
+    <div>
+      <p>This NHS Business Definition is also known by these names:</p>
+      <simpletable relcolwidth='1* 2*'>
+        <sthead>
+          <stentry>Context</stentry>
+          <stentry>Alias</stentry>
+        </sthead>
+        <strow>
+          <stentry outputclass='new'>Plural</stentry>
+          <stentry outputclass='new'>Baby First Feeds</stentry>
+        </strow>
+      </simpletable>
+    </div>
+  </body>
+</topic>"""
+        }
+    }
+
+    void "should produce a diff for an updated item description to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousItemDescriptionChange.getPublishStructure()
+        DictionaryItem currentStructure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed'>
+  <title>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>Change to NHS Business Definition: Updated description</shortdesc>
+  <body>
+    <div>
+      <div>
+        <p>
+          <ph id='added-diff-0' outputclass='diff-html-added'>A</ph>
+          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
+            <ph outputclass='diff-html-added'>Baby First Feed</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>is a</ph>
+          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>
+            <ph outputclass='diff-html-added'>PERSON PROPERTY</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>.</ph>
+        </p>
+        <p>
+          <ph outputclass='diff-html-added'>A</ph>
+          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
+            <ph outputclass='diff-html-added'>Baby First Feed</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>is the first feed given to a baby.</ph>
+          <ph id='removed-diff-0' outputclass='diff-html-removed'>This is the old description</ph>
+        </p>
+      </div>
+    </div>
+  </body>
+</topic>"""
+        }
+    }
+
+    void "should produce a diff for an updated item aliases to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousItemAliasesChange.getPublishStructure()
+        DictionaryItem currentStructure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed'>
+  <title>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>Change to NHS Business Definition: Aliases</shortdesc>
+  <body>
+    <div>
+      <p>This NHS Business Definition is also known by these names:</p>
+      <simpletable relcolwidth='1* 2*'>
+        <sthead>
+          <stentry>Context</stentry>
+          <stentry>Alias</stentry>
+        </sthead>
+        <strow>
+          <stentry outputclass='new'>Plural</stentry>
+          <stentry outputclass='new'>Baby First Feeds</stentry>
+        </strow>
+        <strow>
+          <stentry outputclass='deleted'>Also known as</stentry>
+          <stentry outputclass='deleted'>Baby Food</stentry>
+        </strow>
+        <strow>
+          <stentry outputclass='deleted'>Plural</stentry>
+          <stentry outputclass='deleted'>Baby's First Feeds</stentry>
+        </strow>
+      </simpletable>
+    </div>
+  </body>
+</topic>"""
+        }
+    }
+
+    void "should produce a diff for an updated item description and aliases to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousItemAllChange.getPublishStructure()
+        DictionaryItem currentStructure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed'>
+  <title>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>Change to NHS Business Definition: Updated description, Aliases</shortdesc>
+  <body>
+    <div>
+      <div>
+        <p>
+          <ph id='added-diff-0' outputclass='diff-html-added'>A</ph>
+          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
+            <ph outputclass='diff-html-added'>Baby First Feed</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>is a</ph>
+          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>
+            <ph outputclass='diff-html-added'>PERSON PROPERTY</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>.</ph>
+        </p>
+        <p>
+          <ph outputclass='diff-html-added'>A</ph>
+          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
+            <ph outputclass='diff-html-added'>Baby First Feed</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>is the first feed given to a baby.</ph>
+          <ph id='removed-diff-0' outputclass='diff-html-removed'>This is the old description</ph>
+        </p>
+      </div>
+    </div>
+    <div>
+      <p>This NHS Business Definition is also known by these names:</p>
+      <simpletable relcolwidth='1* 2*'>
+        <sthead>
+          <stentry>Context</stentry>
+          <stentry>Alias</stentry>
+        </sthead>
+        <strow>
+          <stentry outputclass='new'>Plural</stentry>
+          <stentry outputclass='new'>Baby First Feeds</stentry>
+        </strow>
+        <strow>
+          <stentry outputclass='deleted'>Also known as</stentry>
+          <stentry outputclass='deleted'>Baby Food</stentry>
+        </strow>
+        <strow>
+          <stentry outputclass='deleted'>Plural</stentry>
+          <stentry outputclass='deleted'>Baby's First Feeds</stentry>
+        </strow>
+      </simpletable>
+    </div>
+  </body>
+</topic>"""
+        }
+    }
+
+    // TODO: retired change paper dita diff
 }

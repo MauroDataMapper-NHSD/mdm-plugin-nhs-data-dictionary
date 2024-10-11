@@ -22,6 +22,8 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 
 abstract class StandardTable<R extends StandardRow> implements DitaAware<Simpletable>, HtmlBuilder {
     final List<R> rows
@@ -31,18 +33,21 @@ abstract class StandardTable<R extends StandardRow> implements DitaAware<Simplet
     }
 
     @Override
-    Simpletable generateDita() {
+    Simpletable generateDita(PublishContext context) {
         List<StandardColumn> columns = getColumnDefinitions()
         List<String> relColWidths = columns.collect {column -> column.relColWidth }
 
-        Simpletable.build(relColWidth: new SpaceSeparatedStringList (relColWidths), outputClass: HtmlConstants.CSS_TABLE) {
-            stHead (outputClass: HtmlConstants.CSS_TABLE_HEAD) {
+        String tableCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE : ""
+        String headCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HEAD : ""
+
+        Simpletable.build(relColWidth: new SpaceSeparatedStringList (relColWidths), outputClass: tableCssClass) {
+            stHead (outputClass: headCssClass) {
                 columns.each { column ->
                     stentry column.name
                 }
             }
             rows.each { row ->
-                strow row.generateDita()
+                strow row.generateDita(context)
             }
         }
     }

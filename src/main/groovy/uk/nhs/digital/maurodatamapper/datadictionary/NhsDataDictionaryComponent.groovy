@@ -418,15 +418,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     DictionaryItem getPublishStructure() {
-        def dictionaryItem = new DictionaryItem(
-            catalogueItemId,
-            branchId,
-            stereotype,
-            name,
-            itemState,
-            outputClass,
-            shortDescription)
-
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
         dictionaryItem.addSection(new DescriptionSection(dictionaryItem, definition))
 
         if (itemState == DictionaryItemState.ACTIVE) {

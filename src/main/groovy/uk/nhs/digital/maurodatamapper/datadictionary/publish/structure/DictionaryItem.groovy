@@ -17,10 +17,15 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 enum DictionaryItemState {
     ACTIVE,
@@ -28,7 +33,7 @@ enum DictionaryItemState {
     PREPARATORY
 }
 
-class DictionaryItem implements DitaAware<Topic>, HtmlAware {
+class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<DictionaryItem, DictionaryItem> {
     final UUID id
     final UUID branchId
     final String stereotype
@@ -56,6 +61,17 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware {
         this.description = description
     }
 
+    static DictionaryItem create(NhsDataDictionaryComponent component) {
+        new DictionaryItem(
+            component.catalogueItemId,
+            component.branchId,
+            component.stereotype,
+            component.name,
+            component.itemState,
+            component.outputClass,
+            component.shortDescription)
+    }
+
     DictionaryItem addSection(Section section) {
         if (section) {
             sections.add(section)
@@ -72,16 +88,63 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware {
     }
 
     @Override
-    Topic generateDita() {
-        String titleOutputClass = this.outputClass
+    DictionaryItem produceDiff(DictionaryItem previous) {
+        List<Section> diffSections = []
+        this.sections.each {currentSection ->
+            Section previousSection = previous ? previous.sections.find { it.class == currentSection.class } : null
+            Section diffSection = currentSection.produceDiff(previousSection)
+            if (diffSection) {
+                diffSections.add(diffSection)
+            }
+        }
+
+        if (diffSections.empty) {
+            return null
+        }
+
+        DictionaryItem diff = new DictionaryItem(
+            this.id,
+            this.branchId,
+            this.stereotype,
+            this.name,
+            this.state,
+            this.outputClass,
+            getSummaryOfSectionTitlesForDiff(diffSections))
+
+        diffSections.each {diffSection ->
+            diff.addSection(diffSection)
+        }
+
+        diff
+    }
+
+    @Override
+    Topic generateDita(PublishContext context) {
+        String titleOutputClass = context.target == PublishTarget.WEBSITE ? this.outputClass : ""
+
+        String topicTitle = context.target == PublishTarget.WEBSITE ? getOfficialName() : name
+
+        String shortDescription = context.target == PublishTarget.CHANGE_PAPER
+            ? "Change to ${stereotype}: ${description}"
+            : description
 
         Topic.build(id: xrefId) {
-            title (outputClass: titleOutputClass) {
-                text getOfficialName()
+            title(outputClass: titleOutputClass) {
+                text topicTitle
             }
-            shortdesc description
-            sections.each { section ->
-                topic section.generateDita()
+            shortdesc shortDescription
+
+            if (context.target == PublishTarget.CHANGE_PAPER) {
+                body {
+                    this.sections.each { section ->
+                        div section.generateDita(context) as Div
+                    }
+                }
+            }
+            else {
+                this.sections.each { section ->
+                    topic section.generateDita(context) as Topic
+                }
             }
         }
     }
@@ -106,5 +169,21 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware {
         }
 
         writer.toString()
+    }
+
+    private static String getSummaryOfSectionTitlesForDiff(List<Section> sections) {
+        if (sections.empty) {
+            return ""
+        }
+
+        if (sections.any {it.title == Change.NEW_TYPE }) {
+            return Change.NEW_TYPE
+        }
+
+        if (sections.any {it.title == Change.RETIRED_TYPE }) {
+            return Change.RETIRED_TYPE
+        }
+
+        sections.collect { it.title }.join(", ")
     }
 }

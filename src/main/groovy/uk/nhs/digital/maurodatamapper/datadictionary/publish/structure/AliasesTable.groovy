@@ -21,6 +21,10 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
 class AliasesTable extends StandardTable<AliasesRow> {
     static final List<StandardColumn> COLUMNS = [
@@ -32,26 +36,83 @@ class AliasesTable extends StandardTable<AliasesRow> {
         super(rows)
     }
 
+    AliasesTable produceDiff(AliasesTable previous) {
+        List<AliasesRow> currentRows = this.rows
+        List<AliasesRow> previousRows = previous ? previous.rows : []
+
+        if (currentRows.empty && previousRows.empty) {
+            return null
+        }
+
+        if (ChangeFunctions.areEqual(currentRows, previousRows)) {
+            return null
+        }
+
+        List<AliasesRow> newRows = ChangeFunctions.getDifferences(currentRows, previousRows)
+        List<AliasesRow> removedRows = ChangeFunctions.getDifferences(previousRows, currentRows)
+
+        if (newRows.empty && removedRows.empty) {
+            return null
+        }
+
+        List<AliasesRow> diffRows = []
+        currentRows.each { row ->
+            if (newRows.any { it.discriminator == row.discriminator }) {
+                diffRows.add(row.cloneWithDiff(DiffStatus.NEW))
+            }
+            else {
+                diffRows.add(row)
+            }
+        }
+        removedRows.each { row ->
+            diffRows.add(row.cloneWithDiff(DiffStatus.REMOVED))
+        }
+
+        new AliasesTable(diffRows)
+    }
+
     @Override
     protected List<StandardColumn> getColumnDefinitions() {
         COLUMNS
     }
 }
 
-class AliasesRow extends StandardRow {
+class AliasesRow extends StandardRow implements ChangeAware {
     final String context
     final String alias
 
+    final DiffStatus diffStatus
+
     AliasesRow(String context, String alias) {
+        this(context, alias, DiffStatus.NONE)
+    }
+
+    AliasesRow(String context, String alias, DiffStatus diffStatus) {
         this.context = context
         this.alias = alias
+        this.diffStatus = diffStatus
+    }
+
+    AliasesRow cloneWithDiff(DiffStatus diffStatus) {
+        new AliasesRow(this.context, this.alias, diffStatus)
     }
 
     @Override
-    Strow generateDita() {
+    String getDiscriminator() {
+        "context:${context}-alias:${alias}"
+    }
+
+    @Override
+    Strow generateDita(PublishContext context) {
+        String outputClass = PublishHelper.getDiffCssClass(diffStatus)
+
         Strow.build() {
-            stentry context
-            stentry alias
+            stentry(outputClass: outputClass) {
+                txt this.context
+            }
+            stentry(outputClass: outputClass) {
+                txt this.alias
+            }
         }
     }
 

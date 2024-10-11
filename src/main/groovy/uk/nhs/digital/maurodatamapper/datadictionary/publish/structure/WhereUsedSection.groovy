@@ -18,8 +18,10 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 
 class WhereUsedSection extends Section {
     final WhereUsedTable table
@@ -35,9 +37,22 @@ class WhereUsedSection extends Section {
     }
 
     @Override
-    protected Body generateBodyDita() {
+    Section produceDiff(Section previous) {
+        // Do not compare "Where Used" section
+        return null
+    }
+
+    @Override
+    protected Body generateBodyDita(PublishContext context) {
         Body.build() {
-            simpletable table.generateDita()
+            simpletable table.generateDita(context)
+        }
+    }
+
+    @Override
+    protected Div generateDivDita(PublishContext context) {
+        Div.build() {
+            simpletable table.generateDita(context)
         }
     }
 

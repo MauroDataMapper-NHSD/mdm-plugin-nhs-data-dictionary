@@ -18,24 +18,88 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 
+import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
+@Slf4j
 class DescriptionSection extends Section {
     final String text
+    final DiffStatus diffStatus
 
     DescriptionSection(DictionaryItem parent, String text) {
-        super(parent, "description", "Description")
+        this(parent, "Description", text, DiffStatus.NONE)
+    }
+
+    DescriptionSection(DictionaryItem parent, String title, String text, DiffStatus diffStatus) {
+        super(parent, "description", title)
 
         this.text = text
             ? text.replace('<table', '<table class=\"table-striped\"')
             : ""
+
+        this.diffStatus = diffStatus
     }
 
     @Override
-    protected Body generateBodyDita() {
+    Section produceDiff(Section previous) {
+        DescriptionSection previousSection = previous as DescriptionSection
+        boolean isNewItem = previousSection == null
+
+        if (isNewItem) {
+            return new DescriptionSection(this.parent, Change.NEW_TYPE, this.text, DiffStatus.NEW)
+        }
+
+        // To get accurate description comparison, we have to load all strings as HTML Dom trees and compare them. A simple
+        // string comparison won't do anymore - because you could have superfluous whitespace between HTML tags that a string compare will
+        // just consider "different" when semantically it isn't. _However_, this HTML comparison is *incredibly* slow across comparing
+        // two dictionary branches now! If you want to test it faster, uncomment the line below and remember to put it back before you commit
+        //if (description == previousComponent.description) { // DEBUG
+        if (DaisyDiffHelper.calculateDifferences(this.text, previousSection.text).length == 0) {
+            // These descriptions are the same - no change required
+            return null
+        }
+
+        // For updated descriptions, there could be really complex HTML which really messes up the diff output,
+        // particular when HTML tables merge cells together, the diff tags added back don't align correctly.
+        // So just ignore this for now!
+        boolean currentContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(this.text)
+        boolean previousContainsHtmlTable = DaisyDiffHelper.containsHtmlTable(previousSection.text)
+        boolean canDiffContent = !currentContainsHtmlTable && !previousContainsHtmlTable
+
+        String diffHtml = ""
+        if (!canDiffContent) {
+            log.warn("HTML in ${parent.stereotype} '${parent.name}' contains table, cannot produce diff")
+            diffHtml = this.text
+        }
+        else {
+            diffHtml = DaisyDiffHelper.diff(previousSection.text, this.text)
+        }
+
+        String changeType = this.parent.state == DictionaryItemState.RETIRED && previousSection.parent.state != DictionaryItemState.RETIRED
+            ? Change.RETIRED_TYPE
+            : Change.UPDATED_DESCRIPTION_TYPE
+
+        new DescriptionSection(this.parent, changeType, diffHtml, DiffStatus.MODIFIED)
+    }
+
+    @Override
+    protected Body generateBodyDita(PublishContext context) {
         Body.build() {
+            div HtmlHelper.replaceHtmlWithDita(text)
+        }
+    }
+
+    @Override
+    protected Div generateDivDita(PublishContext context) {
+        String outputClass = PublishHelper.getDiffCssClass(diffStatus)
+        Div.build(outputClass: outputClass) {
             div HtmlHelper.replaceHtmlWithDita(text)
         }
     }
