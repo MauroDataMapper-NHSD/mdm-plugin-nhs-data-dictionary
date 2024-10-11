@@ -60,12 +60,12 @@ abstract class Section implements DitaAware<DitaElement>, HtmlAware, HtmlBuilder
     protected abstract Div generateDivDita(PublishContext context)
 
     @Override
-    String generateHtml() {
+    String generateHtml(PublishContext context) {
         StringWriter writer = new StringWriter()
         MarkupBuilder builder = new MarkupBuilder(writer)
 
         builder.div(class: HtmlConstants.CSS_TOPIC_BODY) {
-            buildHtml(builder)
+            buildHtml(context, builder)
         }
 
         writer.toString()

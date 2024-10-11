@@ -53,20 +53,25 @@ abstract class StandardTable<R extends StandardRow> implements DitaAware<Simplet
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
         List<StandardColumn> columns = getColumnDefinitions()
 
-        builder.div(class: HtmlConstants.CSS_TABLE_HTML_CONTAINER) {
-            builder.table(class: "${HtmlConstants.CSS_TABLE_HTML_TOPIC_SIMPLETABLE} $HtmlConstants.CSS_TABLE") {
+        String containerCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_CONTAINER : null
+        String tableCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_HTML_TOPIC_SIMPLETABLE} $HtmlConstants.CSS_TABLE" : null
+        String headCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_HEAD} ${HtmlConstants.CSS_TABLE_HEAD}" : null
+        String entryCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_ENTRY : null
+
+        builder.div(class: containerCssClass) {
+            builder.table(class: tableCssClass) {
                 colgroup {
                     columns.each { column ->
                         builder.col(style: "width: ${column.cssColWidth}")
                     }
                 }
                 thead {
-                    builder.tr(class: "${HtmlConstants.CSS_TABLE_TOPIC_HEAD} ${HtmlConstants.CSS_TABLE_HEAD}") {
+                    builder.tr(class: headCssClass) {
                         columns.each { column ->
-                            builder.th(class: HtmlConstants.CSS_TABLE_ENTRY) {
+                            builder.th(class: entryCssClass) {
                                 mkp.yield(column.name)
                             }
                         }
@@ -74,7 +79,7 @@ abstract class StandardTable<R extends StandardRow> implements DitaAware<Simplet
                 }
                 tbody {
                     rows.each { row ->
-                        row.buildHtml(builder)
+                        row.buildHtml(context, builder)
                     }
                 }
             }

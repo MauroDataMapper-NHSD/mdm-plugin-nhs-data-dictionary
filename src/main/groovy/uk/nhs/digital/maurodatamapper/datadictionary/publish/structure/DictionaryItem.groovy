@@ -150,7 +150,13 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
     }
 
     @Override
-    String generateHtml() {
+    String generateHtml(PublishContext context) {
+        context.target == PublishTarget.CHANGE_PAPER
+            ? generateChangePaperHtml(context)
+            : generateWebsiteHtml(context)
+    }
+
+    private String generateWebsiteHtml(PublishContext context) {
         StringWriter writer = new StringWriter()
         MarkupBuilder builder = new MarkupBuilder(writer)
 
@@ -164,6 +170,23 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
             builder.div(class: HtmlConstants.CSS_TOPIC_BODY) {
                 builder.p(class: HtmlConstants.CSS_TOPIC_SHORTDESC) {
                     mkp.yield(description)
+                }
+            }
+        }
+
+        writer.toString()
+    }
+
+    private String generateChangePaperHtml(PublishContext context) {
+        StringWriter writer = new StringWriter()
+        MarkupBuilder builder = new MarkupBuilder(writer)
+
+        builder.div {
+            h3 name
+            h4 "Change to ${stereotype}: ${description}"
+            div {
+                this.sections.each { section ->
+                    section.buildHtml(context, builder)
                 }
             }
         }

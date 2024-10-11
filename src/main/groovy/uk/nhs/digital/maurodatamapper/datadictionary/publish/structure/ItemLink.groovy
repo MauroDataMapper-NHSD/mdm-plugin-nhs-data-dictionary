@@ -70,7 +70,7 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder {
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
         String href = "#/preview/${branchId}/${outputClass}/${itemId}"
 
         builder.a(class: outputClass, title: name, href: href) {

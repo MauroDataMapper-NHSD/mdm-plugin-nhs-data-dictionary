@@ -23,6 +23,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Strow
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
@@ -117,13 +118,22 @@ class AliasesRow extends StandardRow implements ChangeAware {
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
-        builder.tr(class: HtmlConstants.CSS_TABLE_ROW) {
-            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
-                mkp.yield(context)
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String diffOutputClass = PublishHelper.getDiffCssClass(diffStatus)
+
+        String rowCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_ROW : null
+        String entryCssClass = context.target == PublishTarget.WEBSITE
+            ? HtmlConstants.CSS_TABLE_ENTRY
+            : !diffOutputClass.empty
+            ? diffOutputClass
+            : null
+
+        builder.tr(class: rowCssClass) {
+            builder.td(class: entryCssClass) {
+                mkp.yield(this.context)
             }
-            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
-                mkp.yield(alias)
+            builder.td(class: entryCssClass) {
+                mkp.yield(this.alias)
             }
         }
     }

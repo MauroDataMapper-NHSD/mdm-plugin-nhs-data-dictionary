@@ -57,7 +57,7 @@ class WhereUsedSection extends Section {
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
-        table.buildHtml(builder)
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        table.buildHtml(context, builder)
     }
 }

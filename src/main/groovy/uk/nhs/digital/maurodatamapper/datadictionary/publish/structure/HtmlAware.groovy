@@ -18,13 +18,14 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 
 interface HtmlAware {
-    String generateHtml()
+    String generateHtml(PublishContext context)
 }
 
 interface HtmlBuilder {
-    void buildHtml(MarkupBuilder builder)
+    void buildHtml(PublishContext context, MarkupBuilder builder)
 }
 
 class HtmlConstants {

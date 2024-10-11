@@ -22,6 +22,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 class AliasesSection extends Section {
@@ -69,12 +70,14 @@ class AliasesSection extends Section {
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
-        builder.p(class: HtmlConstants.CSS_TOPIC_PARAGRAPH) {
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String paragraphOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_PARAGRAPH : ""
+
+        builder.p(class: paragraphOutputClass) {
             mkp.yield(headerText)
         }
 
-        table.buildHtml(builder)
+        table.buildHtml(context, builder)
     }
 
     String getHeaderText() {

@@ -62,13 +62,13 @@ class WhereUsedRow extends StandardRow {
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
         builder.tr(class: HtmlConstants.CSS_TABLE_ROW) {
             builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
                 mkp.yield(type)
             }
             builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
-                link.buildHtml(builder)
+                link.buildHtml(context, builder)
             }
             builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
                 mkp.yield(usage)

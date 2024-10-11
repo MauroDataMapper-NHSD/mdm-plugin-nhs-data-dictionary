@@ -26,6 +26,7 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 
 @Slf4j
@@ -105,10 +106,13 @@ class DescriptionSection extends Section {
     }
 
     @Override
-    void buildHtml(MarkupBuilder builder) {
-        builder.div(class: HtmlConstants.CSS_TOPIC_DIV) {
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String sectionOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_DIV : null
+        String paragraphOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_PARAGRAPH : null
+
+        builder.div(class: sectionOutputClass) {
             // TODO: prefix sentence - for Element page type (X is the same as Y)
-            builder.p(class: HtmlConstants.CSS_TOPIC_PARAGRAPH) {
+            builder.p(class: paragraphOutputClass) {
                 mkp.yieldUnescaped(text)
             }
         }
