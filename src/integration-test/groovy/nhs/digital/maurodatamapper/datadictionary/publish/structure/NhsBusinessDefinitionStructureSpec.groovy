@@ -225,9 +225,9 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         then: "the title is published"
         verifyAll {
             titleHtml
-            titleHtml == """<h1 class='title topictitle1 businessDefinition'>Baby First Feed</h1>
-<div class='- topic/body body'>
-  <p class='- topic/shortdesc shortdesc'>A Baby First Feed is the first feed given to a baby.</p>
+            titleHtml == """<h1 class="title topictitle1 businessDefinition">Baby First Feed</h1>
+<div class="- topic/body body">
+  <p class="- topic/shortdesc shortdesc">A Baby First Feed is the first feed given to a baby.</p>
 </div>"""
         }
 
@@ -238,9 +238,9 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         then: "the description is published"
         verifyAll {
             descriptionHtml
-            descriptionHtml == """<div class='- topic/body body'>
-  <div class='- topic/div div'>
-    <p class='- topic/p p'><p>
+            descriptionHtml == """<div class="- topic/body body">
+  <div class="- topic/div div">
+    <p class="- topic/p p"><p>
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
     is a <a href="dm:Classes and Attributes|dc:PERSON PROPERTY">PERSON PROPERTY</a>
     . </p>
@@ -258,24 +258,24 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         then: "the aliases are published"
         verifyAll {
             aliasesHtml
-            aliasesHtml == """<div class='- topic/body body'>
-  <p class='- topic/p p'>This NHS Business Definition is also known by these names:</p>
-  <div class='simpletable-container'>
-    <table class='- topic/simpletable simpletable table table-sm table-striped'>
+            aliasesHtml == """<div class="- topic/body body">
+  <p class="- topic/p p">This NHS Business Definition is also known by these names:</p>
+  <div class="simpletable-container">
+    <table class="- topic/simpletable simpletable table table-sm table-striped">
       <colgroup>
-        <col style='width: 34%' />
-        <col style='width: 66%' />
+        <col style="width: 34%" />
+        <col style="width: 66%" />
       </colgroup>
       <thead>
-        <tr class='- topic/sthead sthead thead-light'>
-          <th class='- topic/stentry stentry'>Context</th>
-          <th class='- topic/stentry stentry'>Alias</th>
+        <tr class="- topic/sthead sthead thead-light">
+          <th class="- topic/stentry stentry">Context</th>
+          <th class="- topic/stentry stentry">Alias</th>
         </tr>
       </thead>
       <tbody>
-        <tr class='- topic/strow strow'>
-          <td class='- topic/stentry stentry'>Plural</td>
-          <td class='- topic/stentry stentry'>Baby First Feeds</td>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">Plural</td>
+          <td class="- topic/stentry stentry">Baby First Feeds</td>
         </tr>
       </tbody>
     </table>
@@ -289,49 +289,49 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             then: "the where used are published"
             verifyAll {
                 whereUsedHtml
-                whereUsedHtml == """<div class='- topic/body body'>
-  <div class='simpletable-container'>
-    <table class='- topic/simpletable simpletable table table-sm table-striped'>
+                whereUsedHtml == """<div class="- topic/body body">
+  <div class="simpletable-container">
+    <table class="- topic/simpletable simpletable table table-sm table-striped">
       <colgroup>
-        <col style='width: 15%' />
-        <col style='width: 45%' />
-        <col style='width: 40%' />
+        <col style="width: 15%" />
+        <col style="width: 45%" />
+        <col style="width: 40%" />
       </colgroup>
       <thead>
-        <tr class='- topic/sthead sthead thead-light'>
-          <th class='- topic/stentry stentry'>Type</th>
-          <th class='- topic/stentry stentry'>Link</th>
-          <th class='- topic/stentry stentry'>How used</th>
+        <tr class="- topic/sthead sthead thead-light">
+          <th class="- topic/stentry stentry">Type</th>
+          <th class="- topic/stentry stentry">Link</th>
+          <th class="- topic/stentry stentry">How used</th>
         </tr>
       </thead>
       <tbody>
-        <tr class='- topic/strow strow'>
-          <td class='- topic/stentry stentry'>Attribute</td>
-          <td class='- topic/stentry stentry'>
-            <a class='attribute' title='BABY FIRST FEED BREAST MILK INDICATION CODE' href='#/preview/782602d4-e153-45d8-a271-eb42396804da/attribute/cc9b5d18-12a0-4c53-b06e-fa5c649494f2'>BABY FIRST FEED BREAST MILK INDICATION CODE</a>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">Attribute</td>
+          <td class="- topic/stentry stentry">
+            <a class="attribute" title="BABY FIRST FEED BREAST MILK INDICATION CODE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/attribute/cc9b5d18-12a0-4c53-b06e-fa5c649494f2">BABY FIRST FEED BREAST MILK INDICATION CODE</a>
           </td>
-          <td class='- topic/stentry stentry'>references in description Baby First Feed</td>
+          <td class="- topic/stentry stentry">references in description Baby First Feed</td>
         </tr>
-        <tr class='- topic/strow strow'>
-          <td class='- topic/stentry stentry'>Data Element</td>
-          <td class='- topic/stentry stentry'>
-            <a class='element' title='BABY FIRST FEED DATE' href='#/preview/782602d4-e153-45d8-a271-eb42396804da/element/542a6963-cce2-4c8f-b60d-b86b13d43bbe'>BABY FIRST FEED DATE</a>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">Data Element</td>
+          <td class="- topic/stentry stentry">
+            <a class="element" title="BABY FIRST FEED DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/542a6963-cce2-4c8f-b60d-b86b13d43bbe">BABY FIRST FEED DATE</a>
           </td>
-          <td class='- topic/stentry stentry'>references in description Baby First Feed</td>
+          <td class="- topic/stentry stentry">references in description Baby First Feed</td>
         </tr>
-        <tr class='- topic/strow strow'>
-          <td class='- topic/stentry stentry'>Data Element</td>
-          <td class='- topic/stentry stentry'>
-            <a class='element' title='BABY FIRST FEED TIME' href='#/preview/782602d4-e153-45d8-a271-eb42396804da/element/b5170409-97aa-464e-9aad-657c8b2e00f8'>BABY FIRST FEED TIME</a>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">Data Element</td>
+          <td class="- topic/stentry stentry">
+            <a class="element" title="BABY FIRST FEED TIME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/b5170409-97aa-464e-9aad-657c8b2e00f8">BABY FIRST FEED TIME</a>
           </td>
-          <td class='- topic/stentry stentry'>references in description Baby First Feed</td>
+          <td class="- topic/stentry stentry">references in description Baby First Feed</td>
         </tr>
-        <tr class='- topic/strow strow'>
-          <td class='- topic/stentry stentry'>NHS Business Definition</td>
-          <td class='- topic/stentry stentry'>
-            <a class='businessDefinition' title='Baby First Feed' href='#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/901c2d3d-0111-41d1-acc9-5b501c1dc397'>Baby First Feed</a>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">NHS Business Definition</td>
+          <td class="- topic/stentry stentry">
+            <a class="businessDefinition" title="Baby First Feed" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/901c2d3d-0111-41d1-acc9-5b501c1dc397">Baby First Feed</a>
           </td>
-          <td class='- topic/stentry stentry'>references in description Baby First Feed</td>
+          <td class="- topic/stentry stentry">references in description Baby First Feed</td>
         </tr>
       </tbody>
     </table>
@@ -591,6 +591,9 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
     void "should produce a diff for an updated item description to change paper html"() {
         given: "the publish structures are built"
+        previousItemDescriptionChange.definition = "The previous description"
+        activeItem.definition = "The current description"
+
         DictionaryItem previousStructure = previousItemDescriptionChange.getPublishStructure()
         DictionaryItem currentStructure = activeItem.getPublishStructure()
 
@@ -612,12 +615,8 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
   <h3>Baby First Feed</h3>
   <h4>Change to NHS Business Definition: Updated description</h4>
   <div>
-    <div class=''>
-      <p class=''><p>
-<span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> </span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">A </span><a href="te:NHS Business Definitions|tm:Baby First Feed"><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">Baby First Feed</span></a><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> is a </span><a href="dm:Classes and Attributes|dc:PERSON PROPERTY"><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">PERSON PROPERTY</span></a><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> . </span>
-</p><p>
-<span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> A </span><a href="te:NHS Business Definitions|tm:Baby First Feed"><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">Baby First Feed</span></a><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> is the first feed given to a baby. </span><span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">This is the old description</span>
-</p></p>
+    <div>
+      <p>The <span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">previous </span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">current </span>description</p>
     </div>
   </div>
 </div>"""
@@ -647,31 +646,31 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
   <h3>Baby First Feed</h3>
   <h4>Change to NHS Business Definition: Aliases</h4>
   <div>
-    <p class=''>This NHS Business Definition is also known by these names:</p>
-    <div class=''>
-      <table class=''>
+    <p>This NHS Business Definition is also known by these names:</p>
+    <div>
+      <table>
         <colgroup>
-          <col style='width: 34%' />
-          <col style='width: 66%' />
+          <col style="width: 34%" />
+          <col style="width: 66%" />
         </colgroup>
         <thead>
-          <tr class=''>
-            <th class=''>Context</th>
-            <th class=''>Alias</th>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
           </tr>
         </thead>
         <tbody>
-          <tr class=''>
-            <td class='new'>Plural</td>
-            <td class='new'>Baby First Feeds</td>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">Baby First Feeds</td>
           </tr>
-          <tr class=''>
-            <td class='deleted'>Also known as</td>
-            <td class='deleted'>Baby Food</td>
+          <tr>
+            <td class="deleted">Also known as</td>
+            <td class="deleted">Baby Food</td>
           </tr>
-          <tr class=''>
-            <td class='deleted'>Plural</td>
-            <td class='deleted'>Baby's First Feeds</td>
+          <tr>
+            <td class="deleted">Plural</td>
+            <td class="deleted">Baby's First Feeds</td>
           </tr>
         </tbody>
       </table>
@@ -683,6 +682,9 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
     void "should produce a diff for an updated item description and aliases to change paper html"() {
         given: "the publish structures are built"
+        previousItemAllChange.definition = "The previous description"
+        activeItem.definition = "The current description"
+
         DictionaryItem previousStructure = previousItemAllChange.getPublishStructure()
         DictionaryItem currentStructure = activeItem.getPublishStructure()
 
@@ -704,38 +706,34 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
   <h3>Baby First Feed</h3>
   <h4>Change to NHS Business Definition: Updated description, Aliases</h4>
   <div>
-    <div class=''>
-      <p class=''><p>
-<span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> </span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">A </span><a href="te:NHS Business Definitions|tm:Baby First Feed"><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">Baby First Feed</span></a><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> is a </span><a href="dm:Classes and Attributes|dc:PERSON PROPERTY"><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">PERSON PROPERTY</span></a><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> . </span>
-</p><p>
-<span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> A </span><a href="te:NHS Business Definitions|tm:Baby First Feed"><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">Baby First Feed</span></a><span class="diff-html-added" previous="removed-diff-0" changeId="added-diff-0" next="last-diff"> is the first feed given to a baby. </span><span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">This is the old description</span>
-</p></p>
+    <div>
+      <p>The <span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">previous </span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">current </span>description</p>
     </div>
-    <p class=''>This NHS Business Definition is also known by these names:</p>
-    <div class=''>
-      <table class=''>
+    <p>This NHS Business Definition is also known by these names:</p>
+    <div>
+      <table>
         <colgroup>
-          <col style='width: 34%' />
-          <col style='width: 66%' />
+          <col style="width: 34%" />
+          <col style="width: 66%" />
         </colgroup>
         <thead>
-          <tr class=''>
-            <th class=''>Context</th>
-            <th class=''>Alias</th>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
           </tr>
         </thead>
         <tbody>
-          <tr class=''>
-            <td class='new'>Plural</td>
-            <td class='new'>Baby First Feeds</td>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">Baby First Feeds</td>
           </tr>
-          <tr class=''>
-            <td class='deleted'>Also known as</td>
-            <td class='deleted'>Baby Food</td>
+          <tr>
+            <td class="deleted">Also known as</td>
+            <td class="deleted">Baby Food</td>
           </tr>
-          <tr class=''>
-            <td class='deleted'>Plural</td>
-            <td class='deleted'>Baby's First Feeds</td>
+          <tr>
+            <td class="deleted">Plural</td>
+            <td class="deleted">Baby's First Feeds</td>
           </tr>
         </tbody>
       </table>

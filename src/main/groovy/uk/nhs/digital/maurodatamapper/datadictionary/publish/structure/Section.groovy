@@ -24,6 +24,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 
 abstract class Section implements DitaAware<DitaElement>, HtmlAware, HtmlBuilder, DiffAware<Section, Section> {
@@ -62,7 +63,7 @@ abstract class Section implements DitaAware<DitaElement>, HtmlAware, HtmlBuilder
     @Override
     String generateHtml(PublishContext context) {
         StringWriter writer = new StringWriter()
-        MarkupBuilder builder = new MarkupBuilder(writer)
+        MarkupBuilder builder = PublishHelper.createMarkupBuilder(writer)
 
         builder.div(class: HtmlConstants.CSS_TOPIC_BODY) {
             buildHtml(context, builder)

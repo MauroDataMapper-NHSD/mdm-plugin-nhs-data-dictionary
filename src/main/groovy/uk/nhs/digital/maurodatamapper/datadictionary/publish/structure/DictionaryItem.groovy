@@ -158,7 +158,7 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
 
     private String generateWebsiteHtml(PublishContext context) {
         StringWriter writer = new StringWriter()
-        MarkupBuilder builder = new MarkupBuilder(writer)
+        MarkupBuilder builder = PublishHelper.createMarkupBuilder(writer)
 
         String titleCssClass = "${HtmlConstants.CSS_TOPIC_TITLE} ${outputClass}"
 
@@ -179,7 +179,7 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
 
     private String generateChangePaperHtml(PublishContext context) {
         StringWriter writer = new StringWriter()
-        MarkupBuilder builder = new MarkupBuilder(writer)
+        MarkupBuilder builder = PublishHelper.createMarkupBuilder(writer)
 
         builder.div {
             h3 name

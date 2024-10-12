@@ -17,11 +17,20 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
+import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
 class PublishHelper {
+    static MarkupBuilder createMarkupBuilder(StringWriter writer) {
+        MarkupBuilder builder = new MarkupBuilder(writer)
+        builder.omitEmptyAttributes = true
+        builder.omitNullAttributes = true
+        builder.doubleQuotes = true
+        builder
+    }
+
     static String createOfficialName(String name, DictionaryItemState state) {
         if (state == DictionaryItemState.RETIRED) {
             return "$name (Retired)"
