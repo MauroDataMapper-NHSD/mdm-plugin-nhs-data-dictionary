@@ -419,7 +419,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     DictionaryItem getPublishStructure() {
         DictionaryItem dictionaryItem = DictionaryItem.create(this)
-        dictionaryItem.addSection(new DescriptionSection(dictionaryItem, definition))
+        dictionaryItem.addSection(new DescriptionSection(dictionaryItem, description))
 
         if (itemState == DictionaryItemState.ACTIVE) {
             if (aliases) {

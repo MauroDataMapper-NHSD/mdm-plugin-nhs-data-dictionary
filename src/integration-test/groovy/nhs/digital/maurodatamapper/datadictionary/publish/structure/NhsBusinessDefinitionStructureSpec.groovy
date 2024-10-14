@@ -18,45 +18,61 @@
 package nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
+import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryService
 
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
+import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsedSection
 
 @Integration
 @Rollback
 class NhsBusinessDefinitionStructureSpec extends Specification {
+    @Autowired
+    NhsDataDictionaryService dataDictionaryService
+
+    NhsDataDictionary dataDictionary
+
     UUID branchId
     NhsDDBusinessDefinition activeItem
+    NhsDDBusinessDefinition retiredItem
+    NhsDDBusinessDefinition preparatoryItem
 
     NhsDDBusinessDefinition previousItemDescriptionChange
     NhsDDBusinessDefinition previousItemAliasesChange
     NhsDDBusinessDefinition previousItemAllChange
 
     def setup() {
+        dataDictionary = dataDictionaryService.newDataDictionary()
+
         branchId = UUID.fromString("782602d4-e153-45d8-a271-eb42396804da")
 
-        activeItem = new NhsDDBusinessDefinition(
-            catalogueItemId: UUID.fromString("901c2d3d-0111-41d1-acc9-5b501c1dc397"),
-            branchId: branchId,
-            name: "Baby First Feed",
-            definition: """<p>
+        String definition = """<p>
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
     is a <a href="dm:Classes and Attributes|dc:PERSON PROPERTY">PERSON PROPERTY</a>
     . </p>
 <p>
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
-    is the first feed given to a baby. </p>""",
+    is the first feed given to a baby. </p>"""
+
+        activeItem = new NhsDDBusinessDefinition(
+            catalogueItemId: UUID.fromString("901c2d3d-0111-41d1-acc9-5b501c1dc397"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: "Baby First Feed",
+            definition: definition,
             otherProperties: [
                 'aliasPlural': 'Baby First Feeds'
             ])
@@ -85,16 +101,38 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
         activeItem.addWhereUsed(activeItem, whereUsedDescription)
 
+        retiredItem = new NhsDDBusinessDefinition(
+            catalogueItemId: UUID.fromString("fb096f90-3273-4c66-8023-c1e32ac5b795"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: this.activeItem.name,
+            definition: this.activeItem.definition,
+            otherProperties: copyPropertiesMap(this.activeItem.otherProperties),
+            whereUsed: this.activeItem.whereUsed)
+        retiredItem.otherProperties["isRetired"] = true.toString()
+
+        preparatoryItem = new NhsDDBusinessDefinition(
+            catalogueItemId: UUID.fromString("f5276a0c-5458-4fa5-9bd3-ff786aef932f"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: this.activeItem.name,
+            definition: this.activeItem.definition,
+            otherProperties: copyPropertiesMap(this.activeItem.otherProperties),
+            whereUsed: this.activeItem.whereUsed)
+        preparatoryItem.otherProperties["isPreparatory"] = true.toString()
+
         previousItemDescriptionChange = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("22710e00-7c41-4335-97da-2cafe9728804"),
             branchId: branchId,
+            dataDictionary: dataDictionary,
             name: this.activeItem.name,
-            definition: """<p>This is the old description</p>""",
-            otherProperties: this.activeItem.otherProperties)
+            definition: "The previous description",
+            otherProperties: copyPropertiesMap(this.activeItem.otherProperties))
 
         previousItemAliasesChange = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("8049682f-761f-4eab-b533-c00781615207"),
             branchId: branchId,
+            dataDictionary: dataDictionary,
             name: this.activeItem.name,
             definition: this.activeItem.definition,
             otherProperties: [
@@ -105,12 +143,58 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         previousItemAllChange = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("eeb8929f-819a-4cfe-9209-1e9867fa2b68"),
             branchId: branchId,
+            dataDictionary: dataDictionary,
             name: this.activeItem.name,
             definition: previousItemDescriptionChange.definition,
-            otherProperties: previousItemAliasesChange.otherProperties)
+            otherProperties: copyPropertiesMap(previousItemAliasesChange.otherProperties))
     }
 
-    // TODO: verify correct structures are returned
+    private static Map<String, String> copyPropertiesMap(Map<String, String> properties) {
+        Map<String, String> copy = [:]
+        properties.each { key, value -> copy[key] = value }
+        copy
+    }
+
+    void "should have the correct active item structure"() {
+        when: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        then: "the expected structure is returned"
+        verifyAll {
+            structure.state == DictionaryItemState.ACTIVE
+            structure.name == activeItem.name
+            structure.sections.size() == 3
+            structure.sections[0] instanceof DescriptionSection
+            structure.sections[1] instanceof AliasesSection
+            structure.sections[2] instanceof WhereUsedSection
+        }
+    }
+
+    void "should have the correct retired item structure"() {
+        when: "the publish structure is built"
+        DictionaryItem structure = retiredItem.getPublishStructure()
+
+        then: "the expected structure is returned"
+        verifyAll {
+            structure.state == DictionaryItemState.RETIRED
+            structure.name == retiredItem.name
+            structure.sections.size() == 1
+            structure.sections[0] instanceof DescriptionSection
+        }
+    }
+
+    void "should have the correct preparatory item structure"() {
+        when: "the publish structure is built"
+        DictionaryItem structure = preparatoryItem.getPublishStructure()
+
+        then: "the expected structure is returned"
+        verifyAll {
+            structure.state == DictionaryItemState.PREPARATORY
+            structure.name == preparatoryItem.name
+            structure.sections.size() == 1
+            structure.sections[0] instanceof DescriptionSection
+        }
+    }
 
     void "should render an active item to website dita"() {
         given: "the publish structure is built"
@@ -204,6 +288,77 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
           <stentry>references in description Baby First Feed</stentry>
         </strow>
       </simpletable>
+    </body>
+  </topic>
+</topic>"""
+        }
+    }
+
+    void "should render a retired item to website dita"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = retiredItem.getPublishStructure()
+        verifyAll {
+            structure
+        }
+
+        when: "the publish structure is converted to dita"
+        Topic dita = structure.generateDita(new PublishContext(PublishTarget.WEBSITE))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed_retired'>
+  <title outputclass='businessDefinition retired'>
+    <text>Baby First Feed (Retired)</text>
+  </title>
+  <shortdesc>This item has been retired from the NHS Data Model and Dictionary.</shortdesc>
+  <topic id='nhs_business_definition_baby_first_feed_retired_description'>
+    <title>Description</title>
+    <body>
+      <div>
+        <p>This item has been retired from the NHS Data Model and Dictionary.</p>
+        <p>The last version of this item is available in the ?????? release of the NHS Data Model and Dictionary.</p>
+        <p>Access to the last live version of this item can be obtained by emailing 
+
+          <xref href='mailto:information.standards@nhs.net' format='html' scope='external'>information.standards@nhs.net</xref> with "NHS Data Model and Dictionary - Archive Request" in the email subject line.
+        </p>
+      </div>
+    </body>
+  </topic>
+</topic>"""
+        }
+    }
+
+    void "should render a preparatory item to website dita"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = preparatoryItem.getPublishStructure()
+        verifyAll {
+            structure
+        }
+
+        when: "the publish structure is converted to dita"
+        Topic dita = structure.generateDita(new PublishContext(PublishTarget.WEBSITE))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed'>
+  <title outputclass='businessDefinition'>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>This item is being used for development purposes and has not yet been approved.</shortdesc>
+  <topic id='nhs_business_definition_baby_first_feed_description'>
+    <title>Description</title>
+    <body>
+      <div>
+        <p>This item is being used for development purposes and has not yet been approved.</p>
+      </div>
     </body>
   </topic>
 </topic>"""
@@ -402,6 +557,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
     void "should produce a diff for an updated item description to change paper dita"() {
         given: "the publish structures are built"
+        activeItem.definition = "The current description"
         DictionaryItem previousStructure = previousItemDescriptionChange.getPublishStructure()
         DictionaryItem currentStructure = activeItem.getPublishStructure()
 
@@ -429,26 +585,11 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
   <shortdesc>Change to NHS Business Definition: Updated description</shortdesc>
   <body>
     <div>
-      <div>
-        <p>
-          <ph id='added-diff-0' outputclass='diff-html-added'>A</ph>
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
-            <ph outputclass='diff-html-added'>Baby First Feed</ph>
-          </xref>
-          <ph outputclass='diff-html-added'>is a</ph>
-          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>
-            <ph outputclass='diff-html-added'>PERSON PROPERTY</ph>
-          </xref>
-          <ph outputclass='diff-html-added'>.</ph>
-        </p>
-        <p>
-          <ph outputclass='diff-html-added'>A</ph>
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
-            <ph outputclass='diff-html-added'>Baby First Feed</ph>
-          </xref>
-          <ph outputclass='diff-html-added'>is the first feed given to a baby.</ph>
-          <ph id='removed-diff-0' outputclass='diff-html-removed'>This is the old description</ph>
-        </p>
+      <div>The 
+
+        <ph id='removed-diff-0' outputclass='diff-html-removed'>previous</ph>
+        <ph id='added-diff-0' outputclass='diff-html-added'>current</ph> description
+
       </div>
     </div>
   </body>
@@ -512,6 +653,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
     void "should produce a diff for an updated item description and aliases to change paper dita"() {
         given: "the publish structures are built"
+        activeItem.definition = "The current description"
         DictionaryItem previousStructure = previousItemAllChange.getPublishStructure()
         DictionaryItem currentStructure = activeItem.getPublishStructure()
 
@@ -539,26 +681,11 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
   <shortdesc>Change to NHS Business Definition: Updated description, Aliases</shortdesc>
   <body>
     <div>
-      <div>
-        <p>
-          <ph id='added-diff-0' outputclass='diff-html-added'>A</ph>
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
-            <ph outputclass='diff-html-added'>Baby First Feed</ph>
-          </xref>
-          <ph outputclass='diff-html-added'>is a</ph>
-          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>
-            <ph outputclass='diff-html-added'>PERSON PROPERTY</ph>
-          </xref>
-          <ph outputclass='diff-html-added'>.</ph>
-        </p>
-        <p>
-          <ph outputclass='diff-html-added'>A</ph>
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>
-            <ph outputclass='diff-html-added'>Baby First Feed</ph>
-          </xref>
-          <ph outputclass='diff-html-added'>is the first feed given to a baby.</ph>
-          <ph id='removed-diff-0' outputclass='diff-html-removed'>This is the old description</ph>
-        </p>
+      <div>The 
+
+        <ph id='removed-diff-0' outputclass='diff-html-removed'>previous</ph>
+        <ph id='added-diff-0' outputclass='diff-html-added'>current</ph> description
+
       </div>
     </div>
     <div>
@@ -587,11 +714,59 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
     }
 
-    // TODO: retired change paper dita diff
+    void "should produce a diff for a retired item to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousItemAllChange.getPublishStructure()
+        DictionaryItem currentStructure = retiredItem.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed_retired'>
+  <title>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>Change to NHS Business Definition: Retired</shortdesc>
+  <body>
+    <div>
+      <div>
+        <ph id='removed-diff-0' outputclass='diff-html-removed'>The previous description</ph>
+        <p>
+          <ph id='added-diff-0' outputclass='diff-html-added'>This item has been retired from the NHS Data Model and Dictionary.</ph>
+        </p>
+        <p>
+          <ph outputclass='diff-html-added'>The last version of this item is available in the ?????? release of the NHS Data Model and Dictionary.</ph>
+        </p>
+        <p>
+          <ph outputclass='diff-html-added'>Access to the last live version of this item can be obtained by emailing</ph>
+          <xref href='mailto:information.standards@nhs.net' format='html' scope='external'>
+            <ph outputclass='diff-html-added'>information.standards@nhs.net</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>with "NHS Data Model and Dictionary - Archive Request" in the email subject line.</ph>
+        </p>
+      </div>
+    </div>
+  </body>
+</topic>"""
+        }
+    }
 
     void "should produce a diff for an updated item description to change paper html"() {
         given: "the publish structures are built"
-        previousItemDescriptionChange.definition = "The previous description"
         activeItem.definition = "The current description"
 
         DictionaryItem previousStructure = previousItemDescriptionChange.getPublishStructure()
@@ -682,7 +857,6 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
     void "should produce a diff for an updated item description and aliases to change paper html"() {
         given: "the publish structures are built"
-        previousItemAllChange.definition = "The previous description"
         activeItem.definition = "The current description"
 
         DictionaryItem previousStructure = previousItemAllChange.getPublishStructure()
