@@ -107,16 +107,14 @@ class AliasesRow extends StandardRow {
     final String context
     final String alias
 
-    final DiffStatus diffStatus
-
     AliasesRow(String context, String alias) {
         this(context, alias, DiffStatus.NONE)
     }
 
     AliasesRow(String context, String alias, DiffStatus diffStatus) {
+        super(diffStatus)
         this.context = context
         this.alias = alias
-        this.diffStatus = diffStatus
     }
 
     @Override
