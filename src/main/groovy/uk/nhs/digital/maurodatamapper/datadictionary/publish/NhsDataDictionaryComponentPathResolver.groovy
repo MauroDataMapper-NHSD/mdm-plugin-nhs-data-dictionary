@@ -17,24 +17,24 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
-class PublishContext {
-    final PublishTarget target
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 
-    private ItemLinkScanner itemLinkScanner
+class NhsDataDictionaryComponentPathResolver implements PathResolver<NhsDataDictionaryComponent> {
+    private final Map<String, NhsDataDictionaryComponent> lookup = [:]
 
-    PublishContext(PublishTarget target) {
-        this.target = target
+    void add(String path, NhsDataDictionaryComponent component) {
+        this.lookup[path] = component
     }
 
-    void setItemLinkScanner(ItemLinkScanner itemLinkScanner) {
-        this.itemLinkScanner = itemLinkScanner
-    }
-
-    String replaceLinksInString(String source) {
-        if (!this.itemLinkScanner) {
-            return source
+    void add(NhsDataDictionary dataDictionary) {
+        dataDictionary.allComponents.each { component ->
+            add(component.getMauroPath(), component)
         }
+    }
 
-        this.itemLinkScanner.scanForItemLinks(source)
+    @Override
+    NhsDataDictionaryComponent get(String path) {
+        this.lookup[path]
     }
 }

@@ -92,28 +92,34 @@ class DescriptionSection extends Section {
 
     @Override
     protected Body generateBodyDita(PublishContext context) {
+        String modifiedText = context.replaceLinksInString(text)
+
         Body.build() {
-            div HtmlHelper.replaceHtmlWithDita(text)
+            div HtmlHelper.replaceHtmlWithDita(modifiedText)
         }
     }
 
     @Override
     protected Div generateDivDita(PublishContext context) {
+        String modifiedText = context.replaceLinksInString(text)
+
         String outputClass = PublishHelper.getDiffCssClass(diffStatus)
         Div.build(outputClass: outputClass) {
-            div HtmlHelper.replaceHtmlWithDita(text)
+            div HtmlHelper.replaceHtmlWithDita(modifiedText)
         }
     }
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String modifiedText = context.replaceLinksInString(text)
+
         String sectionOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_DIV : null
         String paragraphOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_PARAGRAPH : null
 
         builder.div(class: sectionOutputClass) {
             // TODO: prefix sentence - for Element page type (X is the same as Y)
             builder.p(class: paragraphOutputClass) {
-                mkp.yieldUnescaped(text)
+                mkp.yieldUnescaped(modifiedText)
             }
         }
     }

@@ -26,9 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.ItemLinkScanner
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.NhsDataDictionaryComponentPathResolver
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
@@ -45,7 +47,13 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
     NhsDataDictionary dataDictionary
 
+    NhsDDClass relatedItem
+
     UUID branchId
+    String definition
+    NhsDataDictionaryComponentPathResolver componentPathResolver
+    MockCatalogueItemPathResolver catalogueItemPathResolver
+
     NhsDDBusinessDefinition activeItem
     NhsDDBusinessDefinition retiredItem
     NhsDDBusinessDefinition preparatoryItem
@@ -54,12 +62,17 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
     NhsDDBusinessDefinition previousItemAliasesChange
     NhsDDBusinessDefinition previousItemAllChange
 
+    PublishContext websiteDitaPublishContext
+    PublishContext websiteHtmlPublishContext
+    PublishContext changePaperDitaPublishContext
+    PublishContext changePaperHtmlPublishContext
+
     def setup() {
         dataDictionary = dataDictionaryService.newDataDictionary()
 
         branchId = UUID.fromString("782602d4-e153-45d8-a271-eb42396804da")
 
-        String definition = """<p>
+        definition = """<p>
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
     is a <a href="dm:Classes and Attributes|dc:PERSON PROPERTY">PERSON PROPERTY</a>
     . </p>
@@ -67,6 +80,69 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
     is the first feed given to a baby. </p>"""
 
+        setupRelatedItem()
+
+        setupActiveItem()
+        setupRetiredItem()
+        setupPreparatoryItem()
+        setupPreviousItems()
+
+        setupComponentPathResolver()
+        setupCatalogueItemPathResolver()
+        setupPublishContexts()
+    }
+
+    private static <K, V> Map<K, V> copyMap(Map<K, V> properties) {
+        Map<K, V> copy = [:]
+        properties.each { key, value -> copy[key] = value }
+        copy
+    }
+
+    private void setupRelatedItem() {
+        relatedItem = new NhsDDClass(
+            catalogueItemId: UUID.fromString("a57843dd-c1a7-4d37-996c-fcb67e496cb9"),
+            branchId: branchId,
+            name: "PERSON PROPERTY")
+    }
+
+    private void setupComponentPathResolver() {
+        componentPathResolver = new NhsDataDictionaryComponentPathResolver()
+
+        // Self-reference this item
+        componentPathResolver.add(activeItem.getMauroPath(), activeItem)
+
+        // Add other components
+        componentPathResolver.add(relatedItem.getMauroPath(), relatedItem)
+    }
+
+    private void setupCatalogueItemPathResolver() {
+        catalogueItemPathResolver = new MockCatalogueItemPathResolver()
+
+        // Self-reference this item
+        catalogueItemPathResolver.add(activeItem.getMauroPath(), activeItem.catalogueItemId)
+
+        // Add other components
+        catalogueItemPathResolver.add(relatedItem.getMauroPath(), relatedItem.catalogueItemId)
+    }
+
+    private void setupPublishContexts() {
+        ItemLinkScanner ditaItemLinkScanner = ItemLinkScanner.createForDitaOutput(componentPathResolver)
+        ItemLinkScanner htmlItemLinkScanner = ItemLinkScanner.createForHtmlPreview(branchId, catalogueItemPathResolver)
+
+        websiteDitaPublishContext = new PublishContext(PublishTarget.WEBSITE)
+        websiteDitaPublishContext.setItemLinkScanner(ditaItemLinkScanner)
+
+        websiteHtmlPublishContext = new PublishContext(PublishTarget.WEBSITE)
+        websiteHtmlPublishContext.setItemLinkScanner(htmlItemLinkScanner)
+
+        changePaperDitaPublishContext = new PublishContext(PublishTarget.CHANGE_PAPER)
+        changePaperDitaPublishContext.setItemLinkScanner(ditaItemLinkScanner)
+
+        changePaperHtmlPublishContext = new PublishContext(PublishTarget.CHANGE_PAPER)
+        changePaperHtmlPublishContext.setItemLinkScanner(htmlItemLinkScanner)
+    }
+
+    private void setupActiveItem() {
         activeItem = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("901c2d3d-0111-41d1-acc9-5b501c1dc397"),
             branchId: branchId,
@@ -100,34 +176,42 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             whereUsedDescription)
 
         activeItem.addWhereUsed(activeItem, whereUsedDescription)
+    }
 
+    private void setupRetiredItem() {
         retiredItem = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("fb096f90-3273-4c66-8023-c1e32ac5b795"),
             branchId: branchId,
             dataDictionary: dataDictionary,
             name: this.activeItem.name,
             definition: this.activeItem.definition,
-            otherProperties: copyPropertiesMap(this.activeItem.otherProperties),
-            whereUsed: this.activeItem.whereUsed)
-        retiredItem.otherProperties["isRetired"] = true.toString()
+            otherProperties: copyMap(this.activeItem.otherProperties),
+            whereUsed: copyMap(this.activeItem.whereUsed))
 
+        retiredItem.otherProperties["isRetired"] = true.toString()
+    }
+
+    private void setupPreparatoryItem() {
         preparatoryItem = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("f5276a0c-5458-4fa5-9bd3-ff786aef932f"),
             branchId: branchId,
             dataDictionary: dataDictionary,
             name: this.activeItem.name,
             definition: this.activeItem.definition,
-            otherProperties: copyPropertiesMap(this.activeItem.otherProperties),
-            whereUsed: this.activeItem.whereUsed)
-        preparatoryItem.otherProperties["isPreparatory"] = true.toString()
+            otherProperties: copyMap(this.activeItem.otherProperties),
+            whereUsed: copyMap(this.activeItem.whereUsed))
 
+        preparatoryItem.otherProperties["isPreparatory"] = true.toString()
+    }
+
+    private void setupPreviousItems() {
         previousItemDescriptionChange = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("22710e00-7c41-4335-97da-2cafe9728804"),
             branchId: branchId,
             dataDictionary: dataDictionary,
             name: this.activeItem.name,
             definition: "The previous description",
-            otherProperties: copyPropertiesMap(this.activeItem.otherProperties))
+            otherProperties: copyMap(this.activeItem.otherProperties))
 
         previousItemAliasesChange = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("8049682f-761f-4eab-b533-c00781615207"),
@@ -146,13 +230,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             dataDictionary: dataDictionary,
             name: this.activeItem.name,
             definition: previousItemDescriptionChange.definition,
-            otherProperties: copyPropertiesMap(previousItemAliasesChange.otherProperties))
-    }
-
-    private static Map<String, String> copyPropertiesMap(Map<String, String> properties) {
-        Map<String, String> copy = [:]
-        properties.each { key, value -> copy[key] = value }
-        copy
+            otherProperties: copyMap(previousItemAliasesChange.otherProperties))
     }
 
     void "should have the correct active item structure"() {
@@ -204,7 +282,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the publish structure is converted to dita"
-        Topic dita = structure.generateDita(new PublishContext(PublishTarget.WEBSITE))
+        Topic dita = structure.generateDita(websiteDitaPublishContext)
         verifyAll {
             dita
         }
@@ -223,13 +301,13 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
       <div>
         <p>A 
 
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>Baby First Feed</xref> is a 
+          <xref outputclass='businessDefinition' keyref='nhs_business_definition_baby_first_feed' scope='local'>Baby First Feed</xref> is a 
 
-          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>PERSON PROPERTY</xref> .
+          <xref outputclass='class' keyref='class_person_property' scope='local'>PERSON PROPERTY</xref> .
         </p>
         <p>A 
 
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>Baby First Feed</xref> is the first feed given to a baby.
+          <xref outputclass='businessDefinition' keyref='nhs_business_definition_baby_first_feed' scope='local'>Baby First Feed</xref> is the first feed given to a baby.
         </p>
       </div>
     </body>
@@ -302,7 +380,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the publish structure is converted to dita"
-        Topic dita = structure.generateDita(new PublishContext(PublishTarget.WEBSITE))
+        Topic dita = structure.generateDita(websiteDitaPublishContext)
         verifyAll {
             dita
         }
@@ -340,7 +418,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the publish structure is converted to dita"
-        Topic dita = structure.generateDita(new PublishContext(PublishTarget.WEBSITE))
+        Topic dita = structure.generateDita(websiteDitaPublishContext)
         verifyAll {
             dita
         }
@@ -366,8 +444,6 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
     }
 
     void "should render an active item to website html"() {
-        PublishContext publishContext = new PublishContext(PublishTarget.WEBSITE)
-
         given: "the publish structure is built"
         DictionaryItem structure = activeItem.getPublishStructure()
         verifyAll {
@@ -375,7 +451,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the publish structure is converted to html"
-        String titleHtml = structure.generateHtml(publishContext)
+        String titleHtml = structure.generateHtml(websiteHtmlPublishContext)
 
         then: "the title is published"
         verifyAll {
@@ -388,7 +464,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
         when: "the description is converted to html"
         DescriptionSection descriptionSection = structure.sections.find { it instanceof DescriptionSection } as DescriptionSection
-        String descriptionHtml = descriptionSection.generateHtml(publishContext)
+        String descriptionHtml = descriptionSection.generateHtml(websiteHtmlPublishContext)
 
         then: "the description is published"
         verifyAll {
@@ -396,11 +472,11 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             descriptionHtml == """<div class="- topic/body body">
   <div class="- topic/div div">
     <p class="- topic/p p"><p>
-    A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
-    is a <a href="dm:Classes and Attributes|dc:PERSON PROPERTY">PERSON PROPERTY</a>
+    A <a class="businessDefinition" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/901c2d3d-0111-41d1-acc9-5b501c1dc397">Baby First Feed</a>
+    is a <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/a57843dd-c1a7-4d37-996c-fcb67e496cb9">PERSON PROPERTY</a>
     . </p>
 <p>
-    A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
+    A <a class="businessDefinition" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/901c2d3d-0111-41d1-acc9-5b501c1dc397">Baby First Feed</a>
     is the first feed given to a baby. </p></p>
   </div>
 </div>"""
@@ -408,7 +484,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
         when: "the aliases are converted to html"
         AliasesSection aliasesSection = structure.sections.find { it instanceof AliasesSection } as AliasesSection
-        String aliasesHtml = aliasesSection.generateHtml(publishContext)
+        String aliasesHtml = aliasesSection.generateHtml(websiteHtmlPublishContext)
 
         then: "the aliases are published"
         verifyAll {
@@ -439,7 +515,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
 
             when: "the where used are converted to html"
             WhereUsedSection whereUsedSection = structure.sections.find { it instanceof WhereUsedSection } as WhereUsedSection
-            String whereUsedHtml = whereUsedSection.generateHtml(publishContext)
+            String whereUsedHtml = whereUsedSection.generateHtml(websiteHtmlPublishContext)
 
             then: "the where used are published"
             verifyAll {
@@ -509,7 +585,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
         verifyAll {
             dita
         }
@@ -527,13 +603,13 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
       <div>
         <p>A 
 
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>Baby First Feed</xref> is a 
+          <xref outputclass='businessDefinition' keyref='nhs_business_definition_baby_first_feed' scope='local'>Baby First Feed</xref> is a 
 
-          <xref keyref='dm:Classes%20and%20Attributes|dc:PERSON%20PROPERTY' scope='local'>PERSON PROPERTY</xref> .
+          <xref outputclass='class' keyref='class_person_property' scope='local'>PERSON PROPERTY</xref> .
         </p>
         <p>A 
 
-          <xref keyref='te:NHS%20Business%20Definitions|tm:Baby%20First%20Feed' scope='local'>Baby First Feed</xref> is the first feed given to a baby.
+          <xref outputclass='businessDefinition' keyref='nhs_business_definition_baby_first_feed' scope='local'>Baby First Feed</xref> is the first feed given to a baby.
         </p>
       </div>
     </div>
@@ -570,7 +646,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
         verifyAll {
             dita
         }
@@ -611,7 +687,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
         verifyAll {
             dita
         }
@@ -666,7 +742,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
         verifyAll {
             dita
         }
@@ -728,7 +804,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        Topic dita = diff.generateDita(new PublishContext(PublishTarget.CHANGE_PAPER))
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
         verifyAll {
             dita
         }
@@ -781,7 +857,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        String html = diff.generateHtml(new PublishContext(PublishTarget.CHANGE_PAPER))
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
 
         then: "the expected output is published"
         verifyAll {
@@ -812,7 +888,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        String html = diff.generateHtml(new PublishContext(PublishTarget.CHANGE_PAPER))
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
 
         then: "the expected output is published"
         verifyAll {
@@ -871,7 +947,7 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         }
 
         when: "the diff structure is converted to dita"
-        String html = diff.generateHtml(new PublishContext(PublishTarget.CHANGE_PAPER))
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
 
         then: "the expected output is published"
         verifyAll {

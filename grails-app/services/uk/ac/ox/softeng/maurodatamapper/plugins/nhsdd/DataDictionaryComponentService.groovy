@@ -243,7 +243,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         return null
     }
 
-    String getStereotypeByPath(String[] path) {
+    static String getStereotypeByPath(String[] path) {
         if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "businessDefinition"
         }

@@ -15,26 +15,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package uk.nhs.digital.maurodatamapper.datadictionary.publish
+package nhs.digital.maurodatamapper.datadictionary.publish.structure
 
-class PublishContext {
-    final PublishTarget target
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PathResolver
 
-    private ItemLinkScanner itemLinkScanner
+class MockCatalogueItemPathResolver implements PathResolver<UUID> {
+    final Map<String, UUID> lookup = [:]
 
-    PublishContext(PublishTarget target) {
-        this.target = target
+    void add(String path, UUID value) {
+        lookup[path] = value
     }
 
-    void setItemLinkScanner(ItemLinkScanner itemLinkScanner) {
-        this.itemLinkScanner = itemLinkScanner
-    }
-
-    String replaceLinksInString(String source) {
-        if (!this.itemLinkScanner) {
-            return source
-        }
-
-        this.itemLinkScanner.scanForItemLinks(source)
+    @Override
+    UUID get(String path) {
+        lookup[path]
     }
 }

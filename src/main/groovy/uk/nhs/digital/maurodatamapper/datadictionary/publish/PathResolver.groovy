@@ -17,24 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
-class PublishContext {
-    final PublishTarget target
-
-    private ItemLinkScanner itemLinkScanner
-
-    PublishContext(PublishTarget target) {
-        this.target = target
-    }
-
-    void setItemLinkScanner(ItemLinkScanner itemLinkScanner) {
-        this.itemLinkScanner = itemLinkScanner
-    }
-
-    String replaceLinksInString(String source) {
-        if (!this.itemLinkScanner) {
-            return source
-        }
-
-        this.itemLinkScanner.scanForItemLinks(source)
-    }
+interface PathResolver<T> {
+    T get(String path)
 }
