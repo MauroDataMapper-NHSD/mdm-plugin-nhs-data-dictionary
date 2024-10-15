@@ -23,17 +23,12 @@ import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryService
 import grails.gorm.transactions.Rollback
 import grails.testing.mixin.integration.Integration
 import org.springframework.beans.factory.annotation.Autowired
-import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDChangeLog
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.ItemLinkScanner
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.NhsDataDictionaryComponentPathResolver
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ChangeLogSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
@@ -43,108 +38,52 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.WhereUsed
 
 @Integration
 @Rollback
-class NhsBusinessDefinitionStructureSpec extends Specification {
+class NhsBusinessDefinitionStructureSpec extends DataDictionaryComponentStructureSpec<NhsDDBusinessDefinition> {
     @Autowired
     NhsDataDictionaryService dataDictionaryService
 
-    NhsDataDictionary dataDictionary
-
     NhsDDClass relatedItem
 
-    UUID branchId
-    String definition
-    NhsDataDictionaryComponentPathResolver componentPathResolver
-    MockCatalogueItemPathResolver catalogueItemPathResolver
+    @Override
+    protected NhsDataDictionary createDataDictionary() {
+        dataDictionaryService.newDataDictionary()
+    }
 
-    NhsDDBusinessDefinition activeItem
-    NhsDDBusinessDefinition retiredItem
-    NhsDDBusinessDefinition preparatoryItem
-
-    NhsDDBusinessDefinition previousItemDescriptionChange
-    NhsDDBusinessDefinition previousItemAliasesChange
-    NhsDDBusinessDefinition previousItemAllChange
-
-    PublishContext websiteDitaPublishContext
-    PublishContext websiteHtmlPublishContext
-    PublishContext changePaperDitaPublishContext
-    PublishContext changePaperHtmlPublishContext
-
-    def setup() {
-        dataDictionary = dataDictionaryService.newDataDictionary()
-
-        branchId = UUID.fromString("782602d4-e153-45d8-a271-eb42396804da")
-
-        definition = """<p>
+    @Override
+    String getDefinition() {
+        """<p>
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
     is a <a href="dm:Classes and Attributes|dc:PERSON PROPERTY">PERSON PROPERTY</a>
     . </p>
 <p>
     A <a href="te:NHS Business Definitions|tm:Baby First Feed">Baby First Feed</a>
     is the first feed given to a baby. </p>"""
-
-        setupRelatedItem()
-
-        setupActiveItem()
-        setupRetiredItem()
-        setupPreparatoryItem()
-        setupPreviousItems()
-
-        setupComponentPathResolver()
-        setupCatalogueItemPathResolver()
-        setupPublishContexts()
     }
 
-    private static <K, V> Map<K, V> copyMap(Map<K, V> properties) {
-        Map<K, V> copy = [:]
-        properties.each { key, value -> copy[key] = value }
-        copy
-    }
-
-    private void setupRelatedItem() {
+    @Override
+    void setupRelatedItems() {
         relatedItem = new NhsDDClass(
             catalogueItemId: UUID.fromString("a57843dd-c1a7-4d37-996c-fcb67e496cb9"),
             branchId: branchId,
             name: "PERSON PROPERTY")
     }
 
-    private void setupComponentPathResolver() {
-        componentPathResolver = new NhsDataDictionaryComponentPathResolver()
+    @Override
+    protected void setupComponentPathResolver() {
+        super.setupComponentPathResolver()
 
-        // Self-reference this item
-        componentPathResolver.add(activeItem.getMauroPath(), activeItem)
-
-        // Add other components
         componentPathResolver.add(relatedItem.getMauroPath(), relatedItem)
     }
 
-    private void setupCatalogueItemPathResolver() {
-        catalogueItemPathResolver = new MockCatalogueItemPathResolver()
+    @Override
+    protected void setupCatalogueItemPathResolver() {
+        super.setupCatalogueItemPathResolver()
 
-        // Self-reference this item
-        catalogueItemPathResolver.add(activeItem.getMauroPath(), activeItem.catalogueItemId)
-
-        // Add other components
         catalogueItemPathResolver.add(relatedItem.getMauroPath(), relatedItem.catalogueItemId)
     }
 
-    private void setupPublishContexts() {
-        ItemLinkScanner ditaItemLinkScanner = ItemLinkScanner.createForDitaOutput(componentPathResolver)
-        ItemLinkScanner htmlItemLinkScanner = ItemLinkScanner.createForHtmlPreview(branchId, catalogueItemPathResolver)
-
-        websiteDitaPublishContext = new PublishContext(PublishTarget.WEBSITE)
-        websiteDitaPublishContext.setItemLinkScanner(ditaItemLinkScanner)
-
-        websiteHtmlPublishContext = new PublishContext(PublishTarget.WEBSITE)
-        websiteHtmlPublishContext.setItemLinkScanner(htmlItemLinkScanner)
-
-        changePaperDitaPublishContext = new PublishContext(PublishTarget.CHANGE_PAPER)
-        changePaperDitaPublishContext.setItemLinkScanner(ditaItemLinkScanner)
-
-        changePaperHtmlPublishContext = new PublishContext(PublishTarget.CHANGE_PAPER)
-        changePaperHtmlPublishContext.setItemLinkScanner(htmlItemLinkScanner)
-    }
-
-    private void setupActiveItem() {
+    @Override
+    void setupActiveItem() {
         activeItem = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("901c2d3d-0111-41d1-acc9-5b501c1dc397"),
             branchId: branchId,
@@ -155,37 +94,37 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
                 'aliasPlural': 'Baby First Feeds'
             ])
 
-        String whereUsedDescription = "references in description $activeItem.name"
-        activeItem.addWhereUsed(
+        addWhereUsed(
+            activeItem,
             new NhsDDElement(
                 name: "BABY FIRST FEED TIME",
                 catalogueItemId: UUID.fromString("b5170409-97aa-464e-9aad-657c8b2e00f8"),
-                branchId: branchId),
-            whereUsedDescription)
+                branchId: branchId))
 
-        activeItem.addWhereUsed(
+        addWhereUsed(
+            activeItem,
             new NhsDDElement(
                 name: "BABY FIRST FEED DATE",
                 catalogueItemId: UUID.fromString("542a6963-cce2-4c8f-b60d-b86b13d43bbe"),
-                branchId: branchId),
-            whereUsedDescription)
+                branchId: branchId))
 
-        activeItem.addWhereUsed(
+        addWhereUsed(
+            activeItem,
             new NhsDDAttribute(
                 name: "BABY FIRST FEED BREAST MILK INDICATION CODE",
                 catalogueItemId: UUID.fromString("cc9b5d18-12a0-4c53-b06e-fa5c649494f2"),
-                branchId: branchId),
-            whereUsedDescription)
+                branchId: branchId))
 
-        activeItem.addWhereUsed(activeItem, whereUsedDescription)
+        addWhereUsed(activeItem, activeItem)     // Self reference
 
-        activeItem.changeLogHeaderText = "<p>Click on the links below to view the change requests this item is part of:</p>"
-        activeItem.changeLogFooterText = """<p>Click <a class="- topic/xref xref" href="https://www.datadictionary.nhs.uk/archive" target="_blank" rel="external noopener">here</a> to see the Change Log Information for changes before January 2025.</p>"""
-        activeItem.changeLog.add(new NhsDDChangeLog(reference: "CR1000", referenceUrl: "https://test.nhs.uk/change/cr1000", description: "Change 1000", implementationDate: "01 April 2024"))
-        activeItem.changeLog.add(new NhsDDChangeLog(reference: "CR2000", referenceUrl: "https://test.nhs.uk/change/cr2000", description: "Change 2000", implementationDate: "01 September 2024"))
+        addChangeLog(
+            activeItem,
+            new NhsDDChangeLog(reference: "CR1000", referenceUrl: "https://test.nhs.uk/change/cr1000", description: "Change 1000", implementationDate: "01 April 2024"),
+            new NhsDDChangeLog(reference: "CR2000", referenceUrl: "https://test.nhs.uk/change/cr2000", description: "Change 2000", implementationDate: "01 September 2024"))
     }
 
-    private void setupRetiredItem() {
+    @Override
+    void setupRetiredItem()  {
         retiredItem = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("fb096f90-3273-4c66-8023-c1e32ac5b795"),
             branchId: branchId,
@@ -194,11 +133,10 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             definition: this.activeItem.definition,
             otherProperties: copyMap(this.activeItem.otherProperties),
             whereUsed: copyMap(this.activeItem.whereUsed))
-
-        retiredItem.otherProperties["isRetired"] = true.toString()
     }
 
-    private void setupPreparatoryItem() {
+    @Override
+    void setupPreparatoryItem() {
         preparatoryItem = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("f5276a0c-5458-4fa5-9bd3-ff786aef932f"),
             branchId: branchId,
@@ -207,11 +145,10 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             definition: this.activeItem.definition,
             otherProperties: copyMap(this.activeItem.otherProperties),
             whereUsed: copyMap(this.activeItem.whereUsed))
-
-        preparatoryItem.otherProperties["isPreparatory"] = true.toString()
     }
 
-    private void setupPreviousItems() {
+    @Override
+    void setupPreviousItems() {
         previousItemDescriptionChange = new NhsDDBusinessDefinition(
             catalogueItemId: UUID.fromString("22710e00-7c41-4335-97da-2cafe9728804"),
             branchId: branchId,
