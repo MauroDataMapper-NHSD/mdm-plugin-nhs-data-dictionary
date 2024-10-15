@@ -34,51 +34,56 @@ class AliasesTable extends StandardTable<AliasesRow> {
     ]
 
     AliasesTable(List<AliasesRow> rows) {
-        super(rows)
+        super(COLUMNS, rows)
     }
 
-    AliasesTable produceDiff(AliasesTable previous) {
-        List<AliasesRow> currentRows = this.rows
-        List<AliasesRow> previousRows = previous ? previous.rows : []
+//    AliasesTable produceDiff(AliasesTable previous) {
+//        List<AliasesRow> currentRows = this.rows
+//        List<AliasesRow> previousRows = previous ? previous.rows : []
+//
+//        if (currentRows.empty && previousRows.empty) {
+//            return null
+//        }
+//
+//        if (ChangeFunctions.areEqual(currentRows, previousRows)) {
+//            return null
+//        }
+//
+//        List<AliasesRow> newRows = ChangeFunctions.getDifferences(currentRows, previousRows)
+//        List<AliasesRow> removedRows = ChangeFunctions.getDifferences(previousRows, currentRows)
+//
+//        if (newRows.empty && removedRows.empty) {
+//            return null
+//        }
+//
+//        List<AliasesRow> diffRows = []
+//        currentRows.each { row ->
+//            if (newRows.any { it.discriminator == row.discriminator }) {
+//                diffRows.add(row.cloneWithDiff(DiffStatus.NEW))
+//            }
+//            else {
+//                diffRows.add(row)
+//            }
+//        }
+//        removedRows.each { row ->
+//            diffRows.add(row.cloneWithDiff(DiffStatus.REMOVED))
+//        }
+//
+//        new AliasesTable(diffRows)
+//    }
 
-        if (currentRows.empty && previousRows.empty) {
-            return null
-        }
-
-        if (ChangeFunctions.areEqual(currentRows, previousRows)) {
-            return null
-        }
-
-        List<AliasesRow> newRows = ChangeFunctions.getDifferences(currentRows, previousRows)
-        List<AliasesRow> removedRows = ChangeFunctions.getDifferences(previousRows, currentRows)
-
-        if (newRows.empty && removedRows.empty) {
-            return null
-        }
-
-        List<AliasesRow> diffRows = []
-        currentRows.each { row ->
-            if (newRows.any { it.discriminator == row.discriminator }) {
-                diffRows.add(row.cloneWithDiff(DiffStatus.NEW))
-            }
-            else {
-                diffRows.add(row)
-            }
-        }
-        removedRows.each { row ->
-            diffRows.add(row.cloneWithDiff(DiffStatus.REMOVED))
-        }
-
-        new AliasesTable(diffRows)
-    }
+//    @Override
+//    protected List<StandardColumn> getColumnDefinitions() {
+//        COLUMNS
+//    }
 
     @Override
-    protected List<StandardColumn> getColumnDefinitions() {
-        COLUMNS
+    protected StandardTable<AliasesRow> cloneWithRows(List<AliasesRow> rows) {
+        new AliasesTable(rows)
     }
 }
 
-class AliasesRow extends StandardRow implements ChangeAware {
+class AliasesRow extends StandardRow {
     final String context
     final String alias
 
@@ -92,10 +97,6 @@ class AliasesRow extends StandardRow implements ChangeAware {
         this.context = context
         this.alias = alias
         this.diffStatus = diffStatus
-    }
-
-    AliasesRow cloneWithDiff(DiffStatus diffStatus) {
-        new AliasesRow(this.context, this.alias, diffStatus)
     }
 
     @Override
@@ -136,5 +137,10 @@ class AliasesRow extends StandardRow implements ChangeAware {
                 mkp.yield(this.alias)
             }
         }
+    }
+
+    @Override
+    protected StandardRow cloneWithDiff(DiffStatus diffStatus) {
+        new AliasesRow(this.context, this.alias, diffStatus)
     }
 }

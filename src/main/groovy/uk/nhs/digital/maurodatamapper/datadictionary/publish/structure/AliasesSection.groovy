@@ -45,7 +45,7 @@ class AliasesSection extends Section {
     @Override
     Section produceDiff(Section previous) {
         AliasesSection previousSection = previous as AliasesSection
-        AliasesTable diffTable = this.table.produceDiff(previousSection?.table)
+        AliasesTable diffTable = this.table.produceDiff(previousSection?.table) as AliasesTable
         if (!diffTable) {
             return null
         }

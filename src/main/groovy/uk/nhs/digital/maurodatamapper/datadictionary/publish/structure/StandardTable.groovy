@@ -24,17 +24,59 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 
-abstract class StandardTable<R extends StandardRow> implements DitaAware<Simpletable>, HtmlBuilder {
+abstract class StandardTable<R extends StandardRow> implements
+    DitaAware<Simpletable>,
+    HtmlBuilder,
+    DiffAware<StandardTable<R>, StandardTable<R>> {
+    final List<StandardColumn> columns
     final List<R> rows
 
-    StandardTable(List<R> rows) {
+    StandardTable(List<StandardColumn> columns, List<R> rows) {
+        this.columns = columns
         this.rows = rows
     }
 
     @Override
+    StandardTable<R> produceDiff(StandardTable<R> previous) {
+        List<R> currentRows = this.rows
+        List<R> previousRows = previous ? previous.rows : []
+
+        if (currentRows.empty && previousRows.empty) {
+            return null
+        }
+
+        if (ChangeFunctions.areEqual(currentRows, previousRows)) {
+            return null
+        }
+
+        List<R> newRows = ChangeFunctions.getDifferences(currentRows, previousRows)
+        List<R> removedRows = ChangeFunctions.getDifferences(previousRows, currentRows)
+
+        if (newRows.empty && removedRows.empty) {
+            return null
+        }
+
+        List<R> diffRows = []
+        currentRows.each { row ->
+            if (newRows.any { it.discriminator == row.discriminator }) {
+                diffRows.add(row.cloneWithDiff(DiffStatus.NEW) as R)
+            }
+            else {
+                diffRows.add(row)
+            }
+        }
+        removedRows.each { row ->
+            diffRows.add(row.cloneWithDiff(DiffStatus.REMOVED) as R)
+        }
+
+        cloneWithRows(diffRows)
+    }
+
+    @Override
     Simpletable generateDita(PublishContext context) {
-        List<StandardColumn> columns = getColumnDefinitions()
         List<String> relColWidths = columns.collect {column -> column.relColWidth }
 
         String tableCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE : ""
@@ -54,8 +96,6 @@ abstract class StandardTable<R extends StandardRow> implements DitaAware<Simplet
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        List<StandardColumn> columns = getColumnDefinitions()
-
         String containerCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_CONTAINER : null
         String tableCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_HTML_TOPIC_SIMPLETABLE} $HtmlConstants.CSS_TABLE" : null
         String headCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_HEAD} ${HtmlConstants.CSS_TABLE_HEAD}" : null
@@ -86,7 +126,7 @@ abstract class StandardTable<R extends StandardRow> implements DitaAware<Simplet
         }
     }
 
-    protected abstract List<StandardColumn> getColumnDefinitions()
+    protected abstract StandardTable<R> cloneWithRows(List<R> rows)
 }
 
 class StandardColumn {
@@ -101,7 +141,18 @@ class StandardColumn {
     }
 }
 
-abstract class StandardRow implements DitaAware<Strow>, HtmlBuilder {
+abstract class StandardRow implements DitaAware<Strow>, HtmlBuilder, ChangeAware {
+    final DiffStatus diffStatus
+
+    StandardRow() {
+        this(DiffStatus.NONE)
+    }
+
+    StandardRow(DiffStatus diffStatus) {
+        this.diffStatus = diffStatus
+    }
+
+    protected abstract StandardRow cloneWithDiff(DiffStatus diffStatus)
 }
 
 

@@ -30,12 +30,17 @@ class WhereUsedTable extends StandardTable<WhereUsedRow> {
     ]
 
     WhereUsedTable(List<WhereUsedRow> rows) {
-        super(rows)
+        super(COLUMNS, rows)
     }
 
+//    @Override
+//    protected List<StandardColumn> getColumnDefinitions() {
+//        COLUMNS
+//    }
+
     @Override
-    protected List<StandardColumn> getColumnDefinitions() {
-        COLUMNS
+    protected StandardTable<WhereUsedRow> cloneWithRows(List<WhereUsedRow> rows) {
+        new WhereUsedTable(rows)
     }
 }
 
@@ -74,5 +79,15 @@ class WhereUsedRow extends StandardRow {
                 mkp.yield(usage)
             }
         }
+    }
+
+    @Override
+    String getDiscriminator() {
+        "type:${type}-link:${link.name}-usage:${usage}"
+    }
+
+    @Override
+    protected StandardRow cloneWithDiff(DiffStatus diffStatus) {
+        new WhereUsedRow(this.type, this.link, this.usage)
     }
 }
