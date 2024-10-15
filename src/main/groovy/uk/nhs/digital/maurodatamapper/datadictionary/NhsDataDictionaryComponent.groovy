@@ -33,6 +33,8 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.DaisyDiffHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesRow
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ChangeLogRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ChangeLogSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
@@ -441,7 +443,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
             }
         }
 
-        // TODO: Change Log table
+        List<ChangeLogRow> changeLogRows = changeLog.collect { entry -> new ChangeLogRow(entry) }
+        dictionaryItem.addSection(new ChangeLogSection(dictionaryItem, changeLogHeaderText, changeLogFooterText, changeLogRows))
 
         dictionaryItem
     }

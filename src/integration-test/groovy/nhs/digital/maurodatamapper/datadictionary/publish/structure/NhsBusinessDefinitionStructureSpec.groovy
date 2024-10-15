@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDChangeLog
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
@@ -34,6 +35,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.NhsDataDictionaryCo
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ChangeLogSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
@@ -176,6 +178,11 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
             whereUsedDescription)
 
         activeItem.addWhereUsed(activeItem, whereUsedDescription)
+
+        activeItem.changeLogHeaderText = "<p>Click on the links below to view the change requests this item is part of:</p>"
+        activeItem.changeLogFooterText = """<p>Click <a class="- topic/xref xref" href="https://www.datadictionary.nhs.uk/archive" target="_blank" rel="external noopener">here</a> to see the Change Log Information for changes before January 2025.</p>"""
+        activeItem.changeLog.add(new NhsDDChangeLog(reference: "CR1000", referenceUrl: "https://test.nhs.uk/change/cr1000", description: "Change 1000", implementationDate: "01 April 2024"))
+        activeItem.changeLog.add(new NhsDDChangeLog(reference: "CR2000", referenceUrl: "https://test.nhs.uk/change/cr2000", description: "Change 2000", implementationDate: "01 September 2024"))
     }
 
     private void setupRetiredItem() {
@@ -241,10 +248,11 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         verifyAll {
             structure.state == DictionaryItemState.ACTIVE
             structure.name == activeItem.name
-            structure.sections.size() == 3
+            structure.sections.size() == 4
             structure.sections[0] instanceof DescriptionSection
             structure.sections[1] instanceof AliasesSection
             structure.sections[2] instanceof WhereUsedSection
+            structure.sections[3] instanceof ChangeLogSection
         }
     }
 
@@ -256,8 +264,9 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         verifyAll {
             structure.state == DictionaryItemState.RETIRED
             structure.name == retiredItem.name
-            structure.sections.size() == 1
+            structure.sections.size() == 2
             structure.sections[0] instanceof DescriptionSection
+            structure.sections[1] instanceof ChangeLogSection
         }
     }
 
@@ -269,8 +278,9 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         verifyAll {
             structure.state == DictionaryItemState.PREPARATORY
             structure.name == preparatoryItem.name
-            structure.sections.size() == 1
+            structure.sections.size() == 2
             structure.sections[0] instanceof DescriptionSection
+            structure.sections[1] instanceof ChangeLogSection
         }
     }
 
@@ -368,6 +378,41 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
       </simpletable>
     </body>
   </topic>
+  <topic id='nhs_business_definition_baby_first_feed_changeLog'>
+    <title>Change Log</title>
+    <body>
+      <div>
+        <p>Click on the links below to view the change requests this item is part of:</p>
+      </div>
+      <simpletable outputclass='table table-sm table-striped' relcolwidth='2* 5* 3*'>
+        <sthead outputclass='thead-light'>
+          <stentry>Change Request</stentry>
+          <stentry>Change Request Description</stentry>
+          <stentry>Implementation Date</stentry>
+        </sthead>
+        <strow>
+          <stentry>
+            <xref href='https://test.nhs.uk/change/cr1000' format='html' scope='external'>CR1000</xref>
+          </stentry>
+          <stentry>Change 1000</stentry>
+          <stentry>01 April 2024</stentry>
+        </strow>
+        <strow>
+          <stentry>
+            <xref href='https://test.nhs.uk/change/cr2000' format='html' scope='external'>CR2000</xref>
+          </stentry>
+          <stentry>Change 2000</stentry>
+          <stentry>01 September 2024</stentry>
+        </strow>
+      </simpletable>
+      <div>
+        <p>Click 
+
+          <xref outputclass='- topic/xref xref' href='https://www.datadictionary.nhs.uk/archive' format='html' scope='external'>here</xref> to see the Change Log Information for changes before January 2025.
+        </p>
+      </div>
+    </body>
+  </topic>
 </topic>"""
         }
     }
@@ -406,6 +451,10 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
       </div>
     </body>
   </topic>
+  <topic id='nhs_business_definition_baby_first_feed_retired_changeLog'>
+    <title>Change Log</title>
+    <body />
+  </topic>
 </topic>"""
         }
     }
@@ -438,6 +487,10 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
         <p>This item is being used for development purposes and has not yet been approved.</p>
       </div>
     </body>
+  </topic>
+  <topic id='nhs_business_definition_baby_first_feed_changeLog'>
+    <title>Change Log</title>
+    <body />
   </topic>
 </topic>"""
         }
@@ -569,6 +622,51 @@ class NhsBusinessDefinitionStructureSpec extends Specification {
   </div>
 </div>"""
             }
+        }
+
+        when: "the change log is converted to html"
+        ChangeLogSection changeLogSection = structure.sections.find { it instanceof ChangeLogSection } as ChangeLogSection
+        String changeLogHtml = changeLogSection.generateHtml(websiteHtmlPublishContext)
+
+        then: "the change log is published"
+        verifyAll {
+            changeLogHtml
+            changeLogHtml == """<div class="- topic/body body">
+  <div class="- topic/body body"><p>Click on the links below to view the change requests this item is part of:</p></div>
+  <div class="simpletable-container">
+    <table class="- topic/simpletable simpletable table table-sm table-striped">
+      <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 55%" />
+        <col style="width: 25%" />
+      </colgroup>
+      <thead>
+        <tr class="- topic/sthead sthead thead-light">
+          <th class="- topic/stentry stentry">Change Request</th>
+          <th class="- topic/stentry stentry">Change Request Description</th>
+          <th class="- topic/stentry stentry">Implementation Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">
+            <a href="https://test.nhs.uk/change/cr1000">CR1000</a>
+          </td>
+          <td class="- topic/stentry stentry">Change 1000</td>
+          <td class="- topic/stentry stentry">01 April 2024</td>
+        </tr>
+        <tr class="- topic/strow strow">
+          <td class="- topic/stentry stentry">
+            <a href="https://test.nhs.uk/change/cr2000">CR2000</a>
+          </td>
+          <td class="- topic/stentry stentry">Change 2000</td>
+          <td class="- topic/stentry stentry">01 September 2024</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="- topic/body body"><p>Click <a class="- topic/xref xref" href="https://www.datadictionary.nhs.uk/archive" target="_blank" rel="external noopener">here</a> to see the Change Log Information for changes before January 2025.</p></div>
+</div>"""
         }
     }
 

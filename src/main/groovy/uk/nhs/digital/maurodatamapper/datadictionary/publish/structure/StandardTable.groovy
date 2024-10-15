@@ -39,6 +39,10 @@ abstract class StandardTable<R extends StandardRow> implements
         this.rows = rows
     }
 
+    boolean isEmpty() {
+        !rows || rows.empty
+    }
+
     @Override
     StandardTable<R> produceDiff(StandardTable<R> previous) {
         List<R> currentRows = this.rows

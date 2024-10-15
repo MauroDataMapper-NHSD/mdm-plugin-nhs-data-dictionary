@@ -17,6 +17,9 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
+
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
@@ -54,6 +57,16 @@ class PublishHelper {
                 return HtmlConstants.CSS_DIFF_DELETED
             default:
                 return ""
+        }
+    }
+
+    static XRef buildExternalXRef(String url, String text) {
+        XRef.build(
+            scope: Scope.EXTERNAL,
+            format: "html",
+            href: url
+        ) {
+            txt text
         }
     }
 
