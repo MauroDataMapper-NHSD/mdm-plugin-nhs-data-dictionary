@@ -421,32 +421,48 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 
     DictionaryItem getPublishStructure() {
         DictionaryItem dictionaryItem = DictionaryItem.create(this)
-        dictionaryItem.addSection(new DescriptionSection(dictionaryItem, description))
+
+        addDescriptionSection(dictionaryItem)
 
         if (itemState == DictionaryItemState.ACTIVE) {
-            if (aliases) {
-                List<AliasesRow> aliasesRows = getAliases()
-                    .collect {context, alias -> new AliasesRow(context, alias)}
-
-                dictionaryItem.addSection(new AliasesSection(dictionaryItem, aliasesRows))
-            }
-
-            if (whereUsed) {
-                List<WhereUsedRow> whereUsedRows = whereUsed
-                    .findAll { it.key.itemState != DictionaryItemState.RETIRED }
-                    .sort { it.key.name }
-                    .collect { component, text ->
-                        new WhereUsedRow(component.stereotype, ItemLink.create(component), text)
-                    }
-
-                dictionaryItem.addSection(new WhereUsedSection(dictionaryItem, whereUsedRows))
-            }
+            addAliasesSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
         }
 
-        List<ChangeLogRow> changeLogRows = changeLog.collect { entry -> new ChangeLogRow(entry) }
-        dictionaryItem.addSection(new ChangeLogSection(dictionaryItem, changeLogHeaderText, changeLogFooterText, changeLogRows))
+        addChangeLogSection(dictionaryItem)
 
         dictionaryItem
+    }
+
+    void addDescriptionSection(DictionaryItem dictionaryItem) {
+        dictionaryItem.addSection(new DescriptionSection(dictionaryItem, description))
+    }
+
+    void addAliasesSection(DictionaryItem dictionaryItem) {
+        if (aliases) {
+            List<AliasesRow> aliasesRows = getAliases()
+                .collect {context, alias -> new AliasesRow(context, alias)}
+
+            dictionaryItem.addSection(new AliasesSection(dictionaryItem, aliasesRows))
+        }
+    }
+
+    void addWhereUsedSection(DictionaryItem dictionaryItem) {
+        if (whereUsed) {
+            List<WhereUsedRow> whereUsedRows = whereUsed
+                .findAll { it.key.itemState != DictionaryItemState.RETIRED }
+                .sort { it.key.name }
+                .collect { component, text ->
+                    new WhereUsedRow(component.stereotype, ItemLink.create(component), text)
+                }
+
+            dictionaryItem.addSection(new WhereUsedSection(dictionaryItem, whereUsedRows))
+        }
+    }
+
+    void addChangeLogSection(DictionaryItem dictionaryItem) {
+        List<ChangeLogRow> changeLogRows = changeLog.collect { entry -> new ChangeLogRow(entry) }
+        dictionaryItem.addSection(new ChangeLogSection(dictionaryItem, changeLogHeaderText, changeLogFooterText, changeLogRows))
     }
 
     List<Topic> getWebsiteTopics() {

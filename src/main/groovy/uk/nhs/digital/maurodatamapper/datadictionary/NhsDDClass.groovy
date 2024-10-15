@@ -25,6 +25,13 @@ import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ClassAttributeRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ClassAttributeSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ClassRelationshipRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ClassRelationshipSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
 
 @Slf4j
 class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
@@ -121,6 +128,53 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
             "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:Retired|dc:${name}"
         } else {
             return "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:${name}"
+        }
+    }
+
+    @Override
+    DictionaryItem getPublishStructure() {
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
+
+        addDescriptionSection(dictionaryItem)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            addClassAttributeSection(dictionaryItem)
+            addClassRelationshipSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
+            addAliasesSection(dictionaryItem)
+        }
+
+        addChangeLogSection(dictionaryItem)
+
+        dictionaryItem
+    }
+
+    void addClassAttributeSection(DictionaryItem dictionaryItem) {
+        List<ClassAttributeRow> keyRows = keyAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name.toLowerCase() }
+            .collect { attribute -> new ClassAttributeRow(attribute.isKey, ItemLink.create(attribute))}
+
+        List<ClassAttributeRow> otherRows = otherAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name.toLowerCase() }
+            .collect { attribute -> new ClassAttributeRow(attribute.isKey, ItemLink.create(attribute))}
+
+        List<ClassAttributeRow> allRows = keyRows + otherRows
+
+        dictionaryItem.addSection(new ClassAttributeSection(dictionaryItem, allRows))
+    }
+
+    void addClassRelationshipSection(DictionaryItem dictionaryItem) {
+        if (classRelationships) {
+            List<ClassRelationshipRow> rows = allRelationships().collect {relationship ->
+                new ClassRelationshipRow(
+                    relationship.isKey,
+                    relationship.relationshipDescription,
+                    ItemLink.create(relationship.targetClass))
+            }
+
+            dictionaryItem.addSection(new ClassRelationshipSection(dictionaryItem, rows))
         }
     }
 
