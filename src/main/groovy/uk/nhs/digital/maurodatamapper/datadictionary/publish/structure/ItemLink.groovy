@@ -23,8 +23,9 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 
-class ItemLink implements DitaAware<XRef>, HtmlBuilder {
+class ItemLink implements DitaAware<XRef>, HtmlBuilder, ChangeAware {
     final UUID itemId
     final UUID branchId
 
@@ -34,6 +35,8 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder {
 
     final String outputClass
 
+    final DiffStatus diffStatus
+
     ItemLink(
         UUID itemId,
         UUID branchId,
@@ -41,12 +44,24 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder {
         DictionaryItemState state,
         String name,
         String outputClass) {
+        this(itemId, branchId, stereotype, state, name, outputClass, DiffStatus.NONE)
+    }
+
+    ItemLink(
+        UUID itemId,
+        UUID branchId,
+        String stereotype,
+        DictionaryItemState state,
+        String name,
+        String outputClass,
+        DiffStatus diffStatus) {
         this.itemId = itemId
         this.branchId = branchId
         this.stereotype = stereotype
         this.state = state
         this.name = name
         this.outputClass = outputClass
+        this.diffStatus = diffStatus
     }
 
     static ItemLink create(NhsDataDictionaryComponent component) {
@@ -76,5 +91,14 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder {
         builder.a(class: outputClass, title: name, href: href) {
             mkp.yield(name)
         }
+    }
+
+    @Override
+    String getDiscriminator() {
+        itemId.toString()
+    }
+
+    ItemLink cloneWithDiff(DiffStatus diffStatus) {
+        new ItemLink(this.itemId, this.branchId, this.stereotype, this.state, this.name, this.outputClass, diffStatus)
     }
 }

@@ -34,6 +34,8 @@ class HtmlConstants {
     static final CSS_TOPIC_SHORTDESC = "- topic/shortdesc shortdesc"
     static final CSS_TOPIC_PARAGRAPH = "- topic/p p"
     static final CSS_TOPIC_DIV = "- topic/div div"
+    static final CSS_TOPIC_UNORDERED_LIST = "- topic/ul ul"
+    static final CSS_TOPIC_LIST_ITEM = "- topic/li li"
 
     static final CSS_TABLE = "table table-sm table-striped"
     static final CSS_TABLE_HTML_CONTAINER = "simpletable-container"
