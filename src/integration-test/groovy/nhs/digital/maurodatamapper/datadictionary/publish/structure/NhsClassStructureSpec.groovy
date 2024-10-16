@@ -735,6 +735,20 @@ to a <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class
         }
     }
 
+    void "should produce no diff when items are the same"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = activeItem.getPublishStructure()
+        DictionaryItem currentStructure = activeItem.getPublishStructure()
+
+        when: "a diff is produced"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "no diff is returned"
+        verifyAll {
+            !diff
+        }
+    }
+
     void "should produce a diff for a new item to change paper dita"() {
         given: "the publish structure is built"
         DictionaryItem structure = activeItem.getPublishStructure()
