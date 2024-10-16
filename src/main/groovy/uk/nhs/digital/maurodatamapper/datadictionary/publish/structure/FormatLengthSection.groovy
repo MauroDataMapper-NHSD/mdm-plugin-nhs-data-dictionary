@@ -38,7 +38,7 @@ class FormatLengthSection extends Section {
         super(parent, "formatLength", "Format / Length")
 
         this.value = value
-        this.comparisonValue = comparisonValue ?: NhsDDFormatLength.EMPTY
+        this.comparisonValue = comparisonValue
     }
 
     @Override
@@ -71,9 +71,13 @@ class FormatLengthSection extends Section {
                 }
             }
 
-            if (!this.value.equals(this.comparisonValue)) {
-                p NhsDDFormatLength.buildChangeDita(this.value, PublishHelper.getDiffCssClass(DiffStatus.NEW))
-                p NhsDDFormatLength.buildChangeDita(this.comparisonValue, PublishHelper.getDiffCssClass(DiffStatus.REMOVED))
+            if (this.comparisonValue && !this.value.equals(this.comparisonValue)) {
+                if (!this.value.empty()) {
+                    p NhsDDFormatLength.buildChangeDita(this.value, PublishHelper.getDiffCssClass(DiffStatus.NEW))
+                }
+                if (!this.comparisonValue.empty()) {
+                    p NhsDDFormatLength.buildChangeDita(this.comparisonValue, PublishHelper.getDiffCssClass(DiffStatus.REMOVED))
+                }
             }
             else {
                 p NhsDDFormatLength.buildChangeDita(this.value)
@@ -90,9 +94,13 @@ class FormatLengthSection extends Section {
                 }
             }
 
-            if (!this.value.equals(this.comparisonValue)) {
-                p NhsDDFormatLength.buildChangeDita(this.value, PublishHelper.getDiffCssClass(DiffStatus.NEW))
-                p NhsDDFormatLength.buildChangeDita(this.comparisonValue, PublishHelper.getDiffCssClass(DiffStatus.REMOVED))
+            if (this.comparisonValue && !this.value.equals(this.comparisonValue)) {
+                if (!this.value.empty()) {
+                    p NhsDDFormatLength.buildChangeDita(this.value, PublishHelper.getDiffCssClass(DiffStatus.NEW))
+                }
+                if (!this.comparisonValue.empty()) {
+                    p NhsDDFormatLength.buildChangeDita(this.comparisonValue, PublishHelper.getDiffCssClass(DiffStatus.REMOVED))
+                }
             }
             else {
                 p NhsDDFormatLength.buildChangeDita(this.value)
@@ -112,12 +120,12 @@ class FormatLengthSection extends Section {
                 }
             }
 
-            if (!this.value.equals(this.comparisonValue)) {
+            if (this.comparisonValue && !this.value.equals(this.comparisonValue)) {
                 String newOutputClass = "${paragraphOutputClass} ${PublishHelper.getDiffCssClass(DiffStatus.NEW)}".trim()
                 String removedOutputClass = "${paragraphOutputClass} ${PublishHelper.getDiffCssClass(DiffStatus.REMOVED)}".trim()
 
                 NhsDDFormatLength.writeChangeHtml(builder, this.value, newOutputClass)
-                NhsDDFormatLength.writeChangeHtml(builder, this.value, removedOutputClass)
+                NhsDDFormatLength.writeChangeHtml(builder, this.comparisonValue, removedOutputClass)
             }
             else {
                 NhsDDFormatLength.writeChangeHtml(builder, this.value, paragraphOutputClass)

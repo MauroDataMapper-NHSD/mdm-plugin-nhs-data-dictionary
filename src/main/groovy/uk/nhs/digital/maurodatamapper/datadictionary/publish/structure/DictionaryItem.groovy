@@ -91,7 +91,7 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
     DictionaryItem produceDiff(DictionaryItem previous) {
         List<Section> diffSections = []
         this.sections.each {currentSection ->
-            Section previousSection = previous ? previous.sections.find { it.class == currentSection.class } : null
+            Section previousSection = previous ? previous.sections.find { it.type == currentSection.type } : null
             Section diffSection = currentSection.produceDiff(previousSection)
             if (diffSection) {
                 diffSections.add(diffSection)
