@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020-2024 University of Oxford and NHS England
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
@@ -12,7 +29,11 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeF
 
 class ItemLinkListSection extends Section {
     static final String ATTRIBUTES_TYPE = "attributes"
-    static final String ELEMENTS_TYPE = "elements"
+    static final String ELEMENTS_TYPE = "dataElements"
+
+    static final String ATTRIBUTES_TITLE_SINGULAR = "Attribute"
+    static final String ATTRIBUTES_TITLE_PLURAL = "Attributes"
+    static final String ELEMENTS_TITLE = "Data Elements"
 
     final List<ItemLink> itemLinks
 
@@ -23,11 +44,11 @@ class ItemLinkListSection extends Section {
     }
 
     static ItemLinkListSection createElementsListSection(DictionaryItem parent, List<ItemLink> itemLinks) {
-        new ItemLinkListSection(parent, ELEMENTS_TYPE, "Data Elements", itemLinks)
+        new ItemLinkListSection(parent, ELEMENTS_TYPE, ELEMENTS_TITLE, itemLinks)
     }
 
     static ItemLinkListSection createAttributesListSection(DictionaryItem parent, List<ItemLink> itemLinks) {
-        String title = itemLinks.size() > 1 ? "Attributes" : "Attribute"
+        String title = itemLinks.size() > 1 ? ATTRIBUTES_TITLE_PLURAL : ATTRIBUTES_TITLE_SINGULAR
         new ItemLinkListSection(parent, ATTRIBUTES_TYPE, title, itemLinks)
     }
 
@@ -79,7 +100,7 @@ class ItemLinkListSection extends Section {
         builder.div {
             if (context.target == PublishTarget.CHANGE_PAPER) {
                 builder.p(class: paragraphOutputClass) {
-                    b title
+                    b changePaperTitle
                 }
             }
             builder.ul(class: listCssClass) {
@@ -103,6 +124,11 @@ class ItemLinkListSection extends Section {
     @Override
     protected Body generateBodyDita(PublishContext context) {
         Body.build() {
+            if (context.target == PublishTarget.CHANGE_PAPER) {
+                p {
+                    b changePaperTitle
+                }
+            }
             ul {
                 itemLinks.each { itemLink ->
                     String outputClass = PublishHelper.getDiffCssClass(itemLink.diffStatus)
@@ -118,6 +144,11 @@ class ItemLinkListSection extends Section {
     @Override
     protected Div generateDivDita(PublishContext context) {
         Div.build() {
+            if (context.target == PublishTarget.CHANGE_PAPER) {
+                p {
+                    b changePaperTitle
+                }
+            }
             ul {
                 itemLinks.each { itemLink ->
                     String outputClass = PublishHelper.getDiffCssClass(itemLink.diffStatus)
@@ -128,5 +159,13 @@ class ItemLinkListSection extends Section {
                 }
             }
         }
+    }
+
+    private String getChangePaperTitle() {
+        if (this.type == ATTRIBUTES_TYPE) {
+            return this.itemLinks.size() > 1 ? ATTRIBUTES_TITLE_PLURAL : ATTRIBUTES_TITLE_SINGULAR
+        }
+
+        return ELEMENTS_TITLE
     }
 }
