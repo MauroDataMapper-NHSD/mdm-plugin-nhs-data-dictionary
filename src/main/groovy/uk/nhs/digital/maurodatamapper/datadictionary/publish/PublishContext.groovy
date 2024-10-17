@@ -22,6 +22,8 @@ class PublishContext {
 
     private ItemLinkScanner itemLinkScanner
 
+    boolean prettyPrintHtml = true
+
     PublishContext(PublishTarget target) {
         this.target = target
     }

@@ -265,6 +265,7 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
         }
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []

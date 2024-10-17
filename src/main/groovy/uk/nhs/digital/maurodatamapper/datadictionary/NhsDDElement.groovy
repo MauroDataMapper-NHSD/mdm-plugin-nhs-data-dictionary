@@ -291,6 +291,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         }
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []

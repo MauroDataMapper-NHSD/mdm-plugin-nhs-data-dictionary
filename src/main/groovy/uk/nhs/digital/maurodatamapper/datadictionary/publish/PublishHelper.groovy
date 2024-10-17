@@ -26,8 +26,11 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatu
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
 class PublishHelper {
-    static MarkupBuilder createMarkupBuilder(StringWriter writer) {
-        MarkupBuilder builder = new MarkupBuilder(writer)
+    static MarkupBuilder createMarkupBuilder(StringWriter writer, boolean prettyPrint = true) {
+        MarkupBuilder builder = prettyPrint
+            ? new MarkupBuilder(writer)
+            : new MarkupBuilder(new IndentPrinter(writer, "", false))
+
         builder.omitEmptyAttributes = true
         builder.omitNullAttributes = true
         builder.doubleQuotes = true

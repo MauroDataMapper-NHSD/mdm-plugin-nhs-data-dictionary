@@ -63,7 +63,7 @@ abstract class Section implements DitaAware<DitaElement>, HtmlAware, HtmlBuilder
     @Override
     String generateHtml(PublishContext context) {
         StringWriter writer = new StringWriter()
-        MarkupBuilder builder = PublishHelper.createMarkupBuilder(writer)
+        MarkupBuilder builder = PublishHelper.createMarkupBuilder(writer, context.prettyPrintHtml)
 
         builder.div(class: HtmlConstants.CSS_TOPIC_BODY) {
             buildHtml(context, builder)

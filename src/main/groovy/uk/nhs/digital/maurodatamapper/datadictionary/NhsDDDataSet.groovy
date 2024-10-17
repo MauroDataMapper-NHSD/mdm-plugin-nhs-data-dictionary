@@ -198,6 +198,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         return dataSetElements
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []

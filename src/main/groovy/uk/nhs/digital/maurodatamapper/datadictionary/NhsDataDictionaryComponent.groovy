@@ -240,6 +240,7 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
         )
     }
 
+    @Deprecated
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []
 

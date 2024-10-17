@@ -171,6 +171,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         }
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []

@@ -35,6 +35,9 @@ class ChangePaperHtmlUtility {
                 thisDataDictionary.containingVersionedFolder.id,
                 pathResolver))
 
+        // Don't pretty print the output, try to reduce the response size
+        publishContext.prettyPrintHtml = false
+
         ChangePaper changePaper = new ChangePaper(
             thisDataDictionary,
             previousDataDictionary,
@@ -72,11 +75,16 @@ class ChangePaperHtmlUtility {
             return []
         }
 
-        changePaper.stereotypedChanges.collect { stereotypedChange ->
+        List<ChangePaperPreviewStereotype> stereotypes = []
+        changePaper.stereotypedChanges.each { stereotypedChange ->
             List<ChangePaperPreviewItem> changes = createChangeItems(stereotypedChange, publishContext)
 
-            new ChangePaperPreviewStereotype(name: stereotypedChange.stereotypeName, changes: changes)
+            if (!changes.empty) {
+                stereotypes.add(new ChangePaperPreviewStereotype(name: stereotypedChange.stereotypeName, changes: changes))
+            }
         }
+
+        stereotypes
     }
 
     private static List<ChangePaperPreviewItem> createChangeItems(
