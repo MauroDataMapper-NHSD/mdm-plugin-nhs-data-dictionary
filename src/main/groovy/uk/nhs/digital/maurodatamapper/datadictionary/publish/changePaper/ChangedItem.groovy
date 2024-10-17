@@ -24,16 +24,8 @@ class ChangedItem {
     NhsDataDictionaryComponent dictionaryComponent
     DictionaryItem publishStructure
 
-    @Deprecated
-    ChangedItem() {
-
-    }
-
     ChangedItem(NhsDataDictionaryComponent dictionaryComponent, DictionaryItem publishStructure) {
         this.dictionaryComponent = dictionaryComponent
         this.publishStructure = publishStructure
     }
-
-    @Deprecated
-    List<Change> changes = []
 }

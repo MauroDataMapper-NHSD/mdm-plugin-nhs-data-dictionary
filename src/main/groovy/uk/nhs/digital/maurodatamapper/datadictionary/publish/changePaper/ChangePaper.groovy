@@ -24,7 +24,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
 
 import java.text.SimpleDateFormat
 
@@ -257,7 +259,7 @@ class ChangePaper {
         return response
     }
 
-    private List<StereotypedChange> calculateChanges(
+    private static List<StereotypedChange> calculateChanges(
         NhsDataDictionary thisDataDictionary,
         NhsDataDictionary previousDataDictionary,
         boolean includeDataSets = false) {
@@ -329,21 +331,7 @@ class ChangePaper {
                 // This is especially true if the change paper contains multiple data sets that trace back to the
                 // same Data Elements
                 if (!existingElementsForChanges.contains(element)) {
-                    // TODO: get correct structure - short desc says "Changed data set", only use description section
-                    DictionaryItem publishStructure = element.getPublishStructure()
-                    elementChange.changedItems.add(new ChangedItem(element, publishStructure))
-//                    elementChange.changedItems.add(new ChangedItem(
-//                        dictionaryComponent: element,
-//                        changes: [new Change(
-//                            changeType: Change.CHANGED_DATA_SET_TYPE,
-//                            stereotype: element.stereotype,
-//                            oldItem: null,
-//                            newItem: element,
-//                            htmlDetail: element.description,
-//                            ditaDetail: Div.build {
-//                                div HtmlHelper.replaceHtmlWithDita(element.description)
-//                            })]
-//                    ))
+                    addChangedDataSetStructure(elementChange, element)
                 }
             }
 
@@ -352,21 +340,7 @@ class ChangePaper {
                 // This is especially true if the change paper contains multiple data sets that trace back to the
                 // same Attributes
                 if (!existingAttributesForChanges.contains(attribute)) {
-                    // TODO: get correct structure - short desc says "Changed data set", only use description section
-                    DictionaryItem publishStructure = attribute.getPublishStructure()
-                    attributeChange.changedItems.add(new ChangedItem(attribute, publishStructure))
-//                    attributeChange.changedItems.add(new ChangedItem(
-//                        dictionaryComponent: attribute,
-//                        changes: [new Change(
-//                            changeType: Change.CHANGED_DATA_SET_TYPE,
-//                            stereotype: attribute.stereotype,
-//                            oldItem: null,
-//                            newItem: attribute,
-//                            htmlDetail: attribute.description,
-//                            ditaDetail: Div.build {
-//                                div HtmlHelper.replaceHtmlWithDita(attribute.description)
-//                            })]
-//                    ))
+                    addChangedDataSetStructure(attributeChange, attribute)
                 }
             }
         }
@@ -395,6 +369,30 @@ class ChangePaper {
             }
 
         return changedItems
+    }
+
+    private static void addChangedDataSetStructure(
+        StereotypedChange stereotypedChange,
+        NhsDataDictionaryComponent component) {
+        DictionaryItem standardStructure = component.getPublishStructure()
+
+        Section descriptionSection = standardStructure.sections.find { it instanceof DescriptionSection }
+        if (!descriptionSection) {
+            return
+        }
+
+        DictionaryItem changedDataSetStructure = new DictionaryItem(
+            standardStructure.id,
+            standardStructure.branchId,
+            standardStructure.stereotype,
+            standardStructure.name,
+            standardStructure.state,
+            standardStructure.outputClass,
+            Change.CHANGED_DATA_SET_TYPE)
+
+        changedDataSetStructure.addSection(descriptionSection)
+
+        stereotypedChange.changedItems.add(new ChangedItem(component, changedDataSetStructure))
     }
 
     static String backgroundText() {
