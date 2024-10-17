@@ -60,7 +60,7 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
 
         DataElement elementElement = dataElementService.get(id)
         NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, dataDictionary)
-        element.instantiatesAttributes.addAll(attributeService.getAllForElement(versionedFolderId, element))
+        element.instantiatesAttributes.addAll(attributeService.getAllForElement(dataDictionary, element))
         element.definition = convertLinksInDescription(versionedFolderId, element.getDescription())
         String attributeText = element.getAttributeTextAsHtml()
         if (attributeText) {
@@ -172,13 +172,13 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
         }
     }
 
-    Set<NhsDDElement> getAllForAttribute(UUID versionedFolderId, NhsDDAttribute nhsDDAttribute) {
+    Set<NhsDDElement> getAllForAttribute(NhsDataDictionary dataDictionary, NhsDDAttribute nhsDDAttribute) {
         SemanticLink.byTargetMultiFacetAwareItemId(nhsDDAttribute.catalogueItem.id)
             .list()
             .collect { link -> DataElement.get(link.multiFacetAwareItemId) }
             .collect { dataElement ->
                 dataElement.metadata.size() // For later conversion to stereotyped item and to find out if retired
-                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
+                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, dataDictionary)
             }
             .findAll { element -> !element.isRetired() }
             .sort { element -> element.name }

@@ -95,7 +95,9 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder, ChangeAware {
 
     @Override
     String getDiscriminator() {
-        itemId.toString()
+        // Don't use the item ID because when comparing item links they will probably be from different
+        // branches. Use a more relaxed identifier which could still show differences
+        "${stereotype}_${name}".toLowerCase().replace(" ", "_")
     }
 
     ItemLink cloneWithDiff(DiffStatus diffStatus) {
