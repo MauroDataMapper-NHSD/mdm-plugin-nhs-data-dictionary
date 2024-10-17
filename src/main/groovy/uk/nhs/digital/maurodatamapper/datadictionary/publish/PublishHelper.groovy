@@ -63,6 +63,12 @@ class PublishHelper {
         }
     }
 
+    static void buildHtmlParagraph(PublishContext context, MarkupBuilder builder, String text) {
+        builder.p(class: context.paragraphCssClass) {
+            mkp.yield(text)
+        }
+    }
+
     static XRef buildExternalXRef(String url, String text) {
         XRef.build(
             scope: Scope.EXTERNAL,

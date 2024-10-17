@@ -165,9 +165,9 @@ class CodesRow extends StandardRow {
     void buildHtml(PublishContext context, MarkupBuilder builder) {
         String diffOutputClass = PublishHelper.getDiffCssClass(diffStatus)
 
-        String rowCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_ROW : null
+        String rowCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_STROW : null
         String entryCssClass = context.target == PublishTarget.WEBSITE
-            ? HtmlConstants.CSS_TABLE_ENTRY
+            ? HtmlConstants.CSS_TABLE_STENTRY
             : !diffOutputClass.empty
             ? diffOutputClass
             : null

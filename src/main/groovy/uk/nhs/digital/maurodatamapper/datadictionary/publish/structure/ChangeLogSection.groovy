@@ -155,8 +155,8 @@ class ChangeLogRow extends StandardRow {
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        builder.tr(class: HtmlConstants.CSS_TABLE_ROW) {
-            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
+        builder.tr(class: HtmlConstants.CSS_TABLE_STROW) {
+            builder.td(class: HtmlConstants.CSS_TABLE_STENTRY) {
                 if (entry.referenceUrl) {
                     builder.a(href: entry.referenceUrl) {
                         mkp.yield(entry.reference)
@@ -166,10 +166,10 @@ class ChangeLogRow extends StandardRow {
                     mkp.yield(entry.reference)
                 }
             }
-            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
+            builder.td(class: HtmlConstants.CSS_TABLE_STENTRY) {
                 mkp.yield(entry.description)
             }
-            builder.td(class: HtmlConstants.CSS_TABLE_ENTRY) {
+            builder.td(class: HtmlConstants.CSS_TABLE_STENTRY) {
                 mkp.yield(entry.implementationDate)
             }
         }

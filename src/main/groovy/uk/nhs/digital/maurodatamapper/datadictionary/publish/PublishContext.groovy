@@ -17,6 +17,8 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
+
 class PublishContext {
     final PublishTarget target
 
@@ -38,5 +40,21 @@ class PublishContext {
         }
 
         this.itemLinkScanner.scanForItemLinks(source)
+    }
+
+    String getParagraphCssClass() {
+        target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_PARAGRAPH : ""
+    }
+
+    String getRowCssClass() {
+        target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_ROW : null
+    }
+
+    String getEntryCssClass(String diffOutputClass) {
+        target == PublishTarget.WEBSITE
+            ? HtmlConstants.CSS_TABLE_ENTRY
+            : !diffOutputClass.empty
+            ? diffOutputClass
+            : null
     }
 }

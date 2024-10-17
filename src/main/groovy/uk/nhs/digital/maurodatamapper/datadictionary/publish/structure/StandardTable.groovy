@@ -102,8 +102,8 @@ abstract class StandardTable<R extends StandardRow> implements
     void buildHtml(PublishContext context, MarkupBuilder builder) {
         String containerCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_CONTAINER : null
         String tableCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_HTML_TOPIC_SIMPLETABLE} $HtmlConstants.CSS_TABLE" : null
-        String headCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_HEAD} ${HtmlConstants.CSS_TABLE_HEAD}" : null
-        String entryCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_ENTRY : null
+        String headCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_STHEAD} ${HtmlConstants.CSS_TABLE_HEAD}" : null
+        String entryCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_STENTRY : null
 
         builder.div(class: containerCssClass) {
             builder.table(class: tableCssClass) {
