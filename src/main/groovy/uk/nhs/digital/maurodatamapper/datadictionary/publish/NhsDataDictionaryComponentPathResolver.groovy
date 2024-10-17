@@ -28,9 +28,30 @@ class NhsDataDictionaryComponentPathResolver implements PathResolver<NhsDataDict
     }
 
     void add(NhsDataDictionary dataDictionary) {
+        if (!dataDictionary) {
+            return
+        }
+
         dataDictionary.allComponents.each { component ->
             add(component.getMauroPath(), component)
         }
+    }
+
+    void addWhenNotPresent(NhsDataDictionary dataDictionary) {
+        if (!dataDictionary) {
+            return
+        }
+
+        dataDictionary.allComponents.each { component ->
+            String path = component.getMauroPath()
+            if (!lookup.containsKey(path)) {
+                add(component.getMauroPath(), component)
+            }
+        }
+    }
+
+    boolean contains(String path) {
+        lookup.containsKey(path)
     }
 
     @Override

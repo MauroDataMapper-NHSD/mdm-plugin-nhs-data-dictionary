@@ -56,6 +56,8 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     @Override
     NhsDDElement show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         DataElement elementElement = dataElementService.get(id)
         NhsDDElement element = getNhsDataDictionaryComponentFromCatalogueItem(elementElement, dataDictionary)
         element.instantiatesAttributes.addAll(attributeService.getAllForElement(versionedFolderId, element))

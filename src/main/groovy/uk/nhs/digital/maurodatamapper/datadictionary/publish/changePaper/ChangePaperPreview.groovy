@@ -17,23 +17,31 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+class ChangePaperPreview {
+    ChangePaperPreviewBackground background
+    List<ChangePaperPreviewStereotype> stereotypes
+}
 
-class ChangedItem {
-    NhsDataDictionaryComponent dictionaryComponent
-    DictionaryItem publishStructure
+class ChangePaperPreviewBackground {
+    String reference
+    String type
+    String versionNo
+    String subject
+    String effectiveDate
+    String reasonForChange
+    String publicationDate
+    String background
+    String sponsor
+    String contactDetails
+}
 
-    @Deprecated
-    ChangedItem() {
+class ChangePaperPreviewStereotype {
+    String name
+    List<ChangePaperPreviewItem> changes
+}
 
-    }
-
-    ChangedItem(NhsDataDictionaryComponent dictionaryComponent, DictionaryItem publishStructure) {
-        this.dictionaryComponent = dictionaryComponent
-        this.publishStructure = publishStructure
-    }
-
-    @Deprecated
-    List<Change> changes = []
+class ChangePaperPreviewItem {
+    String name
+    String summary
+    String htmlOutput
 }
