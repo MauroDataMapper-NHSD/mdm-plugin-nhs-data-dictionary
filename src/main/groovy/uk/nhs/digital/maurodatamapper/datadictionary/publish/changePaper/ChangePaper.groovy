@@ -18,14 +18,15 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
 import groovy.xml.MarkupBuilder
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
-import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDAttribute
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DescriptionSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
 
 import java.text.SimpleDateFormat
 
@@ -220,7 +221,10 @@ class ChangePaper {
     String sponsor
     String contactDetails
 
-    ChangePaper(NhsDataDictionary nhsDataDictionary, NhsDataDictionary oldDataDictionary, boolean includeDataSets = false) {
+    ChangePaper(
+        NhsDataDictionary nhsDataDictionary,
+        NhsDataDictionary oldDataDictionary,
+        boolean includeDataSets = false) {
         reference = nhsDataDictionary.workItemDetails['reference'] ?: 'CRXXXX'
         type = nhsDataDictionary.workItemDetails['type'] ?: 'Change Request'
         versionNo = nhsDataDictionary.workItemDetails['versionNo'] ?: '1.0'
@@ -255,32 +259,44 @@ class ChangePaper {
         return response
     }
 
-    private List<StereotypedChange> calculateChanges(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, boolean includeDataSets = false) {
+    private static List<StereotypedChange> calculateChanges(
+        NhsDataDictionary thisDataDictionary,
+        NhsDataDictionary previousDataDictionary,
+        boolean includeDataSets = false) {
         List<StereotypedChange> changedItems = []
-        changedItems += new StereotypedChange(stereotypeName: "NHS Business Definition",
-              changedItems: compareMaps(thisDataDictionary.businessDefinitions, previousDataDictionary?.businessDefinitions))
-        changedItems += new StereotypedChange(stereotypeName: "Supporting Information",
-              changedItems: compareMaps(thisDataDictionary.supportingInformation, previousDataDictionary?.supportingInformation))
+        changedItems += new StereotypedChange(
+            stereotypeName: "NHS Business Definition",
+            changedItems: compareMaps(thisDataDictionary.businessDefinitions, previousDataDictionary?.businessDefinitions))
 
-        StereotypedChange attributeChange = new StereotypedChange(stereotypeName: "Attribute",
-                changedItems: compareMaps(thisDataDictionary.attributes, previousDataDictionary?.attributes))
+        changedItems += new StereotypedChange(
+            stereotypeName: "Supporting Information",
+            changedItems: compareMaps(thisDataDictionary.supportingInformation, previousDataDictionary?.supportingInformation))
+
+        StereotypedChange attributeChange = new StereotypedChange(
+            stereotypeName: "Attribute",
+            changedItems: compareMaps(thisDataDictionary.attributes, previousDataDictionary?.attributes))
 
         changedItems += attributeChange
 
-        StereotypedChange elementChange = new StereotypedChange(stereotypeName: "Data Element",
-                changedItems: compareMaps(thisDataDictionary.elements, previousDataDictionary?.elements))
+        StereotypedChange elementChange = new StereotypedChange(
+            stereotypeName: "Data Element",
+            changedItems: compareMaps(thisDataDictionary.elements, previousDataDictionary?.elements))
 
         changedItems += elementChange
 
-        changedItems += new StereotypedChange(stereotypeName: "Class",
-              changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary?.classes))
+        changedItems += new StereotypedChange(
+            stereotypeName: "Class",
+            changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary?.classes))
 
         List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets)
 
-        changedItems += new StereotypedChange(stereotypeName: "Data Set",
-              changedItems: dataSetChanges)
-        changedItems += new StereotypedChange(stereotypeName: "Data Set Constraint",
-              changedItems: compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary?.dataSetConstraints))
+        changedItems += new StereotypedChange(
+            stereotypeName: "Data Set",
+            changedItems: dataSetChanges)
+
+        changedItems += new StereotypedChange(
+            stereotypeName: "Data Set Constraint",
+            changedItems: compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary?.dataSetConstraints))
 
         if (includeDataSets && dataSetChanges.size() > 0) {
             Set<NhsDataDictionaryComponent> existingElementsForChanges = elementChange.getUniqueNewItems()
@@ -315,18 +331,7 @@ class ChangePaper {
                 // This is especially true if the change paper contains multiple data sets that trace back to the
                 // same Data Elements
                 if (!existingElementsForChanges.contains(element)) {
-                    elementChange.changedItems.add(new ChangedItem(
-                        dictionaryComponent: element,
-                        changes: [new Change(
-                            changeType: Change.CHANGED_DATA_SET_TYPE,
-                            stereotype: element.stereotype,
-                            oldItem: null,
-                            newItem: element,
-                            htmlDetail: element.description,
-                            ditaDetail: Div.build {
-                                div HtmlHelper.replaceHtmlWithDita(element.description)
-                            })]
-                    ))
+                    addChangedDataSetStructure(elementChange, element)
                 }
             }
 
@@ -335,18 +340,7 @@ class ChangePaper {
                 // This is especially true if the change paper contains multiple data sets that trace back to the
                 // same Attributes
                 if (!existingAttributesForChanges.contains(attribute)) {
-                    attributeChange.changedItems.add(new ChangedItem(
-                        dictionaryComponent: attribute,
-                        changes: [new Change(
-                            changeType: Change.CHANGED_DATA_SET_TYPE,
-                            stereotype: attribute.stereotype,
-                            oldItem: null,
-                            newItem: attribute,
-                            htmlDetail: attribute.description,
-                            ditaDetail: Div.build {
-                                div HtmlHelper.replaceHtmlWithDita(attribute.description)
-                            })]
-                    ))
+                    addChangedDataSetStructure(attributeChange, attribute)
                 }
             }
         }
@@ -358,17 +352,47 @@ class ChangePaper {
         Map<String, NhsDataDictionaryComponent> newList,
         Map<String, NhsDataDictionaryComponent> oldList) {
         List<ChangedItem> changedItems = []
-        newList.sort{ it.key }.each {name, component ->
-            NhsDataDictionaryComponent previousComponent = oldList?[name]
-            List<Change> changes = component.getChanges(previousComponent)
-            if (changes) {
-                changedItems.add(new ChangedItem(
-                    dictionaryComponent: component,
-                    changes: changes
-                ))
+
+        newList
+            .sort{ it.key }
+            .each {name, currentComponent ->
+                NhsDataDictionaryComponent previousComponent = oldList?[name]
+
+                DictionaryItem currentStructure = currentComponent.getPublishStructure()
+                DictionaryItem previousStructure = previousComponent?.getPublishStructure()
+
+                DictionaryItem diffStructure = currentStructure.produceDiff(previousStructure)
+
+                if (diffStructure) {
+                    changedItems.add(new ChangedItem(currentComponent, diffStructure))
+                }
             }
-        }
+
         return changedItems
+    }
+
+    private static void addChangedDataSetStructure(
+        StereotypedChange stereotypedChange,
+        NhsDataDictionaryComponent component) {
+        DictionaryItem standardStructure = component.getPublishStructure()
+
+        Section descriptionSection = standardStructure.sections.find { it instanceof DescriptionSection }
+        if (!descriptionSection) {
+            return
+        }
+
+        DictionaryItem changedDataSetStructure = new DictionaryItem(
+            standardStructure.id,
+            standardStructure.branchId,
+            standardStructure.stereotype,
+            standardStructure.name,
+            standardStructure.state,
+            standardStructure.outputClass,
+            Change.CHANGED_DATA_SET_TYPE)
+
+        changedDataSetStructure.addSection(descriptionSection)
+
+        stereotypedChange.changedItems.add(new ChangedItem(component, changedDataSetStructure))
     }
 
     static String backgroundText() {

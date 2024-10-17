@@ -1,0 +1,9 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPreviewStereotype
+
+model {
+    ChangePaperPreviewStereotype stereotype
+}
+json {
+    name stereotype.name
+    changes tmpl.'/changePaperPreview/item'(stereotype.changes)
+}

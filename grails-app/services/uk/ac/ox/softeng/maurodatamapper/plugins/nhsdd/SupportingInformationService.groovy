@@ -35,6 +35,8 @@ class SupportingInformationService extends DataDictionaryComponentService<Term, 
     @Override
     NhsDDSupportingInformation show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         Term supportingInformationTerm = termService.get(id)
         NhsDDSupportingInformation supportingInformation = getNhsDataDictionaryComponentFromCatalogueItem(supportingInformationTerm, dataDictionary)
         supportingInformation.definition = convertLinksInDescription(versionedFolderId, supportingInformation.getDescription())

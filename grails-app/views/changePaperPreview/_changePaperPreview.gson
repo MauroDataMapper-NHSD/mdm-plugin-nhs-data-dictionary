@@ -1,0 +1,9 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPreview
+
+model {
+    ChangePaperPreview changePaperPreview
+}
+json {
+    background tmpl.'/changePaperPreview/background'(changePaperPreview.background)
+    stereotypes tmpl.'/changePaperPreview/stereotype'(changePaperPreview.stereotypes)
+}

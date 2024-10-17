@@ -32,6 +32,13 @@ import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.CodesRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.CodesSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.FormatLengthSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLinkListSection
 
 @Slf4j
 class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAware {
@@ -284,6 +291,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         }
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []
@@ -405,6 +413,62 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         DitaElement ditaElement = currentFormatLength.getChangeDita(previousFormatLength)
 
         createChange(Change.FORMAT_LENGTH_TYPE, previousElement, htmlWriter, ditaElement, true)
+    }
+
+    @Override
+    DictionaryItem getPublishStructure() {
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            addFormatLengthSection(dictionaryItem)
+        }
+
+        addDescriptionSection(dictionaryItem)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            if (hasNationalCodes()) {
+                List<CodesRow> nationalCodes = createCodesSectionRows(orderedNationalCodes)
+                dictionaryItem.addSection(CodesSection.createNationalCodes(dictionaryItem, nationalCodes))
+            }
+            if (hasDefaultCodes()) {
+                List<CodesRow> defaultCodes = createCodesSectionRows(orderedDefaultCodes)
+                dictionaryItem.addSection(CodesSection.createDefaultCodes(dictionaryItem, defaultCodes))
+            }
+            addAliasesSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
+            addLinkedAttributesSection(dictionaryItem)
+        }
+
+        addChangeLogSection(dictionaryItem)
+
+        dictionaryItem
+    }
+
+    static List<CodesRow> createCodesSectionRows(List<NhsDDCode> codesList) {
+        codesList.collect {code ->
+            new CodesRow(code.code, code.description, code.hasWebPresentation())
+        }
+    }
+
+    void addFormatLengthSection(DictionaryItem dictionaryItem) {
+        dictionaryItem.addSection(new FormatLengthSection(dictionaryItem, new NhsDDFormatLength(this)))
+    }
+
+    void addLinkedAttributesSection(DictionaryItem dictionaryItem) {
+        if (!instantiatesAttributes) {
+            return
+        }
+
+        List<NhsDDAttribute> attributes = instantiatesAttributes
+            .findAll { attribute -> !attribute.isRetired() }
+            .sort { attribute -> attribute.name }
+
+        if (attributes.empty) {
+            return
+        }
+
+        List<ItemLink> itemLinks = attributes.collect {attribute -> ItemLink.create(attribute) }
+        dictionaryItem.addSection(ItemLinkListSection.createAttributesListSection(dictionaryItem, itemLinks))
     }
 
     @Override

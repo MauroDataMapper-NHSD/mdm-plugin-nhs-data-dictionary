@@ -1,0 +1,10 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPreviewItem
+
+model {
+    ChangePaperPreviewItem item
+}
+json {
+    name item.name
+    summary item.summary
+    detail item.htmlOutput
+}

@@ -34,7 +34,9 @@ import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModel
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.DataModelType
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClassService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
+import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElementService
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.datatype.ReferenceType
 import uk.ac.ox.softeng.maurodatamapper.iso11179.domain.MetadataBundle
 import uk.ac.ox.softeng.maurodatamapper.iso11179.domain.helpers.MarshalHelper
@@ -48,6 +50,7 @@ import uk.ac.ox.softeng.maurodatamapper.terminology.item.TermService
 import uk.ac.ox.softeng.maurodatamapper.util.Utils
 import uk.ac.ox.softeng.maurodatamapper.version.Version
 import uk.ac.ox.softeng.maurodatamapper.version.VersionChangeType
+
 import grails.gorm.transactions.Transactional
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -63,6 +66,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirCodeSystem
 import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirEntry
 import uk.nhs.digital.maurodatamapper.datadictionary.fhir.FhirValueSet
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllClassesHaveRelationships
+import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllItemsAreWithinValidDateRange
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllItemsHaveAlias
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllItemsHaveShortDescription
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AttributesLinkedToAClass
@@ -75,14 +79,14 @@ import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ElementsLin
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.IntegrityCheck
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.InternalLinksInDescriptions
 import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.ReusedItemNames
-import uk.nhs.digital.maurodatamapper.datadictionary.integritychecks.AllItemsAreWithinValidDateRange
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.ISO11179Helper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.MauroCatalogueItemPathResolver
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.website.WebsiteUtility
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperHtmlUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPdfUtility
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPreview
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.website.WebsiteUtility
 import uk.nhs.digital.maurodatamapper.datadictionary.utils.StereotypedCatalogueItem
-
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -116,6 +120,8 @@ class NhsDataDictionaryService {
 
     TerminologyService terminologyService
     DataModelService dataModelService
+    DataClassService dataClassService
+    DataElementService dataElementService
     FolderService folderService
     VersionedFolderService versionedFolderService
     MetadataService metadataService
@@ -863,15 +869,27 @@ class NhsDataDictionaryService {
     }
 
 
-    ChangePaper previewChangePaper(UUID versionedFolderId, boolean includeDataSets = false) {
-
+    ChangePaperPreview previewChangePaper(UUID versionedFolderId, boolean includeDataSets = false) {
         VersionedFolder thisDictionary = versionedFolderService.get(versionedFolderId)
         VersionedFolder previousVersion = versionedFolderService.getFinalisedParent(thisDictionary)
 
         NhsDataDictionary thisDataDictionary = buildDataDictionary(thisDictionary.id)
         NhsDataDictionary previousDataDictionary = buildDataDictionary(previousVersion.id)
 
-        return new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
+        MauroCatalogueItemPathResolver pathResolver = new MauroCatalogueItemPathResolver(
+            thisDictionary,
+            dataModelService,
+            dataClassService,
+            dataElementService,
+            terminologyService)
+
+        ChangePaperPreview preview = ChangePaperHtmlUtility.generateChangePaper(
+            pathResolver,
+            thisDataDictionary,
+            previousDataDictionary,
+            includeDataSets)
+
+        preview
     }
 
     File generateChangePaper(UUID versionedFolderId, boolean includeDataSets = false, boolean isTest = false) {
