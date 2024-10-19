@@ -17,16 +17,69 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other
 
-class OtherDataSetHeader {
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
+
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
+
+enum OtherDataSetHeaderType {
+    TABLE,
+    GROUP
+}
+
+class OtherDataSetHeader implements DitaAware<Entry>, HtmlBuilder {
+    final OtherDataSetHeaderType type
     final String name
     final String description    // Optional
 
-    OtherDataSetHeader(String name) {
-        this(name, "")
+    OtherDataSetHeader(OtherDataSetHeaderType type, String name) {
+        this(type, name, "")
     }
 
-    OtherDataSetHeader(String name, String description) {
-        this.name
+    OtherDataSetHeader(OtherDataSetHeaderType type, String name, String description) {
+        this.type = type
+        this.name = name
         this.description = description
+    }
+
+    @Override
+    Entry generateDita(PublishContext context) {
+        String nameStart = type == OtherDataSetHeaderType.TABLE
+            ? OtherDataSetTable.MANDATION_COLUMN.colId
+            : OtherDataSetTable.DATA_ELEMENTS_COLUMN.colId
+
+        Entry.build(namest: nameStart, nameend: OtherDataSetTable.DATA_ELEMENTS_COLUMN.colId) {
+            b this.name
+            if (this.description) {
+                p this.description
+            }
+        }
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String entryCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ENTRY}" : ""
+
+        if (type == OtherDataSetHeaderType.TABLE) {
+            builder.th(colspan: 2, class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
+                b this.name
+                if (this.description) {
+                    PublishHelper.buildHtmlParagraph(context, builder, this.description)
+                }
+            }
+        }
+        else {
+            builder.td(class: entryCssClass) {
+                b this.name
+                if (this.description) {
+                    PublishHelper.buildHtmlParagraph(context, builder, this.description)
+                }
+            }
+        }
     }
 }

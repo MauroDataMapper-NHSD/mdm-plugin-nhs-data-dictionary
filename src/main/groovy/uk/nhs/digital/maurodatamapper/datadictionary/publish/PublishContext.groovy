@@ -17,6 +17,8 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish
 
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
+
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
 class PublishContext {

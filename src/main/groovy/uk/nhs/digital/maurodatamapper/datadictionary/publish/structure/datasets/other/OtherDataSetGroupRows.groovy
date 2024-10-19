@@ -17,12 +17,62 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other
 
-class OtherDataSetGroupRows extends OtherDataSetGroup {
-    final OtherDataSetHeader header
-    final List<OtherDataSetRow> rows
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 
-    OtherDataSetGroupRows(OtherDataSetHeader header, List<OtherDataSetRow> rows) {
-        this.header = header
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
+
+class OtherDataSetGroupRows extends OtherDataSetGroup {
+    final List<OtherDataSetRow> rows
+    final OtherDataSetHeader header
+
+    OtherDataSetGroupRows(List<OtherDataSetRow> rows) {
+        this(rows, null)
+    }
+
+    OtherDataSetGroupRows(List<OtherDataSetRow> rows, OtherDataSetHeader header) {
         this.rows = rows
+        this.header = header
+    }
+
+    @Override
+    List<Row> generateDita(PublishContext context) {
+        List<Row> rowList = []
+
+        if (this.header) {
+            rowList.add(Row.build(outputClass: "table-primary") {
+                entry(namest: OtherDataSetTable.MANDATION_COLUMN.colId, nameend: OtherDataSetTable.MANDATION_COLUMN.colId) {
+                    p {
+                        b OtherDataSetTable.MANDATION_COLUMN.name
+                    }
+                }
+                entry this.header.generateDita(context)
+            })
+        }
+
+        rowList.addAll(this.rows.collect { row -> row.generateDita(context) })
+
+        rowList
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String rowCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ROW} ${HtmlConstants.CSS_TABLE_PRIMARY}" : null
+        String entryCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ENTRY}" : ""
+
+        if (this.header) {
+            builder.tr(class: rowCssClass) {
+                builder.td(class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
+                    b OtherDataSetTable.MANDATION_COLUMN.name
+                }
+                this.header.buildHtml(context, builder)
+            }
+        }
+
+        this.rows.each { row ->
+            row.buildHtml(context, builder)
+        }
     }
 }

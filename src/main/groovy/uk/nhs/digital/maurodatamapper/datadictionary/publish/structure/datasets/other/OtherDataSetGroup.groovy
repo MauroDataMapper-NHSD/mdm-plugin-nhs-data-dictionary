@@ -17,5 +17,10 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other
 
-class OtherDataSetGroup {
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
+
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
+
+abstract class OtherDataSetGroup implements DitaAware<List<Row>>, HtmlBuilder {
 }

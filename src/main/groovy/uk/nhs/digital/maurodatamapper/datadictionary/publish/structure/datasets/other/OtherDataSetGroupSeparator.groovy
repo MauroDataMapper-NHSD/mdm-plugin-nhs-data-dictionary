@@ -17,6 +17,13 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other
 
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
+
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
+
 class OtherDataSetGroupSeparator extends OtherDataSetGroup {
     final String text
 
@@ -26,5 +33,41 @@ class OtherDataSetGroupSeparator extends OtherDataSetGroup {
 
     OtherDataSetGroupSeparator(String text) {
         this.text = text
+    }
+
+    @Override
+    List<Row> generateDita(PublishContext context) {
+        Row row = Row.build {
+            entry (namest: "col1", nameend: "col2") {
+                if (!this.text.empty) {
+                    b this.text
+                }
+                else {
+                    p ""
+                }
+            }
+        }
+
+        [row]
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String diffOutputClass = PublishHelper.getDiffCssClass(DiffStatus.NONE)
+        String rowCssClass = context.rowCssClass
+        String entryCssClass = context.getEntryCssClass(diffOutputClass)
+
+        builder.tr(rowCssClass) {
+            builder.td(class: entryCssClass, colspan: 2) {
+                if (!this.text.empty) {
+                    builder.b() {
+                        mkp.yield(this.text)
+                    }
+                }
+                else {
+                    PublishHelper.buildHtmlParagraph(context, builder, "")
+                }
+            }
+        }
     }
 }

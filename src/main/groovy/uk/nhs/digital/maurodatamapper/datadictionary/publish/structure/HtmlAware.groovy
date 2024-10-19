@@ -38,15 +38,23 @@ class HtmlConstants {
     static final CSS_TOPIC_LIST_ITEM = "- topic/li li"
 
     static final CSS_TABLE = "table table-sm table-striped"
+    static final CSS_TABLE_PRIMARY = "table-primary"
+    static final CSS_DATA_SET_TABLE = "table table-sm table-striped table-bordered"
     static final CSS_TABLE_HTML_CONTAINER = "simpletable-container"
     static final CSS_TABLE_HTML_TOPIC_SIMPLETABLE = "- topic/simpletable simpletable"
+    static final CSS_TABLE_HTML_TOPIC_TABLE = "- topic/table table table-striped table-bordered table-sm"
     static final CSS_TABLE_HEAD = "thead-light"
     static final CSS_TABLE_TOPIC_STHEAD = "- topic/sthead sthead"
+    static final CSS_TABLE_TOPIC_HEAD = "- topic/thead thead"
+    static final CSS_TABLE_TOPIC_BODY = "- topic/tbody tbody"
+
     static final CSS_TABLE_STROW = "- topic/strow strow"
     static final CSS_TABLE_STENTRY = "- topic/stentry stentry"
     static final CSS_TABLE_ROW = "- topic/row"
-    static final CSS_TABLE_ENTRY = "- topic/entry"
+    static final CSS_TABLE_ENTRY = "- topic/entry entry"
 
     static final CSS_DIFF_NEW = "new"
     static final CSS_DIFF_DELETED = "deleted"
+
+    static final CSS_HTML_ALIGN_CENTER = "align-center"
 }

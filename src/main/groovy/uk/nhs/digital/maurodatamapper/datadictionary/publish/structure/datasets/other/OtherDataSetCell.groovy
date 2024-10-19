@@ -95,23 +95,107 @@ class OtherDataSetItemLinkCell extends OtherDataSetCell {
 }
 
 class OtherDataSetChoiceCell extends OtherDataSetCell {
-    final String operator   // AND, OR, AND/OR
+    static final String AND_OPERATOR = "And"
+    static final String OR_OPERATOR = "Or"
+    static final String AND_OR_OPERATOR = "And/Or"
+
+    final String operator
     final List<OtherDataSetItemLinkCell> cells
 
     OtherDataSetChoiceCell(String operator, List<OtherDataSetItemLinkCell> cells) {
         this.operator = operator
         this.cells = cells
     }
+
+    @Override
+    String getDiscriminator() {
+        cells
+            .collect { cell -> cell.discriminator }
+            .join("_${operator}_")
+    }
+
+    @Override
+    List<P> generateDita(PublishContext context) {
+        List<P> paragraphs = []
+
+        cells.eachWithIndex { OtherDataSetItemLinkCell cell, int index ->
+            if (index != 0) {
+                paragraphs.add(P.build() {
+                    txt this.operator
+                })
+            }
+
+            paragraphs.addAll(cell.generateDita(context))
+        }
+
+        paragraphs
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        cells.eachWithIndex { OtherDataSetItemLinkCell cell, int index ->
+            if (index != 0) {
+                PublishHelper.buildHtmlParagraph(context, builder, this.operator)
+            }
+
+            cell.buildHtml(context, builder)
+        }
+    }
 }
 
 class OtherDataSetAddressCell extends OtherDataSetCell {
-    final OtherDataSetItemLinkCell element
+    final ItemLink element
     final ItemLink address1
     final ItemLink address2
 
-    OtherDataSetAddressCell(OtherDataSetItemLinkCell element, ItemLink address1, ItemLink address2) {
+    OtherDataSetAddressCell(ItemLink element, ItemLink address1, ItemLink address2) {
         this.element = element
         this.address1 = address1
         this.address2 = address2
+    }
+
+    @Override
+    String getDiscriminator() {
+        "${element.discriminator}_with_address"
+    }
+
+    @Override
+    List<P> generateDita(PublishContext context) {
+        List<P> paragraphs = []
+
+        paragraphs.add(P.build() {
+            xRef element.generateDita(context)
+            text " - "
+            xRef address1.generateDita(context)
+        })
+
+        paragraphs.add(P.build() {
+            txt "Or"
+        })
+
+        paragraphs.add(P.build() {
+            xRef element.generateDita(context)
+            text " - "
+            xRef address2.generateDita(context)
+        })
+
+        paragraphs
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        builder.p(class: context.paragraphCssClass) {
+            element.buildHtml(context, builder)
+            mkp.yield(" - ")
+            address1.buildHtml(context, builder)
+        }
+
+        PublishHelper.buildHtmlParagraph(context, builder, "Or")
+
+        builder.p(class: context.paragraphCssClass) {
+            element.buildHtml(context, builder)
+            mkp.yield(" - ")
+            address2.buildHtml(context, builder)
+        }
     }
 }
