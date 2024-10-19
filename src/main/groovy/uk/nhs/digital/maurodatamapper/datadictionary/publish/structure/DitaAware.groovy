@@ -21,6 +21,6 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 
-interface DitaAware<T extends DitaElement> {
+interface DitaAware<T> {
     T generateDita(PublishContext context)
 }
