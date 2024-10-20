@@ -10,6 +10,9 @@ import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDBusinessDefinition
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDChangeLog
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetClass
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetElement
+import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.AliasesSection
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ChangeLogSection
@@ -27,6 +30,12 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
 
     NhsDDClass relatedPatientClass
 
+    NhsDDElement elementNhsNumber
+    NhsDDElement elementPersonGivenName
+    NhsDDElement elementPersonBirthDate
+    NhsDDElement elementPatientUsualAddress
+    NhsDDElement elementDiseaseType
+
     @Override
     protected NhsDataDictionary createDataDictionary() {
         dataDictionaryService.newDataDictionary()
@@ -43,6 +52,32 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             catalogueItemId: UUID.fromString("ae2f2b7b-c136-4cc7-9b71-872ee4efb3a6"),
             branchId: branchId,
             name: "PATIENT")
+
+        // These are the elements for the data set tables
+        elementNhsNumber = new NhsDDElement(
+            catalogueItemId: UUID.fromString("dcdbc88d-d20e-49a8-bb2b-450bbf56900a"),
+            branchId: branchId,
+            name: "NHS NUMBER")
+
+        elementPersonGivenName = new NhsDDElement(
+            catalogueItemId: UUID.fromString("7e9642c3-14ae-4b59-bd3d-0160ea7f7616"),
+            branchId: branchId,
+            name: "PERSON GIVEN NAME")
+
+        elementPersonBirthDate = new NhsDDElement(
+            catalogueItemId: UUID.fromString("01c9734f-85e4-4fcf-a881-983621414673"),
+            branchId: branchId,
+            name: "PERSON BIRTH DATE")
+
+        elementPatientUsualAddress = new NhsDDElement(
+            catalogueItemId: UUID.fromString("d76f35ec-7fa6-47a3-ae4c-db246714ba8c"),
+            branchId: branchId,
+            name: "PATIENT USUAL ADDRESS")
+
+        elementDiseaseType = new NhsDDElement(
+            catalogueItemId: UUID.fromString("875b1b59-9c9d-452f-9cfb-354409f441a3"),
+            branchId: branchId,
+            name: "DISEASE TYPE")
     }
 
     @Override
@@ -50,6 +85,11 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         super.setupComponentPathResolver()
 
         componentPathResolver.add(relatedPatientClass.getMauroPath(), relatedPatientClass)
+        componentPathResolver.add(elementNhsNumber.getMauroPath(), elementNhsNumber)
+        componentPathResolver.add(elementPersonGivenName.getMauroPath(), elementPersonGivenName)
+        componentPathResolver.add(elementPersonBirthDate.getMauroPath(), elementPersonBirthDate)
+        componentPathResolver.add(elementPatientUsualAddress.getMauroPath(), elementPatientUsualAddress)
+        componentPathResolver.add(elementDiseaseType.getMauroPath(), elementDiseaseType)
     }
 
     @Override
@@ -57,6 +97,11 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         super.setupCatalogueItemPathResolver()
 
         catalogueItemPathResolver.add(relatedPatientClass.getMauroPath(), relatedPatientClass.catalogueItemId)
+        catalogueItemPathResolver.add(elementNhsNumber.getMauroPath(), elementNhsNumber.catalogueItemId)
+        catalogueItemPathResolver.add(elementPersonGivenName.getMauroPath(), elementPersonGivenName.catalogueItemId)
+        catalogueItemPathResolver.add(elementPersonBirthDate.getMauroPath(), elementPersonBirthDate.catalogueItemId)
+        catalogueItemPathResolver.add(elementPatientUsualAddress.getMauroPath(), elementPatientUsualAddress.catalogueItemId)
+        catalogueItemPathResolver.add(elementDiseaseType.getMauroPath(), elementDiseaseType.catalogueItemId)
     }
 
     @Override
@@ -78,7 +123,178 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             new NhsDDChangeLog(reference: "CR1000", referenceUrl: "https://test.nhs.uk/change/cr1000", description: "Change 1000", implementationDate: "01 April 2024"),
             new NhsDDChangeLog(reference: "CR2000", referenceUrl: "https://test.nhs.uk/change/cr2000", description: "Change 2000", implementationDate: "01 September 2024"))
 
-        // TODO: define all the tables/elements
+        activeItem.dataSetClasses.add(setupSingleGroupTable())
+        activeItem.dataSetClasses.add(setupMultiGroupTable(false))
+        activeItem.dataSetClasses.add(setupMultiGroupTable(true))
+        activeItem.dataSetClasses.add(setupElementChoicesGroup())
+    }
+
+    NhsDDDataSetClass setupSingleGroupTable() {
+        def table = new NhsDDDataSetClass(
+            name: "Single Group",
+            description: "This is a single group table"
+        )
+
+        table.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementNhsNumber.name,
+                reuseElement: elementNhsNumber))
+
+        table.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "R",
+                name: elementPersonGivenName.name,
+                reuseElement: elementPersonGivenName))
+
+        table.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 2,
+                mandation: "O",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType,
+                maxMultiplicity: "-1")) // Multiple occurrences
+
+        table
+    }
+
+    NhsDDDataSetClass setupMultiGroupTable(boolean isChoice) {
+        def table = new NhsDDDataSetClass(
+            name: "Multi Group",
+            description: "This is a multi group table",
+            isChoice: isChoice
+        )
+
+        def group1 = new NhsDDDataSetClass(
+            name: "GROUP 1",
+            description: "The first group"
+        )
+
+        group1.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementNhsNumber.name,
+                reuseElement: elementNhsNumber))
+
+        def group2 = new NhsDDDataSetClass(
+            name: "GROUP 2",
+            description: "The second group"
+        )
+
+        group1.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "R",
+                name: elementPersonBirthDate.name,
+                reuseElement: elementPersonBirthDate))
+
+        group2.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "M",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType,
+                maxMultiplicity: "-1")) // Multiple occurrences
+
+        table.dataSetClasses.add(group1)
+        table.dataSetClasses.add(group2)
+
+        table
+    }
+
+    NhsDDDataSetClass setupElementChoicesGroup() {
+        def table = new NhsDDDataSetClass(
+            name: "Element Choices",
+            description: "This is a group of element choices")
+
+        // OR
+        table.dataSetClasses.add(
+            new NhsDDDataSetClass(
+                webOrder: 0,
+                name: "Choice OR",
+                mandation: "M",
+                isChoice: true,
+                dataSetElements: [
+                    new NhsDDDataSetElement(
+                        webOrder: 0,
+                        name: elementNhsNumber.name,
+                        reuseElement: elementNhsNumber),
+                    new NhsDDDataSetElement(
+                        webOrder: 1,
+                        name: elementPersonGivenName.name,
+                        reuseElement: elementPersonGivenName)
+                ]
+            )
+        )
+
+        // AND
+        table.dataSetClasses.add(
+            new NhsDDDataSetClass(
+                webOrder: 1,
+                name: "Choice AND",
+                mandation: "M",
+                isAnd: true,
+                dataSetElements: [
+                    new NhsDDDataSetElement(
+                        webOrder: 0,
+                        name: elementPersonGivenName.name,
+                        reuseElement: elementPersonGivenName),
+                    new NhsDDDataSetElement(
+                        webOrder: 1,
+                        name: elementDiseaseType.name,
+                        reuseElement: elementDiseaseType,
+                        maxMultiplicity: "-1") // Multiple occurrences
+                ]
+            )
+        )
+
+        // AND/OR
+        table.dataSetClasses.add(
+            new NhsDDDataSetClass(
+                webOrder: 2,
+                name: "Choice AND/OR",
+                mandation: "M",
+                isAnd: true,
+                dataSetElements: [
+                    new NhsDDDataSetElement(
+                        webOrder: 0,
+                        name: elementNhsNumber.name,
+                        reuseElement: elementNhsNumber),
+                    new NhsDDDataSetElement(
+                        webOrder: 1,
+                        name: elementPersonGivenName.name,
+                        reuseElement: elementPersonGivenName),
+                    new NhsDDDataSetElement(
+                        webOrder: 2,
+                        name: elementDiseaseType.name,
+                        reuseElement: elementDiseaseType,
+                        maxMultiplicity: "-1") // Multiple occurrences
+                ]
+            )
+        )
+
+        // ADDRESS CHOICE
+        table.dataSetClasses.add(
+            new NhsDDDataSetClass(
+                webOrder: 3,
+                name: "Choice ADDRESS",
+                mandation: "R",
+                isAddress: true,
+                address1: "https://datadictionary.nhs.uk/classes/address_structured.html",
+                address2: "https://datadictionary.nhs.uk/classes/address_unstructured.html",
+                dataSetElements: [
+                    new NhsDDDataSetElement(
+                        webOrder: 0,
+                        name: elementPatientUsualAddress.name,
+                        reuseElement: elementPatientUsualAddress)
+                ]
+            )
+        )
+
+        table
     }
 
     @Override
