@@ -17,5 +17,37 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets
 
-class DataSetSection {
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
+
+import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
+
+class DataSetSection extends Section {
+
+    DataSetSection(DictionaryItem parent) {
+        super(parent, "specification", "Specification")
+    }
+
+    @Override
+    protected Body generateBodyDita(PublishContext context) {
+        return null
+    }
+
+    @Override
+    protected Div generateDivDita(PublishContext context) {
+        return null
+    }
+
+    @Override
+    Section produceDiff(Section previous) {
+        return null
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+
+    }
 }

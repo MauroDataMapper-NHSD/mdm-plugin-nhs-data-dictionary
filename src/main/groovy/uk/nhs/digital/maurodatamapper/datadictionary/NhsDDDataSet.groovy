@@ -29,6 +29,9 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.CDSDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.OtherDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetSection
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -124,6 +127,28 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     String getMauroPath() {
         "dm:${name}"
+    }
+
+    @Override
+    DictionaryItem getPublishStructure() {
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
+
+        addDescriptionSection(dictionaryItem)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            addDataSetSection(dictionaryItem)
+            addAliasesSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
+        }
+
+        addChangeLogSection(dictionaryItem)
+
+        dictionaryItem
+    }
+
+    void addDataSetSection(DictionaryItem dictionaryItem) {
+        // TODO: add the full specification
+        dictionaryItem.addSection(new DataSetSection(dictionaryItem))
     }
 
     @Override
