@@ -28,6 +28,9 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetItemLinkCell
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetRow
 
 class NhsDDDataSetElement{
 
@@ -153,6 +156,16 @@ class NhsDDDataSetElement{
             })
         }
         return response
+    }
+
+    OtherDataSetRow buildOtherDataSetRow() {
+        OtherDataSetItemLinkCell cell = buildOtherDataSetItemLinkCell()
+        new OtherDataSetRow(this.mandation, cell)
+    }
+
+    OtherDataSetItemLinkCell buildOtherDataSetItemLinkCell() {
+        ItemLink itemLink = reuseElement ? ItemLink.create(reuseElement) : null
+        new OtherDataSetItemLinkCell(this.name, itemLink, maxMultiplicity == "-1")
     }
 
     Row addCDSChildRow(int totalDepth, int currentDepth){

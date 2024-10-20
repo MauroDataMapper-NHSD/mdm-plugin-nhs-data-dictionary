@@ -25,6 +25,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ExternalLink
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
 
@@ -145,10 +146,10 @@ class OtherDataSetChoiceCell extends OtherDataSetCell {
 
 class OtherDataSetAddressCell extends OtherDataSetCell {
     final ItemLink element
-    final ItemLink address1
-    final ItemLink address2
+    final ExternalLink address1
+    final ExternalLink address2
 
-    OtherDataSetAddressCell(ItemLink element, ItemLink address1, ItemLink address2) {
+    OtherDataSetAddressCell(ItemLink element, ExternalLink address1, ExternalLink address2) {
         this.element = element
         this.address1 = address1
         this.address2 = address2

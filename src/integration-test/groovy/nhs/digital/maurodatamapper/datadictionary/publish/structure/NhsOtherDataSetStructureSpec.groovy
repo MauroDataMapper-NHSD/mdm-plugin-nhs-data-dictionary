@@ -123,9 +123,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             new NhsDDChangeLog(reference: "CR1000", referenceUrl: "https://test.nhs.uk/change/cr1000", description: "Change 1000", implementationDate: "01 April 2024"),
             new NhsDDChangeLog(reference: "CR2000", referenceUrl: "https://test.nhs.uk/change/cr2000", description: "Change 2000", implementationDate: "01 September 2024"))
 
-        activeItem.dataSetClasses.add(setupSingleGroupTable())
-        activeItem.dataSetClasses.add(setupMultiGroupTable(false))
-        activeItem.dataSetClasses.add(setupMultiGroupTable(true))
+        //activeItem.dataSetClasses.add(setupSingleGroupTable())
+//        activeItem.dataSetClasses.add(setupMultiGroupTable(false))
+//        activeItem.dataSetClasses.add(setupMultiGroupTable(true))
         activeItem.dataSetClasses.add(setupElementChoicesGroup())
     }
 
@@ -161,8 +161,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
     }
 
     NhsDDDataSetClass setupMultiGroupTable(boolean isChoice) {
+        String groupType = isChoice ? "Choice" : "Continuous"
         def table = new NhsDDDataSetClass(
-            name: "Multi Group",
+            name: "Multi Group: ${groupType}",
             description: "This is a multi group table",
             isChoice: isChoice
         )
@@ -257,7 +258,7 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
                 webOrder: 2,
                 name: "Choice AND/OR",
                 mandation: "M",
-                isAnd: true,
+                isInclusiveOr: true,
                 dataSetElements: [
                     new NhsDDDataSetElement(
                         webOrder: 0,

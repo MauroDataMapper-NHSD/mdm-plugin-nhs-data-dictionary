@@ -29,9 +29,17 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ExternalLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetAddressCell
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetChoiceCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroup
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroupRows
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroupSeparator
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeader
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeaderType
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetItemLinkCell
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetRow
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetTable
 
 @Slf4j
@@ -174,9 +182,83 @@ class NhsDDDataSetClass {
 
         List<OtherDataSetGroup> groups = []
 
-        // TODO: fill in table groups
+        if (dataSetElements && dataSetElements.size() > 0) {
+            groups.add(buildOtherDataSetGroupRows())
+        }
+        else {
+            dataSetClasses.eachWithIndex {NhsDDDataSetClass dataSetClass, int index ->
+                if (index != 0) {
+                    // If parent is a choice, then add an "Or" separator
+                    groups.add(new OtherDataSetGroupSeparator(isChoice ? "Or" : ""))
+                }
+
+                OtherDataSetHeader groupHeader = dataSetClass.name != "Choice"
+                    ? new OtherDataSetHeader(OtherDataSetHeaderType.GROUP, dataSetClass.name, dataSetClass.description)
+                    : null
+
+                groups.add(dataSetClass.buildOtherDataSetGroupRows(groupHeader))
+            }
+        }
 
         new OtherDataSetTable(header, groups)
+    }
+
+    OtherDataSetGroupRows buildOtherDataSetGroupRows(OtherDataSetHeader header = null) {
+        List<Object> children = getSortedChildren()
+
+        List<OtherDataSetRow> rows = children.collect() { classOrElement ->
+            if (classOrElement instanceof NhsDDDataSetClass) {
+                NhsDDDataSetClass dataSetClass = classOrElement as NhsDDDataSetClass
+                return dataSetClass.buildOtherDataSetRow()
+            }
+            else {
+                NhsDDDataSetElement dataSetElement = classOrElement as NhsDDDataSetElement
+                return dataSetElement.buildOtherDataSetRow()
+            }
+        }
+
+        new OtherDataSetGroupRows(rows, header)
+    }
+
+    OtherDataSetRow buildOtherDataSetRow() {
+        if (isAddress) {
+            // See COSDS Pathology for an example of this
+            // We store "Address 1" and "Address 2" as values in the metadata, but given that all occurrences of this
+            // are currently the same, we'll hard-code the links in for now
+            NhsDDDataSetElement dataSetElement = dataSetElements.first()
+
+            OtherDataSetAddressCell addressCell = new OtherDataSetAddressCell(
+                ItemLink.create(dataSetElement.reuseElement),
+                new ExternalLink("ADDRESS STRUCTURED", this.address1, "class"),
+                new ExternalLink("ADDRESS UNSTRUCTURED", this.address2, "class"))
+
+            return new OtherDataSetRow(this.mandation, addressCell)
+        }
+        else {
+            String operator = ""
+            if (isChoice && name.startsWith("Choice")) {
+                operator = OtherDataSetChoiceCell.OR_OPERATOR
+            }
+            else if (isAnd && (name.startsWith("Choice") || name.startsWith("And"))) {
+                operator = OtherDataSetChoiceCell.AND_OPERATOR
+            }
+            else if (isInclusiveOr && name.startsWith("Choice")) {
+                operator = OtherDataSetChoiceCell.AND_OR_OPERATOR
+            }
+
+            List<OtherDataSetItemLinkCell> itemLinkCells = []
+
+            List<Object> children = this.getSortedChildren()
+            children.each { childItem ->
+                if (childItem instanceof NhsDDDataSetElement) {
+                    NhsDDDataSetElement dataSetElement = childItem as NhsDDDataSetElement
+                    itemLinkCells.add(dataSetElement.buildOtherDataSetItemLinkCell())
+                }
+            }
+
+            OtherDataSetChoiceCell choiceCell = new OtherDataSetChoiceCell(operator, itemLinkCells)
+            return new OtherDataSetRow(this.mandation, choiceCell)
+        }
     }
 
     Div outputClassAsDita(NhsDataDictionary dataDictionary) {
