@@ -31,7 +31,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConst
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.StandardColumn
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetTable
 
-class OtherDataSetTable implements DataSetTable, DitaAware<Table>, HtmlBuilder {
+class OtherDataSetTable implements DataSetTable {
     static final OtherDataSetColumn MANDATION_COLUMN = new OtherDataSetColumn(
         "col1",
         "Mandation",

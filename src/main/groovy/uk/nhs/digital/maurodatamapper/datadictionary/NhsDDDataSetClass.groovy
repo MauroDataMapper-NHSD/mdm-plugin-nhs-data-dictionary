@@ -29,6 +29,10 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroup
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeader
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeaderType
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetTable
 
 @Slf4j
 class NhsDDDataSetClass {
@@ -160,6 +164,19 @@ class NhsDDDataSetClass {
         }
         returnElements.addAll(dataSetElements)
         return returnElements
+    }
+
+    OtherDataSetTable buildOtherDataSetTable() {
+        OtherDataSetHeader header = new OtherDataSetHeader(
+            OtherDataSetHeaderType.TABLE,
+            this.name,
+            this.description)
+
+        List<OtherDataSetGroup> groups = []
+
+        // TODO: fill in table groups
+
+        new OtherDataSetTable(header, groups)
     }
 
     Div outputClassAsDita(NhsDataDictionary dataDictionary) {

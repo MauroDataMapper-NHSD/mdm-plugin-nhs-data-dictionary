@@ -32,6 +32,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetTable
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -147,8 +148,16 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
     void addDataSetSection(DictionaryItem dictionaryItem) {
-        // TODO: add the full specification
-        dictionaryItem.addSection(new DataSetSection(dictionaryItem))
+        boolean isCdsDataSet = useCdsClassRender()
+
+        // TODO: figure out how to add CDS data set
+        if (!isCdsDataSet) {
+            List<OtherDataSetTable> tables = dataSetClasses.collect {dataSetClass ->
+                dataSetClass.buildOtherDataSetTable()
+            }
+
+            dictionaryItem.addSection(new DataSetSection(dictionaryItem, tables))
+        }
     }
 
     @Override

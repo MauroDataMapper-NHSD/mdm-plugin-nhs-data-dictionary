@@ -17,6 +17,11 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets
 
-interface DataSetTable {
+import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
+
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
+
+interface DataSetTable extends DitaAware<Table>, HtmlBuilder {
 
 }

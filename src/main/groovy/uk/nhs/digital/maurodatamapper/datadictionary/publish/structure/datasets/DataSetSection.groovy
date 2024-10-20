@@ -22,23 +22,18 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
 
 class DataSetSection extends Section {
+    final List<DataSetTable> tables
 
-    DataSetSection(DictionaryItem parent) {
+    DataSetSection(DictionaryItem parent, List<DataSetTable> tables) {
         super(parent, "specification", "Specification")
-    }
 
-    @Override
-    protected Body generateBodyDita(PublishContext context) {
-        return null
-    }
-
-    @Override
-    protected Div generateDivDita(PublishContext context) {
-        return null
+        this.tables = tables
     }
 
     @Override
@@ -47,7 +42,35 @@ class DataSetSection extends Section {
     }
 
     @Override
-    void buildHtml(PublishContext context, MarkupBuilder builder) {
+    protected Body generateBodyDita(PublishContext context) {
+        Body.build() {
+            this.tables.each { tableStruct ->
+                div {
+                    table tableStruct.generateDita(context)
+                }
+            }
+        }
+    }
 
+    @Override
+    protected Div generateDivDita(PublishContext context) {
+        Div.build() {
+            this.tables.each { table ->
+                div {
+                    table table.generateDita(context)
+                }
+            }
+        }
+    }
+
+    @Override
+    void buildHtml(PublishContext context, MarkupBuilder builder) {
+        String containerCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_CONTAINER : null
+
+        this.tables.each { table ->
+            builder.div(class: containerCssClass) {
+                table.buildHtml(context, builder)
+            }
+        }
     }
 }
