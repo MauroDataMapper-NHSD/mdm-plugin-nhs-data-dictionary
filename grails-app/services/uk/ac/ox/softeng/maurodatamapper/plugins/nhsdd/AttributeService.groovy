@@ -50,9 +50,11 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
     @Override
     NhsDDAttribute show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         DataElement attributeElement = dataElementService.get(id)
         NhsDDAttribute attribute = getNhsDataDictionaryComponentFromCatalogueItem(attributeElement, dataDictionary)
-        attribute.instantiatedByElements.addAll (elementService.getAllForAttribute(versionedFolderId, attribute))
+        attribute.instantiatedByElements.addAll (elementService.getAllForAttribute(dataDictionary, attribute))
         attribute.definition = convertLinksInDescription(versionedFolderId, attribute.getDescription())
         attribute.codes.each {code ->
             if(code.webPresentation) {
@@ -62,14 +64,14 @@ class AttributeService extends DataDictionaryComponentService<DataElement, NhsDD
         return attribute
     }
 
-    Set<NhsDDAttribute> getAllForElement(UUID versionedFolderId, NhsDDElement nhsDDElement) {
+    Set<NhsDDAttribute> getAllForElement(NhsDataDictionary dataDictionary, NhsDDElement nhsDDElement) {
         List<String> linkedAttributeList = elementService.getLinkedAttributes(nhsDDElement.catalogueItem)
 
         nhsDDElement.catalogueItem.semanticLinks
             .collect {link -> DataElement.get(link.targetMultiFacetAwareItemId) }
             .collect {dataElement ->
                 dataElement.getMetadata().size() // For later getting retired property
-                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, nhsDataDictionaryService.newDataDictionary())
+                getNhsDataDictionaryComponentFromCatalogueItem(dataElement, dataDictionary)
             }
             .findAll { attribute -> !attribute.isRetired() }
             .sort { attribute -> attribute.name }

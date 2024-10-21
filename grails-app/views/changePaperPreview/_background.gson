@@ -1,0 +1,17 @@
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangePaperPreviewBackground
+
+model {
+    ChangePaperPreviewBackground background
+}
+json {
+    reference background.reference
+    type background.type
+    versionNo background.versionNo
+    subject background.subject
+    effectiveDate background.effectiveDate
+    reasonForChange background.reasonForChange
+    publicationDate background.publicationDate
+    background background.background
+    sponsor background.sponsor
+    contactDetails background.contactDetails
+}

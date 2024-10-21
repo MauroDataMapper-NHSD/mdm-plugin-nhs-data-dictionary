@@ -37,6 +37,8 @@ class BusinessDefinitionService extends DataDictionaryComponentService<Term, Nhs
     @Override
     NhsDDBusinessDefinition show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         Term businessDefinitionTerm = termService.get(id)
         NhsDDBusinessDefinition businessDefinition = getNhsDataDictionaryComponentFromCatalogueItem(businessDefinitionTerm, dataDictionary)
         businessDefinition.definition = convertLinksInDescription(versionedFolderId, businessDefinition.getDescription())

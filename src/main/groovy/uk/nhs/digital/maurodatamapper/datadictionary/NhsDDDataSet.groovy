@@ -29,6 +29,10 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.CDSDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.OtherDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetTable
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -127,6 +131,36 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
     @Override
+    DictionaryItem getPublishStructure() {
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
+
+        addDescriptionSection(dictionaryItem)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            addDataSetSection(dictionaryItem)
+            addAliasesSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
+        }
+
+        addChangeLogSection(dictionaryItem)
+
+        dictionaryItem
+    }
+
+    void addDataSetSection(DictionaryItem dictionaryItem) {
+        boolean isCdsDataSet = useCdsClassRender()
+
+        // TODO: figure out how to add CDS data set
+        if (!isCdsDataSet) {
+            List<OtherDataSetTable> tables = dataSetClasses.collect {dataSetClass ->
+                dataSetClass.buildOtherDataSetTable()
+            }
+
+            dictionaryItem.addSection(new DataSetSection(dictionaryItem, tables))
+        }
+    }
+
+    @Override
     List<Topic> getWebsiteTopics() {
         List<Topic> topics = []
         topics.add(descriptionTopic())
@@ -198,6 +232,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         return dataSetElements
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []

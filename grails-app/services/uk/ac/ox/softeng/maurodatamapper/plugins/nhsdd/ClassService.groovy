@@ -42,6 +42,8 @@ class ClassService extends DataDictionaryComponentService<DataClass, NhsDDClass>
     @Override
     NhsDDClass show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         DataClass dataClass = dataClassService.get(id)
         NhsDDClass nhsClass = getNhsDataDictionaryComponentFromCatalogueItem(dataClass, dataDictionary)
         nhsClass.definition = convertLinksInDescription(versionedFolderId, nhsClass.getDescription())

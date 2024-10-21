@@ -23,6 +23,10 @@ class NhsDDChangeLog {
     String description
     String implementationDate
 
+    NhsDDChangeLog() {
+        // For testing only, set properties manually
+    }
+
     NhsDDChangeLog(NhsDDBranch branch, String changeRequestUrl) {
         this.reference = branch.reference
         if (!this.reference || this.reference.empty) {

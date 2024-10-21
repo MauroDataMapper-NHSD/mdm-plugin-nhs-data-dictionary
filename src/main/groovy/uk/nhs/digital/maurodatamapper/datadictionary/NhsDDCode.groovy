@@ -68,6 +68,10 @@ class NhsDDCode implements ChangeAware {
 
     }
 
+    boolean hasWebPresentation() {
+        webPresentation != null
+    }
+
     String getDescription() {
         String description = webPresentation ?: definition
 
