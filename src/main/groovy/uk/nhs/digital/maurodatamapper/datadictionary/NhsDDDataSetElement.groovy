@@ -19,20 +19,17 @@ package uk.nhs.digital.maurodatamapper.datadictionary
 
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
-
-import groovy.xml.MarkupBuilder
-
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 
+import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetItemLinkCell
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetRow
 
-class NhsDDDataSetElement{
+class NhsDDDataSetElement implements NhsDDDataSetComponent {
 
     String name
     String description
@@ -137,6 +134,8 @@ class NhsDDDataSetElement{
         }
     }
 
+    // Remove one day, replaced with buildOtherDataSetItemLinkCell()
+    @Deprecated
     List<P> createEntryParagraphs() {
         List<P> response = []
         if(reuseElement) {
@@ -156,11 +155,6 @@ class NhsDDDataSetElement{
             })
         }
         return response
-    }
-
-    OtherDataSetRow buildOtherDataSetRow() {
-        OtherDataSetItemLinkCell cell = buildOtherDataSetItemLinkCell()
-        new OtherDataSetRow(this.mandation, cell)
     }
 
     OtherDataSetItemLinkCell buildOtherDataSetItemLinkCell() {

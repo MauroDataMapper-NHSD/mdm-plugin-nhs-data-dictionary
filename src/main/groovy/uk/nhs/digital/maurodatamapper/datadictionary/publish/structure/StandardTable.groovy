@@ -100,7 +100,7 @@ abstract class StandardTable<R extends StandardRow> implements
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        String containerCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_CONTAINER : null
+        String containerCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_CONTAINER_SIMPLE : null
         String tableCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_HTML_TOPIC_SIMPLETABLE} $HtmlConstants.CSS_TABLE" : null
         String headCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_STHEAD} ${HtmlConstants.CSS_TABLE_HEAD}" : null
         String entryCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_STENTRY : null

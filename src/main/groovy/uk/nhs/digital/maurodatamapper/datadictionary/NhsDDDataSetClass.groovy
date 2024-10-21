@@ -17,21 +17,22 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-import groovy.util.logging.Slf4j
 import uk.ac.ox.softeng.maurodatamapper.core.facet.Metadata
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataClass
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.P
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TBody
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Align
+
+import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.DitaHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ExternalLink
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetAddressCell
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetChoiceCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroup
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroupRows
@@ -43,7 +44,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetTable
 
 @Slf4j
-class NhsDDDataSetClass {
+class NhsDDDataSetClass implements NhsDDDataSetComponent {
 
     String name
     String description
@@ -157,8 +158,8 @@ class NhsDDDataSetClass {
 
     }
 
-    List<Object> getSortedChildren() {
-        List<Object> children = []
+    List<NhsDDDataSetComponent> getSortedChildren() {
+        List<NhsDDDataSetComponent> children = []
         children.addAll(dataSetClasses)
         children.addAll(dataSetElements)
         children = children.sort { it.webOrder }
@@ -180,10 +181,19 @@ class NhsDDDataSetClass {
             this.name,
             this.description)
 
+        List<OtherDataSetGroup> groups = buildOtherDataSetGroups()
+
+        new OtherDataSetTable(header, groups)
+    }
+
+    List<OtherDataSetGroup> buildOtherDataSetGroups(OtherDataSetHeader header = null) {
         List<OtherDataSetGroup> groups = []
 
         if (dataSetElements && dataSetElements.size() > 0) {
-            groups.add(buildOtherDataSetGroupRows())
+            List<OtherDataSetRow> rows = getSortedChildren().collect {dataSetComponent ->
+                buildOtherDataSetRow(dataSetComponent)
+            }
+            groups.add(new OtherDataSetGroupRows(rows, header))
         }
         else {
             dataSetClasses.eachWithIndex {NhsDDDataSetClass dataSetClass, int index ->
@@ -192,75 +202,74 @@ class NhsDDDataSetClass {
                     groups.add(new OtherDataSetGroupSeparator(isChoice ? "Or" : ""))
                 }
 
-                OtherDataSetHeader groupHeader = dataSetClass.name != "Choice"
-                    ? new OtherDataSetHeader(OtherDataSetHeaderType.GROUP, dataSetClass.name, dataSetClass.description)
-                    : null
-
-                groups.add(dataSetClass.buildOtherDataSetGroupRows(groupHeader))
+                groups.addAll(dataSetClass.buildOtherDataSetGroup())
             }
         }
 
-        new OtherDataSetTable(header, groups)
+        groups
     }
 
-    OtherDataSetGroupRows buildOtherDataSetGroupRows(OtherDataSetHeader header = null) {
-        List<Object> children = getSortedChildren()
+    List<OtherDataSetGroup> buildOtherDataSetGroup() {
+        OtherDataSetHeader groupHeader = this.name != "Choice"
+            ? new OtherDataSetHeader(OtherDataSetHeaderType.GROUP, this.name, this.description)
+            : null
 
-        List<OtherDataSetRow> rows = children.collect() { classOrElement ->
-            if (classOrElement instanceof NhsDDDataSetClass) {
-                NhsDDDataSetClass dataSetClass = classOrElement as NhsDDDataSetClass
-                return dataSetClass.buildOtherDataSetRow()
-            }
-            else {
-                NhsDDDataSetElement dataSetElement = classOrElement as NhsDDDataSetElement
-                return dataSetElement.buildOtherDataSetRow()
-            }
-        }
-
-        new OtherDataSetGroupRows(rows, header)
+        buildOtherDataSetGroups(groupHeader)
     }
 
-    OtherDataSetRow buildOtherDataSetRow() {
-        if (isAddress) {
-            // See COSDS Pathology for an example of this
-            // We store "Address 1" and "Address 2" as values in the metadata, but given that all occurrences of this
-            // are currently the same, we'll hard-code the links in for now
-            NhsDDDataSetElement dataSetElement = dataSetElements.first()
-
-            OtherDataSetAddressCell addressCell = new OtherDataSetAddressCell(
-                ItemLink.create(dataSetElement.reuseElement),
-                new ExternalLink("ADDRESS STRUCTURED", this.address1, "class"),
-                new ExternalLink("ADDRESS UNSTRUCTURED", this.address2, "class"))
-
-            return new OtherDataSetRow(this.mandation, addressCell)
-        }
-        else {
-            String operator = ""
-            if (isChoice && name.startsWith("Choice")) {
-                operator = OtherDataSetChoiceCell.OR_OPERATOR
-            }
-            else if (isAnd && (name.startsWith("Choice") || name.startsWith("And"))) {
-                operator = OtherDataSetChoiceCell.AND_OPERATOR
-            }
-            else if (isInclusiveOr && name.startsWith("Choice")) {
-                operator = OtherDataSetChoiceCell.AND_OR_OPERATOR
-            }
-
-            List<OtherDataSetItemLinkCell> itemLinkCells = []
-
-            List<Object> children = this.getSortedChildren()
-            children.each { childItem ->
-                if (childItem instanceof NhsDDDataSetElement) {
-                    NhsDDDataSetElement dataSetElement = childItem as NhsDDDataSetElement
-                    itemLinkCells.add(dataSetElement.buildOtherDataSetItemLinkCell())
-                }
-            }
-
-            OtherDataSetChoiceCell choiceCell = new OtherDataSetChoiceCell(operator, itemLinkCells)
-            return new OtherDataSetRow(this.mandation, choiceCell)
-        }
+    static OtherDataSetRow buildOtherDataSetRow(NhsDDDataSetComponent dataSetComponent) {
+        new OtherDataSetRow(dataSetComponent.mandation, buildOtherDataSetCell(dataSetComponent))
     }
 
+    static OtherDataSetCell buildOtherDataSetCell(NhsDDDataSetComponent dataSetComponent) {
+        if (dataSetComponent instanceof NhsDDDataSetClass) {
+            NhsDDDataSetClass dataSetClass = dataSetComponent as NhsDDDataSetClass
+            return dataSetClass.isAddress ? dataSetClass.buildOtherDataSetAddressCell() : dataSetClass.buildOtherDataSetChoiceCell()
+        }
+
+        NhsDDDataSetElement dataSetElement = dataSetComponent as NhsDDDataSetElement
+        dataSetElement.buildOtherDataSetItemLinkCell()
+    }
+
+    OtherDataSetCell buildOtherDataSetAddressCell() {
+        // See COSDS Pathology for an example of this
+        // We store "Address 1" and "Address 2" as values in the metadata, but given that all occurrences of this
+        // are currently the same, we'll hard-code the links in for now
+        NhsDDDataSetElement dataSetElement = dataSetElements.first()
+
+        new OtherDataSetAddressCell(
+            ItemLink.create(dataSetElement.reuseElement),
+            new ExternalLink("ADDRESS STRUCTURED", this.address1, "class"),
+            new ExternalLink("ADDRESS UNSTRUCTURED", this.address2, "class"))
+    }
+
+    OtherDataSetCell buildOtherDataSetChoiceCell() {
+        String operator = ""
+        if (isChoice && name.startsWith("Choice")) {
+            operator = OtherDataSetChoiceCell.OR_OPERATOR
+        }
+        else if (isAnd && (name.startsWith("Choice") || name.startsWith("And"))) {
+            operator = OtherDataSetChoiceCell.AND_OPERATOR
+        }
+        else if (isInclusiveOr && name.startsWith("Choice")) {
+            operator = OtherDataSetChoiceCell.AND_OR_OPERATOR
+        }
+
+        List<OtherDataSetItemLinkCell> itemLinkCells = []
+
+        List<NhsDDDataSetComponent> children = this.getSortedChildren()
+        children.each { childItem ->
+            if (childItem instanceof NhsDDDataSetElement) {
+                NhsDDDataSetElement dataSetElement = childItem as NhsDDDataSetElement
+                itemLinkCells.add(dataSetElement.buildOtherDataSetItemLinkCell())
+            }
+        }
+
+        new OtherDataSetChoiceCell(operator, itemLinkCells)
+    }
+
+    // Remove this one day, "Other" data set render replaced with buildOtherDataSetTable()
+    @Deprecated
     Div outputClassAsDita(NhsDataDictionary dataDictionary) {
         Div.build {
             if (isChoice && name.startsWith("Choice")) {

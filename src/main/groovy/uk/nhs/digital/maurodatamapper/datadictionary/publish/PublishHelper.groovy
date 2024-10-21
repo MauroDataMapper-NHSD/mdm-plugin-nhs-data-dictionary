@@ -64,16 +64,21 @@ class PublishHelper {
     }
 
     static void buildHtmlParagraph(PublishContext context, MarkupBuilder builder, String text) {
+        if (!text) {
+            return
+        }
+
         builder.p(class: context.paragraphCssClass) {
             mkp.yield(text)
         }
     }
 
-    static XRef buildExternalXRef(String url, String text) {
+    static XRef buildExternalXRef(String url, String text, String outputClass = null) {
         XRef.build(
             scope: Scope.EXTERNAL,
             format: "html",
-            href: url
+            href: url,
+            outputClass: outputClass
         ) {
             txt text
         }

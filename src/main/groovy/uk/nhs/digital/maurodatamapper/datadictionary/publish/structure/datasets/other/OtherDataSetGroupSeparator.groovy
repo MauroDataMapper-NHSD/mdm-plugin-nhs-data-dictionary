@@ -57,15 +57,10 @@ class OtherDataSetGroupSeparator extends OtherDataSetGroup {
         String rowCssClass = context.rowCssClass
         String entryCssClass = context.getEntryCssClass(diffOutputClass)
 
-        builder.tr(rowCssClass) {
+        builder.tr(class: rowCssClass) {
             builder.td(class: entryCssClass, colspan: 2) {
-                if (!this.text.empty) {
-                    builder.b() {
-                        mkp.yield(this.text)
-                    }
-                }
-                else {
-                    PublishHelper.buildHtmlParagraph(context, builder, "")
+                builder.b() {
+                    mkp.yield(this.text)
                 }
             }
         }

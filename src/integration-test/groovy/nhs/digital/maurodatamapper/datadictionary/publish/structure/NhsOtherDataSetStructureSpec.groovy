@@ -1,3 +1,20 @@
+/*
+ * Copyright 2020-2024 University of Oxford and NHS England
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
@@ -123,9 +140,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             new NhsDDChangeLog(reference: "CR1000", referenceUrl: "https://test.nhs.uk/change/cr1000", description: "Change 1000", implementationDate: "01 April 2024"),
             new NhsDDChangeLog(reference: "CR2000", referenceUrl: "https://test.nhs.uk/change/cr2000", description: "Change 2000", implementationDate: "01 September 2024"))
 
-        //activeItem.dataSetClasses.add(setupSingleGroupTable())
-//        activeItem.dataSetClasses.add(setupMultiGroupTable(false))
-//        activeItem.dataSetClasses.add(setupMultiGroupTable(true))
+        activeItem.dataSetClasses.add(setupSingleGroupTable())
+        activeItem.dataSetClasses.add(setupMultiGroupTable(false))
+        activeItem.dataSetClasses.add(setupMultiGroupTable(true))
         activeItem.dataSetClasses.add(setupElementChoicesGroup())
     }
 
@@ -180,17 +197,17 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
                 name: elementNhsNumber.name,
                 reuseElement: elementNhsNumber))
 
-        def group2 = new NhsDDDataSetClass(
-            name: "GROUP 2",
-            description: "The second group"
-        )
-
         group1.dataSetElements.add(
             new NhsDDDataSetElement(
                 webOrder: 0,
                 mandation: "R",
                 name: elementPersonBirthDate.name,
                 reuseElement: elementPersonBirthDate))
+
+        def group2 = new NhsDDDataSetClass(
+            name: "GROUP 2",
+            description: "The second group"
+        )
 
         group2.dataSetElements.add(
             new NhsDDDataSetElement(
@@ -211,11 +228,20 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             name: "Element Choices",
             description: "This is a group of element choices")
 
+        // A table/group needs at least one Data Element listed for the choice classes to be found
+        // correctly
+        table.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementPersonGivenName.name,
+                reuseElement: elementPersonGivenName))
+
         // OR
         table.dataSetClasses.add(
             new NhsDDDataSetClass(
-                webOrder: 0,
-                name: "Choice OR",
+                webOrder: 1,
+                name: "Choice",
                 mandation: "M",
                 isChoice: true,
                 dataSetElements: [
@@ -234,8 +260,8 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         // AND
         table.dataSetClasses.add(
             new NhsDDDataSetClass(
-                webOrder: 1,
-                name: "Choice AND",
+                webOrder: 2,
+                name: "Choice",
                 mandation: "M",
                 isAnd: true,
                 dataSetElements: [
@@ -255,8 +281,8 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         // AND/OR
         table.dataSetClasses.add(
             new NhsDDDataSetClass(
-                webOrder: 2,
-                name: "Choice AND/OR",
+                webOrder: 3,
+                name: "Choice",
                 mandation: "M",
                 isInclusiveOr: true,
                 dataSetElements: [
@@ -280,8 +306,8 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         // ADDRESS CHOICE
         table.dataSetClasses.add(
             new NhsDDDataSetClass(
-                webOrder: 3,
-                name: "Choice ADDRESS",
+                webOrder: 4,
+                name: "Address Choice",
                 mandation: "R",
                 isAddress: true,
                 address1: "https://datadictionary.nhs.uk/classes/address_structured.html",
@@ -388,7 +414,410 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_diagnostic_data_set'>
+  <title outputclass='dataSet'>
+    <text>Diagnostic Data Set</text>
+  </title>
+  <shortdesc>The Diagnostic Data Set contains 
+PATIENTS holding data</shortdesc>
+  <topic id='data_set_diagnostic_data_set_description'>
+    <title>Description</title>
+    <body>
+      <div>
+        <p>The Diagnostic Data Set contains 
+
+          <xref outputclass='class' keyref='class_patient' scope='local'>PATIENTS</xref> holding data.
+        </p>
+      </div>
+    </body>
+  </topic>
+  <topic id='data_set_diagnostic_data_set_specification'>
+    <title>Specification</title>
+    <body>
+      <div>
+        <table outputclass='table table-sm table-striped table-bordered'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row outputclass='thead-light'>
+                <entry namest='col1' nameend='col2'>
+                  <b>Single Group</b>
+                  <p>This is a single group table</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>Mandation</p>
+                </entry>
+                <entry>
+                  <p>Data Elements</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+      <div>
+        <table outputclass='table table-sm table-striped table-bordered'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row outputclass='thead-light'>
+                <entry namest='col1' nameend='col2'>
+                  <b>Multi Group: Continuous</b>
+                  <p>This is a multi group table</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 1</b>
+                  <p>The first group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_birth_date' format='html'>PERSON BIRTH DATE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <p />
+                </entry>
+              </row>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 2</b>
+                  <p>The second group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+      <div>
+        <table outputclass='table table-sm table-striped table-bordered'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row outputclass='thead-light'>
+                <entry namest='col1' nameend='col2'>
+                  <b>Multi Group: Choice</b>
+                  <p>This is a multi group table</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 1</b>
+                  <p>The first group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_birth_date' format='html'>PERSON BIRTH DATE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Or</b>
+                </entry>
+              </row>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 2</b>
+                  <p>The second group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+      <div>
+        <table outputclass='table table-sm table-striped table-bordered'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row outputclass='thead-light'>
+                <entry namest='col1' nameend='col2'>
+                  <b>Element Choices</b>
+                  <p>This is a group of element choices</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>Mandation</p>
+                </entry>
+                <entry>
+                  <p>Data Elements</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                  <p>Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                  <p>And</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                  <p>And/Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                  <p>And/Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_patient_usual_address' format='html'>PATIENT USUAL ADDRESS</xref>
+                    <text> - </text>
+                    <xref outputclass='class' href='https://datadictionary.nhs.uk/classes/address_structured.html' format='html' scope='external'>ADDRESS STRUCTURED</xref>
+                  </p>
+                  <p>Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_patient_usual_address' format='html'>PATIENT USUAL ADDRESS</xref>
+                    <text> - </text>
+                    <xref outputclass='class' href='https://datadictionary.nhs.uk/classes/address_unstructured.html' format='html' scope='external'>ADDRESS UNSTRUCTURED</xref>
+                  </p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+    </body>
+  </topic>
+  <topic id='data_set_diagnostic_data_set_aliases'>
+    <title>Also Known As</title>
+    <body>
+      <p>This Data Set is also known by these names:</p>
+      <simpletable outputclass='table table-sm table-striped' relcolwidth='1* 2*'>
+        <sthead outputclass='thead-light'>
+          <stentry>Context</stentry>
+          <stentry>Alias</stentry>
+        </sthead>
+        <strow>
+          <stentry>Plural</stentry>
+          <stentry>Diagnostics Data Set</stentry>
+        </strow>
+      </simpletable>
+    </body>
+  </topic>
+  <topic id='data_set_diagnostic_data_set_whereUsed'>
+    <title>Where Used</title>
+    <body>
+      <simpletable outputclass='table table-sm table-striped' relcolwidth='1* 3* 2*'>
+        <sthead outputclass='thead-light'>
+          <stentry>Type</stentry>
+          <stentry>Link</stentry>
+          <stentry>How used</stentry>
+        </sthead>
+        <strow>
+          <stentry>Data Set</stentry>
+          <stentry>
+            <xref outputclass='dataSet' keyref='data_set_diagnostic_data_set' format='html'>Diagnostic Data Set</xref>
+          </stentry>
+          <stentry>references in description Diagnostic Data Set</stentry>
+        </strow>
+      </simpletable>
+    </body>
+  </topic>
+  <topic id='data_set_diagnostic_data_set_changeLog'>
+    <title>Change Log</title>
+    <body>
+      <div>
+        <p>Click on the links below to view the change requests this item is part of:</p>
+      </div>
+      <simpletable outputclass='table table-sm table-striped' relcolwidth='2* 5* 3*'>
+        <sthead outputclass='thead-light'>
+          <stentry>Change Request</stentry>
+          <stentry>Change Request Description</stentry>
+          <stentry>Implementation Date</stentry>
+        </sthead>
+        <strow>
+          <stentry>
+            <xref href='https://test.nhs.uk/change/cr1000' format='html' scope='external'>CR1000</xref>
+          </stentry>
+          <stentry>Change 1000</stentry>
+          <stentry>01 April 2024</stentry>
+        </strow>
+        <strow>
+          <stentry>
+            <xref href='https://test.nhs.uk/change/cr2000' format='html' scope='external'>CR2000</xref>
+          </stentry>
+          <stentry>Change 2000</stentry>
+          <stentry>01 September 2024</stentry>
+        </strow>
+      </simpletable>
+      <div>
+        <p>Click 
+
+          <xref outputclass='- topic/xref xref' href='https://www.datadictionary.nhs.uk/archive' format='html' scope='external'>here</xref> to see the Change Log Information for changes before January 2025.
+        </p>
+      </div>
+    </body>
+  </topic>
+</topic>"""
         }
     }
 
@@ -513,7 +942,309 @@ PATIENTS holding data</p>
         then: "the aliases are published"
         verifyAll {
             dataSetHtml
-            dataSetHtml == """foo"""
+            dataSetHtml == """<div class="- topic/body body">
+  <div class="table-container">
+    <table class="- topic/table table table-striped table-bordered table-sm">
+      <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 80%" />
+      </colgroup>
+      <thead class="- topic/thead thead">
+        <tr class="- topic/row thead-light">
+          <th colspan="2" class="- topic/entry entry align-center">
+            <b>Single Group</b>
+            <p class="- topic/p p">This is a single group table</p>
+          </th>
+        </tr>
+        <tr class="- topic/row">
+          <th class="- topic/entry entry align-center">
+            <p class="- topic/p p">Mandation</p>
+          </th>
+          <th class="- topic/entry entry">
+            <p class="- topic/p p">Data Elements</p>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="- topic/tbody tbody">
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">R</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">O</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+            </p>
+            <p class="- topic/p p">Multiple occurrences of this item are permitted</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-container">
+    <table class="- topic/table table table-striped table-bordered table-sm">
+      <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 80%" />
+      </colgroup>
+      <thead class="- topic/thead thead">
+        <tr class="- topic/row thead-light">
+          <th colspan="2" class="- topic/entry entry align-center">
+            <b>Multi Group: Continuous</b>
+            <p class="- topic/p p">This is a multi group table</p>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="- topic/tbody tbody">
+        <tr class="- topic/row table-primary">
+          <td class="- topic/entry entry align-center">
+            <b>Mandation</b>
+          </td>
+          <td class="- topic/entry entry">
+            <b>GROUP 1</b>
+            <p class="- topic/p p">The first group</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">R</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="PERSON BIRTH DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/01c9734f-85e4-4fcf-a881-983621414673">PERSON BIRTH DATE</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry" colspan="2">
+            <b></b>
+          </td>
+        </tr>
+        <tr class="- topic/row table-primary">
+          <td class="- topic/entry entry align-center">
+            <b>Mandation</b>
+          </td>
+          <td class="- topic/entry entry">
+            <b>GROUP 2</b>
+            <p class="- topic/p p">The second group</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+            </p>
+            <p class="- topic/p p">Multiple occurrences of this item are permitted</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-container">
+    <table class="- topic/table table table-striped table-bordered table-sm">
+      <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 80%" />
+      </colgroup>
+      <thead class="- topic/thead thead">
+        <tr class="- topic/row thead-light">
+          <th colspan="2" class="- topic/entry entry align-center">
+            <b>Multi Group: Choice</b>
+            <p class="- topic/p p">This is a multi group table</p>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="- topic/tbody tbody">
+        <tr class="- topic/row table-primary">
+          <td class="- topic/entry entry align-center">
+            <b>Mandation</b>
+          </td>
+          <td class="- topic/entry entry">
+            <b>GROUP 1</b>
+            <p class="- topic/p p">The first group</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">R</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="PERSON BIRTH DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/01c9734f-85e4-4fcf-a881-983621414673">PERSON BIRTH DATE</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry" colspan="2">
+            <b>Or</b>
+          </td>
+        </tr>
+        <tr class="- topic/row table-primary">
+          <td class="- topic/entry entry align-center">
+            <b>Mandation</b>
+          </td>
+          <td class="- topic/entry entry">
+            <b>GROUP 2</b>
+            <p class="- topic/p p">The second group</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+            </p>
+            <p class="- topic/p p">Multiple occurrences of this item are permitted</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-container">
+    <table class="- topic/table table table-striped table-bordered table-sm">
+      <colgroup>
+        <col style="width: 20%" />
+        <col style="width: 80%" />
+      </colgroup>
+      <thead class="- topic/thead thead">
+        <tr class="- topic/row thead-light">
+          <th colspan="2" class="- topic/entry entry align-center">
+            <b>Element Choices</b>
+            <p class="- topic/p p">This is a group of element choices</p>
+          </th>
+        </tr>
+        <tr class="- topic/row">
+          <th class="- topic/entry entry align-center">
+            <p class="- topic/p p">Mandation</p>
+          </th>
+          <th class="- topic/entry entry">
+            <p class="- topic/p p">Data Elements</p>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="- topic/tbody tbody">
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+            </p>
+            <p class="- topic/p p">Or</p>
+            <p class="- topic/p p">
+              <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+            </p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+            </p>
+            <p class="- topic/p p">And</p>
+            <p class="- topic/p p">
+              <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+            </p>
+            <p class="- topic/p p">Multiple occurrences of this item are permitted</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">M</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+            </p>
+            <p class="- topic/p p">And/Or</p>
+            <p class="- topic/p p">
+              <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+            </p>
+            <p class="- topic/p p">And/Or</p>
+            <p class="- topic/p p">
+              <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+            </p>
+            <p class="- topic/p p">Multiple occurrences of this item are permitted</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">R</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element" title="PATIENT USUAL ADDRESS" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/d76f35ec-7fa6-47a3-ae4c-db246714ba8c">PATIENT USUAL ADDRESS</a> - 
+              <a class="class" title="ADDRESS STRUCTURED" href="https://datadictionary.nhs.uk/classes/address_structured.html">ADDRESS STRUCTURED</a>
+            </p>
+            <p class="- topic/p p">Or</p>
+            <p class="- topic/p p">
+              <a class="element" title="PATIENT USUAL ADDRESS" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/d76f35ec-7fa6-47a3-ae4c-db246714ba8c">PATIENT USUAL ADDRESS</a> - 
+              <a class="class" title="ADDRESS UNSTRUCTURED" href="https://datadictionary.nhs.uk/classes/address_unstructured.html">ADDRESS UNSTRUCTURED</a>
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>"""
         }
     }
 

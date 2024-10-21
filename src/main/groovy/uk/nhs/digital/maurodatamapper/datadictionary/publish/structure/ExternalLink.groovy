@@ -1,10 +1,27 @@
+/*
+ * Copyright 2020-2024 University of Oxford and NHS England
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
-import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 
 class ExternalLink implements DitaAware<XRef>, HtmlBuilder, ChangeAware{
@@ -32,20 +49,12 @@ class ExternalLink implements DitaAware<XRef>, HtmlBuilder, ChangeAware{
 
     @Override
     XRef generateDita(PublishContext context) {
-        String linkOutputClass = outputClass
-        XRef.build(
-            scope: Scope.EXTERNAL,
-            format: "html",
-            href: url,
-            outputClass: linkOutputClass
-        ) {
-            txt name
-        }
+        PublishHelper.buildExternalXRef(url, name, outputClass)
     }
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        builder.a(class: outputClass, title: name, href: href) {
+        builder.a(class: outputClass, title: name, href: url) {
             mkp.yield(name)
         }
     }
