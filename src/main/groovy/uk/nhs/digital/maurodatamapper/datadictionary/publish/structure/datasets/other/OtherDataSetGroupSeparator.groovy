@@ -23,6 +23,7 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
 class OtherDataSetGroupSeparator extends OtherDataSetGroup {
     final String text
@@ -55,10 +56,11 @@ class OtherDataSetGroupSeparator extends OtherDataSetGroup {
     void buildHtml(PublishContext context, MarkupBuilder builder) {
         String diffOutputClass = PublishHelper.getDiffCssClass(DiffStatus.NONE)
         String rowCssClass = context.rowCssClass
-        String entryCssClass = context.getEntryCssClass(diffOutputClass)
+        String entryCssClass = context.getEntryCssClass(diffOutputClass) ?: ""
+        String finalEntryCssClass = "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}"
 
         builder.tr(class: rowCssClass) {
-            builder.td(class: entryCssClass, colspan: 2) {
+            builder.td(class: finalEntryCssClass, colspan: 2) {
                 builder.b() {
                     mkp.yield(this.text)
                 }

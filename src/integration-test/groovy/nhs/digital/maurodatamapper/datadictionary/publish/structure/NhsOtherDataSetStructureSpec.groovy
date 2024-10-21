@@ -1045,7 +1045,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry" colspan="2">
+          <td class="- topic/entry entry align-center" colspan="2">
             <b></b>
           </td>
         </tr>
@@ -1117,7 +1117,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry" colspan="2">
+          <td class="- topic/entry entry align-center" colspan="2">
             <b>Or</b>
           </td>
         </tr>
