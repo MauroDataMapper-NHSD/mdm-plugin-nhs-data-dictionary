@@ -45,6 +45,7 @@ class DataSetSection extends Section {
     @Override
     protected Body generateBodyDita(PublishContext context) {
         Body.build() {
+            // Use different closure name than "table", otherwise dita dsl thinks its a method call
             this.tables.each { tableStruct ->
                 div {
                     table tableStruct.generateDita(context)
@@ -56,9 +57,10 @@ class DataSetSection extends Section {
     @Override
     protected Div generateDivDita(PublishContext context) {
         Div.build() {
-            this.tables.each { table ->
+            // Use different closure name than "table", otherwise dita dsl thinks its a method call
+            this.tables.each { tableStruct ->
                 div {
-                    table table.generateDita(context)
+                    table tableStruct.generateDita(context)
                 }
             }
         }
