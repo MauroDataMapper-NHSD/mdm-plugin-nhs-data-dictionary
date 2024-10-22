@@ -30,22 +30,22 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
-class OtherDataSetGroupRows implements
+class OtherDataSetGroup implements
     DitaAware<List<Row>>,
     HtmlBuilder,
     ChangeAware,
-    DiffAware<OtherDataSetGroupRows, OtherDataSetGroupRows>,
-    DiffObjectAware<OtherDataSetGroupRows> {
+    DiffAware<OtherDataSetGroup, OtherDataSetGroup>,
+    DiffObjectAware<OtherDataSetGroup> {
     final List<OtherDataSetRow> rows
     final OtherDataSetHeader header
 
     final DiffStatus diffStatus
 
-    OtherDataSetGroupRows(List<OtherDataSetRow> rows, OtherDataSetHeader header) {
+    OtherDataSetGroup(List<OtherDataSetRow> rows, OtherDataSetHeader header) {
         this(rows, header, DiffStatus.NONE)
     }
 
-    OtherDataSetGroupRows(List<OtherDataSetRow> rows, OtherDataSetHeader header, DiffStatus diffStatus) {
+    OtherDataSetGroup(List<OtherDataSetRow> rows, OtherDataSetHeader header, DiffStatus diffStatus) {
         this.rows = rows
         this.header = header
         this.diffStatus = diffStatus
@@ -60,12 +60,12 @@ class OtherDataSetGroupRows implements
     }
 
     @Override
-    OtherDataSetGroupRows cloneWithDiffStatus(DiffStatus diffStatus) {
-        new OtherDataSetGroupRows(this.rows, this.header, diffStatus)
+    OtherDataSetGroup cloneWithDiffStatus(DiffStatus diffStatus) {
+        new OtherDataSetGroup(this.rows, this.header, diffStatus)
     }
 
     @Override
-    OtherDataSetGroupRows produceDiff(OtherDataSetGroupRows previous) {
+    OtherDataSetGroup produceDiff(OtherDataSetGroup previous) {
         return null
     }
 

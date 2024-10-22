@@ -34,7 +34,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetAddressCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetChoiceCell
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroupRows
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroup
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeader
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeaderType
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetItemLinkCell
@@ -179,20 +179,20 @@ class NhsDDDataSetClass implements NhsDDDataSetComponent {
             this.name,
             this.description)
 
-        List<OtherDataSetGroupRows> groups = buildOtherDataSetGroups()
+        List<OtherDataSetGroup> groups = buildOtherDataSetGroups()
 
         // If this table class is a choice, then add an "Or" separator between groups
         new OtherDataSetTable(header, groups, isChoice ? "Or" : "")
     }
 
-    List<OtherDataSetGroupRows> buildOtherDataSetGroups(OtherDataSetHeader header = null) {
-        List<OtherDataSetGroupRows> groups = []
+    List<OtherDataSetGroup> buildOtherDataSetGroups(OtherDataSetHeader header = null) {
+        List<OtherDataSetGroup> groups = []
 
         if (dataSetElements && dataSetElements.size() > 0) {
             List<OtherDataSetRow> rows = getSortedChildren().collect {dataSetComponent ->
                 buildOtherDataSetRow(dataSetComponent)
             }
-            groups.add(new OtherDataSetGroupRows(rows, header))
+            groups.add(new OtherDataSetGroup(rows, header))
         }
         else {
             dataSetClasses.each { dataSetClass ->
@@ -203,7 +203,7 @@ class NhsDDDataSetClass implements NhsDDDataSetComponent {
         groups
     }
 
-    List<OtherDataSetGroupRows> buildOtherDataSetGroup() {
+    List<OtherDataSetGroup> buildOtherDataSetGroup() {
         OtherDataSetHeader groupHeader = this.name != "Choice"
             ? new OtherDataSetHeader(OtherDataSetHeaderType.GROUP, this.name, this.description)
             : null

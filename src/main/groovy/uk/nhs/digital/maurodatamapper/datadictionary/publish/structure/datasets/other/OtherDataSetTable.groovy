@@ -46,21 +46,21 @@ class OtherDataSetTable implements DataSetTable {
         "80%")
 
     final OtherDataSetHeader header
-    final List<OtherDataSetGroupRows> groups
+    final List<OtherDataSetGroup> groups
     final String groupSeparator
 
     final DiffStatus diffStatus
 
     OtherDataSetTable(
         OtherDataSetHeader header,
-        List<OtherDataSetGroupRows> groups,
+        List<OtherDataSetGroup> groups,
         String groupSeparator) {
         this(header, groups, groupSeparator, DiffStatus.NONE)
     }
 
     OtherDataSetTable(
         OtherDataSetHeader header,
-        List<OtherDataSetGroupRows> groups,
+        List<OtherDataSetGroup> groups,
         String groupSeparator,
         DiffStatus diffStatus) {
         this.header = header
@@ -118,13 +118,13 @@ class OtherDataSetTable implements DataSetTable {
             return new OtherDataSetTable(diffHeader, this.groups, this.groupSeparator)
         }
 
-        List<OtherDataSetGroupRows> currentGroups = this.groups
-        List<OtherDataSetGroupRows> previousGroups = previousTable ? previousTable.groups : []
+        List<OtherDataSetGroup> currentGroups = this.groups
+        List<OtherDataSetGroup> previousGroups = previousTable ? previousTable.groups : []
 
-        List<OtherDataSetGroupRows> diffGroups = ChangeFunctions.buildDifferencesList(
+        List<OtherDataSetGroup> diffGroups = ChangeFunctions.buildDifferencesList(
             currentGroups,
             previousGroups,
-            { OtherDataSetGroupRows currentItem, OtherDataSetGroupRows previousItem ->
+            {OtherDataSetGroup currentItem, OtherDataSetGroup previousItem ->
                 currentItem.produceDiff(previousItem)
             })
 
@@ -162,7 +162,7 @@ class OtherDataSetTable implements DataSetTable {
                     }
                 }
                 tBody {
-                    this.groups.eachWithIndex { OtherDataSetGroupRows group, int index ->
+                    this.groups.eachWithIndex {OtherDataSetGroup group, int index ->
                         if (index != 0) {
                             // Group separator
                             row {
@@ -224,7 +224,7 @@ class OtherDataSetTable implements DataSetTable {
                 }
             }
             builder.tbody(class: bodyCssClass) {
-                this.groups.eachWithIndex { OtherDataSetGroupRows group, int index ->
+                this.groups.eachWithIndex {OtherDataSetGroup group, int index ->
                     if (index != 0) {
                         // Group separator
                         builder.tr(class: rowCssClass) {
