@@ -26,3 +26,7 @@ interface DiffObjectAware<T> {
 
     T cloneWithDiffStatus(DiffStatus diffStatus)
 }
+
+interface DiffHierarchyAware {
+    DiffStatus getHierarchicalDiffStatus()
+}

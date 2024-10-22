@@ -24,6 +24,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
@@ -40,27 +41,39 @@ class OtherDataSetHeader
         DitaAware<Entry>,
         HtmlBuilder,
         ChangeAware,
+        DiffAware<OtherDataSetHeader, OtherDataSetHeader>,
         DiffObjectAware<OtherDataSetHeader> {
     final OtherDataSetHeaderType type
     final String name
     final String description    // Optional
+    final String previousDescription    // Optional, only used for diff comparisons
 
     final DiffStatus diffStatus
 
     OtherDataSetHeader(OtherDataSetHeaderType type, String name, String description) {
-        this(type, name, description, DiffStatus.NONE)
+        this(type, name, description, null, DiffStatus.NONE)
     }
 
     OtherDataSetHeader(OtherDataSetHeaderType type, String name, String description, DiffStatus diffStatus) {
+        this(type, name, description, null, diffStatus)
+    }
+
+    OtherDataSetHeader(
+        OtherDataSetHeaderType type,
+        String name,
+        String description,
+        String previousDescription,
+        DiffStatus diffStatus) {
         this.type = type
         this.name = name
         this.description = description
+        this.previousDescription = previousDescription
         this.diffStatus = diffStatus
     }
 
     @Override
     String getDiscriminator() {
-        "${type}_${name}"
+        "header:${type}_${name}"
     }
 
     @Override
@@ -69,15 +82,42 @@ class OtherDataSetHeader
     }
 
     @Override
+    OtherDataSetHeader produceDiff(OtherDataSetHeader previous) {
+        if (!previous) {
+            return cloneWithDiffStatus(DiffStatus.NEW)
+        }
+
+        if (this.description != previous.description) {
+            return new OtherDataSetHeader(this.type, this.name, this.description, previous.description, DiffStatus.MODIFIED)
+        }
+
+        // No change
+        null
+    }
+
+    @Override
     Entry generateDita(PublishContext context) {
+        String diffOutputStatus = PublishHelper.getDiffCssClass(diffStatus)
+
         String nameStart = type == OtherDataSetHeaderType.TABLE
             ? OtherDataSetTable.MANDATION_COLUMN.colId
             : OtherDataSetTable.DATA_ELEMENTS_COLUMN.colId
 
-        Entry.build(namest: nameStart, nameend: OtherDataSetTable.DATA_ELEMENTS_COLUMN.colId) {
+        Entry.build(namest: nameStart, nameend: OtherDataSetTable.DATA_ELEMENTS_COLUMN.colId, outputClass: diffOutputStatus) {
             b this.name
             if (this.description) {
-                p this.description
+                if (this.previousDescription && diffStatus == DiffStatus.MODIFIED) {
+                    // Special case where we need to show the description has changed
+                    p(outputClass: HtmlConstants.CSS_DIFF_NEW) {
+                        txt this.description
+                    }
+                    p(outputClass: HtmlConstants.CSS_DIFF_DELETED) {
+                        txt this.previousDescription
+                    }
+                }
+                else {
+                    p this.description
+                }
             }
         }
     }
@@ -89,16 +129,31 @@ class OtherDataSetHeader
         if (type == OtherDataSetHeaderType.TABLE) {
             builder.th(colspan: 2, class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
                 b this.name
-                if (this.description) {
-                    PublishHelper.buildHtmlParagraph(context, builder, this.description)
-                }
+                buildHtmlDescriptionWithChange(context, builder)
             }
         }
         else {
             builder.td(class: entryCssClass) {
                 b this.name
-                if (this.description) {
-                    PublishHelper.buildHtmlParagraph(context, builder, this.description)
+                buildHtmlDescriptionWithChange(context, builder)
+            }
+        }
+    }
+
+    void buildHtmlDescriptionWithChange(PublishContext context, MarkupBuilder builder) {
+        if (this.description) {
+            if (this.previousDescription && diffStatus == DiffStatus.MODIFIED) {
+                // Special case where we need to show the description has changed
+                builder.p(class: PublishHelper.combineCssClassWithDiffStatus(context.paragraphCssClass, DiffStatus.NEW)) {
+                    mkp.yieldUnescaped(this.description)
+                }
+                builder.p(class: PublishHelper.combineCssClassWithDiffStatus(context.paragraphCssClass, DiffStatus.REMOVED)) {
+                    mkp.yieldUnescaped(this.previousDescription)
+                }
+            }
+            else {
+                builder.p(class: context.paragraphCssClass) {
+                    mkp.yieldUnescaped(this.description)
                 }
             }
         }

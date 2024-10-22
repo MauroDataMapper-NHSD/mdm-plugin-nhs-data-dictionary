@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
 
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffHierarchyAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
@@ -31,6 +32,6 @@ interface DataSetTable
         HtmlBuilder,
         DiffAware<DataSetTable, DataSetTable>,
         ChangeAware,
-        DiffObjectAware<DataSetTable> {
-
+        DiffObjectAware<DataSetTable>,
+        DiffHierarchyAware {
 }

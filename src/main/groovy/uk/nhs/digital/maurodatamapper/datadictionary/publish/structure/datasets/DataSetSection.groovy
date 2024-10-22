@@ -25,6 +25,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeF
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
 
@@ -44,17 +45,19 @@ class DataSetSection extends Section {
         List<DataSetTable> currentList = this.tables
         List<DataSetTable> previousList = previousSection ? previousSection.tables : []
 
-        if (currentList.empty && previousList.empty) {
+        List<DataSetTable> diffList = ChangeFunctions.buildDifferencesList(
+            currentList,
+            previousList,
+            { DataSetTable currentItem, DataSetTable previousItem ->
+                currentItem.produceDiff(previousItem)
+            })
+
+        if (diffList.every {it.hierarchicalDiffStatus == DiffStatus.NONE }) {
+            // No differences found in these sections
             return null
         }
 
-        if (ChangeFunctions.areEqual(currentList, previousList)) {
-            // TODO: investigate deeper - might have group/row changes
-            return null
-        }
-
-        List<DataSetTable> diffList = ChangeFunctions.buildDifferencesList(currentList, previousList)
-
+        // Otherwise, return all the calculated differences
         new DataSetSection(this.parent, diffList)
     }
 

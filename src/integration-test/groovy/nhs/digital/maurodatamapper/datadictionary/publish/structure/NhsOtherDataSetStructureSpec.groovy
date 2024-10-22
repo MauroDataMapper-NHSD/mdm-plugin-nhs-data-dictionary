@@ -371,6 +371,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             definition: "The previous description",
             otherProperties: copyMap(this.activeItem.otherProperties))
 
+        // Don't test data set specifications, handled in other tests
+        previousItemDescriptionChange.dataSetClasses = this.activeItem.dataSetClasses
+
         previousItemAliasesChange = new NhsDDDataSet(
             catalogueItemId: UUID.fromString("8049682f-761f-4eab-b533-c00781615207"),
             branchId: branchId,
@@ -382,6 +385,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
                 'aliasAlsoKnownAs': 'Baby Food',
             ])
 
+        // Don't test data set specifications, handled in other tests
+        previousItemAliasesChange.dataSetClasses = this.activeItem.dataSetClasses
+
         previousItemAllChange = new NhsDDDataSet(
             catalogueItemId: UUID.fromString("eeb8929f-819a-4cfe-9209-1e9867fa2b68"),
             branchId: branchId,
@@ -389,6 +395,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             name: this.activeItem.name,
             definition: previousItemDescriptionChange.definition,
             otherProperties: copyMap(previousItemAliasesChange.otherProperties))
+
+        // Don't test data set specifications, handled in other tests
+        previousItemAllChange.dataSetClasses = this.activeItem.dataSetClasses
 
         // Now make simple data sets to test a variety of specification changes
         setupChangedCellsDataSets()
@@ -2310,7 +2319,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table 2</b>
-                  <p>The second table has changed</p>
+                  <p outputclass='new'>The second table has changed</p>
+                  <p outputclass='deleted'>The second table</p>
                 </entry>
               </row>
               <row>
@@ -2448,7 +2458,8 @@ PATIENTS holding data</p>
           <tr>
             <th colspan="2" class=" align-center">
               <b>Table 2</b>
-              <p>The second table has changed</p>
+              <p class="new">The second table has changed</p>
+              <p class="deleted">The second table</p>
             </th>
           </tr>
           <tr>

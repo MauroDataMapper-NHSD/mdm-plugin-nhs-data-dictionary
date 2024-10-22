@@ -81,8 +81,33 @@ class OtherDataSetTable implements DataSetTable {
     }
 
     @Override
+    DiffStatus getHierarchicalDiffStatus() {
+        if (this.diffStatus != DiffStatus.NONE) {
+            return this.diffStatus
+        }
+
+        if (this.header.diffStatus != DiffStatus.NONE) {
+            return this.header.diffStatus
+        }
+
+        // TODO: group status
+
+        DiffStatus.NONE
+    }
+
+    @Override
     DataSetTable produceDiff(DataSetTable previous) {
-        // TODO
+        OtherDataSetTable previousTable = previous as OtherDataSetTable
+
+        OtherDataSetHeader diffHeader = this.header.produceDiff(previousTable?.header)
+        if (diffHeader) {
+            // The header has a diff status, so the entire table does not need a diff status set
+            return new OtherDataSetTable(diffHeader, this.groups)
+        }
+
+        // TODO: check all groups
+
+        // No change
         null
     }
 
