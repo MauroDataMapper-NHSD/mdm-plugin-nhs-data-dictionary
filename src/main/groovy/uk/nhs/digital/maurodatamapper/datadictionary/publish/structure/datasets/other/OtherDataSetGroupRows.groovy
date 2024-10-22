@@ -20,25 +20,53 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 
 import groovy.xml.MarkupBuilder
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
-class OtherDataSetGroupRows extends OtherDataSetGroup implements DiffAware<OtherDataSetGroupRows, OtherDataSetGroupRows> {
+class OtherDataSetGroupRows implements
+    DitaAware<List<Row>>,
+    HtmlBuilder,
+    ChangeAware,
+    DiffAware<OtherDataSetGroupRows, OtherDataSetGroupRows>,
+    DiffObjectAware<OtherDataSetGroupRows> {
     final List<OtherDataSetRow> rows
     final OtherDataSetHeader header
 
+    final DiffStatus diffStatus
+
     OtherDataSetGroupRows(List<OtherDataSetRow> rows, OtherDataSetHeader header) {
+        this(rows, header, DiffStatus.NONE)
+    }
+
+    OtherDataSetGroupRows(List<OtherDataSetRow> rows, OtherDataSetHeader header, DiffStatus diffStatus) {
         this.rows = rows
         this.header = header
+        this.diffStatus = diffStatus
+    }
+
+    @Override
+    String getDiscriminator() {
+        String headerDiscriminator = this.header?.discriminator ?: "header:none"
+        String rowsDiscriminator = this.rows.collect { it.discriminator }.join("#")
+
+        "rowgroup:${headerDiscriminator}_rows:${rowsDiscriminator}"
+    }
+
+    @Override
+    OtherDataSetGroupRows cloneWithDiffStatus(DiffStatus diffStatus) {
+        new OtherDataSetGroupRows(this.rows, this.header, diffStatus)
     }
 
     @Override
     OtherDataSetGroupRows produceDiff(OtherDataSetGroupRows previous) {
-        // TODO
-        null
+        return null
     }
 
     @Override

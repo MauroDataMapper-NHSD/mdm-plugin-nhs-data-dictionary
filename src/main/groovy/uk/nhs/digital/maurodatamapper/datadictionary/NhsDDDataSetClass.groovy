@@ -34,9 +34,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetAddressCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetCell
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetChoiceCell
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroup
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroupRows
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetGroupSeparator
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeader
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetHeaderType
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetItemLinkCell
@@ -181,13 +179,14 @@ class NhsDDDataSetClass implements NhsDDDataSetComponent {
             this.name,
             this.description)
 
-        List<OtherDataSetGroup> groups = buildOtherDataSetGroups()
+        List<OtherDataSetGroupRows> groups = buildOtherDataSetGroups()
 
-        new OtherDataSetTable(header, groups)
+        // If this table class is a choice, then add an "Or" separator between groups
+        new OtherDataSetTable(header, groups, isChoice ? "Or" : "")
     }
 
-    List<OtherDataSetGroup> buildOtherDataSetGroups(OtherDataSetHeader header = null) {
-        List<OtherDataSetGroup> groups = []
+    List<OtherDataSetGroupRows> buildOtherDataSetGroups(OtherDataSetHeader header = null) {
+        List<OtherDataSetGroupRows> groups = []
 
         if (dataSetElements && dataSetElements.size() > 0) {
             List<OtherDataSetRow> rows = getSortedChildren().collect {dataSetComponent ->
@@ -196,12 +195,7 @@ class NhsDDDataSetClass implements NhsDDDataSetComponent {
             groups.add(new OtherDataSetGroupRows(rows, header))
         }
         else {
-            dataSetClasses.eachWithIndex {NhsDDDataSetClass dataSetClass, int index ->
-                if (index != 0) {
-                    // If parent is a choice, then add an "Or" separator
-                    groups.add(new OtherDataSetGroupSeparator(isChoice ? "Or" : ""))
-                }
-
+            dataSetClasses.each { dataSetClass ->
                 groups.addAll(dataSetClass.buildOtherDataSetGroup())
             }
         }
@@ -209,7 +203,7 @@ class NhsDDDataSetClass implements NhsDDDataSetComponent {
         groups
     }
 
-    List<OtherDataSetGroup> buildOtherDataSetGroup() {
+    List<OtherDataSetGroupRows> buildOtherDataSetGroup() {
         OtherDataSetHeader groupHeader = this.name != "Choice"
             ? new OtherDataSetHeader(OtherDataSetHeaderType.GROUP, this.name, this.description)
             : null

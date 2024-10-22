@@ -25,6 +25,7 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.StandardColumn
@@ -45,17 +46,26 @@ class OtherDataSetTable implements DataSetTable {
         "80%")
 
     final OtherDataSetHeader header
-    final List<OtherDataSetGroup> groups
+    final List<OtherDataSetGroupRows> groups
+    final String groupSeparator
 
     final DiffStatus diffStatus
 
-    OtherDataSetTable(OtherDataSetHeader header, List<OtherDataSetGroup> groups) {
-        this(header, groups, DiffStatus.NONE)
+    OtherDataSetTable(
+        OtherDataSetHeader header,
+        List<OtherDataSetGroupRows> groups,
+        String groupSeparator) {
+        this(header, groups, groupSeparator, DiffStatus.NONE)
     }
 
-    OtherDataSetTable(OtherDataSetHeader header, List<OtherDataSetGroup> groups, DiffStatus diffStatus) {
+    OtherDataSetTable(
+        OtherDataSetHeader header,
+        List<OtherDataSetGroupRows> groups,
+        String groupSeparator,
+        DiffStatus diffStatus) {
         this.header = header
         this.groups = groups
+        this.groupSeparator = groupSeparator
         this.diffStatus = diffStatus
     }
 
@@ -69,7 +79,9 @@ class OtherDataSetTable implements DataSetTable {
 
     @Override
     String getDiscriminator() {
-        "${header.discriminator}_groups:${groups.size()}"
+        String groupsDiscriminator = this.groups.collect { it.discriminator }.join("/")
+
+        "table:${header.discriminator}_groups:${groupsDiscriminator}"
     }
 
     @Override
@@ -77,6 +89,7 @@ class OtherDataSetTable implements DataSetTable {
         new OtherDataSetTable(
             this.header,
             this.groups,
+            this.groupSeparator,
             diffStatus)
     }
 
@@ -102,10 +115,20 @@ class OtherDataSetTable implements DataSetTable {
         OtherDataSetHeader diffHeader = this.header.produceDiff(previousTable?.header)
         if (diffHeader) {
             // The header has a diff status, so the entire table does not need a diff status set
-            return new OtherDataSetTable(diffHeader, this.groups)
+            return new OtherDataSetTable(diffHeader, this.groups, this.groupSeparator)
         }
 
-        // TODO: check all groups
+        List<OtherDataSetGroupRows> currentGroups = this.groups
+        List<OtherDataSetGroupRows> previousGroups = previousTable ? previousTable.groups : []
+
+        List<OtherDataSetGroupRows> diffGroups = ChangeFunctions.buildDifferencesList(
+            currentGroups,
+            previousGroups,
+            { OtherDataSetGroupRows currentItem, OtherDataSetGroupRows previousItem ->
+                currentItem.produceDiff(previousItem)
+            })
+
+        // TODO: ???
 
         // No change
         null
@@ -139,7 +162,21 @@ class OtherDataSetTable implements DataSetTable {
                     }
                 }
                 tBody {
-                    this.groups.each { group ->
+                    this.groups.eachWithIndex { OtherDataSetGroupRows group, int index ->
+                        if (index != 0) {
+                            // Group separator
+                            row {
+                                entry (namest: "col1", nameend: "col2") {
+                                    if (!this.groupSeparator.empty) {
+                                        b this.groupSeparator
+                                    }
+                                    else {
+                                        p ""
+                                    }
+                                }
+                            }
+                        }
+
                         List<Row> rows = group.generateDita(context)
                         rows.each { innerRow ->
                             row innerRow
@@ -160,6 +197,7 @@ class OtherDataSetTable implements DataSetTable {
         String headerRowCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ROW} ${HtmlConstants.CSS_TABLE_HEAD}" : null
         String rowCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ROW}" : null
         String entryCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ENTRY}" : ""
+        String centerEntryCssClass = "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}".trim()
         String bodyCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_BODY}" : null
 
         builder.table (class: tableCssClass) {
@@ -186,7 +224,18 @@ class OtherDataSetTable implements DataSetTable {
                 }
             }
             builder.tbody(class: bodyCssClass) {
-                this.groups.each { group ->
+                this.groups.eachWithIndex { OtherDataSetGroupRows group, int index ->
+                    if (index != 0) {
+                        // Group separator
+                        builder.tr(class: rowCssClass) {
+                            builder.td(class: centerEntryCssClass, colspan: 2) {
+                                builder.b() {
+                                    mkp.yield(this.groupSeparator)
+                                }
+                            }
+                        }
+                    }
+
                     group.buildHtml(context, builder)
                 }
             }

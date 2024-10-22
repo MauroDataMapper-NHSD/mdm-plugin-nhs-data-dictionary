@@ -49,7 +49,7 @@ class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware {
 
     @Override
     String getDiscriminator() {
-        "mro:${mandation}-cell:${cell.discriminator}"
+        "row:mro:${mandation}-cell:${cell.discriminator}"
     }
 
     @Override

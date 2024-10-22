@@ -42,23 +42,23 @@ class DataSetSection extends Section {
     Section produceDiff(Section previous) {
         DataSetSection previousSection = previous as DataSetSection
 
-        List<DataSetTable> currentList = this.tables
-        List<DataSetTable> previousList = previousSection ? previousSection.tables : []
+        List<DataSetTable> currentTables = this.tables
+        List<DataSetTable> previousTables = previousSection ? previousSection.tables : []
 
-        List<DataSetTable> diffList = ChangeFunctions.buildDifferencesList(
-            currentList,
-            previousList,
+        List<DataSetTable> diffTables = ChangeFunctions.buildDifferencesList(
+            currentTables,
+            previousTables,
             { DataSetTable currentItem, DataSetTable previousItem ->
                 currentItem.produceDiff(previousItem)
             })
 
-        if (diffList.every {it.hierarchicalDiffStatus == DiffStatus.NONE }) {
+        if (diffTables.every {it.hierarchicalDiffStatus == DiffStatus.NONE }) {
             // No differences found in these sections
             return null
         }
 
         // Otherwise, return all the calculated differences
-        new DataSetSection(this.parent, diffList)
+        new DataSetSection(this.parent, diffTables)
     }
 
     @Override
