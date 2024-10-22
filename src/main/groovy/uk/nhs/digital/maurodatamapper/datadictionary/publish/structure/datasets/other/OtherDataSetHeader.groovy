@@ -23,6 +23,9 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
@@ -32,19 +35,37 @@ enum OtherDataSetHeaderType {
     GROUP
 }
 
-class OtherDataSetHeader implements DitaAware<Entry>, HtmlBuilder {
+class OtherDataSetHeader
+    implements
+        DitaAware<Entry>,
+        HtmlBuilder,
+        ChangeAware,
+        DiffObjectAware<OtherDataSetHeader> {
     final OtherDataSetHeaderType type
     final String name
     final String description    // Optional
 
-    OtherDataSetHeader(OtherDataSetHeaderType type, String name) {
-        this(type, name, "")
-    }
+    final DiffStatus diffStatus
 
     OtherDataSetHeader(OtherDataSetHeaderType type, String name, String description) {
+        this(type, name, description, DiffStatus.NONE)
+    }
+
+    OtherDataSetHeader(OtherDataSetHeaderType type, String name, String description, DiffStatus diffStatus) {
         this.type = type
         this.name = name
         this.description = description
+        this.diffStatus = diffStatus
+    }
+
+    @Override
+    String getDiscriminator() {
+        "${type}_${name}"
+    }
+
+    @Override
+    OtherDataSetHeader cloneWithDiffStatus(DiffStatus diffStatus) {
+        new OtherDataSetHeader(this.type, this.name, this.description, diffStatus)
     }
 
     @Override

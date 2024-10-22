@@ -63,6 +63,16 @@ class PublishHelper {
         }
     }
 
+    static String combineCssClassWithDiffStatus(String cssClass, DiffStatus diffStatus) {
+        String diffOutputClass = getDiffCssClass(diffStatus)
+
+        if (!cssClass || cssClass.empty) {
+            return diffOutputClass
+        }
+
+        "${cssClass} ${diffOutputClass}".trim()
+    }
+
     static void buildHtmlParagraph(PublishContext context, MarkupBuilder builder, String text) {
         if (!text) {
             return

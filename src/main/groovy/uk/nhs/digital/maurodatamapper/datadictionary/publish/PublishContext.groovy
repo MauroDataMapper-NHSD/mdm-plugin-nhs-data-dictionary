@@ -59,4 +59,16 @@ class PublishContext {
             ? diffOutputClass
             : null
     }
+
+    String getTableCssClass(String diffOutputClass) {
+        target == PublishTarget.WEBSITE
+            ? HtmlConstants.CSS_DATA_SET_TABLE
+            : !diffOutputClass.empty
+            ? diffOutputClass
+            : null
+    }
+
+    String getTableHeadCssClass() {
+        context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HEAD : ""
+    }
 }

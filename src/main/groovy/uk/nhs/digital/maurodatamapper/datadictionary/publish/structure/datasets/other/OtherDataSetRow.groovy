@@ -43,6 +43,10 @@ class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware {
         this.diffStatus = diffStatus
     }
 
+    OtherDataSetRow cloneWithDiff(DiffStatus diffStatus) {
+        new OtherDataSetRow(this.mandation, this.cell, diffStatus)
+    }
+
     @Override
     String getDiscriminator() {
         "mro:${mandation}-cell:${cell.discriminator}"

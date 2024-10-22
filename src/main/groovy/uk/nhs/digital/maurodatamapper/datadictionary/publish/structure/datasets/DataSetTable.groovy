@@ -19,9 +19,18 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Table
 
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
 
-interface DataSetTable extends DitaAware<Table>, HtmlBuilder {
+interface DataSetTable
+    extends
+        DitaAware<Table>,
+        HtmlBuilder,
+        DiffAware<DataSetTable, DataSetTable>,
+        ChangeAware,
+        DiffObjectAware<DataSetTable> {
 
 }

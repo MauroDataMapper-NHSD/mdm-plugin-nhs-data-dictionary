@@ -20,21 +20,25 @@ package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
-class OtherDataSetGroupRows extends OtherDataSetGroup {
+class OtherDataSetGroupRows extends OtherDataSetGroup implements DiffAware<OtherDataSetGroupRows, OtherDataSetGroupRows> {
     final List<OtherDataSetRow> rows
     final OtherDataSetHeader header
-
-    OtherDataSetGroupRows(List<OtherDataSetRow> rows) {
-        this(rows, null)
-    }
 
     OtherDataSetGroupRows(List<OtherDataSetRow> rows, OtherDataSetHeader header) {
         this.rows = rows
         this.header = header
+    }
+
+    @Override
+    OtherDataSetGroupRows produceDiff(OtherDataSetGroupRows previous) {
+        // TODO
+        null
     }
 
     @Override

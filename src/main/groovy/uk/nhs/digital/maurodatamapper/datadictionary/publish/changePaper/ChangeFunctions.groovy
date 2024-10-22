@@ -18,8 +18,9 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
 import groovy.xml.MarkupBuilder
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDElement
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 
 class ChangeFunctions {
     static <T extends ChangeAware> boolean areEqual(List<T> first, List<T> second) {
@@ -46,6 +47,32 @@ class ChangeFunctions {
         }
     }
 
+    static <T extends ChangeAware & DiffObjectAware<T>> List<T> buildDifferencesList(List<T> currentList, List<T> previousList) {
+        List<T> newList = getDifferences(currentList, previousList)
+        List<T> removedList = getDifferences(previousList, currentList)
+
+        if (newList.empty && removedList.empty) {
+            return null
+        }
+
+        List<T> diffList = []
+        currentList.each { currentItem ->
+            if (newList.any { it.discriminator == currentItem.discriminator }) {
+                diffList.add(currentItem.cloneWithDiffStatus(DiffStatus.NEW))
+            }
+            else {
+                diffList.add(currentItem)
+            }
+        }
+        removedList.each { removedItem ->
+            diffList.add(removedItem.cloneWithDiffStatus(DiffStatus.REMOVED))
+        }
+
+        diffList
+    }
+
+    // Use publish structure model instead
+    @Deprecated
     static <T extends ChangeAware & NhsDataDictionaryComponent> StringWriter createUnorderedListHtml(String title, List<T> currentItems, List<T> previousItems) {
         List<T> newItems = getDifferences(currentItems, previousItems)
         List<T> removedItems = getDifferences(previousItems, currentItems)

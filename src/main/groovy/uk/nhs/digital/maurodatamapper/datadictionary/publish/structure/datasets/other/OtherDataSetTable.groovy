@@ -25,8 +25,7 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.StandardColumn
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetTable
@@ -48,9 +47,16 @@ class OtherDataSetTable implements DataSetTable {
     final OtherDataSetHeader header
     final List<OtherDataSetGroup> groups
 
+    final DiffStatus diffStatus
+
     OtherDataSetTable(OtherDataSetHeader header, List<OtherDataSetGroup> groups) {
+        this(header, groups, DiffStatus.NONE)
+    }
+
+    OtherDataSetTable(OtherDataSetHeader header, List<OtherDataSetGroup> groups, DiffStatus diffStatus) {
         this.header = header
         this.groups = groups
+        this.diffStatus = diffStatus
     }
 
     boolean hasSingleGroup() {
@@ -62,8 +68,29 @@ class OtherDataSetTable implements DataSetTable {
     }
 
     @Override
+    String getDiscriminator() {
+        "${header.discriminator}_groups:${groups.size()}"
+    }
+
+    @Override
+    DataSetTable cloneWithDiffStatus(DiffStatus diffStatus) {
+        new OtherDataSetTable(
+            this.header,
+            this.groups,
+            diffStatus)
+    }
+
+    @Override
+    DataSetTable produceDiff(DataSetTable previous) {
+        // TODO
+        null
+    }
+
+    @Override
     Table generateDita(PublishContext context) {
-        String tableCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_DATA_SET_TABLE : ""
+        String tableCssClass = PublishHelper.combineCssClassWithDiffStatus(
+            context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_DATA_SET_TABLE : "",
+            diffStatus)
         String headCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HEAD : ""
 
         Table.build(outputClass: tableCssClass) {
@@ -100,7 +127,10 @@ class OtherDataSetTable implements DataSetTable {
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        String tableCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_TOPIC_TABLE : ""
+        String tableCssClass = PublishHelper.combineCssClassWithDiffStatus(
+            context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_HTML_TOPIC_TABLE : "",
+            diffStatus)
+
         String headCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_TOPIC_HEAD}" : null
         String headerRowCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ROW} ${HtmlConstants.CSS_TABLE_HEAD}" : null
         String rowCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ROW}" : null

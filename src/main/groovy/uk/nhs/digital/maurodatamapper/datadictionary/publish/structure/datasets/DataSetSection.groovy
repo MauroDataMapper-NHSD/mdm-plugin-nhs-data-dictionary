@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 
 import groovy.xml.MarkupBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
@@ -33,18 +34,28 @@ class DataSetSection extends Section {
     DataSetSection(DictionaryItem parent, List<DataSetTable> tables) {
         super(parent, "specification", "Specification")
 
-        this.tables = tables
+        this.tables = tables ?: []
     }
 
     @Override
     Section produceDiff(Section previous) {
-        if (!previous) {
-            // TODO: Perform an actual diff and return a new section copy
-            return this
+        DataSetSection previousSection = previous as DataSetSection
+
+        List<DataSetTable> currentList = this.tables
+        List<DataSetTable> previousList = previousSection ? previousSection.tables : []
+
+        if (currentList.empty && previousList.empty) {
+            return null
         }
 
-        // TODO: Perform an actual diff and return a new section copy
-        return null
+        if (ChangeFunctions.areEqual(currentList, previousList)) {
+            // TODO: investigate deeper - might have group/row changes
+            return null
+        }
+
+        List<DataSetTable> diffList = ChangeFunctions.buildDifferencesList(currentList, previousList)
+
+        new DataSetSection(this.parent, diffList)
     }
 
     @Override
