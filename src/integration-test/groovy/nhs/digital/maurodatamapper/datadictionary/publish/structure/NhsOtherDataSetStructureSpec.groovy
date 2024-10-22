@@ -53,6 +53,19 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
     NhsDDElement elementPatientUsualAddress
     NhsDDElement elementDiseaseType
 
+    // The data sets below are for testing diffs
+    NhsDDDataSet previousCellsChange
+    NhsDDDataSet currentCellsChange
+
+    NhsDDDataSet previousRowsChange
+    NhsDDDataSet currentRowsChange
+
+    NhsDDDataSet previousGroupsChange
+    NhsDDDataSet currentGroupsChange
+
+    NhsDDDataSet previousTablesChange
+    NhsDDDataSet currentTablesChange
+
     @Override
     protected NhsDataDictionary createDataDictionary() {
         dataDictionaryService.newDataDictionary()
@@ -350,7 +363,365 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
 
     @Override
     void setupPreviousItems() {
-        // TODO: setup changes to test
+        previousItemDescriptionChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("22710e00-7c41-4335-97da-2cafe9728804"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: this.activeItem.name,
+            definition: "The previous description",
+            otherProperties: copyMap(this.activeItem.otherProperties))
+
+        previousItemAliasesChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("8049682f-761f-4eab-b533-c00781615207"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: this.activeItem.name,
+            definition: this.activeItem.definition,
+            otherProperties: [
+                'aliasPlural': "Baby's First Feeds",
+                'aliasAlsoKnownAs': 'Baby Food',
+            ])
+
+        previousItemAllChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("eeb8929f-819a-4cfe-9209-1e9867fa2b68"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: this.activeItem.name,
+            definition: previousItemDescriptionChange.definition,
+            otherProperties: copyMap(previousItemAliasesChange.otherProperties))
+
+        // Now make simple data sets to test a variety of specification changes
+        setupChangedCellsDataSets()
+        setupChangedRowsDataSets()
+        setupChangedGroupsDataSets()
+        setupChangedTablesDataSets()
+    }
+
+    void setupChangedCellsDataSets() {
+        String name = "Cells Change Data Set"
+        String definition = "The definition"
+
+        previousCellsChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("e55b9656-3747-4ea9-92ed-cd98c2e0413b"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def previousTable = new NhsDDDataSetClass(
+            name: "Table",
+            description: "The table"
+        )
+
+        previousTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementNhsNumber.name,
+                reuseElement: elementNhsNumber))
+
+        previousTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "O",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType,
+                maxMultiplicity: "-1")) // Multiple occurrences
+
+        previousCellsChange.dataSetClasses.add(previousTable)
+
+        currentCellsChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("fb2dfd75-952b-428b-8165-f7cc0b7eb9bb"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def currentTable = new NhsDDDataSetClass(
+            name: previousTable.name,
+            description: previousTable.description  // No change to header
+        )
+
+        currentTable.dataSetClasses.add(
+            new NhsDDDataSetClass(  // Change: Replace NHS NUMBER with an "Or" element choice
+                webOrder: 0,
+                name: "Choice",
+                mandation: "M",
+                isChoice: true,
+                dataSetElements: [
+                    new NhsDDDataSetElement(
+                        webOrder: 0,
+                        name: elementNhsNumber.name,
+                        reuseElement: elementNhsNumber),
+                    new NhsDDDataSetElement(
+                        webOrder: 1,
+                        name: elementPersonGivenName.name,
+                        reuseElement: elementPersonGivenName)
+                ]
+            )
+        )
+
+        currentTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "O",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType))  // Change: No multiplicity anymore
+
+        currentCellsChange.dataSetClasses.add(currentTable)
+    }
+
+    void setupChangedRowsDataSets() {
+        String name = "Rows Change Data Set"
+        String definition = "The definition"
+
+        previousRowsChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("85b5b447-f946-49b6-8928-05cb9d32f8c3"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def previousTable = new NhsDDDataSetClass(
+            name: "Table",
+            description: "The table"
+        )
+
+        previousTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementNhsNumber.name,
+                reuseElement: elementNhsNumber))
+
+        previousTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "R",
+                name: elementPersonGivenName.name,
+                reuseElement: elementPersonGivenName))
+
+        previousTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 2,
+                mandation: "O",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType,
+                maxMultiplicity: "-1")) // Multiple occurrences
+
+        previousRowsChange.dataSetClasses.add(previousTable)
+
+        currentRowsChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("d1de1670-965b-49ff-aab2-027b059570d4"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def currentTable = new NhsDDDataSetClass(
+            name: previousTable.name,
+            description: previousTable.description  // No change to header
+        )
+
+        currentTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementPersonBirthDate.name,
+                reuseElement: elementPersonBirthDate))  // Change: New row
+
+        currentTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "M",
+                name: elementNhsNumber.name,
+                reuseElement: elementNhsNumber))    // Unchanged
+
+        // Change: Removed "PERSON GIVEN NAME"
+
+        currentTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 1,
+                mandation: "M", // Change: Modify mandation
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType,
+                maxMultiplicity: "-1")) // Multiple occurrences
+
+        currentRowsChange.dataSetClasses.add(currentTable)
+    }
+
+    void setupChangedGroupsDataSets() {
+        String name = "Groups Change Data Set"
+        String definition = "The definition"
+
+        previousGroupsChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("f9546c65-77f3-4f44-9711-f6106f94ee0c"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def previousTable = new NhsDDDataSetClass(
+            name: "Table",
+            description: "The table",
+            isChoice: true
+        )
+
+        def previousGroup1 = new NhsDDDataSetClass(
+            name: "GROUP 1",
+            description: "The first group"
+        )
+
+        previousGroup1.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementNhsNumber.name,
+                reuseElement: elementNhsNumber))
+
+        def previousGroup2 = new NhsDDDataSetClass(
+            name: "GROUP 2",
+            description: "The second group"
+        )
+
+        previousGroup2.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType))
+
+        previousTable.dataSetClasses.add(previousGroup1)
+        previousTable.dataSetClasses.add(previousGroup2)
+
+        previousGroupsChange.dataSetClasses.add(previousTable)
+
+        currentGroupsChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("08a60808-9d38-4b2d-9b9b-8f1a870f339f"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def currentTable = new NhsDDDataSetClass(
+            name: "Table",
+            description: "The table",
+            isChoice: true
+        )
+
+        // Change: Removed GROUP 1
+
+        def currentGroup2 = new NhsDDDataSetClass(
+            name: "GROUP 2",
+            description: "The second group has changed" // Change: Header modified
+        )
+
+        currentGroup2.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementDiseaseType.name,
+                reuseElement: elementDiseaseType))  // No change
+
+        def currentGroup3 = new NhsDDDataSetClass(
+            name: "GROUP 3",
+            description: "The second group has changed" // Change: New group
+        )
+
+        currentGroup3.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 0,
+                mandation: "M",
+                name: elementPersonGivenName.name,
+                reuseElement: elementPersonGivenName))
+
+        currentTable.dataSetClasses.add(currentGroup2)
+        currentTable.dataSetClasses.add(currentGroup3)
+
+        currentGroupsChange.dataSetClasses.add(currentTable)
+    }
+
+    void setupChangedTablesDataSets() {
+        String name = "Tables Change Data Set"
+        String definition = "The definition"
+
+        previousTablesChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("112e2106-a8cd-4b08-9a82-82121d3dfa24"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        def previousTable1 = new NhsDDDataSetClass(
+            name: "Table 1",
+            description: "The first table",
+            dataSetElements: [
+                new NhsDDDataSetElement(
+                    webOrder: 0,
+                    mandation: "M",
+                    name: elementNhsNumber.name,
+                    reuseElement: elementNhsNumber)
+            ]
+        )
+
+        def previousTable2 = new NhsDDDataSetClass(
+            name: "Table 2",
+            description: "The second table",
+            dataSetElements: [
+                new NhsDDDataSetElement(
+                    webOrder: 0,
+                    mandation: "M",
+                    name: elementPersonGivenName.name,
+                    reuseElement: elementPersonGivenName)
+            ]
+        )
+
+        previousTablesChange.dataSetClasses.add(previousTable1)
+        previousTablesChange.dataSetClasses.add(previousTable2)
+
+        currentTablesChange = new NhsDDDataSet(
+            catalogueItemId: UUID.fromString("011ddcdb-da6e-48fb-9e5f-1dace51ef542"),
+            branchId: branchId,
+            dataDictionary: dataDictionary,
+            name: name,
+            definition: definition
+        )
+
+        // Change: Remove TABLE 1
+
+        def currentTable2 = new NhsDDDataSetClass(
+            name: "Table 2",
+            description: "The second table has changed",    // Change: Header modified
+            dataSetElements: [
+                new NhsDDDataSetElement(
+                    webOrder: 0,
+                    mandation: "M",
+                    name: elementPersonGivenName.name,
+                    reuseElement: elementPersonGivenName)
+            ]
+        )
+
+        def currentTable3 = new NhsDDDataSetClass(
+            name: "Table 3",
+            description: "The third table",    // Change: New table
+            dataSetElements: [
+                new NhsDDDataSetElement(
+                    webOrder: 0,
+                    mandation: "M",
+                    name: elementPersonBirthDate.name,
+                    reuseElement: elementPersonBirthDate)
+            ]
+        )
+
+        currentTablesChange.dataSetClasses.add(currentTable2)
+        currentTablesChange.dataSetClasses.add(currentTable3)
     }
 
     void "should have the correct active item structure"() {
@@ -1283,7 +1654,348 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_diagnostic_data_set'>
+  <title>
+    <text>Diagnostic Data Set</text>
+  </title>
+  <shortdesc>Change to Data Set: New</shortdesc>
+  <body>
+    <div outputclass='new'>
+      <div>
+        <p>The Diagnostic Data Set contains 
+
+          <xref outputclass='class' keyref='class_patient' scope='local'>PATIENTS</xref> holding data.
+        </p>
+      </div>
+    </div>
+    <div>
+      <div>
+        <table outputclass='new'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Single Group</b>
+                  <p>This is a single group table</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>Mandation</p>
+                </entry>
+                <entry>
+                  <p>Data Elements</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+      <div>
+        <table outputclass='new'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Multi Group: Continuous</b>
+                  <p>This is a multi group table</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 1</b>
+                  <p>The first group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_birth_date' format='html'>PERSON BIRTH DATE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <p />
+                </entry>
+              </row>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 2</b>
+                  <p>The second group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+      <div>
+        <table outputclass='new'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Multi Group: Choice</b>
+                  <p>This is a multi group table</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 1</b>
+                  <p>The first group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_birth_date' format='html'>PERSON BIRTH DATE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Or</b>
+                </entry>
+              </row>
+              <row outputclass='table-primary'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 2</b>
+                  <p>The second group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+      <div>
+        <table outputclass='new'>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Element Choices</b>
+                  <p>This is a group of element choices</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>Mandation</p>
+                </entry>
+                <entry>
+                  <p>Data Elements</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                  <p>Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                  <p>And</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                  <p>And/Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                  <p>And/Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_patient_usual_address' format='html'>PATIENT USUAL ADDRESS</xref>
+                    <text> - </text>
+                    <xref outputclass='class' href='https://datadictionary.nhs.uk/classes/address_structured.html' format='html' scope='external'>ADDRESS STRUCTURED</xref>
+                  </p>
+                  <p>Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_patient_usual_address' format='html'>PATIENT USUAL ADDRESS</xref>
+                    <text> - </text>
+                    <xref outputclass='class' href='https://datadictionary.nhs.uk/classes/address_unstructured.html' format='html' scope='external'>ADDRESS UNSTRUCTURED</xref>
+                  </p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+    </div>
+    <div>
+      <p>This Data Set is also known by these names:</p>
+      <simpletable relcolwidth='1* 2*'>
+        <sthead>
+          <stentry>Context</stentry>
+          <stentry>Alias</stentry>
+        </sthead>
+        <strow>
+          <stentry outputclass='new'>Plural</stentry>
+          <stentry outputclass='new'>Diagnostics Data Set</stentry>
+        </strow>
+      </simpletable>
+    </div>
+  </body>
+</topic>"""
         }
     }
 
@@ -1310,7 +2022,22 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_diagnostic_data_set'>
+  <title>
+    <text>Diagnostic Data Set</text>
+  </title>
+  <shortdesc>Change to Data Set: Updated description</shortdesc>
+  <body>
+    <div>
+      <div>The 
+
+        <ph id='removed-diff-0' outputclass='diff-html-removed'>previous</ph>
+        <ph id='added-diff-0' outputclass='diff-html-added'>current</ph> description
+
+      </div>
+    </div>
+  </body>
+</topic>"""
         }
     }
 
@@ -1336,7 +2063,32 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_diagnostic_data_set_retired'>
+  <title>
+    <text>Diagnostic Data Set</text>
+  </title>
+  <shortdesc>Change to Data Set: Retired</shortdesc>
+  <body>
+    <div>
+      <div>
+        <ph id='removed-diff-0' outputclass='diff-html-removed'>The previous description</ph>
+        <p>
+          <ph id='added-diff-0' outputclass='diff-html-added'>This item has been retired from the NHS Data Model and Dictionary.</ph>
+        </p>
+        <p>
+          <ph outputclass='diff-html-added'>The last version of this item is available in the ?????? release of the NHS Data Model and Dictionary.</ph>
+        </p>
+        <p>
+          <ph outputclass='diff-html-added'>Access to the last live version of this item can be obtained by emailing</ph>
+          <xref href='mailto:information.standards@nhs.net' format='html' scope='external'>
+            <ph outputclass='diff-html-added'>information.standards@nhs.net</ph>
+          </xref>
+          <ph outputclass='diff-html-added'>with "NHS Data Model and Dictionary - Archive Request" in the email subject line.</ph>
+        </p>
+      </div>
+    </div>
+  </body>
+</topic>"""
         }
     }
 
@@ -1361,9 +2113,211 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         verifyAll {
             html
+            html == """<div>
+  <h3>Diagnostic Data Set</h3>
+  <h4>Change to Data Set: Updated description</h4>
+  <div>
+    <div>
+      <p>The <span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">previous </span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">current </span>description</p>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (cells change) to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousCellsChange.getPublishStructure()
+        DictionaryItem currentStructure = currentCellsChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """foo"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (cells change) to change paper html"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousCellsChange.getPublishStructure()
+        DictionaryItem currentStructure = currentCellsChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
             html == """foo"""
         }
     }
 
-    // TODO: add tests to verify diffs on specification
+    void "should produce a diff for an updated specification (rows change) to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousRowsChange.getPublishStructure()
+        DictionaryItem currentStructure = currentRowsChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """foo"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (rows change) to change paper html"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousRowsChange.getPublishStructure()
+        DictionaryItem currentStructure = currentRowsChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """foo"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (groups change) to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousGroupsChange.getPublishStructure()
+        DictionaryItem currentStructure = currentGroupsChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """foo"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (groups change) to change paper html"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousGroupsChange.getPublishStructure()
+        DictionaryItem currentStructure = currentGroupsChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """foo"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (tables change) to change paper dita"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousTablesChange.getPublishStructure()
+        DictionaryItem currentStructure = currentTablesChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """foo"""
+        }
+    }
+
+    void "should produce a diff for an updated specification (tables change) to change paper html"() {
+        given: "the publish structures are built"
+        DictionaryItem previousStructure = previousTablesChange.getPublishStructure()
+        DictionaryItem currentStructure = currentTablesChange.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """foo"""
+        }
+    }
 }

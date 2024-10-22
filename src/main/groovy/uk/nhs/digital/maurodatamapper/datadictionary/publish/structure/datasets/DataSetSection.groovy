@@ -38,8 +38,13 @@ class DataSetSection extends Section {
 
     @Override
     Section produceDiff(Section previous) {
+        if (!previous) {
+            // TODO: Perform an actual diff and return a new section copy
+            return this
+        }
+
         // TODO: Perform an actual diff and return a new section copy
-        return this
+        return null
     }
 
     @Override
