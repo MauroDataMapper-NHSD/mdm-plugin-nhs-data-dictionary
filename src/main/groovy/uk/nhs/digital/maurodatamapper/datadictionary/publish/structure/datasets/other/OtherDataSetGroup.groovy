@@ -56,7 +56,7 @@ class OtherDataSetGroup implements
         String headerDiscriminator = this.header?.discriminator ?: "header:none"
         String rowsDiscriminator = this.rows.collect { it.discriminator }.join("#")
 
-        "rowgroup:${headerDiscriminator}_rows:${rowsDiscriminator}"
+        "group:${headerDiscriminator}_rows:${rowsDiscriminator}"
     }
 
     @Override

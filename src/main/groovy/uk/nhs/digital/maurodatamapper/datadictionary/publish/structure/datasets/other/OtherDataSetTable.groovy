@@ -103,7 +103,9 @@ class OtherDataSetTable implements DataSetTable {
             return this.header.diffStatus
         }
 
-        // TODO: group status
+        if (this.groups.any { it.diffStatus != DiffStatus.NONE }) {
+            return DiffStatus.MODIFIED
+        }
 
         DiffStatus.NONE
     }
@@ -113,10 +115,6 @@ class OtherDataSetTable implements DataSetTable {
         OtherDataSetTable previousTable = previous as OtherDataSetTable
 
         OtherDataSetHeader diffHeader = this.header.produceDiff(previousTable?.header)
-        if (diffHeader) {
-            // The header has a diff status, so the entire table does not need a diff status set
-            return new OtherDataSetTable(diffHeader, this.groups, this.groupSeparator)
-        }
 
         List<OtherDataSetGroup> currentGroups = this.groups
         List<OtherDataSetGroup> previousGroups = previousTable ? previousTable.groups : []
@@ -124,14 +122,22 @@ class OtherDataSetTable implements DataSetTable {
         List<OtherDataSetGroup> diffGroups = ChangeFunctions.buildDifferencesList(
             currentGroups,
             previousGroups,
-            {OtherDataSetGroup currentItem, OtherDataSetGroup previousItem ->
+            { OtherDataSetGroup currentItem, OtherDataSetGroup previousItem ->
                 currentItem.produceDiff(previousItem)
             })
 
-        // TODO: ???
+        if (!diffGroups) {
+            // Seems to have found no changes within the groups, just default to current set
+            diffGroups = currentGroups
+        }
 
-        // No change
-        null
+        boolean anyGroupChanges = diffGroups.any { it.diffStatus != DiffStatus.NONE }
+        if (!diffHeader && !anyGroupChanges) {
+            // No differences found
+            null
+        }
+
+        new OtherDataSetTable(diffHeader ?: this.header, diffGroups, this.groupSeparator)
     }
 
     @Override
