@@ -1220,6 +1220,127 @@ to a <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class
         }
     }
 
+    void "should produce a diff for a new item to change paper html"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against no previous item"
+        DictionaryItem diff = structure.produceDiff(null)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """<div>
+  <h3>ACTIVITY</h3>
+  <h4>Change to Class: New</h4>
+  <div>
+    <div class="new">
+      <p><p>A provision of <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/79ab1e21-4407-4aae-b777-7b7920fa1963">SERVICES</a> 
+to a <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/ae2f2b7b-c136-4cc7-9b71-872ee4efb3a6">PATIENT</a> by one or more 
+<a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/9ac6a0b2-b4bf-48af-ad4d-0ecfe268df57">CARE PROFESSIONALS</a>.</p></p>
+    </div>
+    <p>Attributes of this Class are:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 5%" />
+          <col style="width: 95%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Attribute Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Key</td>
+            <td class="new">
+              <a class="attribute" title="ACTIVITY IDENTIFIER" href="#/preview/null/attribute/null">ACTIVITY IDENTIFIER</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="new"></td>
+            <td class="new">
+              <a class="attribute" title="ACTIVITY COUNT" href="#/preview/null/attribute/null">ACTIVITY COUNT</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="new"></td>
+            <td class="new">
+              <a class="attribute" title="ACTIVITY DURATION" href="#/preview/null/attribute/null">ACTIVITY DURATION</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Each ACTIVITY:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 10%" />
+          <col style="width: 45%" />
+          <col style="width: 45%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Relationship</th>
+            <th>Class</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Key</td>
+            <td class="new">supplied by</td>
+            <td class="new">
+              <a class="class" title="ORGANISATION" href="#/preview/null/class/null">ORGANISATION</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="new"></td>
+            <td class="new">located at</td>
+            <td class="new">
+              <a class="class" title="ADDRESS" href="#/preview/null/class/null">ADDRESS</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This Class is also known by these names:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 34%" />
+          <col style="width: 66%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">ACTIVITIES</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
     void "should produce a diff for an updated item description to change paper html"() {
         given: "the publish structures are built"
         activeItem.definition = "The current description"

@@ -116,7 +116,7 @@ class DescriptionSection extends Section {
         String sectionOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_DIV : null
         String paragraphOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_PARAGRAPH : null
 
-        builder.div(class: sectionOutputClass) {
+        builder.div(class: PublishHelper.combineCssClassWithDiffStatus(sectionOutputClass, this.diffStatus)) {
             // TODO: prefix sentence - for Element page type (X is the same as Y)
             builder.p(class: paragraphOutputClass) {
                 mkp.yieldUnescaped(modifiedText)

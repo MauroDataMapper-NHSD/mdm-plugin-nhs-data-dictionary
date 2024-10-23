@@ -890,6 +890,63 @@ class NhsBusinessDefinitionStructureSpec extends DataDictionaryComponentStructur
         }
     }
 
+    void "should produce a diff for a new item to change paper html"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against no previous item"
+        DictionaryItem diff = structure.produceDiff(null)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """<div>
+  <h3>Baby First Feed</h3>
+  <h4>Change to NHS Business Definition: New</h4>
+  <div>
+    <div class="new">
+      <p><p>
+    A <a class="businessDefinition" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/901c2d3d-0111-41d1-acc9-5b501c1dc397">Baby First Feed</a>
+    is a <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/a57843dd-c1a7-4d37-996c-fcb67e496cb9">PERSON PROPERTY</a>
+    . </p>
+<p>
+    A <a class="businessDefinition" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/901c2d3d-0111-41d1-acc9-5b501c1dc397">Baby First Feed</a>
+    is the first feed given to a baby. </p></p>
+    </div>
+    <p>This NHS Business Definition is also known by these names:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 34%" />
+          <col style="width: 66%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">Baby First Feeds</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
     void "should produce a diff for an updated item description to change paper html"() {
         given: "the publish structures are built"
         activeItem.definition = "The current description"

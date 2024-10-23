@@ -1265,6 +1265,124 @@ during a Liver Cancer Care Spell.</p></p>
         }
     }
 
+    void "should produce a diff for a new item to change paper html"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against no previous item"
+        DictionaryItem diff = structure.produceDiff(null)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """<div>
+  <h3>ABLATIVE THERAPY TYPE</h3>
+  <h4>Change to Data Element: New</h4>
+  <div>
+    <div>
+      <p>
+        <b>Format / Length</b>
+      </p>
+      <p class="new">an1</p>
+    </div>
+    <div class="new">
+      <p><p>The type of Ablative Therapy given to a <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/ae2f2b7b-c136-4cc7-9b71-872ee4efb3a6">PATIENT</a> 
+during a Liver Cancer Care Spell.</p></p>
+    </div>
+    <p>
+      <b>National Codes</b>
+    </p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">R</td>
+            <td class="new"><a class="businessDefinition" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/businessDefinition/685a7609-a5ba-4112-bbd3-d8d5df0cdf4f">Radiofrequency Ablation</a></td>
+          </tr>
+          <tr>
+            <td class="new">M</td>
+            <td class="new">Microwave Ablation</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <b>Default Codes</b>
+    </p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">9</td>
+            <td class="new">Not Known</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This Data Element is also known by these names:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 34%" />
+          <col style="width: 66%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">ABLATIVE THERAPY TYPES</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <p>
+        <b>Attribute</b>
+      </p>
+      <ul>
+        <li class="new">
+          <a class="attribute" title="ABLATIVE THERAPY TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/attribute/faff11f5-cbfb-4faa-84d8-6d3b1eccd03b">ABLATIVE THERAPY TYPE</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
     void "should produce a diff for an updated item description to change paper html"() {
         given: "the publish structures are built"
         activeItem.definition = "The current description"

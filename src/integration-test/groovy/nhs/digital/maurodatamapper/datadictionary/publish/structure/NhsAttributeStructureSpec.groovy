@@ -792,6 +792,102 @@ class NhsAttributeStructureSpec extends DataDictionaryComponentStructureSpec<Nhs
         }
     }
 
+    void "should produce a diff for a new item to change paper html"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against no previous item"
+        DictionaryItem diff = structure.produceDiff(null)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """<div>
+  <h3>ACTIVITY DATE</h3>
+  <h4>Change to Attribute: New</h4>
+  <div>
+    <div class="new">
+      <p><p>The date, month, year and century, or any combination of these elements, that is of relevance to an 
+<a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/79ab1e21-4407-4aae-b777-7b7920fa1963">ACTIVITY</a>.</p></p>
+    </div>
+    <p>
+      <b>National Codes</b>
+    </p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">U</td>
+            <td class="new">Undefined</td>
+          </tr>
+          <tr>
+            <td class="new">S</td>
+            <td class="new">Standard</td>
+          </tr>
+          <tr>
+            <td class="new">B</td>
+            <td class="new">British Summer Time - see <a href="https://time.com">link</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This Attribute is also known by these names:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 34%" />
+          <col style="width: 66%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">ACTIVITY DATES</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <p>
+        <b>Data Elements</b>
+      </p>
+      <ul>
+        <li class="new">
+          <a class="element" title="ACTIVITY DATE (CRITICAL CARE)" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/b5170409-97aa-464e-9aad-657c8b2e00f8">ACTIVITY DATE (CRITICAL CARE)</a>
+        </li>
+        <li class="new">
+          <a class="element" title="ATTENDANCE DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/faff11f5-cbfb-4faa-84d8-6d3b1eccd03b">ATTENDANCE DATE</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
     void "should produce a diff for an updated item description to change paper dita"() {
         given: "the publish structures are built"
         activeItem.definition = "The current description"
