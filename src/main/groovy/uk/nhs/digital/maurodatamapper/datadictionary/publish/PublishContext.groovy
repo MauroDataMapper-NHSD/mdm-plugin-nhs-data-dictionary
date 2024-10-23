@@ -52,6 +52,12 @@ class PublishContext {
         target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_ROW : null
     }
 
+    String getEntryCssClass() {
+        target == PublishTarget.WEBSITE
+            ? HtmlConstants.CSS_TABLE_ENTRY
+            : null
+    }
+
     String getEntryCssClass(String diffOutputClass) {
         target == PublishTarget.WEBSITE
             ? HtmlConstants.CSS_TABLE_ENTRY

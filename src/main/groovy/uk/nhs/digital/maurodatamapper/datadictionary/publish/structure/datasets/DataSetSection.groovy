@@ -21,9 +21,9 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Body
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
 
 import groovy.xml.MarkupBuilder
-import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
@@ -51,6 +51,11 @@ class DataSetSection extends Section {
             { DataSetTable currentItem, DataSetTable previousItem ->
                 currentItem.produceDiff(previousItem)
             })
+
+        if (!diffTables) {
+            // Seems to have found no changes within the tables, just default to current set
+            diffTables = currentTables
+        }
 
         if (diffTables.every {it.hierarchicalDiffStatus == DiffStatus.NONE }) {
             // No differences found in these sections

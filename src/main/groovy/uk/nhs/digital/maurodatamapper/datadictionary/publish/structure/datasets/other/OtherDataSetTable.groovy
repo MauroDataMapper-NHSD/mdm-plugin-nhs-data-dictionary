@@ -79,9 +79,8 @@ class OtherDataSetTable implements DataSetTable {
 
     @Override
     String getDiscriminator() {
-        String groupsDiscriminator = this.groups.collect { it.discriminator }.join("/")
-
-        "table:${header.discriminator}_groups:${groupsDiscriminator}"
+        // Use the "name" of the table as the identifier (all we have)
+        "table:${header.discriminator}"
     }
 
     @Override

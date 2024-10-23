@@ -619,9 +619,9 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         )
 
         def currentTable = new NhsDDDataSetClass(
-            name: "Table",
-            description: "The table",
-            isChoice: true
+            name: previousTable.name,
+            description: previousTable.description,
+            isChoice: previousTable.isChoice
         )
 
         // Change: Removed GROUP 1
@@ -640,7 +640,7 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
 
         def currentGroup3 = new NhsDDDataSetClass(
             name: "GROUP 3",
-            description: "The second group has changed" // Change: New group
+            description: "The third group" // Change: New group
         )
 
         currentGroup3.dataSetElements.add(
@@ -1749,7 +1749,7 @@ PATIENTS holding data</p>
               </row>
             </thead>
             <tbody>
-              <row outputclass='table-primary'>
+              <row>
                 <entry namest='col1' nameend='col1'>
                   <p>
                     <b>Mandation</b>
@@ -1785,7 +1785,7 @@ PATIENTS holding data</p>
                   <p />
                 </entry>
               </row>
-              <row outputclass='table-primary'>
+              <row>
                 <entry namest='col1' nameend='col1'>
                   <p>
                     <b>Mandation</b>
@@ -1825,7 +1825,7 @@ PATIENTS holding data</p>
               </row>
             </thead>
             <tbody>
-              <row outputclass='table-primary'>
+              <row>
                 <entry namest='col1' nameend='col1'>
                   <p>
                     <b>Mandation</b>
@@ -1861,7 +1861,7 @@ PATIENTS holding data</p>
                   <b>Or</b>
                 </entry>
               </row>
-              <row outputclass='table-primary'>
+              <row>
                 <entry namest='col1' nameend='col1'>
                   <p>
                     <b>Mandation</b>
@@ -2254,7 +2254,108 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_groups_change_data_set'>
+  <title>
+    <text>Groups Change Data Set</text>
+  </title>
+  <shortdesc>Change to Data Set: Specification</shortdesc>
+  <body>
+    <div>
+      <div>
+        <table>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Table</b>
+                  <p>The table</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 2</b>
+                  <p outputclass='new'>The second group has changed</p>
+                  <p outputclass='deleted'>The second group</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Or</b>
+                </entry>
+              </row>
+              <row outputclass='new'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 3</b>
+                  <p>The third group</p>
+                </entry>
+              </row>
+              <row outputclass='new'>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Or</b>
+                </entry>
+              </row>
+              <row outputclass='deleted'>
+                <entry namest='col1' nameend='col1'>
+                  <p>
+                    <b>Mandation</b>
+                  </p>
+                </entry>
+                <entry namest='col2' nameend='col2'>
+                  <b>GROUP 1</b>
+                  <p>The first group</p>
+                </entry>
+              </row>
+              <row outputclass='deleted'>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+    </div>
+  </body>
+</topic>"""
         }
     }
 
@@ -2277,7 +2378,98 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         verifyAll {
             html
-            html == """foo"""
+            html == """<div>
+  <h3>Groups Change Data Set</h3>
+  <h4>Change to Data Set: Specification</h4>
+  <div>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class=" align-center">
+              <b>Table</b>
+              <p>The table</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class=" align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 2</b>
+              <p class="new">The second group has changed</p>
+              <p class="deleted">The second group</p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center" colspan="2">
+              <b>Or</b>
+            </td>
+          </tr>
+          <tr class="new">
+            <td class=" align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 3</b>
+              <p>The third group</p>
+            </td>
+          </tr>
+          <tr class="new">
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center" colspan="2">
+              <b>Or</b>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td class=" align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 1</b>
+              <p>The first group</p>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
         }
     }
 

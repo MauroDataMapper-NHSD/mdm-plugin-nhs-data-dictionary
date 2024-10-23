@@ -21,8 +21,10 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Row
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
@@ -53,28 +55,56 @@ class OtherDataSetGroup implements
 
     @Override
     String getDiscriminator() {
+        // Use the header as the "name" of the group, only way to identify it
         String headerDiscriminator = this.header?.discriminator ?: "header:none"
-        String rowsDiscriminator = this.rows.collect { it.discriminator }.join("#")
-
-        "group:${headerDiscriminator}_rows:${rowsDiscriminator}"
+        "group:${headerDiscriminator}"
     }
 
     @Override
     OtherDataSetGroup cloneWithDiffStatus(DiffStatus diffStatus) {
-        new OtherDataSetGroup(this.rows, this.header, diffStatus)
+        // If this whole group is new/deleted, the individual rows need to be styled to show that
+        List<OtherDataSetRow> clonedRows = diffStatus != DiffStatus.NONE
+            ? this.rows.collect {row -> row.cloneWithDiffStatus(diffStatus) }
+            : this.rows
+
+        new OtherDataSetGroup(clonedRows, this.header, diffStatus)
     }
 
     @Override
     OtherDataSetGroup produceDiff(OtherDataSetGroup previous) {
-        return null
+        OtherDataSetHeader diffHeader = this.header?.produceDiff(previous?.header)
+
+        List<OtherDataSetRow> currentRows = this.rows
+        List<OtherDataSetRow> previousRows = previous ? previous.rows : []
+
+        if (currentRows.empty && previousRows.empty) {
+            return null
+        }
+
+        List<OtherDataSetRow> diffRows = ChangeFunctions.buildDifferencesList(currentRows, previousRows)
+
+        if (!diffRows) {
+            // Seems to have found no changes within the rows, just default to current set
+            diffRows = currentRows
+        }
+
+        boolean anyRowChanges = diffRows.any { it.diffStatus != DiffStatus.NONE }
+        if (!diffHeader && !anyRowChanges) {
+            // No differences found
+            null
+        }
+
+        new OtherDataSetGroup(diffRows, diffHeader ?: this.header)
     }
 
     @Override
     List<Row> generateDita(PublishContext context) {
+        String rowCssClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TABLE_PRIMARY : null
+
         List<Row> rowList = []
 
         if (this.header) {
-            rowList.add(Row.build(outputClass: "table-primary") {
+            rowList.add(Row.build(outputClass: PublishHelper.combineCssClassWithDiffStatus(rowCssClass, this.diffStatus)) {
                 entry(namest: OtherDataSetTable.MANDATION_COLUMN.colId, nameend: OtherDataSetTable.MANDATION_COLUMN.colId) {
                     p {
                         b OtherDataSetTable.MANDATION_COLUMN.name
@@ -95,7 +125,7 @@ class OtherDataSetGroup implements
         String entryCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ENTRY}" : ""
 
         if (this.header) {
-            builder.tr(class: rowCssClass) {
+            builder.tr(class: PublishHelper.combineCssClassWithDiffStatus(rowCssClass, this.diffStatus)) {
                 builder.td(class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
                     b OtherDataSetTable.MANDATION_COLUMN.name
                 }

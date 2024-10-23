@@ -63,10 +63,6 @@ class ChangeFunctions {
         List<T> newList = getDifferences(currentList, previousList)
         List<T> removedList = getDifferences(previousList, currentList)
 
-        if (newList.empty && removedList.empty) {
-            return null
-        }
-
         List<T> diffList = []
         currentList.each { currentItem ->
             if (newList.any { it.discriminator == currentItem.discriminator }) {

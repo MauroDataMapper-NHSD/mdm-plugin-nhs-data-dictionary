@@ -23,11 +23,12 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
 
-class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware {
+class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware, DiffObjectAware<OtherDataSetRow> {
     final String mandation
     final OtherDataSetCell cell
 
@@ -43,7 +44,7 @@ class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware {
         this.diffStatus = diffStatus
     }
 
-    OtherDataSetRow cloneWithDiff(DiffStatus diffStatus) {
+    OtherDataSetRow cloneWithDiffStatus(DiffStatus diffStatus) {
         new OtherDataSetRow(this.mandation, this.cell, diffStatus)
     }
 
@@ -56,11 +57,11 @@ class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware {
     Row generateDita(PublishContext context) {
         String outputClass = PublishHelper.getDiffCssClass(diffStatus)
 
-        Row.build() {
-            entry(outputClass: outputClass) {
+        Row.build(outputClass: outputClass) {
+            entry {
                 p this.mandation
             }
-            entry(outputClass: outputClass) {
+            entry {
                 this.cell.generateDita(context).each { paragraph ->
                     p paragraph
                 }
@@ -70,11 +71,10 @@ class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware {
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        String diffOutputClass = PublishHelper.getDiffCssClass(diffStatus)
         String rowCssClass = context.rowCssClass
-        String entryCssClass = context.getEntryCssClass(diffOutputClass)
+        String entryCssClass = context.getEntryCssClass()
 
-        builder.tr(class: rowCssClass) {
+        builder.tr(class: PublishHelper.combineCssClassWithDiffStatus(rowCssClass, diffStatus)) {
             builder.td(class: entryCssClass) {
                 PublishHelper.buildHtmlParagraph(context, builder, this.mandation)
             }
