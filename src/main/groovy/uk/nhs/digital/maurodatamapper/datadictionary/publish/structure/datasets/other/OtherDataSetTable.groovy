@@ -102,7 +102,7 @@ class OtherDataSetTable implements DataSetTable {
             return this.header.diffStatus
         }
 
-        if (this.groups.any { it.diffStatus != DiffStatus.NONE }) {
+        if (this.groups.any { it.hierarchicalDiffStatus != DiffStatus.NONE }) {
             return DiffStatus.MODIFIED
         }
 
@@ -130,7 +130,7 @@ class OtherDataSetTable implements DataSetTable {
             diffGroups = currentGroups
         }
 
-        boolean anyGroupChanges = diffGroups.any { it.diffStatus != DiffStatus.NONE }
+        boolean anyGroupChanges = diffGroups.any { it.hierarchicalDiffStatus != DiffStatus.NONE }
         if (!diffHeader && !anyGroupChanges) {
             // No differences found
             null

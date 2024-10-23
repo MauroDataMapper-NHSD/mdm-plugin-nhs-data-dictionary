@@ -26,6 +26,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffAware
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffHierarchyAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjectAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
@@ -37,7 +38,8 @@ class OtherDataSetGroup implements
     HtmlBuilder,
     ChangeAware,
     DiffAware<OtherDataSetGroup, OtherDataSetGroup>,
-    DiffObjectAware<OtherDataSetGroup> {
+    DiffObjectAware<OtherDataSetGroup>,
+    DiffHierarchyAware {
     final List<OtherDataSetRow> rows
     final OtherDataSetHeader header
 
@@ -58,6 +60,23 @@ class OtherDataSetGroup implements
         // Use the header as the "name" of the group, only way to identify it
         String headerDiscriminator = this.header?.discriminator ?: "header:none"
         "group:${headerDiscriminator}"
+    }
+
+    @Override
+    DiffStatus getHierarchicalDiffStatus() {
+        if (this.diffStatus != DiffStatus.NONE) {
+            return this.diffStatus
+        }
+
+        if (this.header && this.header.diffStatus != DiffStatus.NONE) {
+            return this.header.diffStatus
+        }
+
+        if (this.rows.any { it.diffStatus != DiffStatus.NONE }) {
+            return DiffStatus.MODIFIED
+        }
+
+        DiffStatus.NONE
     }
 
     @Override

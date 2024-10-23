@@ -2156,7 +2156,87 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_cells_change_data_set'>
+  <title>
+    <text>Cells Change Data Set</text>
+  </title>
+  <shortdesc>Change to Data Set: Specification</shortdesc>
+  <body>
+    <div>
+      <div>
+        <table>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Table</b>
+                  <p>The table</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>Mandation</p>
+                </entry>
+                <entry>
+                  <p>Data Elements</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row outputclass='new'>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                  <p>Or</p>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row outputclass='new'>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row outputclass='deleted'>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row outputclass='deleted'>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+    </div>
+  </body>
+</topic>"""
         }
     }
 
@@ -2179,7 +2259,83 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         verifyAll {
             html
-            html == """foo"""
+            html == """<div>
+  <h3>Cells Change Data Set</h3>
+  <h4>Change to Data Set: Specification</h4>
+  <div>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class=" align-center">
+              <b>Table</b>
+              <p>The table</p>
+            </th>
+          </tr>
+          <tr>
+            <th class=" align-center">
+              <p>Mandation</p>
+            </th>
+            <th>
+              <p>Data Elements</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="new">
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+              <p>Or</p>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+            </td>
+          </tr>
+          <tr class="new">
+            <td>
+              <p>O</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td>
+              <p>O</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
         }
     }
 
@@ -2205,7 +2361,94 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         String ditaXml = dita.toXmlString()
         verifyAll {
-            ditaXml == """foo"""
+            ditaXml == """<topic id='data_set_rows_change_data_set'>
+  <title>
+    <text>Rows Change Data Set</text>
+  </title>
+  <shortdesc>Change to Data Set: Specification</shortdesc>
+  <body>
+    <div>
+      <div>
+        <table>
+          <tgroup cols='2'>
+            <colspec align='center' colnum='1' colname='col1' colwidth='2*' />
+            <colspec align='left' colnum='2' colname='col2' colwidth='8*' />
+            <thead>
+              <row>
+                <entry namest='col1' nameend='col2'>
+                  <b>Table</b>
+                  <p>The table</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>Mandation</p>
+                </entry>
+                <entry>
+                  <p>Data Elements</p>
+                </entry>
+              </row>
+            </thead>
+            <tbody>
+              <row outputclass='new'>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_birth_date' format='html'>PERSON BIRTH DATE</xref>
+                  </p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_nhs_number' format='html'>NHS NUMBER</xref>
+                  </p>
+                </entry>
+              </row>
+              <row outputclass='new'>
+                <entry>
+                  <p>M</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row outputclass='deleted'>
+                <entry>
+                  <p>R</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_person_given_name' format='html'>PERSON GIVEN NAME</xref>
+                  </p>
+                </entry>
+              </row>
+              <row outputclass='deleted'>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
+                  </p>
+                  <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
+      </div>
+    </div>
+  </body>
+</topic>"""
         }
     }
 
@@ -2228,7 +2471,90 @@ PATIENTS holding data</p>
         then: "the expected output is published"
         verifyAll {
             html
-            html == """foo"""
+            html == """<div>
+  <h3>Rows Change Data Set</h3>
+  <h4>Change to Data Set: Specification</h4>
+  <div>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class=" align-center">
+              <b>Table</b>
+              <p>The table</p>
+            </th>
+          </tr>
+          <tr>
+            <th class=" align-center">
+              <p>Mandation</p>
+            </th>
+            <th>
+              <p>Data Elements</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="new">
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON BIRTH DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/01c9734f-85e4-4fcf-a881-983621414673">PERSON BIRTH DATE</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+            </td>
+          </tr>
+          <tr class="new">
+            <td>
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td>
+              <p>R</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td>
+              <p>O</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
         }
     }
 
