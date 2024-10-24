@@ -18,6 +18,7 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other
 
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Entry
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 
 import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
@@ -108,15 +109,15 @@ class OtherDataSetHeader
             if (this.description) {
                 if (this.previousDescription && diffStatus == DiffStatus.MODIFIED) {
                     // Special case where we need to show the description has changed
-                    p(outputClass: HtmlConstants.CSS_DIFF_NEW) {
-                        txt this.description
+                    div(outputClass: HtmlConstants.CSS_DIFF_NEW) {
+                        div HtmlHelper.replaceHtmlWithDita(this.description)
                     }
-                    p(outputClass: HtmlConstants.CSS_DIFF_DELETED) {
-                        txt this.previousDescription
+                    div(outputClass: HtmlConstants.CSS_DIFF_DELETED) {
+                        div HtmlHelper.replaceHtmlWithDita(this.previousDescription)
                     }
                 }
                 else {
-                    p this.description
+                    div HtmlHelper.replaceHtmlWithDita(this.description)
                 }
             }
         }

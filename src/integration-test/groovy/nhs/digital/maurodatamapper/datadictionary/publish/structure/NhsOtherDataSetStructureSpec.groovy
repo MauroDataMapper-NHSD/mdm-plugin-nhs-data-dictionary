@@ -823,7 +823,8 @@ PATIENTS holding data</shortdesc>
               <row outputclass='thead-light'>
                 <entry namest='col1' nameend='col2'>
                   <b>Single Group</b>
-                  <p>This is a single group table</p>
+                  <div>This is a single group table
+</div>
                 </entry>
               </row>
               <row>
@@ -880,7 +881,8 @@ PATIENTS holding data</shortdesc>
               <row outputclass='thead-light'>
                 <entry namest='col1' nameend='col2'>
                   <b>Multi Group: Continuous</b>
-                  <p>This is a multi group table</p>
+                  <div>This is a multi group table
+</div>
                 </entry>
               </row>
             </thead>
@@ -893,7 +895,8 @@ PATIENTS holding data</shortdesc>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 1</b>
-                  <p>The first group</p>
+                  <div>The first group
+</div>
                 </entry>
               </row>
               <row>
@@ -929,7 +932,8 @@ PATIENTS holding data</shortdesc>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 2</b>
-                  <p>The second group</p>
+                  <div>The second group
+</div>
                 </entry>
               </row>
               <row>
@@ -956,7 +960,8 @@ PATIENTS holding data</shortdesc>
               <row outputclass='thead-light'>
                 <entry namest='col1' nameend='col2'>
                   <b>Multi Group: Choice</b>
-                  <p>This is a multi group table</p>
+                  <div>This is a multi group table
+</div>
                 </entry>
               </row>
             </thead>
@@ -969,7 +974,8 @@ PATIENTS holding data</shortdesc>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 1</b>
-                  <p>The first group</p>
+                  <div>The first group
+</div>
                 </entry>
               </row>
               <row>
@@ -1005,7 +1011,8 @@ PATIENTS holding data</shortdesc>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 2</b>
-                  <p>The second group</p>
+                  <div>The second group
+</div>
                 </entry>
               </row>
               <row>
@@ -1032,7 +1039,8 @@ PATIENTS holding data</shortdesc>
               <row outputclass='thead-light'>
                 <entry namest='col1' nameend='col2'>
                   <b>Element Choices</b>
-                  <p>This is a group of element choices</p>
+                  <div>This is a group of element choices
+</div>
                 </entry>
               </row>
               <row>
@@ -1687,7 +1695,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Single Group</b>
-                  <p>This is a single group table</p>
+                  <div>This is a single group table
+</div>
                 </entry>
               </row>
               <row>
@@ -1744,7 +1753,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Multi Group: Continuous</b>
-                  <p>This is a multi group table</p>
+                  <div>This is a multi group table
+</div>
                 </entry>
               </row>
             </thead>
@@ -1757,7 +1767,8 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 1</b>
-                  <p>The first group</p>
+                  <div>The first group
+</div>
                 </entry>
               </row>
               <row>
@@ -1793,7 +1804,8 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 2</b>
-                  <p>The second group</p>
+                  <div>The second group
+</div>
                 </entry>
               </row>
               <row>
@@ -1820,7 +1832,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Multi Group: Choice</b>
-                  <p>This is a multi group table</p>
+                  <div>This is a multi group table
+</div>
                 </entry>
               </row>
             </thead>
@@ -1833,7 +1846,8 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 1</b>
-                  <p>The first group</p>
+                  <div>The first group
+</div>
                 </entry>
               </row>
               <row>
@@ -1869,7 +1883,8 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 2</b>
-                  <p>The second group</p>
+                  <div>The second group
+</div>
                 </entry>
               </row>
               <row>
@@ -1896,7 +1911,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Element Choices</b>
-                  <p>This is a group of element choices</p>
+                  <div>This is a group of element choices
+</div>
                 </entry>
               </row>
               <row>
@@ -2172,7 +2188,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table</b>
-                  <p>The table</p>
+                  <div>The table
+</div>
                 </entry>
               </row>
               <row>
@@ -2377,7 +2394,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table</b>
-                  <p>The table</p>
+                  <div>The table
+</div>
                 </entry>
               </row>
               <row>
@@ -2596,7 +2614,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table</b>
-                  <p>The table</p>
+                  <div>The table
+</div>
                 </entry>
               </row>
             </thead>
@@ -2609,8 +2628,14 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 2</b>
-                  <p outputclass='new'>The second group has changed</p>
-                  <p outputclass='deleted'>The second group</p>
+                  <div outputclass='new'>
+                    <div>The second group has changed
+</div>
+                  </div>
+                  <div outputclass='deleted'>
+                    <div>The second group
+</div>
+                  </div>
                 </entry>
               </row>
               <row>
@@ -2636,7 +2661,8 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 3</b>
-                  <p>The third group</p>
+                  <div>The third group
+</div>
                 </entry>
               </row>
               <row outputclass='new'>
@@ -2662,7 +2688,8 @@ PATIENTS holding data</p>
                 </entry>
                 <entry namest='col2' nameend='col2'>
                   <b>GROUP 1</b>
-                  <p>The first group</p>
+                  <div>The first group
+</div>
                 </entry>
               </row>
               <row outputclass='deleted'>
@@ -2837,8 +2864,14 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table 2</b>
-                  <p outputclass='new'>The second table has changed</p>
-                  <p outputclass='deleted'>The second table</p>
+                  <div outputclass='new'>
+                    <div>The second table has changed
+</div>
+                  </div>
+                  <div outputclass='deleted'>
+                    <div>The second table
+</div>
+                  </div>
                 </entry>
               </row>
               <row>
@@ -2874,7 +2907,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table 3</b>
-                  <p>The third table</p>
+                  <div>The third table
+</div>
                 </entry>
               </row>
               <row>
@@ -2910,7 +2944,8 @@ PATIENTS holding data</p>
               <row>
                 <entry namest='col1' nameend='col2'>
                   <b>Table 1</b>
-                  <p>The first table</p>
+                  <div>The first table
+</div>
                 </entry>
               </row>
               <row>
