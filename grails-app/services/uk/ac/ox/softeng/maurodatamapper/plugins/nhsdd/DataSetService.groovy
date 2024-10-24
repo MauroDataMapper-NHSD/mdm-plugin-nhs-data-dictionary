@@ -60,9 +60,10 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
     @Override
     NhsDDDataSet show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         DataModel dataModel = dataModelService.get(id)
-        VersionedFolder thisVersionedFolder = versionedFolderService.get(versionedFolderId)
-        //nhsDataDictionary.containingVersionedFolder = thisVersionedFolder
+
         NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, dataDictionary)
         dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
         if (!dataSet.isRetired()) {

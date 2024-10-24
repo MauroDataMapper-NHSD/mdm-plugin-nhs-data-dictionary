@@ -115,7 +115,7 @@ class NhsDDFormatLength implements ChangeAware {
         }
     }
 
-    private static void writeChangeHtml(MarkupBuilder markupBuilder, NhsDDFormatLength formatLength, String outputClass = null) {
+    static void writeChangeHtml(MarkupBuilder markupBuilder, NhsDDFormatLength formatLength, String outputClass = null) {
         if (!formatLength.empty()) {
             markupBuilder.p(class: outputClass) {
                 // TODO: not sure what to output for HTML here, but just for preview
@@ -124,7 +124,7 @@ class NhsDDFormatLength implements ChangeAware {
         }
     }
 
-    private static P buildChangeDita(NhsDDFormatLength formatLength, String outputClass = null) {
+    static P buildChangeDita(NhsDDFormatLength formatLength, String outputClass = null) {
         if (formatLength.xref) {
             return P.build(outputClass: outputClass) {
                 txt "See"

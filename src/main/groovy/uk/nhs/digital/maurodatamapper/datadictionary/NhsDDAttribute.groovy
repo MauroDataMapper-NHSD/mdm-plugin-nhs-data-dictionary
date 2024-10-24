@@ -26,6 +26,12 @@ import groovy.xml.MarkupBuilder
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.CodesRow
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.CodesSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLink
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.ItemLinkListSection
 
 @Slf4j
 class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, ChangeAware {
@@ -165,6 +171,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         }
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []
@@ -235,6 +242,54 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Data Elements", currentElements, previousElements)
 
         createChange(Change.CHANGED_ELEMENTS_TYPE, previousAttribute, htmlWriter)
+    }
+
+    @Override
+    DictionaryItem getPublishStructure() {
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
+
+        addDescriptionSection(dictionaryItem)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            addNationalCodesSection(dictionaryItem)
+            addAliasesSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
+            addLinkedElementsSection(dictionaryItem)
+        }
+
+        addChangeLogSection(dictionaryItem)
+
+        dictionaryItem
+    }
+
+    void addNationalCodesSection(DictionaryItem dictionaryItem) {
+        if (!this.codes) {
+            return
+        }
+
+        List<NhsDDCode> orderedCodes = getOrderedNationalCodes()
+        List<CodesRow> rows = orderedCodes.collect {code ->
+            new CodesRow(code.code, code.description, code.hasWebPresentation())
+        }
+
+        dictionaryItem.addSection(CodesSection.createNationalCodes(dictionaryItem, rows))
+    }
+
+    void addLinkedElementsSection(DictionaryItem dictionaryItem) {
+        if (!instantiatedByElements) {
+            return
+        }
+
+        List<NhsDDElement> elements = instantiatedByElements
+            .<NhsDDElement>findAll { element -> !element.isRetired() }
+            .sort { element -> element.name }
+
+        if (elements.empty) {
+            return
+        }
+
+        List<ItemLink> itemLinks = elements.collect {element -> ItemLink.create(element) }
+        dictionaryItem.addSection(ItemLinkListSection.createElementsListSection(dictionaryItem, itemLinks))
     }
 
     @Override

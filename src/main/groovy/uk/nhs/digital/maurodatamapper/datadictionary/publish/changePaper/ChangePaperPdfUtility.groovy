@@ -28,78 +28,60 @@ import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
 import groovy.util.logging.Slf4j
 import net.lingala.zip4j.ZipFile
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.ItemLinkScanner
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.NhsDataDictionaryComponentPathResolver
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
 
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
-import java.util.regex.Matcher
 
 @Slf4j
 class ChangePaperPdfUtility {
 
-    static File generateChangePaper(NhsDataDictionary thisDataDictionary, NhsDataDictionary previousDataDictionary, Path outputPath, boolean includeDataSets = false) {
+    static File generateChangePaper(
+        NhsDataDictionary thisDataDictionary,
+        NhsDataDictionary previousDataDictionary,
+        Path outputPath,
+        boolean includeDataSets = false) {
 
         DitaProject ditaProject = new DitaProject("NHS Data Model and Dictionary","nhs_data_dictionary")
         ditaProject.useTopicsFolder = false
 
-        Map<String, NhsDataDictionaryComponent> pathLookup = [:]
+        NhsDataDictionaryComponentPathResolver pathResolver = new NhsDataDictionaryComponentPathResolver()
+        pathResolver.add(thisDataDictionary)
+
         thisDataDictionary.getAllComponents().each { it ->
             ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
-            pathLookup[it.getMauroPath()] = it
         }
-
 
         if (previousDataDictionary) {
             previousDataDictionary.getAllComponents().each {it ->
-                if (!pathLookup[it.getMauroPath()]) {
+                if (!pathResolver.contains(it.getMauroPath())) {
                     ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
-                    pathLookup[it.getMauroPath()] = it
                 }
             }
         }
-        thisDataDictionary.getAllComponents().each {it ->
-            it.replaceLinksInDefinition(pathLookup)
-        }
-        if (previousDataDictionary) {
-            previousDataDictionary.getAllComponents().each {it ->
-                it.replaceLinksInDefinition(pathLookup)
-            }
-        }
-        ChangePaper changePaper = new ChangePaper(thisDataDictionary, previousDataDictionary, includeDataSets)
+
+        pathResolver.addWhenNotPresent(previousDataDictionary)
+
+        PublishContext publishContext = new PublishContext(PublishTarget.CHANGE_PAPER)
+        publishContext.setItemLinkScanner(ItemLinkScanner.createForDitaOutput(pathResolver))
+
+        ChangePaper changePaper = new ChangePaper(
+            thisDataDictionary,
+            previousDataDictionary,
+            includeDataSets)
 
         // The background text could be HTML, so make sure any links inside this are fixed up
-        changePaper.background = NhsDataDictionary.replaceLinksInStringAndUpdateWhereUsed(
-            changePaper.background,
-            pathLookup,
-            null)
+        changePaper.background = publishContext.replaceLinksInString(changePaper.background)
 
-        Topic summaryOfChangesTopic = Topic.build(id: "summary") {
-            title "Summary of Changes"
-            body {
-                changePaper.stereotypedChanges.each {stereotypedChange ->
-                    if(stereotypedChange.changedItems) {
-                        section generateSummaryContentSection(stereotypedChange.changedItems, stereotypedChange.stereotypeName)
-                    }
-                }
-            }
-        }
+        Topic backgroundTopic = createBackgroundTopic(changePaper)
+        Topic summaryOfChangesTopic = createSummaryOfChangesTopic(changePaper)
+        Topic changesTopic = createChangesTopic(changePaper, publishContext)
 
-        //System.err.println(pathLookup)
-        List<Topic> changeTopics = generateChangeTopics(changePaper.stereotypedChanges)
-        Topic changesTopic = Topic.build(id: "changes") {
-            title "Changes"
-            body {
-
-            }
-            changeTopics.each {changeTopic ->
-                topic changeTopic
-            }
-        }
-
-
-
-        ditaProject.registerTopic("", createBackgroundTopic(changePaper))
+        ditaProject.registerTopic("", backgroundTopic)
         ditaProject.registerTopic("", summaryOfChangesTopic)
         ditaProject.registerTopic("", changesTopic)
 
@@ -123,11 +105,34 @@ class ChangePaperPdfUtility {
         zipFile.addFolder(new File(ditaOutputDirectory))
 
         return zipFile.getFile()
-
     }
 
+    static Topic createSummaryOfChangesTopic(ChangePaper changePaper) {
+        Topic.build(id: "summary") {
+            title "Summary of Changes"
+            body {
+                changePaper.stereotypedChanges.each {stereotypedChange ->
+                    if (stereotypedChange.changedItems) {
+                        section generateSummaryContentSection(stereotypedChange.changedItems, stereotypedChange.stereotypeName)
+                    }
+                }
+            }
+        }
+    }
 
+    static Topic createChangesTopic(ChangePaper changePaper, PublishContext publishContext) {
+        List<Topic> changeTopics = generateChangeTopics(changePaper.stereotypedChanges, publishContext)
 
+        Topic.build(id: "changes") {
+            title "Changes"
+            body {
+
+            }
+            changeTopics.each {changeTopic ->
+                topic changeTopic
+            }
+        }
+    }
 
     static Topic createBackgroundTopic(ChangePaper changePaper) {
 
@@ -158,22 +163,6 @@ class ChangePaperPdfUtility {
         return backgroundTopic
     }
 
-//    static String replaceLinksInHtml(String html, Map<String, String> pathLookup) {
-//        if(html) {
-//            Matcher matcher = NhsDataDictionary.pattern.matcher(html)
-//            while(matcher.find()) {
-//                String matchedUrl = pathLookup[matcher.group(1)]
-//                if(matchedUrl) {
-//                    String replacement = "<a href=\"${matchedUrl}\">${matcher.group(2).replaceAll("_"," ")}</a>"
-//                    html = html.replace(matcher.group(0), replacement)
-//                } else {
-//                    log.error("Cannot match: " + matcher.group(0))
-//                }
-//            }
-//        }
-//        return html
-//    }
-
     static Section generateSummaryContentSection(List<ChangedItem> changedItems, String stereotype) {
         return Section.build {
             title "${stereotype} Definitions"
@@ -181,12 +170,12 @@ class ChangePaperPdfUtility {
                 changedItems.each {changedItem ->
                     strow {
                         stentry {
-                            xRef(keyRef: changedItem.dictionaryComponent.getDitaKey()) {
-                                txt changedItem.dictionaryComponent.name
+                            xRef(keyRef: changedItem.publishStructure.xrefId) {
+                                txt changedItem.publishStructure.name
                             }
                         }
                         stentry {
-                            p changedItem.getSummaryOfChanges()
+                            p changedItem.publishStructure.description
                         }
                     }
                 }
@@ -194,41 +183,24 @@ class ChangePaperPdfUtility {
         }
     }
 
-    static List<Topic> generateChangeTopics(StereotypedChange stereotypedChange) {
+    static List<Topic> generateChangeTopics(StereotypedChange stereotypedChange, PublishContext publishContext) {
         List<Topic> topics = []
 
         stereotypedChange.changedItems.each {changedItem ->
-            //String newDefinition = replaceLinksInDescription(changedItem.dictionaryComponent.description, pathLookup)
-            //System.err.println(changedItem.dictionaryComponent.name)
-
-            Topic subTopic = Topic.build(id: changedItem.dictionaryComponent.getDitaKey()) {
-                title changedItem.dictionaryComponent.name
-                shortdesc "Change to ${stereotypedChange.stereotypeName}: ${changedItem.summaryOfChanges}"
-
-                body {
-                    changedItem.changes.each {change ->
-                        if (change.preferDitaDetail && change.ditaDetail) {
-                            div change.ditaDetail
-                        }
-                        else {
-                            div HtmlHelper.replaceHtmlWithDita(change.htmlDetail)
-                        }
-                    }
-                }
-            }
+            Topic subTopic = changedItem.publishStructure.generateDita(publishContext)
             topics.add(subTopic)
         }
         return topics
     }
 
-    static List<Topic> generateChangeTopics(List<StereotypedChange> stereotypedChanges) {
-
+    static List<Topic> generateChangeTopics(List<StereotypedChange> stereotypedChanges, PublishContext publishContext) {
         List<Topic> topics = []
-        if(stereotypedChanges && stereotypedChanges.size() != 0) {
+        if (stereotypedChanges && stereotypedChanges.size() != 0) {
             stereotypedChanges.each {stereotypedChange ->
-                topics.addAll(generateChangeTopics(stereotypedChange))
+                topics.addAll(generateChangeTopics(stereotypedChange, publishContext))
             }
         }
+
         return topics
     }
 }

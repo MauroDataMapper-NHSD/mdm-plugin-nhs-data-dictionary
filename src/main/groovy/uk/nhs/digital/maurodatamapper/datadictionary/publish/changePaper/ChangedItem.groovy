@@ -18,24 +18,14 @@
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 
 class ChangedItem {
     NhsDataDictionaryComponent dictionaryComponent
-    List<Change> changes = []
+    DictionaryItem publishStructure
 
-    String getSummaryOfChanges() {
-        if (changes.empty) {
-            return ""
-        }
-
-        if (changes.any { it.changeType == Change.NEW_TYPE }) {
-            return Change.NEW_TYPE
-        }
-
-        if (changes.any { it.changeType == Change.RETIRED_TYPE }) {
-            return Change.RETIRED_TYPE
-        }
-
-        changes.collect { it.changeType }.join(", ")
+    ChangedItem(NhsDataDictionaryComponent dictionaryComponent, DictionaryItem publishStructure) {
+        this.dictionaryComponent = dictionaryComponent
+        this.publishStructure = publishStructure
     }
 }

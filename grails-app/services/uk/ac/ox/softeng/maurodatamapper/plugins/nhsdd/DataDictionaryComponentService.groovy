@@ -65,7 +65,7 @@ import java.util.regex.Pattern
 
 @Slf4j
 @Transactional
-abstract class DataDictionaryComponentService<T extends InformationAware & MetadataAware, D extends NhsDataDictionaryComponent> {
+abstract class DataDictionaryComponentService<T extends MdmDomain & InformationAware & MetadataAware, D extends NhsDataDictionaryComponent> {
 
     DataModelService dataModelService
     DataClassService dataClassService
@@ -187,6 +187,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         return output
     }
 
+    @Deprecated
     CatalogueItem getByPath(VersionedFolder versionedFolder, String[] path) {
         if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
             Terminology terminology = terminologyService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME)
@@ -243,7 +244,7 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         return null
     }
 
-    String getStereotypeByPath(String[] path) {
+    static String getStereotypeByPath(String[] path) {
         if (path[0] == "te:${NhsDataDictionary.BUSINESS_DEFINITIONS_TERMINOLOGY_NAME}") {
             return "businessDefinition"
         }
@@ -364,21 +365,23 @@ abstract class DataDictionaryComponentService<T extends InformationAware & Metad
         component.definition = catalogueItem.description?:""
         component.catalogueItem = catalogueItem
 
+        component.catalogueItemId = catalogueItem.id
+        component.branchId = dataDictionary.containingVersionedFolder.id
 
-        if(catalogueItem instanceof DataClass) {
-            component.catalogueItemParentId = ((DataClass)catalogueItem).parentDataClass?.id?.toString()
-            component.catalogueItemModelId = ((DataClass)catalogueItem).dataModel.id.toString()
-        }
-        if(catalogueItem instanceof DataElement) {
-            component.catalogueItemParentId = ((DataElement)catalogueItem).dataClass?.id?.toString()
-            component.catalogueItemModelId = ((DataElement)catalogueItem).dataClass?.dataModel?.id.toString()
-        }
-        if(catalogueItem instanceof DataModel) {
-            component.catalogueItemModelId = catalogueItem.id.toString()
-        }
-        if(catalogueItem instanceof Term) {
-            component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
-        }
+//        if(catalogueItem instanceof DataClass) {
+//            component.catalogueItemParentId = ((DataClass)catalogueItem).parentDataClass?.id?.toString()
+//            component.catalogueItemModelId = ((DataClass)catalogueItem).dataModel.id.toString()
+//        }
+//        if(catalogueItem instanceof DataElement) {
+//            component.catalogueItemParentId = ((DataElement)catalogueItem).dataClass?.id?.toString()
+//            component.catalogueItemModelId = ((DataElement)catalogueItem).dataClass?.dataModel?.id.toString()
+//        }
+//        if(catalogueItem instanceof DataModel) {
+//            component.catalogueItemModelId = catalogueItem.id.toString()
+//        }
+//        if(catalogueItem instanceof Term) {
+//            component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
+//        }
 
         if(!metadata) {
             if(component instanceof NhsDDElement) {

@@ -29,6 +29,11 @@ import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.CDSDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.datasets.output.html.OtherDataSetToHtml
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItemState
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.cds.LegacyCdsDataSetSection
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.other.OtherDataSetTable
 
 @Slf4j
 class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
@@ -60,6 +65,10 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     boolean isCDS
 
     List<NhsDDDataSetClass> dataSetClasses = []
+
+    List<NhsDDDataSetClass> getSortedDataSetClasses() {
+        dataSetClasses.sort { it.webOrder }
+    }
 
     @Override
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
@@ -124,6 +133,39 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     String getMauroPath() {
         "dm:${name}"
+    }
+
+    @Override
+    DictionaryItem getPublishStructure() {
+        DictionaryItem dictionaryItem = DictionaryItem.create(this)
+
+        addDescriptionSection(dictionaryItem)
+
+        if (itemState == DictionaryItemState.ACTIVE) {
+            addDataSetSection(dictionaryItem)
+            addAliasesSection(dictionaryItem)
+            addWhereUsedSection(dictionaryItem)
+        }
+
+        addChangeLogSection(dictionaryItem)
+
+        dictionaryItem
+    }
+
+    void addDataSetSection(DictionaryItem dictionaryItem) {
+        boolean isCdsDataSet = useCdsClassRender()
+
+        if (isCdsDataSet) {
+            // Handle legacy case for CDS data sets. Maybe one day rebuild this...
+            dictionaryItem.addSection(new LegacyCdsDataSetSection(dictionaryItem, this))
+            return
+        }
+
+        List<OtherDataSetTable> tables = sortedDataSetClasses.collect {dataSetClass ->
+            dataSetClass.buildOtherDataSetTable()
+        }
+
+        dictionaryItem.addSection(new DataSetSection(dictionaryItem, tables))
     }
 
     @Override
@@ -198,6 +240,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         return dataSetElements
     }
 
+    @Deprecated
     @Override
     List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
         List<Change> changes = []

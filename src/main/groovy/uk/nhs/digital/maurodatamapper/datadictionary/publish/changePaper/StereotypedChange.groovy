@@ -32,9 +32,7 @@ class StereotypedChange {
         }
 
         changedItems.forEach {changedItem ->
-            changedItem.changes.forEach {change ->
-                components.add(change.newItem)
-            }
+            components.add(changedItem.dictionaryComponent)
         }
 
         components

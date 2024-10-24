@@ -39,6 +39,8 @@ class DataSetFolderService extends DataDictionaryComponentService<Folder, NhsDDD
     @Override
     NhsDDDataSetFolder show(UUID versionedFolderId, String id) {
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
+        dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
+
         Folder folderFolder
         if(id && id != "root") {
             folderFolder = folderService.get(id)
