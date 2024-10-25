@@ -145,7 +145,7 @@ class OtherDataSetGroup implements
 
         if (this.header) {
             builder.tr(class: PublishHelper.combineCssClassWithDiffStatus(rowCssClass, this.diffStatus)) {
-                builder.td(class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
+                builder.td(class: PublishHelper.combineCssClasses(entryCssClass, HtmlConstants.CSS_HTML_ALIGN_CENTER)) {
                     b OtherDataSetTable.MANDATION_COLUMN.name
                 }
                 this.header.buildHtml(context, builder)

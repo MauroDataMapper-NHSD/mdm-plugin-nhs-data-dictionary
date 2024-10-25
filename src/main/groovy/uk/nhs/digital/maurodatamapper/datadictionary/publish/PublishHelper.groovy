@@ -81,6 +81,13 @@ class PublishHelper {
         "${cssClass} ${diffOutputClass}".trim()
     }
 
+    static String combineCssClasses(String... args) {
+        args
+            .findAll { val -> val != null && !val.empty }
+            .join(" ")
+            .trim()
+    }
+
     static void buildHtmlParagraph(PublishContext context, MarkupBuilder builder, String text) {
         if (!text) {
             return

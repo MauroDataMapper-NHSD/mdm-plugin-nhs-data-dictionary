@@ -218,7 +218,7 @@ class OtherDataSetTable implements DataSetTable {
 
                 if (hasSingleGroup()) {
                     builder.tr(class: rowCssClass) {
-                        builder.th(class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
+                        builder.th(class: PublishHelper.combineCssClasses(entryCssClass, HtmlConstants.CSS_HTML_ALIGN_CENTER)) {
                             PublishHelper.buildHtmlParagraph(context, builder, MANDATION_COLUMN.name)
                         }
 

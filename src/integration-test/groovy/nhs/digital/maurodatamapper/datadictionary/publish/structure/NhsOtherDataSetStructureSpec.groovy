@@ -1392,7 +1392,7 @@ PATIENTS holding data</p>
       </thead>
       <tbody class="- topic/tbody tbody">
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1402,7 +1402,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1412,7 +1412,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">O</p>
           </td>
           <td class="- topic/entry entry">
@@ -1423,7 +1423,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">O</p>
           </td>
           <td class="- topic/entry entry">
@@ -1460,7 +1460,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1470,7 +1470,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1494,7 +1494,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1532,7 +1532,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1542,7 +1542,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1566,7 +1566,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1603,7 +1603,7 @@ PATIENTS holding data</p>
       </thead>
       <tbody class="- topic/tbody tbody">
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1613,7 +1613,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1627,7 +1627,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1642,7 +1642,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1661,7 +1661,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -2207,13 +2207,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Single Group</b>
               <p>This is a single group table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -2223,7 +2223,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2233,7 +2233,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>R</p>
             </td>
             <td>
@@ -2243,7 +2243,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2254,7 +2254,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2274,7 +2274,7 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Multi Group: Continuous</b>
               <p>This is a multi group table</p>
             </th>
@@ -2282,7 +2282,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2291,7 +2291,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2301,7 +2301,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>R</p>
             </td>
             <td>
@@ -2316,7 +2316,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2325,7 +2325,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2346,7 +2346,7 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Multi Group: Choice</b>
               <p>This is a multi group table</p>
             </th>
@@ -2354,7 +2354,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2363,7 +2363,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2373,7 +2373,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>R</p>
             </td>
             <td>
@@ -2388,7 +2388,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2397,7 +2397,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2418,13 +2418,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Element Choices</b>
               <p>This is a group of element choices</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -2434,7 +2434,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2444,7 +2444,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2458,7 +2458,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2473,7 +2473,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2492,7 +2492,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>R</p>
             </td>
             <td>
@@ -2707,13 +2707,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table</b>
               <p>The table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -2723,7 +2723,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2737,7 +2737,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2747,7 +2747,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2757,7 +2757,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2930,13 +2930,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table</b>
               <p>The table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -2946,7 +2946,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2956,7 +2956,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2966,7 +2966,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2977,7 +2977,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>R</p>
             </td>
             <td>
@@ -2987,7 +2987,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2998,7 +2998,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -3182,7 +3182,7 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table</b>
               <p>The table</p>
             </th>
@@ -3190,7 +3190,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -3200,7 +3200,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3215,7 +3215,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -3224,7 +3224,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3239,7 +3239,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -3248,7 +3248,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3448,14 +3448,14 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table 2</b>
               <p class="new">The second table has changed</p>
               <p class="deleted">The second table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -3465,7 +3465,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3485,13 +3485,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table 3</b>
               <p>The third table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -3501,7 +3501,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3521,13 +3521,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table 1</b>
               <p>The first table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -3537,7 +3537,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>

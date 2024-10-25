@@ -207,7 +207,8 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     }
 
 
-
+    // This should be removed and use the publish model instead
+    @Deprecated
     String getStructureAsHtml() {
         if (this.dataSetClasses.empty) {
             return ""

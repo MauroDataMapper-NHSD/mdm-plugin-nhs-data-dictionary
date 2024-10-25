@@ -43,6 +43,13 @@ import uk.nhs.digital.maurodatamapper.datadictionary.datasets.parser.DataSetPars
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSet
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetClass
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.ItemLinkScanner
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.MauroCatalogueItemPathResolver
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.Section
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.datasets.DataSetSection
 
 @Slf4j
 @Transactional
@@ -62,13 +69,40 @@ class DataSetService extends DataDictionaryComponentService<DataModel, NhsDDData
         NhsDataDictionary dataDictionary = nhsDataDictionaryService.newDataDictionary()
         dataDictionary.containingVersionedFolder = versionedFolderService.get(versionedFolderId)
 
+        // Load all available Data Elements into the dictionary so that the Data Set preview, when loading classes/element rows, can
+        // match up elements in the specification tables
+        DataModel elementsModel = nhsDataDictionaryService.getElementsModel(versionedFolderId)
+        nhsDataDictionaryService.addElementsToDictionary(elementsModel, dataDictionary)
+
         DataModel dataModel = dataModelService.get(id)
 
         NhsDDDataSet dataSet = getNhsDataDictionaryComponentFromCatalogueItem(dataModel, dataDictionary)
         dataSet.definition = convertLinksInDescription(versionedFolderId, dataSet.getDescription())
-        if (!dataSet.isRetired()) {
-            dataSet.htmlStructure = convertLinksInDescription(versionedFolderId, dataSet.getStructureAsHtml())
+
+        DictionaryItem structure = dataSet.getPublishStructure()
+        Section specificationSection = structure.sections.find { it instanceof DataSetSection }
+        if (specificationSection) {
+            // TODO: Improve this preview, all HTML preview items should use publish model, this just gets a quick result for a data set specification fix
+            MauroCatalogueItemPathResolver pathResolver = new MauroCatalogueItemPathResolver(
+                dataDictionary.containingVersionedFolder,
+                dataModelService,
+                dataClassService,
+                dataElementService,
+                terminologyService)
+
+            PublishContext publishContext = new PublishContext(PublishTarget.WEBSITE)
+            publishContext.setItemLinkScanner(
+                ItemLinkScanner.createForHtmlPreview(
+                    dataDictionary.containingVersionedFolder.id,
+                    pathResolver))
+
+            // Don't pretty print the output, try to reduce the response size
+            publishContext.prettyPrintHtml = false
+
+            String specificationHtml = specificationSection.generateHtml(publishContext)
+            dataSet.htmlStructure = specificationHtml
         }
+
         return dataSet
     }
 
