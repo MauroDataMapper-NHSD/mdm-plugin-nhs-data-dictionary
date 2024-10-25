@@ -45,6 +45,14 @@ class PublishHelper {
         name
     }
 
+    static String createItemCssClass(String stereotype, DictionaryItemState state) {
+        if (state == DictionaryItemState.RETIRED) {
+            return "$stereotype retired"
+        }
+
+        stereotype
+    }
+
     static String createXrefId(String stereotype, String name, DictionaryItemState state) {
         String encodedName = replaceNonAlphaNumerics(name)
         String retiredSuffix = state == DictionaryItemState.RETIRED ? "_retired" : ""
