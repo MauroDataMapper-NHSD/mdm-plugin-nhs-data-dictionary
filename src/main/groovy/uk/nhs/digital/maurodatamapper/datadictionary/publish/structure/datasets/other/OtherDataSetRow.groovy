@@ -27,6 +27,7 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffObjec
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DiffStatus
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DitaAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlBuilder
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.HtmlConstants
 
 class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware, DiffObjectAware<OtherDataSetRow> {
     final String mandation
@@ -75,7 +76,7 @@ class OtherDataSetRow implements DitaAware<Row>, HtmlBuilder, ChangeAware, DiffO
         String entryCssClass = context.getEntryCssClass()
 
         builder.tr(class: PublishHelper.combineCssClassWithDiffStatus(rowCssClass, diffStatus)) {
-            builder.td(class: entryCssClass) {
+            builder.td(class: PublishHelper.combineCssClasses(entryCssClass, HtmlConstants.CSS_HTML_ALIGN_CENTER)) {
                 PublishHelper.buildHtmlParagraph(context, builder, this.mandation)
             }
             builder.td(class: entryCssClass) {

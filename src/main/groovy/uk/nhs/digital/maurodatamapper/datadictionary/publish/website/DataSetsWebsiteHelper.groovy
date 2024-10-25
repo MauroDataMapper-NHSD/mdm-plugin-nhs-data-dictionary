@@ -26,12 +26,22 @@ import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDDDataSetFolder
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.ItemLinkScanner
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.NhsDataDictionaryComponentPathResolver
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishContext
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishOptions
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.PublishTarget
+import uk.nhs.digital.maurodatamapper.datadictionary.publish.structure.DictionaryItem
 
 class DataSetsWebsiteHelper {
 
 
     static void dataSetsIndex(NhsDataDictionary dataDictionary, PublishOptions publishOptions, DitaProject ditaProject) {
+        NhsDataDictionaryComponentPathResolver pathResolver = new NhsDataDictionaryComponentPathResolver()
+        pathResolver.add(dataDictionary)
+
+        PublishContext publishContext = new PublishContext(PublishTarget.WEBSITE)
+        publishContext.setItemLinkScanner(ItemLinkScanner.createForDitaOutput(pathResolver))
 
         dataDictionary.dataSetFolders.values().each { folders ->
             folders.each { folder ->
@@ -74,7 +84,12 @@ class DataSetsWebsiteHelper {
             String path = "data_sets/" + StringUtils.join(dataSet.getDitaFolderPath(), "/").toLowerCase()
             DitaMap dataSetMap = dataSet.generateMap()
             ditaProject.registerMap(path, dataSetMap)
-            ditaProject.registerTopic(path, dataSet.generateTopic())
+
+            // TODO: Only for Data Sets at the moment to fix gh-147. In the future, have every component type generate from publish model
+            DictionaryItem structure = dataSet.getPublishStructure()
+            Topic topic = structure.generateDita(publishContext)
+
+            ditaProject.registerTopic(path, topic)
             dataSetMap.topicRef {
                 toc Toc.NO
                 keyRef dataSet.getDitaKey()

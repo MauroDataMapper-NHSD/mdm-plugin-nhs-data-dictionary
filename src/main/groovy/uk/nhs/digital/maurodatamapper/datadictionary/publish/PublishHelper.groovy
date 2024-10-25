@@ -45,6 +45,14 @@ class PublishHelper {
         name
     }
 
+    static String createItemCssClass(String stereotype, DictionaryItemState state) {
+        if (state == DictionaryItemState.RETIRED) {
+            return "$stereotype retired"
+        }
+
+        stereotype
+    }
+
     static String createXrefId(String stereotype, String name, DictionaryItemState state) {
         String encodedName = replaceNonAlphaNumerics(name)
         String retiredSuffix = state == DictionaryItemState.RETIRED ? "_retired" : ""
@@ -71,6 +79,13 @@ class PublishHelper {
         }
 
         "${cssClass} ${diffOutputClass}".trim()
+    }
+
+    static String combineCssClasses(String... args) {
+        args
+            .findAll { val -> val != null && !val.empty }
+            .join(" ")
+            .trim()
     }
 
     static void buildHtmlParagraph(PublishContext context, MarkupBuilder builder, String text) {

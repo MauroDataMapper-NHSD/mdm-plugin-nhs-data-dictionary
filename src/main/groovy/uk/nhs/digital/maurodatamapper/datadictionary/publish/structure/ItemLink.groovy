@@ -71,25 +71,32 @@ class ItemLink implements DitaAware<XRef>, HtmlBuilder, ChangeAware {
             component.stereotype,
             component.itemState,
             component.name,
-            component.outputClass)
+            component.stereotypeForPreview)
     }
 
     @Override
     XRef generateDita(PublishContext context) {
-        String linkOutputClass = outputClass
+        String officialName = PublishHelper.createOfficialName(this.name, this.state)
+        String linkOutputClass = PublishHelper.createItemCssClass(this.outputClass, this.state)
         String xrefId = PublishHelper.createXrefId(stereotype, name, state)
 
         XRef.build(format: "html", keyRef: xrefId, outputClass: linkOutputClass) {
-            txt name
+            txt officialName
         }
     }
 
     @Override
     void buildHtml(PublishContext context, MarkupBuilder builder) {
-        String href = "#/preview/${branchId}/${outputClass}/${itemId}"
+        // Differentiate between what strings are used. outputClass goes into HTTP URLs e.g. lowercase stereotype like "element", "attribute", etc
+        // The full CSS class to use is the stereotype e.g. "element" but may also optionally include "retired" depending on the state
+        String officialName = PublishHelper.createOfficialName(this.name, this.state)
+        String linkOutputClass = PublishHelper.createItemCssClass(this.outputClass, this.state)
+        String urlStereotype = this.outputClass
 
-        builder.a(class: outputClass, title: name, href: href) {
-            mkp.yield(name)
+        String href = "#/preview/${branchId}/${urlStereotype}/${itemId}"
+
+        builder.a(class: linkOutputClass, title: officialName, href: href) {
+            mkp.yield(officialName)
         }
     }
 

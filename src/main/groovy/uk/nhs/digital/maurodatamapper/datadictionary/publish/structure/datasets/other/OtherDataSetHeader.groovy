@@ -128,7 +128,7 @@ class OtherDataSetHeader
         String entryCssClass = context.target == PublishTarget.WEBSITE ? "${HtmlConstants.CSS_TABLE_ENTRY}" : ""
 
         if (type == OtherDataSetHeaderType.TABLE) {
-            builder.th(colspan: 2, class: "${entryCssClass} ${HtmlConstants.CSS_HTML_ALIGN_CENTER}") {
+            builder.th(colspan: 2, class: PublishHelper.combineCssClasses(entryCssClass, HtmlConstants.CSS_HTML_ALIGN_CENTER)) {
                 b this.name
                 buildHtmlDescriptionWithChange(context, builder)
             }

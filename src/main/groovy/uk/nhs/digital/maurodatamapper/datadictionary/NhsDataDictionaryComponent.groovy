@@ -219,7 +219,15 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
 }
 
     String getDataDictionaryUrl() {
-        return """${NhsDataDictionary.WEBSITE_URL}/${getPluralStereotypeForWebsite()}/${getNameWithoutNonAlphaNumerics().toLowerCase()}.html"""
+        String domain = NhsDataDictionary.WEBSITE_URL
+        String stereotype = getPluralStereotypeForWebsite()
+        String itemPage = "${getNameWithoutNonAlphaNumerics().toLowerCase()}.html"
+
+        if (this.itemState == DictionaryItemState.RETIRED) {
+            return "${domain}/${stereotype}/retired/${itemPage}"
+        }
+
+        return "${domain}/${stereotype}/${itemPage}"
     }
 
     Change createChange(

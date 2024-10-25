@@ -52,6 +52,7 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
     NhsDDElement elementPersonBirthDate
     NhsDDElement elementPatientUsualAddress
     NhsDDElement elementDiseaseType
+    NhsDDElement elementReferrerCodeRetired // Test what a retired element looks like
 
     // The data sets below are for testing diffs
     NhsDDDataSet previousCellsChange
@@ -108,6 +109,14 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
             catalogueItemId: UUID.fromString("875b1b59-9c9d-452f-9cfb-354409f441a3"),
             branchId: branchId,
             name: "DISEASE TYPE")
+
+        elementReferrerCodeRetired = new NhsDDElement(
+            catalogueItemId: UUID.fromString("8df9772d-bdb5-45a7-b77a-334e83e012af"),
+            branchId: branchId,
+            name: "REFERRER CODE",
+            otherProperties: [
+                'isRetired': true.toString()
+            ])
     }
 
     @Override
@@ -120,6 +129,7 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         componentPathResolver.add(elementPersonBirthDate.getMauroPath(), elementPersonBirthDate)
         componentPathResolver.add(elementPatientUsualAddress.getMauroPath(), elementPatientUsualAddress)
         componentPathResolver.add(elementDiseaseType.getMauroPath(), elementDiseaseType)
+        componentPathResolver.add(elementReferrerCodeRetired.getMauroPath(), elementReferrerCodeRetired)
     }
 
     @Override
@@ -132,6 +142,7 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
         catalogueItemPathResolver.add(elementPersonBirthDate.getMauroPath(), elementPersonBirthDate.catalogueItemId)
         catalogueItemPathResolver.add(elementPatientUsualAddress.getMauroPath(), elementPatientUsualAddress.catalogueItemId)
         catalogueItemPathResolver.add(elementDiseaseType.getMauroPath(), elementDiseaseType.catalogueItemId)
+        catalogueItemPathResolver.add(elementReferrerCodeRetired.getMauroPath(), elementReferrerCodeRetired.catalogueItemId)
     }
 
     @Override
@@ -186,6 +197,13 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
                 name: elementDiseaseType.name,
                 reuseElement: elementDiseaseType,
                 maxMultiplicity: "-1")) // Multiple occurrences
+
+        table.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 3,
+                mandation: "O",
+                name: elementReferrerCodeRetired.name,
+                reuseElement: elementReferrerCodeRetired))
 
         table
     }
@@ -521,6 +539,13 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
                 reuseElement: elementDiseaseType,
                 maxMultiplicity: "-1")) // Multiple occurrences
 
+        previousTable.dataSetElements.add(
+            new NhsDDDataSetElement(
+                webOrder: 3,
+                mandation: "O",
+                name: elementReferrerCodeRetired.name,
+                reuseElement: elementReferrerCodeRetired))
+
         previousRowsChange.dataSetClasses.add(previousTable)
 
         currentRowsChange = new NhsDDDataSet(
@@ -551,6 +576,8 @@ class NhsOtherDataSetStructureSpec extends DataDictionaryComponentStructureSpec<
                 reuseElement: elementNhsNumber))    // Unchanged
 
         // Change: Removed "PERSON GIVEN NAME"
+
+        // Change: Removed "REFERRER CODE (Retired)"
 
         currentTable.dataSetElements.add(
             new NhsDDDataSetElement(
@@ -866,6 +893,16 @@ PATIENTS holding data</shortdesc>
                     <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
                   </p>
                   <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element retired' keyref='data_element_referrer_code_retired' format='html'>REFERRER CODE (Retired)</xref>
+                  </p>
                 </entry>
               </row>
             </tbody>
@@ -1327,7 +1364,7 @@ PATIENTS holding data</p>
         DataSetSection dataSetSection = structure.sections.find { it instanceof DataSetSection } as DataSetSection
         String dataSetHtml = dataSetSection.generateHtml(websiteHtmlPublishContext)
 
-        then: "the aliases are published"
+        then: "the data set is published"
         verifyAll {
             dataSetHtml
             dataSetHtml == """<div class="- topic/body body">
@@ -1355,7 +1392,7 @@ PATIENTS holding data</p>
       </thead>
       <tbody class="- topic/tbody tbody">
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1365,7 +1402,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1375,7 +1412,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">O</p>
           </td>
           <td class="- topic/entry entry">
@@ -1383,6 +1420,16 @@ PATIENTS holding data</p>
               <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
             </p>
             <p class="- topic/p p">Multiple occurrences of this item are permitted</p>
+          </td>
+        </tr>
+        <tr class="- topic/row">
+          <td class="- topic/entry entry align-center">
+            <p class="- topic/p p">O</p>
+          </td>
+          <td class="- topic/entry entry">
+            <p class="- topic/p p">
+              <a class="element retired" title="REFERRER CODE (Retired)" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/8df9772d-bdb5-45a7-b77a-334e83e012af">REFERRER CODE (Retired)</a>
+            </p>
           </td>
         </tr>
       </tbody>
@@ -1413,7 +1460,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1423,7 +1470,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1447,7 +1494,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1485,7 +1532,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1495,7 +1542,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1519,7 +1566,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1556,7 +1603,7 @@ PATIENTS holding data</p>
       </thead>
       <tbody class="- topic/tbody tbody">
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1566,7 +1613,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1580,7 +1627,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1595,7 +1642,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">M</p>
           </td>
           <td class="- topic/entry entry">
@@ -1614,7 +1661,7 @@ PATIENTS holding data</p>
           </td>
         </tr>
         <tr class="- topic/row">
-          <td class="- topic/entry entry">
+          <td class="- topic/entry entry align-center">
             <p class="- topic/p p">R</p>
           </td>
           <td class="- topic/entry entry">
@@ -1738,6 +1785,16 @@ PATIENTS holding data</p>
                     <xref outputclass='element' keyref='data_element_disease_type' format='html'>DISEASE TYPE</xref>
                   </p>
                   <p>Multiple occurrences of this item are permitted</p>
+                </entry>
+              </row>
+              <row>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element retired' keyref='data_element_referrer_code_retired' format='html'>REFERRER CODE (Retired)</xref>
+                  </p>
                 </entry>
               </row>
             </tbody>
@@ -2117,6 +2174,368 @@ PATIENTS holding data</p>
         }
     }
 
+    void "should produce a diff for a new item to change paper html"() {
+        given: "the publish structure is built"
+        DictionaryItem structure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against no previous item"
+        DictionaryItem diff = structure.produceDiff(null)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """<div>
+  <h3>Diagnostic Data Set</h3>
+  <h4>Change to Data Set: New</h4>
+  <div>
+    <div class="new">
+      <p><p>The Diagnostic Data Set contains <a class="class" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/class/ae2f2b7b-c136-4cc7-9b71-872ee4efb3a6">PATIENTS</a> holding data.</p></p>
+    </div>
+    <div>
+      <table class="new">
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class="align-center">
+              <b>Single Group</b>
+              <p>This is a single group table</p>
+            </th>
+          </tr>
+          <tr>
+            <th class="align-center">
+              <p>Mandation</p>
+            </th>
+            <th>
+              <p>Data Elements</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>R</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>O</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>O</p>
+            </td>
+            <td>
+              <p>
+                <a class="element retired" title="REFERRER CODE (Retired)" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/8df9772d-bdb5-45a7-b77a-334e83e012af">REFERRER CODE (Retired)</a>
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table class="new">
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class="align-center">
+              <b>Multi Group: Continuous</b>
+              <p>This is a multi group table</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 1</b>
+              <p>The first group</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>R</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON BIRTH DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/01c9734f-85e4-4fcf-a881-983621414673">PERSON BIRTH DATE</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center" colspan="2">
+              <b></b>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 2</b>
+              <p>The second group</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table class="new">
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class="align-center">
+              <b>Multi Group: Choice</b>
+              <p>This is a multi group table</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 1</b>
+              <p>The first group</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>R</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON BIRTH DATE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/01c9734f-85e4-4fcf-a881-983621414673">PERSON BIRTH DATE</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center" colspan="2">
+              <b>Or</b>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <b>Mandation</b>
+            </td>
+            <td>
+              <b>GROUP 2</b>
+              <p>The second group</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <table class="new">
+        <colgroup>
+          <col style="width: 20%" />
+          <col style="width: 80%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2" class="align-center">
+              <b>Element Choices</b>
+              <p>This is a group of element choices</p>
+            </th>
+          </tr>
+          <tr>
+            <th class="align-center">
+              <p>Mandation</p>
+            </th>
+            <th>
+              <p>Data Elements</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+              <p>Or</p>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+              <p>And</p>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>M</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="NHS NUMBER" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/dcdbc88d-d20e-49a8-bb2b-450bbf56900a">NHS NUMBER</a>
+              </p>
+              <p>And/Or</p>
+              <p>
+                <a class="element" title="PERSON GIVEN NAME" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/7e9642c3-14ae-4b59-bd3d-0160ea7f7616">PERSON GIVEN NAME</a>
+              </p>
+              <p>And/Or</p>
+              <p>
+                <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
+              </p>
+              <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-center">
+              <p>R</p>
+            </td>
+            <td>
+              <p>
+                <a class="element" title="PATIENT USUAL ADDRESS" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/d76f35ec-7fa6-47a3-ae4c-db246714ba8c">PATIENT USUAL ADDRESS</a> - 
+                <a class="class" title="ADDRESS STRUCTURED" href="https://datadictionary.nhs.uk/classes/address_structured.html">ADDRESS STRUCTURED</a>
+              </p>
+              <p>Or</p>
+              <p>
+                <a class="element" title="PATIENT USUAL ADDRESS" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/d76f35ec-7fa6-47a3-ae4c-db246714ba8c">PATIENT USUAL ADDRESS</a> - 
+                <a class="class" title="ADDRESS UNSTRUCTURED" href="https://datadictionary.nhs.uk/classes/address_unstructured.html">ADDRESS UNSTRUCTURED</a>
+              </p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This Data Set is also known by these names:</p>
+    <div>
+      <table>
+        <colgroup>
+          <col style="width: 34%" />
+          <col style="width: 66%" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Context</th>
+            <th>Alias</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="new">Plural</td>
+            <td class="new">Diagnostics Data Set</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
     void "should produce a diff for an updated item description to change paper html"() {
         given: "the publish structures are built"
         activeItem.definition = "The current description"
@@ -2288,13 +2707,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table</b>
               <p>The table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -2304,7 +2723,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2318,7 +2737,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2328,7 +2747,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2338,7 +2757,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2460,6 +2879,16 @@ PATIENTS holding data</p>
                   <p>Multiple occurrences of this item are permitted</p>
                 </entry>
               </row>
+              <row outputclass='deleted'>
+                <entry>
+                  <p>O</p>
+                </entry>
+                <entry>
+                  <p>
+                    <xref outputclass='element retired' keyref='data_element_referrer_code_retired' format='html'>REFERRER CODE (Retired)</xref>
+                  </p>
+                </entry>
+              </row>
             </tbody>
           </tgroup>
         </table>
@@ -2501,13 +2930,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table</b>
               <p>The table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -2517,7 +2946,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2527,7 +2956,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2537,7 +2966,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2548,7 +2977,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>R</p>
             </td>
             <td>
@@ -2558,7 +2987,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>O</p>
             </td>
             <td>
@@ -2566,6 +2995,16 @@ PATIENTS holding data</p>
                 <a class="element" title="DISEASE TYPE" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/875b1b59-9c9d-452f-9cfb-354409f441a3">DISEASE TYPE</a>
               </p>
               <p>Multiple occurrences of this item are permitted</p>
+            </td>
+          </tr>
+          <tr class="deleted">
+            <td class="align-center">
+              <p>O</p>
+            </td>
+            <td>
+              <p>
+                <a class="element retired" title="REFERRER CODE (Retired)" href="#/preview/782602d4-e153-45d8-a271-eb42396804da/element/8df9772d-bdb5-45a7-b77a-334e83e012af">REFERRER CODE (Retired)</a>
+              </p>
             </td>
           </tr>
         </tbody>
@@ -2743,7 +3182,7 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table</b>
               <p>The table</p>
             </th>
@@ -2751,7 +3190,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2761,7 +3200,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2776,7 +3215,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2785,7 +3224,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="new">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -2800,7 +3239,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td class=" align-center">
+            <td class="align-center">
               <b>Mandation</b>
             </td>
             <td>
@@ -2809,7 +3248,7 @@ PATIENTS holding data</p>
             </td>
           </tr>
           <tr class="deleted">
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3009,14 +3448,14 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table 2</b>
               <p class="new">The second table has changed</p>
               <p class="deleted">The second table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -3026,7 +3465,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3046,13 +3485,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table 3</b>
               <p>The third table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -3062,7 +3501,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
@@ -3082,13 +3521,13 @@ PATIENTS holding data</p>
         </colgroup>
         <thead>
           <tr>
-            <th colspan="2" class=" align-center">
+            <th colspan="2" class="align-center">
               <b>Table 1</b>
               <p>The first table</p>
             </th>
           </tr>
           <tr>
-            <th class=" align-center">
+            <th class="align-center">
               <p>Mandation</p>
             </th>
             <th>
@@ -3098,7 +3537,7 @@ PATIENTS holding data</p>
         </thead>
         <tbody>
           <tr>
-            <td>
+            <td class="align-center">
               <p>M</p>
             </td>
             <td>
