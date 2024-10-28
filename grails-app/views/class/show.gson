@@ -9,6 +9,6 @@ inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryC
 json {
     if (nhsDDClass.isActivePage()) {
         attributes g.render(nhsDDClass.allAttributes().collect {new StereotypedCatalogueItem(it.catalogueItem, "attribute")})
-        relationships g.render(nhsDDClass.classRelationships.collect {new StereotypedClassRelationship(it)})
+        relationships g.render(nhsDDClass.allRelationships().collect {new StereotypedClassRelationship(it)})
     }
 }
