@@ -127,66 +127,6 @@ class NhsDDCode implements ChangeAware {
         }
     }
 
-    static StringWriter createCodesTableChangeHtml(String title, List<NhsDDCode> currentCodes, List<NhsDDCode> previousCodes) {
-        List<NhsDDCode> newCodes = ChangeFunctions.getDifferences(currentCodes, previousCodes)
-        List<NhsDDCode> removedCodes = ChangeFunctions.getDifferences(previousCodes, currentCodes)
-
-        if (newCodes.empty && removedCodes.empty) {
-            return null
-        }
-
-        StringWriter htmlWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(htmlWriter)
-
-        markupBuilder.div {
-            p {
-                b title
-            }
-            table(class: "codes-table") {
-                thead {
-                    markupBuilder.th(width: "20%") {
-                        mkp.yield("Code")
-                    }
-                    markupBuilder.th(width: "80%") {
-                        mkp.yield("Description")
-                    }
-                }
-                tbody {
-                    currentCodes.each { code ->
-                        if (newCodes.any { it.discriminator == code.discriminator }) {
-                            markupBuilder.tr {
-                                markupBuilder.td(class: "new") {
-                                    mkp.yield(code.code)
-                                }
-                                markupBuilder.td(class: "new") {
-                                    code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
-                                }
-                            }
-                        } else {
-                            markupBuilder.tr {
-                                td code.code
-                                td {
-                                    code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
-                                }
-                            }
-                        }
-                    }
-                    removedCodes.each { code ->
-                        markupBuilder.tr {
-                            markupBuilder.td(class: "deleted") {
-                                mkp.yield(code.code)
-                            }
-                            markupBuilder.td(class: "deleted") {
-                                code.webPresentation ? mkp.yieldUnescaped(code.webPresentation) : mkp.yield(code.definition)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        htmlWriter
-    }
 
     @Override
     String getDiscriminator() {

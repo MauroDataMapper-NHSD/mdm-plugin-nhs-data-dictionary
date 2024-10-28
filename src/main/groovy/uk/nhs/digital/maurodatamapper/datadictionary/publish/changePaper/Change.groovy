@@ -17,10 +17,6 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper
 
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
-
-import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionaryComponent
-
 class Change {
     static final String NEW_TYPE = "New"
     static final String RETIRED_TYPE = "Retired"
@@ -31,19 +27,5 @@ class Change {
     static final String ALIASES_TYPE = "Aliases"
     static final String NATIONAL_CODES_TYPE = "National Codes"
     static final String DEFAULT_CODES_TYPE = "Default Codes"
-    static final String FORMAT_LENGTH_TYPE = "Format / Length"
     static final String CHANGED_DATA_SET_TYPE = "Changed Data Set"
-    static final String SPECIFICATION_TYPE = "Specification"
-
-    String changeType
-    String stereotype
-
-    NhsDataDictionaryComponent oldItem
-    NhsDataDictionaryComponent newItem
-
-    String htmlDetail
-    DitaElement ditaDetail
-    boolean preferDitaDetail = false
-
-    Change() { }
 }

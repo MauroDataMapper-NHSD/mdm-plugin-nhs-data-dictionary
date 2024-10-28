@@ -145,15 +145,6 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         }
     }
 
-
-    String getFormatLengthHtml() {
-        if (otherProperties["formatLink"]) {
-            return """<a href='${otherProperties["formatLink"]}'>${otherProperties["formatLength"]}</a>"""
-        } else if (otherProperties["formatLength"]) {
-            return otherProperties["formatLength"]
-        } else return ""
-    }
-
     String getMauroPath() {
         if (isRetired()) {
             "dm:${NhsDataDictionary.CLASSES_MODEL_NAME}|dc:Retired|de:${name}"
@@ -169,79 +160,6 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         codes.each { code ->
             code.webPresentation = replaceLinksInString(code.webPresentation, pathLookup)
         }
-    }
-
-    @Deprecated
-    @Override
-    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
-        List<Change> changes = []
-
-        Change descriptionChange = createDescriptionChange(previousComponent)
-        if (descriptionChange) {
-            changes.add(descriptionChange)
-        }
-
-        if (isActivePage()) {
-            Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDAttribute)
-            if (nationalCodesChange) {
-                changes.add(nationalCodesChange)
-            }
-
-            Change aliasesChange = createAliasesChange(previousComponent)
-            if (aliasesChange) {
-                changes.add(aliasesChange)
-            }
-
-            Change linkedElementsChange = createLinkedElementsChange(previousComponent as NhsDDAttribute)
-            if (linkedElementsChange) {
-                changes.add(linkedElementsChange)
-            }
-        }
-
-        changes
-    }
-
-    Change createNationalCodesChange(NhsDDAttribute previousAttribute) {
-        List<NhsDDCode> currentCodes = this.getOrderedNationalCodes()
-        List<NhsDDCode> previousCodes = previousAttribute ? previousAttribute.getOrderedNationalCodes() : []
-
-        if (currentCodes.empty && previousCodes.empty) {
-            return null
-        }
-
-        if (ChangeFunctions.areEqual(currentCodes, previousCodes)) {
-            // Identical lists. If this is a new item, this will never be true so will always include a "Codes" change
-            return null
-        }
-
-        StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.NATIONAL_CODES_TYPE, currentCodes, previousCodes)
-
-        createChange(Change.NATIONAL_CODES_TYPE, previousAttribute, htmlWriter)
-    }
-
-    Change createLinkedElementsChange(NhsDDAttribute previousAttribute) {
-        List<NhsDDElement> currentElements = instantiatedByElements
-            .<NhsDDElement>findAll { element -> !element.isRetired() }
-            .sort { element -> element.name }
-
-        List<NhsDDElement> previousElements = previousAttribute
-            ? previousAttribute.instantiatedByElements
-                .<NhsDDElement>findAll { element -> !element.isRetired() }
-                .sort { element -> element.name }
-            : []
-
-        if (currentElements.empty && previousElements.empty) {
-            return null
-        }
-
-        if (ChangeFunctions.areEqual(currentElements, previousElements)) {
-            // Identical lists. If this is a new item, this will never be true so will always include a "Data Elements" change
-            return null
-        }
-
-        StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Data Elements", currentElements, previousElements)
-
-        createChange(Change.CHANGED_ELEMENTS_TYPE, previousAttribute, htmlWriter)
     }
 
     @Override
