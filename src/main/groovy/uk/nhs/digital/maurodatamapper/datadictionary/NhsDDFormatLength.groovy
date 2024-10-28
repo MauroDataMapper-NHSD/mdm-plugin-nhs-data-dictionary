@@ -74,47 +74,6 @@ class NhsDDFormatLength implements ChangeAware {
         return ""
     }
 
-    StringWriter getChangeHtml(NhsDDFormatLength previous) {
-        StringWriter htmlWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(htmlWriter)
-
-        markupBuilder.div(class: "format-length-detail") {
-            p {
-                b "Format / Length"
-            }
-            if (!this.equals(previous)) {
-                writeChangeHtml(markupBuilder, this, "new")
-                writeChangeHtml(markupBuilder, previous, "deleted")
-            }
-            else {
-                writeChangeHtml(markupBuilder, this)
-            }
-        }
-
-        htmlWriter
-    }
-
-    DitaElement getChangeDita(NhsDDFormatLength previous) {
-        Div.build {
-            p {
-                b "Format / Length"
-            }
-            if (!this.equals(previous)) {
-                if (!this.empty()) {
-                    p buildChangeDita(this, "new")
-                }
-                if (!previous.empty()) {
-                    p buildChangeDita(previous, "deleted")
-                }
-            }
-            else {
-                if (!this.empty()) {
-                    p buildChangeDita(this)
-                }
-            }
-        }
-    }
-
     static void writeChangeHtml(MarkupBuilder markupBuilder, NhsDDFormatLength formatLength, String outputClass = null) {
         if (!formatLength.empty()) {
             markupBuilder.p(class: outputClass) {

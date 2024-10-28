@@ -17,18 +17,14 @@
  */
 package uk.nhs.digital.maurodatamapper.datadictionary
 
-import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Div
-import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
-
-import groovy.xml.MarkupBuilder
-import groovy.xml.XmlUtil
 import uk.ac.ox.softeng.maurodatamapper.datamodel.item.DataElement
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.XRef
+import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
+import uk.ac.ox.softeng.maurodatamapper.dita.meta.DitaElement
 
 import groovy.util.logging.Slf4j
-import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
-
+import groovy.xml.XmlUtil
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeAware
 import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.ChangeFunctions
@@ -175,7 +171,6 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
 
     }
 
-    //final String regex = "<a[^>]*>[^<]*<\\/a> is the same as attribute\\W<a[^>]*>[^<]*<\\/a>\\s*\\."
     final String regex = "<a[^>]*>[^<]*</a>\\W+is\\s+the\\s+same\\s+as\\s+attribute\\W+<a[^>]*>[^<]*</a>\\s*\\."
 
     String getMauroPath() {
@@ -215,34 +210,6 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
             otherProperties["attributeText"] = replaceLinksInString(otherProperties["attributeText"], pathLookup)
         }
     }
-
-/*    @Override
-    String getDescription() {
-        if(dataDictionary && isRetired()) {
-            return dataDictionary.retiredItemText
-        } else if(dataDictionary && isPreparatory()) {
-            return dataDictionary.preparatoryItemText
-        } else {
-            if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
-                return otherProperties["attributeText"] + definition
-            } else {
-                if(instantiatesAttributes.size() == 1) {
-
-                    return "<p>" +
-                            "<a href=\"${getMauroPath()}\">" +
-                            getNameWithRetired() +
-                            "</a> is the same as attribute " +
-                            "<a href=\"${instantiatesAttributes[0].getMauroPath()}\"'>" +
-                            instantiatesAttributes[0].getNameWithRetired() +
-                            "</a>.</p>" +
-                            definition
-                } else {
-                    return definition
-                }
-            }
-        }
-    }
-*/
 
     String getAttributeTextAsHtml() {
         if (!isActivePage()) {
@@ -289,130 +256,6 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
                 }
             }
         }
-    }
-
-    @Deprecated
-    @Override
-    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
-        List<Change> changes = []
-
-        if (isActivePage()) {
-            Change formatLengthChange = createFormatLengthChange(previousComponent as NhsDDElement)
-            if (formatLengthChange) {
-                changes.add(formatLengthChange)
-            }
-        }
-
-        Change descriptionChange = createDescriptionChange(previousComponent)
-        if (descriptionChange) {
-            changes.add(descriptionChange)
-        }
-
-        if (isActivePage()) {
-            Change nationalCodesChange = createNationalCodesChange(previousComponent as NhsDDElement)
-            if (nationalCodesChange) {
-                changes.add(nationalCodesChange)
-            }
-
-            Change defaultCodesChange = createDefaultCodesChange(previousComponent as NhsDDElement)
-            if (defaultCodesChange) {
-                changes.add(defaultCodesChange)
-            }
-
-            Change aliasesChange = createAliasesChange(previousComponent)
-            if (aliasesChange) {
-                changes.add(aliasesChange)
-            }
-
-            Change linkedAttributesChange = createLinkedAttributesChange(previousComponent as NhsDDElement)
-            if (linkedAttributesChange) {
-                changes.add(linkedAttributesChange)
-            }
-        }
-
-        changes
-    }
-
-    Change createNationalCodesChange(NhsDDElement previousElement) {
-        List<NhsDDCode> currentCodes = this.getOrderedNationalCodes()
-        List<NhsDDCode> previousCodes = previousElement ? previousElement.getOrderedNationalCodes() : []
-
-        if (currentCodes.empty && previousCodes.empty) {
-            return null
-        }
-
-        if (ChangeFunctions.areEqual(currentCodes, previousCodes)) {
-            // Identical lists. If this is a new item, this will never be true so will always include a "Codes" change
-            return null
-        }
-
-        StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.NATIONAL_CODES_TYPE, currentCodes, previousCodes)
-
-        createChange(Change.NATIONAL_CODES_TYPE, previousElement, htmlWriter)
-    }
-
-    Change createDefaultCodesChange(NhsDDElement previousElement) {
-        List<NhsDDCode> currentCodes = this.getOrderedDefaultCodes()
-        List<NhsDDCode> previousCodes = previousElement ? previousElement.getOrderedDefaultCodes() : []
-
-        if (currentCodes.empty && previousCodes.empty) {
-            return null
-        }
-
-        if (ChangeFunctions.areEqual(currentCodes, previousCodes)) {
-            // Identical lists. If this is a new item, this will never be true so will always include a "Codes" change
-            return null
-        }
-
-        StringWriter htmlWriter = NhsDDCode.createCodesTableChangeHtml(Change.DEFAULT_CODES_TYPE, currentCodes, previousCodes)
-
-        createChange(Change.DEFAULT_CODES_TYPE, previousElement, htmlWriter)
-    }
-
-    Change createLinkedAttributesChange(NhsDDElement previousElement) {
-        List<NhsDDAttribute> currentAttributes = instantiatesAttributes
-            .findAll { attribute -> !attribute.isRetired() }
-            .sort { attribute -> attribute.name }
-
-        List<NhsDDAttribute> previousAttributes = previousElement
-            ? previousElement.instantiatesAttributes
-                .findAll { attribute -> !attribute.isRetired() }
-                .sort { attribute -> attribute.name }
-            : []
-
-        if (currentAttributes.empty && previousAttributes.empty) {
-            return null
-        }
-
-        if (ChangeFunctions.areEqual(currentAttributes, previousAttributes)) {
-            // Identical lists. If this is a new item, this will never be true so will always include an "Attributes" change
-            return null
-        }
-
-        StringWriter htmlWriter = ChangeFunctions.createUnorderedListHtml("Attributes", currentAttributes, previousAttributes)
-
-        createChange(Change.CHANGED_ATTRIBUTES_TYPE, previousElement, htmlWriter)
-    }
-
-    Change createFormatLengthChange(NhsDDElement previousElement) {
-        def currentFormatLength = new NhsDDFormatLength(this)
-        def previousFormatLength = previousElement ? new NhsDDFormatLength(previousElement) : NhsDDFormatLength.EMPTY
-
-        if (currentFormatLength.empty() && previousFormatLength.empty()) {
-            return null
-        }
-
-        boolean isNewItem = previousElement == null
-
-        if (!isNewItem && currentFormatLength.equals(previousFormatLength)) {
-            // Identical, nothing to show. If it's a new item though, always show this
-            return null
-        }
-
-        StringWriter htmlWriter = currentFormatLength.getChangeHtml(previousFormatLength)
-        DitaElement ditaElement = currentFormatLength.getChangeDita(previousFormatLength)
-
-        createChange(Change.FORMAT_LENGTH_TYPE, previousElement, htmlWriter, ditaElement, true)
     }
 
     @Override

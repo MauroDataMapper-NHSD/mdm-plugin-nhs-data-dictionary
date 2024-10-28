@@ -59,10 +59,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
 
     List<String> path = []
     String definitionAsXml
-    String overviewPageUrl
     String htmlStructure
-
-    boolean isCDS
 
     List<NhsDDDataSetClass> dataSetClasses = []
 
@@ -128,7 +125,6 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
     String getXmlNodeName() {
         "DDDataSet"
     }
-
 
 
     String getMauroPath() {
@@ -206,26 +202,6 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         }
     }
 
-
-    // This should be removed and use the publish model instead
-    @Deprecated
-    String getStructureAsHtml() {
-        if (this.dataSetClasses.empty) {
-            return ""
-        }
-
-        StringWriter stringWriter = new StringWriter()
-        MarkupBuilder markupBuilder = new MarkupBuilder(stringWriter)
-        markupBuilder.setEscapeAttributes(false)
-        markupBuilder.setDoubleQuotes(true)
-        if(useCdsClassRender()) {
-            new CDSDataSetToHtml(markupBuilder).outputAsCdsHtml(this)
-        } else {
-            new OtherDataSetToHtml(markupBuilder).outputAsHtml(this)
-        }
-        return stringWriter.toString().replaceAll(">\\s+<", "><").trim()
-    }
-
     List<String> getDitaFolderPath() {
         webPath.collect {
             it.replaceAll("[^A-Za-z0-9 ]", "").replace(" ", "_")
@@ -239,62 +215,6 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
             dataSetElements.addAll(dataSetClass.getAllElements())
         }
         return dataSetElements
-    }
-
-    @Deprecated
-    @Override
-    List<Change> getChanges(NhsDataDictionaryComponent previousComponent) {
-        List<Change> changes = []
-
-        Change descriptionChange = createDescriptionChange(previousComponent)
-        if (descriptionChange) {
-            changes.add(descriptionChange)
-        }
-
-        if (isActivePage()) {
-            Change specificationChange = createSpecificationChange(previousComponent as NhsDDDataSet)
-            if (specificationChange) {
-                changes.add(specificationChange)
-            }
-
-            Change aliasesChange = createAliasesChange(previousComponent)
-            if (aliasesChange) {
-                changes.add(aliasesChange)
-            }
-        }
-
-        changes
-    }
-
-    Change createSpecificationChange(NhsDDDataSet previousDataSet) {
-        String currentHtml = this.structureAsHtml
-        String previousHtml = previousDataSet?.structureAsHtml ?: ""
-
-        if (currentHtml == previousHtml) {
-            // Identical specs. If this is a new item, this will never be true so will always include a "Specification" change
-            return null
-        }
-
-        // TODO: show previous as well?
-        // Showing a full comparison of the data set spec is too complicated right now, just have to show the current specification
-        StringWriter htmlWriter = new StringWriter()
-        htmlWriter.write(currentHtml)
-
-        DitaElement ditaElement = this.createSpecificationChangeDita()
-
-        createChange(Change.SPECIFICATION_TYPE, previousDataSet, htmlWriter, ditaElement, true)
-    }
-
-    DitaElement createSpecificationChangeDita() {
-        Div.build {
-            getDataSetClasses().sort { it.webOrder }.each { dataSetClass ->
-                if (useCdsClassRender()) {
-                    div dataSetClass.outputCDSClassAsDita(dataDictionary)
-                } else {
-                    div dataSetClass.outputClassAsDita(dataDictionary)
-                }
-            }
-        }
     }
 
     boolean useCdsClassRender() {

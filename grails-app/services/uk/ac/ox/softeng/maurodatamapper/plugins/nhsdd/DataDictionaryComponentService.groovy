@@ -368,20 +368,22 @@ abstract class DataDictionaryComponentService<T extends MdmDomain & InformationA
         component.catalogueItemId = catalogueItem.id
         component.branchId = dataDictionary.containingVersionedFolder.id
 
-//        if(catalogueItem instanceof DataClass) {
-//            component.catalogueItemParentId = ((DataClass)catalogueItem).parentDataClass?.id?.toString()
-//            component.catalogueItemModelId = ((DataClass)catalogueItem).dataModel.id.toString()
-//        }
-//        if(catalogueItem instanceof DataElement) {
-//            component.catalogueItemParentId = ((DataElement)catalogueItem).dataClass?.id?.toString()
-//            component.catalogueItemModelId = ((DataElement)catalogueItem).dataClass?.dataModel?.id.toString()
-//        }
-//        if(catalogueItem instanceof DataModel) {
-//            component.catalogueItemModelId = catalogueItem.id.toString()
-//        }
-//        if(catalogueItem instanceof Term) {
-//            component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
-//        }
+        // This is not obvious, but these parent/model IDs are required in the GSON views for the integrity checks - they are used for the direct
+        // URLs to items in the Mauro UI
+        if(catalogueItem instanceof DataClass) {
+            component.catalogueItemParentId = ((DataClass)catalogueItem).parentDataClass?.id?.toString()
+            component.catalogueItemModelId = ((DataClass)catalogueItem).dataModel.id.toString()
+        }
+        if(catalogueItem instanceof DataElement) {
+            component.catalogueItemParentId = ((DataElement)catalogueItem).dataClass?.id?.toString()
+            component.catalogueItemModelId = ((DataElement)catalogueItem).dataClass?.dataModel?.id.toString()
+        }
+        if(catalogueItem instanceof DataModel) {
+            component.catalogueItemModelId = catalogueItem.id.toString()
+        }
+        if(catalogueItem instanceof Term) {
+            component.catalogueItemModelId = ((Term)catalogueItem).terminology.id.toString()
+        }
 
         if(!metadata) {
             if(component instanceof NhsDDElement) {
