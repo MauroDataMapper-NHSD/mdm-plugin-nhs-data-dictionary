@@ -118,9 +118,11 @@ class NhsDDClass implements NhsDataDictionaryComponent <DataClass> {
     }
 
     List<NhsDDClassRelationship> allRelationships() {
-        classRelationships.sort { a, b ->
-            b.isKey <=> a.isKey ?: a.targetClass.name.toLowerCase() <=> b.targetClass.name.toLowerCase()
-        }
+        classRelationships
+            .findAll { it.targetClass.itemState != DictionaryItemState.RETIRED }
+            .sort { a, b ->
+                b.isKey <=> a.isKey ?: a.targetClass.name.toLowerCase() <=> b.targetClass.name.toLowerCase()
+            }
     }
 
     String getMauroPath() {
