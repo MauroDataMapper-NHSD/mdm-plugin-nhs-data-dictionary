@@ -116,8 +116,8 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     void fromXml(def xml, NhsDataDictionary dataDictionary) {
-        if(xml.title.size() > 0 && xml.title.text()) {
-            this.name = xml.title[0].text().replace("_", " ")
+        if(xml.name.size() > 0 && xml.name.text()) {
+            this.name = xml.name[0].text().replace("_", " ")
         } else { // This should only apply for dataSetConstraints
             this.name = xml."class".name.text().replace("_", " ")
         }
