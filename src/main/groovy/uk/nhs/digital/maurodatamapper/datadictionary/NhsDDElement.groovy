@@ -154,6 +154,29 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
             }
 
         }
+        if(xml.DefaultCode.size() > 0 && !isRetired()) {
+            NhsDDAttribute linkedAttribute = instantiatesAttributes.find { !it.isRetired()}
+            if (!linkedAttribute) {
+                log.error("No suitable linked attribute found for element ${name}")
+            } else {
+                xml.DefaultCode.each {defaultCode ->
+
+                    NhsDDCode code = linkedAttribute.codes.find {it -> it.code == defaultCode.code}
+                    if (!code) {
+                        code = new NhsDDCode(
+                            isDefault: true,
+                            code: defaultCode.code.text(),
+                            definition: defaultCode.description.text(),
+                            webOrder: Integer.parseInt(defaultCode.webOrder.text() ?: ''),
+                            owningAttribute: linkedAttribute
+                        )
+                        linkedAttribute.codes.add(code)
+
+                    }
+                    codes.add(code)
+                }
+            }
+        }
 
         if(!isRetired()) {
             if (definition.find(regex)) {
