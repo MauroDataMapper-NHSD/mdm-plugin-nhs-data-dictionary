@@ -18,6 +18,7 @@
 package uk.ac.ox.softeng.maurodatamapper.plugins
 
 import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiProperty
+import uk.ac.ox.softeng.maurodatamapper.core.admin.ApiPropertyEnum
 import uk.ac.ox.softeng.maurodatamapper.core.bootstrap.StandardEmailAddress
 import uk.ac.ox.softeng.maurodatamapper.core.security.UserService
 import uk.ac.ox.softeng.maurodatamapper.plugins.nhsdd.NhsDataDictionaryInterceptor
@@ -54,6 +55,21 @@ class BootStrap {
                     GormUtils.checkAndSave(messageSource, apiProperty)
                 }
             }
+            String createRefinementLinksKey = ApiPropertyEnum.FEATURE_CREATE_REFINEMENT_LINKS_BETWEEN_VERSIONS.key
+
+            ApiProperty createRefinementLinksBetweenVersions = ApiProperty.findByKey(createRefinementLinksKey)
+
+            if(createRefinementLinksBetweenVersions && Boolean.getBoolean(createRefinementLinksBetweenVersions.value)) {
+                log.error("Api property '${createRefinementLinksKey}' must be false for Data Dictionary management")
+            } else if (!createRefinementLinksBetweenVersions) {
+                log.warn("Creating Api property: '${createRefinementLinksKey}'...")
+                createRefinementLinksBetweenVersions = new ApiProperty(key: createRefinementLinksKey, value: 'false',
+                                createdBy: BootStrapUser.instance.emailAddress,
+                                category: 'UI',
+                                publiclyVisible: true)
+                GormUtils.checkAndSave(messageSource, createRefinementLinksBetweenVersions)
+            }
+
 
             ApiProperty defaultProfile = ApiProperty.findByKey('ui.default.profile.namespace')
             if(!defaultProfile) {
