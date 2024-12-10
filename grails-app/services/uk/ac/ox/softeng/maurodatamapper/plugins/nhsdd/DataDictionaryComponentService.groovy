@@ -152,7 +152,7 @@ abstract class DataDictionaryComponentService<T extends MdmDomain & InformationA
             ) {
                 // ignore
             } else {
-                System.err.println(matcher.group(1))
+                //System.err.println(matcher.group(1))
                 try {
                     String[] path = matcher.group(1).split("\\|")
                     CatalogueItem foundCatalogueItem = getByPath(versionedFolder, path)
