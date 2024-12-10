@@ -58,6 +58,7 @@ class FhirCodeSystem implements FhirResource {
             description = attribute.getShortDescription()
             attribute.codes
                 .sort { it.code }
+                .sort {it.webOrder }
                 .each { attributeCode ->
                     FhirConcept concept = new FhirConcept().tap {
                         code = attributeCode.code

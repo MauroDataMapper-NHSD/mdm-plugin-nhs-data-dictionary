@@ -388,19 +388,23 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
     }
 
     List<NhsDDCode> getOrderedNationalCodes() {
-        List<NhsDDCode> orderedCodes = codes
-            .findAll { !it.isDefault }
-            .sort {it.webOrder }
-
-        return orderedCodes
+        List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }
+        if(codes.find { it.webOrder}) {
+            orderedCodes = orderedCodes.sort {it.webOrder }
+        } else {
+            orderedCodes = orderedCodes.sort {it.code}
+        }
+        orderedCodes
     }
 
     List<NhsDDCode> getOrderedDefaultCodes() {
-        List<NhsDDCode> orderedCodes = codes
-            .findAll { it.isDefault }
-            .sort {it.webOrder }
-
-        return orderedCodes
+        List<NhsDDCode> orderedCodes = codes.findAll { it.isDefault }
+        if(codes.find { it.webOrder}) {
+            orderedCodes = orderedCodes.sort {it.webOrder }
+        } else {
+            orderedCodes = orderedCodes.sort {it.code}
+        }
+        orderedCodes
     }
 
     Topic getNationalCodesTopic() {

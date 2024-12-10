@@ -7,7 +7,7 @@ model {
 inherits template:"/nhsDataDictionaryComponent/show", model: [nhsDataDictionaryComponent: nhsDDAttribute, stereotype: "attribute"]
 json {
     if (nhsDDAttribute.isActivePage()) {
-        nationalCodes g.render (nhsDDAttribute.codes.findAll { !it.isDefault}.sort{it.webOrder})
+        nationalCodes g.render (nhsDDAttribute.getOrderedNationalCodes())
         dataElements g.render(nhsDDAttribute.instantiatedByElements.collect {new StereotypedCatalogueItem(it.catalogueItem, "element")})
     }
 }

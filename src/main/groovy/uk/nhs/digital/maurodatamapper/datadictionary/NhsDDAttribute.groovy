@@ -241,10 +241,12 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
     }
 
     List<NhsDDCode> getOrderedNationalCodes() {
-        List<NhsDDCode> orderedCodes = codes
-            .findAll { !it.isDefault }
-            .sort {it.webOrder }
-
+        List<NhsDDCode> orderedCodes = codes.findAll { !it.isDefault }
+        if(codes.find { it.webOrder}) {
+            orderedCodes = orderedCodes.sort {it.webOrder }
+        } else {
+            orderedCodes = orderedCodes.sort {it.code}
+        }
         orderedCodes
     }
 
