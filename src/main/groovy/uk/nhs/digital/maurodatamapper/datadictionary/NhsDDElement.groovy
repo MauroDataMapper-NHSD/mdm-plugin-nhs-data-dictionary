@@ -161,12 +161,19 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
             } else {
                 xml.DefaultCode.each {defaultCode ->
 
-                    NhsDDCode code = linkedAttribute.codes.find {it -> it.code == defaultCode.code}
+                    NhsDDCode code = linkedAttribute.codes.find {it -> it.code == defaultCode.code.text()}
                     if (!code) {
+                        String definition = defaultCode.description.text()
+                        String webPresentation = ""
+                        if(definition.contains("&lt;")) {
+                            definition = defaultCode.code.text()
+                            webPresentation = NhsDDAttribute.unquoteString(defaultCode.description.text())
+                        }
                         code = new NhsDDCode(
                             isDefault: true,
                             code: defaultCode.code.text(),
-                            definition: defaultCode.description.text(),
+                            definition: definition,
+                            webPresentation: webPresentation,
                             webOrder: Integer.parseInt(defaultCode.webOrder.text() ?: ''),
                             owningAttribute: linkedAttribute
                         )
