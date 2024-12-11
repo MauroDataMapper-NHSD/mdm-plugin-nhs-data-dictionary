@@ -21,6 +21,7 @@ import uk.ac.ox.softeng.maurodatamapper.dita.DitaProject
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Section
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.Topic
 import uk.ac.ox.softeng.maurodatamapper.dita.elements.langref.base.TopicRef
+import uk.ac.ox.softeng.maurodatamapper.dita.enums.Scope
 import uk.ac.ox.softeng.maurodatamapper.dita.enums.Toc
 import uk.ac.ox.softeng.maurodatamapper.dita.helpers.HtmlHelper
 import uk.ac.ox.softeng.maurodatamapper.dita.meta.SpaceSeparatedStringList
@@ -59,7 +60,7 @@ class ChangePaperPdfUtility {
         if (previousDataDictionary) {
             previousDataDictionary.getAllComponents().each {it ->
                 if (!pathResolver.contains(it.getMauroPath())) {
-                    ditaProject.addExternalKey(it.getDitaKey(), it.getDataDictionaryUrl())
+                    ditaProject.addExternalKey(it.getDitaKey().toLowerCase(), it.getDataDictionaryUrl())
                 }
             }
         }
@@ -91,6 +92,20 @@ class ChangePaperPdfUtility {
                 toc Toc.YES
             })
         }
+
+        // There's probably a neater way to achieve this
+        changePaper.stereotypedChanges.each {
+            it.changedItems.each {changedItem ->
+                String key = changedItem.dictionaryComponent.getDitaKey().toLowerCase()
+                ditaProject.mainMap.keyDef {
+                    keys "${key}"
+                    href "changes.dita#${key}"
+                    scope Scope.LOCAL
+                    format "dita"
+                }
+            }
+        }
+
 
         String ditaOutputDirectory = outputPath.toString() + File.separator + "dita"
         ditaProject.writeToDirectory(Paths.get(ditaOutputDirectory))

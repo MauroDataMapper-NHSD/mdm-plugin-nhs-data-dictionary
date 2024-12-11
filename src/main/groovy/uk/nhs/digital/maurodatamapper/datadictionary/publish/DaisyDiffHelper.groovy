@@ -69,8 +69,6 @@ class DaisyDiffHelper {
         HtmlSaxDiffOutput output = new HtmlSaxDiffOutput(postProcess, prefix)
 
         HTMLDiffer differ = new HTMLDiffer(output)
-        System.err.println(leftComparator)
-        System.err.println(rightComparator)
         try{
             differ.diff(leftComparator, rightComparator)
         } catch(Exception e) {
