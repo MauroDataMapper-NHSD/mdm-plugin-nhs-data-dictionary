@@ -1,5 +1,19 @@
 [
   {
+    "sectionName": "Ordering",
+    "sectionDescription": "To order the table or table elements",
+    "fields": [
+      {
+        "fieldName": "Web Order",
+        "metadataPropertyName": "webOrder",
+        "description": "The order in which this item should appear on the website",
+        "minMultiplicity": 0,
+        "maxMultiplicity": 1,
+        "dataType": "int"
+      }
+    ]
+  },
+  {
     "sectionName": "Data Element usage properties",
     "sectionDescription": "Fields relating to the use of this Data Element within a Data Set",
     "fields": [

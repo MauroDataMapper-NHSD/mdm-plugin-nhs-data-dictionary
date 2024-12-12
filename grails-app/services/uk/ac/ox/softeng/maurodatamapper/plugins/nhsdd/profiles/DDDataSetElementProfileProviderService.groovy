@@ -23,15 +23,15 @@ import groovy.util.logging.Slf4j
 import uk.nhs.digital.maurodatamapper.datadictionary.NhsDataDictionary
 
 @Slf4j
-class DDDataSetTableProfileProviderService extends JsonProfileProviderService {
+class DDDataSetElementProfileProviderService extends JsonProfileProviderService {
     @Override
     String getMetadataNamespace() {
-        NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+        NhsDataDictionary.METADATA_DATASET_ELEMENT_NAMESPACE
     }
 
     @Override
     String getDisplayName() {
-        'NHS Data Dictionary - Data Set Table'
+        'NHS Data Dictionary - Data Set Element'
     }
 
     @Override
@@ -41,11 +41,11 @@ class DDDataSetTableProfileProviderService extends JsonProfileProviderService {
 
     @Override
     String getJsonResourceFile() {
-        return 'dataSetTableProfile.json'
+        return 'dataSetElementProfile.json'
     }
 
     @Override
     List<String> profileApplicableForDomains() {
-        return ['DataClass']
+        return ['DataElement']
     }
 }

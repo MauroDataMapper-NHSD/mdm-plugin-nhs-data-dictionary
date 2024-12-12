@@ -85,7 +85,7 @@ class NhsDDDataSetElement implements NhsDDDataSetComponent {
         }
 
 
-        mandation = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_MRO }?.value
+        mandation = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_MRO }?.value?.toUpperCase()?.subSequence(0,1)
         constraints = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES }?.value
         groupRepeats = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_GROUP_REPEATS }?.value
         rules = thisElementMetadata.find { it.key == NhsDataDictionary.DATASET_TABLE_KEY_RULES }?.value

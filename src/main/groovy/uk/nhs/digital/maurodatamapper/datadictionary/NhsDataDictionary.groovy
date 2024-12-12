@@ -39,6 +39,7 @@ class NhsDataDictionary {
 
     static final String METADATA_NAMESPACE = "uk.nhs.datadictionary"
     static final String METADATA_DATASET_TABLE_NAMESPACE = METADATA_NAMESPACE + ".dataset.table"
+    static final String METADATA_DATASET_ELEMENT_NAMESPACE = METADATA_NAMESPACE + ".dataset.element"
     static final String DEFAULT_PROFILE_NAMESPACE = "default.profile"
 
     static final String FOLDER_NAME = "NHS Data Dictionary"
@@ -49,13 +50,13 @@ class NhsDataDictionary {
     static final String SUPPORTING_DEFINITIONS_TERMINOLOGY_NAME = "Supporting Information"
     static final String DATA_SET_CONSTRAINTS_TERMINOLOGY_NAME = "Data Set Constraints"
 
-    // The following keys are used in DataSetParser and NhsDDDataSetClass and
-    // must match the property names used in the dataSetTableProfile.
+    // The following keys are used in DataSetParser and NhsDDDataSetClass and NhsDDDataSetElement and
+    // must match the property names used in the dataSetTableProfile and dataSetElementProfile.
     static final String DATASET_TABLE_KEY_WEB_ORDER = "webOrder"
-    static final String DATASET_TABLE_KEY_MRO = "mro"
+    static final String DATASET_TABLE_KEY_MRO = "mandation"
     static final String DATASET_TABLE_KEY_GROUP_REPEATS = "groupRepeats"
     static final String DATASET_TABLE_KEY_RULES = "rules"
-    static final String DATASET_TABLE_KEY_MULTIPLICITY_TEXT = "multiplicityText"
+    static final String DATASET_TABLE_KEY_MULTIPLICITY_TEXT = "multiplicity"
     static final String DATASET_TABLE_KEY_CHOICE = "choice"
     static final String DATASET_TABLE_KEY_AND = "and"
     static final String DATASET_TABLE_KEY_INCLUSIVE_OR = "inclusiveOr"
