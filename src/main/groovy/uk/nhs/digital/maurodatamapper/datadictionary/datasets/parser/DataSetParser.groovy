@@ -265,7 +265,7 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+            item.addToMetadata(new Metadata(namespace: getDataSetNamespace(item),
                         key: NhsDataDictionary.DATASET_TABLE_KEY_WEB_ORDER, value: order.toString()))
         }
     }
@@ -278,7 +278,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                              key: NhsDataDictionary.DATASET_TABLE_KEY_CHOICE, value: "true"))
         }
     }
@@ -292,7 +292,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                              key: NhsDataDictionary.DATASET_TABLE_KEY_AND, value: "true"))
         }
     }
@@ -306,7 +306,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                      key: NhsDataDictionary.DATASET_TABLE_KEY_ADDRESS_CHOICE, value: "true"))
         }
     }
@@ -319,7 +319,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                              key: NhsDataDictionary.DATASET_TABLE_KEY_NAME_CHOICE, value: "true"))
         }
     }
@@ -333,7 +333,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                              key: NhsDataDictionary.DATASET_TABLE_KEY_INCLUSIVE_OR, value: "true"))
         }
     }
@@ -346,14 +346,14 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                      key: NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE, value: "true"))
         }
     }
 
     static boolean isDataSetReference(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+            (it.namespace == getDataSetNamespace(item)
                 && it.key == NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE
                 && it.value == "true")
         }
@@ -368,7 +368,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                      key: NhsDataDictionary.DATASET_TABLE_KEY_DATA_SET_REFERENCE_TO, value: dataSetName))
         }
     }
@@ -387,7 +387,7 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                     key: NhsDataDictionary.DATASET_TABLE_KEY_MULTIPLICITY_TEXT,
                      value: parsePossibleParagraphs(multiplicity)))
         }
@@ -405,9 +405,25 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
-                     key: NhsDataDictionary.DATASET_TABLE_KEY_MRO, value: parsePossibleParagraphs(mro)))
+                new Metadata(namespace: getDataSetNamespace(item),
+                     key: NhsDataDictionary.DATASET_TABLE_KEY_MRO, value: mandationFromMRO(parsePossibleParagraphs(mro))))
         }
+    }
+
+    static String mandationFromMRO(String mro) {
+        switch (mro.trim().toLowerCase()) {
+            case 'm':
+                return 'Mandatory'
+            case 'r':
+                return 'Required'
+            case 'o':
+                return 'Optional'
+            case 'p':
+                return 'Pilot'
+            default:
+                return ''
+        }
+
     }
 
     static String getMRO(MetadataAware item) {
@@ -425,7 +441,7 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+            item.addToMetadata(new Metadata(namespace: getDataSetNamespace(item),
                     key: NhsDataDictionary.DATASET_TABLE_KEY_RULES, value: parsePossibleParagraphs(rules)))
         }
     }
@@ -441,7 +457,7 @@ class DataSetParser {
         if(item instanceof DataElement && ((DataElement)item).importingDataClasses != null) {
             // Do nothing yet
         } else {
-            item.addToMetadata(new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+            item.addToMetadata(new Metadata(namespace: getDataSetNamespace(item),
                     key: NhsDataDictionary.DATASET_TABLE_KEY_GROUP_REPEATS,
                     value: parsePossibleParagraphs(groupRepeats)))
         }
@@ -460,14 +476,14 @@ class DataSetParser {
             // Do nothing yet
         } else {
             item.addToMetadata(
-                new Metadata(namespace: NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE,
+                new Metadata(namespace: getDataSetNamespace(item),
                      key: NhsDataDictionary.DATASET_TABLE_KEY_NOT_OPTION, value: "true"))
         }
     }
 
     static boolean isChoice(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+            (it.namespace == getDataSetNamespace(item)
                 && it.key == NhsDataDictionary.DATASET_TABLE_KEY_CHOICE
                 && it.value == "true")
         }
@@ -475,7 +491,7 @@ class DataSetParser {
 
     static boolean isAnd(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+            (it.namespace == getDataSetNamespace(item)
                 && it.key == NhsDataDictionary.DATASET_TABLE_KEY_AND
                 && it.value == "true")
         }
@@ -483,7 +499,7 @@ class DataSetParser {
 
     static boolean isInclusiveOr(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+            (it.namespace == getDataSetNamespace(item)
                 && it.key == "Inclusive"
                 && it.value == "true")
         }
@@ -491,7 +507,7 @@ class DataSetParser {
 
     static boolean isAddress(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+            (it.namespace == getDataSetNamespace(item)
                 && it.key == NhsDataDictionary.DATASET_TABLE_KEY_ADDRESS_CHOICE
                 && it.value == "true")
         }
@@ -499,7 +515,7 @@ class DataSetParser {
 
     static boolean isNotOption(MetadataAware item) {
         item.metadata.find {
-            (it.namespace == NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+            (it.namespace == getDataSetNamespace(item)
                 && it.key == NhsDataDictionary.DATASET_TABLE_KEY_NOT_OPTION
                 && it.value == "true")
         }
@@ -927,6 +943,14 @@ class DataSetParser {
             output += p.text()
         }
         return output
+    }
+
+    static String getDataSetNamespace(MetadataAware item) {
+        if(item instanceof DataElement) {
+            return NhsDataDictionary.METADATA_DATASET_ELEMENT_NAMESPACE
+        } else {
+            return NhsDataDictionary.METADATA_DATASET_TABLE_NAMESPACE
+        }
     }
 
 

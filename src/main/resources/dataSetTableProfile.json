@@ -18,13 +18,13 @@
     "sectionDescription": "Values",
     "fields": [
       {
-        "fieldName": "MRO",
-        "metadataPropertyName": "mro",
+        "fieldName": "Mandation",
+        "metadataPropertyName": "mandation",
         "description": "Define the mandation of a table element",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
         "dataType": "enumeration",
-        "allowedValues": ["M", "R", "O"]
+        "allowedValues": ["Mandatory", "Required", "Optional", "Pilot"]
       },
       {
         "fieldName": "Group repeats",
@@ -44,7 +44,7 @@
       },
       {
         "fieldName": "Multiplicity text",
-        "metadataPropertyName": "multiplicityText",
+        "metadataPropertyName": "multiplicity",
         "description": "Multiplicity text",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
