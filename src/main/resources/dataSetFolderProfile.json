@@ -141,7 +141,8 @@
         "maxMultiplicity": 1,
         "dataType": "enumeration",
         "allowedValues": [
-          "Data Assurance Board (DAB)"
+          "Data Assurance Board (DAB)",
+          "Data Alliance Partnership Board (DAPB)"
         ],
         "defaultValue": "Data Assurance Board (DAB)"
       }
