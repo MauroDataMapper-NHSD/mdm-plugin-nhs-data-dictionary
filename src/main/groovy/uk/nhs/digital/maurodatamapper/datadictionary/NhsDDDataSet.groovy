@@ -83,7 +83,7 @@ class NhsDDDataSet implements NhsDataDictionaryComponent <DataModel> {
         path = getWebPath()
         path.removeLast()
         definitionAsXml = XmlUtil.serialize(xml.definition[0])
-        otherProperties["approvingOrganisation"] = "Data Alliance Partnership Board (DAPB)"
+        otherProperties["approvingOrganisation"] = "Data Assurance Board (DAB)"
     }
 
     @Override
