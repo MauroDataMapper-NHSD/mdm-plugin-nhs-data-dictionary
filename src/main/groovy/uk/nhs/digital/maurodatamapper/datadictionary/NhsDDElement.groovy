@@ -92,10 +92,11 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
                 List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll { !it.isRetired() }
                 String firstSentence = getFirstSentence()
                 boolean missingDescription = isEmptyDescription()
-                if (missingDescription && otherProperties["attributeText"]) {
+                /*if (missingDescription && otherProperties["attributeText"]) {
                     return getSentence(otherProperties["attributeText"], 0)
                 }
-                else if (missingDescription && activeAttributes.size() == 1) {
+                else */
+                if (missingDescription && activeAttributes.size() == 1) {
                     return activeAttributes[0].getShortDescription()
                 }
                 else if (firstSentence && firstSentence.toLowerCase().contains("is the same as") && activeAttributes.size() == 1) {
@@ -179,6 +180,15 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
                         )
                         linkedAttribute.codes.add(code)
 
+                    } else {
+                        if((!code.webPresentation && code.definition != defaultCode.description.text()) || (code.webPresentation && code.webPresentation != defaultCode.description.text()))
+                        {
+                            System.err.println("Invalid default code!")
+                            System.err.println("Element: ${name}")
+                            System.err.println("Code: ${defaultCode.code.text()} - ${defaultCode.description.text()}")
+                            System.err.println("Attribute: ${linkedAttribute.name}")
+                            System.err.println("Code: ${code.code} - ${code.definition}")
+                        }
                     }
                     codes.add(code)
                 }
@@ -188,13 +198,14 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         if(!isRetired()) {
             if (definition.find(regex)) {
                 definition = definition.replaceFirst(regex, "").trim()
+                otherProperties["suppressFirstSentence"] = 'false'
             } else {
-                Node definitionXml = HtmlHelper.tidyAndConvertToNode("<p>" + definition + "<p>")
-                Node firstParagraph = definitionXml.children().find{it instanceof Node && it.name() == 'p'}
-                firstParagraph.parent().remove(firstParagraph)
-
-                otherProperties["attributeText"] = XmlUtil.serialize(firstParagraph).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
-                definition = XmlUtil.serialize(definitionXml).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
+                //Node definitionXml = HtmlHelper.tidyAndConvertToNode("<p>" + definition + "<p>")
+                //Node firstParagraph = definitionXml.children().find{it instanceof Node && it.name() == 'p'}
+                //firstParagraph.parent().remove(firstParagraph)
+                otherProperties["suppressFirstSentence"] = 'true'
+                //otherProperties["attributeText"] = XmlUtil.serialize(firstParagraph).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
+                //definition = XmlUtil.serialize(definitionXml).replaceFirst("<\\?xml version=\"1.0\".*\\?>", "")
 
             }
         }
@@ -236,23 +247,27 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         if(otherProperties["formatLink"] && pathLookup[otherProperties["formatLink"]]) {
             formatLinkXref = pathLookup[otherProperties["formatLink"]].calculateXRef()
         }
+        /*
         if(otherProperties["attributeText"] && otherProperties["attributeText"] != "") {
             otherProperties["attributeText"] = replaceLinksInString(otherProperties["attributeText"], pathLookup)
         }
+        */
     }
 
     String getAttributeTextAsHtml() {
         if (!isActivePage()) {
             return null
         }
-
+        /*
         if (otherProperties["attributeText"]) {
             return otherProperties["attributeText"]
         }
-
+        */
         List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
-        if (activeAttributes.size() == 1) {
+        if (activeAttributes.size() == 1 && otherProperties["suppressFirstSentence"] != 'true') {
             NhsDDAttribute attribute = activeAttributes[0]
+            System.err.println(attribute.name)
+            System.err.println(attribute.getMauroPath())
             return "<a href=\"${this.getMauroPath()}\">${this.name}</a> is the same as attribute <a href=\"${attribute.getMauroPath()}\">${attribute.name}</a>."
         }
 
@@ -264,19 +279,14 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         Topic.build (id: getDitaKey() + "_description") {
             title "Description"
             body {
-                if (isActivePage()) {
-                    if (otherProperties["attributeText"]) {
-                        div HtmlHelper.replaceHtmlWithDita(otherProperties["attributeText"])
-                    }
-                    else {
-                        List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
-                        if (activeAttributes.size() == 1) {
-                            p {
-                                xRef this.calculateXRef()
-                                text " is the same as attribute "
-                                xRef activeAttributes[0].calculateXRef()
-                                text "."
-                            }
+                if (isActivePage() && otherProperties["suppressFirstSentence"] != 'true') {
+                    List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
+                    if (activeAttributes.size() == 1) {
+                        p {
+                            xRef this.calculateXRef()
+                            text " is the same as attribute "
+                            xRef activeAttributes[0].calculateXRef()
+                            text "."
                         }
                     }
                 }

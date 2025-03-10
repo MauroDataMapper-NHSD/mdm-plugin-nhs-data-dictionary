@@ -72,12 +72,12 @@
     "sectionDescription": "The attributes that this element instantiates",
     "fields": [
       {
-        "fieldName": "Attribute Text",
-        "metadataPropertyName": "attributeText",
-        "description": "Override the default-generated description text to explain which attributes are instantiated by this element",
+        "fieldName": "Suppress default first sentence",
+        "metadataPropertyName": "suppressFirstSentence",
+        "description": "Select this to disable the generation of the default first sentence 'X is the same as attribute Y'.",
         "minMultiplicity": 0,
         "maxMultiplicity": 1,
-        "dataType": "text"
+        "dataType": "boolean"
       }
     ]
   },

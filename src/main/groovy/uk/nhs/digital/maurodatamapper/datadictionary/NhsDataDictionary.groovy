@@ -328,9 +328,9 @@ class NhsDataDictionary {
                 if(formatLink && replacements[formatLink]) {
                     ((NhsDDElement)component).otherProperties["formatLink"] = replacements[formatLink]
                 }
-                if(component.otherProperties["attributeText"] && component.otherProperties["attributeText"] != "") {
-                    component.otherProperties["attributeText"] = replaceUrls(component.otherProperties["attributeText"], replacements, unmatchedUrls, component.name)
-                }
+//                if(component.otherProperties["attributeText"] && component.otherProperties["attributeText"] != "") {
+//                    component.otherProperties["attributeText"] = replaceUrls(component.otherProperties["attributeText"], replacements, unmatchedUrls, component.name)
+//                }
 
             }
             if(component instanceof NhsDDAttribute) {
@@ -402,7 +402,7 @@ class NhsDataDictionary {
 
         // These fields are not part of the original ingest from xml but calculated subsequently.
         // Another approach would be to enumerate all the profile definitions from this plugin and list all their keys
-        allKeys.addAll(["shortDescription","overview","linkedAttributes","noAliasesRequired","approvingOrganisation", "attributeText"])
+        allKeys.addAll(["shortDescription","overview","linkedAttributes","noAliasesRequired","approvingOrganisation", "suppressFirstSentence"])
         allKeys.removeAll(KEYS_FOR_INGEST_ONLY)
         return allKeys
     }
