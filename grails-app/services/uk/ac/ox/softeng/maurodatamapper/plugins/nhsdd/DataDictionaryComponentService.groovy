@@ -221,7 +221,12 @@ abstract class DataDictionaryComponentService<T extends MdmDomain & InformationA
                 return dc2
             } else {
                 DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, path[1].replace("dc:", ""))
-                return dc1
+                if(path[2] && path[2].startsWith("de")) {
+                    DataElement de = dataElementService.findByParentAndLabel(dc1, path[2].replace("de:", ""))
+                    return de
+                } else {
+                    return dc1
+                }
             }
         } else if (path[0] == "dm:${NhsDataDictionary.ELEMENTS_MODEL_NAME}") {
             DataModel dm = dataModelService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.ELEMENTS_MODEL_NAME)
