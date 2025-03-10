@@ -278,11 +278,12 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
         instantiatedByElements.each { NhsDDElement element ->
             whereUsed[element] = "is the data element of $name".toString()
         }
-        dataDictionary.classes.values().each {clazz ->
-            if(clazz.allAttributes().contains(this)) {
-                whereUsed[clazz] = "has an attribute $name of type $name".toString()
-            }
-        }
+
+        whereUsed[this.parentClass] = "has an attribute $name of type $name".toString()
+//        dataDictionary.classes.values().each {clazz ->
+//            if(clazz.allAttributes().contains(this)) {
+//            }
+//        }
     }
 
     @Override
