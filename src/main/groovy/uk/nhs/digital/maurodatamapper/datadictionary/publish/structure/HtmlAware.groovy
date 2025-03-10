@@ -58,4 +58,6 @@ class HtmlConstants {
     static final CSS_DIFF_DELETED = "deleted"
 
     static final CSS_HTML_ALIGN_CENTER = "align-center"
+
+    static final CSS_INFO_MESSAGE_PARAGRAPH = "info-message"
 }

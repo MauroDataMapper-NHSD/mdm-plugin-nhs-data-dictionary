@@ -722,6 +722,45 @@ class NhsBusinessDefinitionStructureSpec extends DataDictionaryComponentStructur
         }
     }
 
+    void "should produce a diff for an updated item description with complex HTML to change paper dita"() {
+        given: "the publish structures are built"
+        activeItem.definition = "The current description include a <table></table>"
+        DictionaryItem previousStructure = previousItemDescriptionChange.getPublishStructure()
+        DictionaryItem currentStructure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        Topic dita = diff.generateDita(changePaperDitaPublishContext)
+        verifyAll {
+            dita
+        }
+
+        then: "the expected output is published"
+        String ditaXml = dita.toXmlString()
+        verifyAll {
+            ditaXml == """<topic id='nhs_business_definition_baby_first_feed'>
+  <title>
+    <text>Baby First Feed</text>
+  </title>
+  <shortdesc>Change to NHS Business Definition: Updated description</shortdesc>
+  <body>
+    <div>
+      <p outputclass='info-message'>Unable to show the changes between the Change Request and the NHS Data Model and Dictionary. These are the changes made in the Change Request.</p>
+      <div>The current description include a 
+</div>
+    </div>
+  </body>
+</topic>"""
+        }
+    }
+
     void "should produce a diff for an updated item aliases to change paper dita"() {
         given: "the publish structures are built"
         DictionaryItem previousStructure = previousItemAliasesChange.getPublishStructure()
@@ -974,6 +1013,40 @@ class NhsBusinessDefinitionStructureSpec extends DataDictionaryComponentStructur
   <div>
     <div>
       <p>The <span class="diff-html-removed" id="removed-diff-0" previous="first-diff" changeId="removed-diff-0" next="added-diff-0">previous </span><span class="diff-html-added" id="added-diff-0" previous="removed-diff-0" changeId="added-diff-0" next="last-diff">current </span>description</p>
+    </div>
+  </div>
+</div>"""
+        }
+    }
+
+    void "should produce a diff for an updated item description with complex HTML to change paper html"() {
+        given: "the publish structures are built"
+        activeItem.definition = "The current description including a <table></table>"
+
+        DictionaryItem previousStructure = previousItemDescriptionChange.getPublishStructure()
+        DictionaryItem currentStructure = activeItem.getPublishStructure()
+
+        when: "a diff is produced against the previous item"
+        DictionaryItem diff = currentStructure.produceDiff(previousStructure)
+
+        then: "a diff exists"
+        verifyAll {
+            diff
+        }
+
+        when: "the diff structure is converted to dita"
+        String html = diff.generateHtml(changePaperHtmlPublishContext)
+
+        then: "the expected output is published"
+        verifyAll {
+            html
+            html == """<div>
+  <h3>Baby First Feed</h3>
+  <h4>Change to NHS Business Definition: Updated description</h4>
+  <div>
+    <div>
+      <p class="info-message">Unable to show the changes between the Change Request and the NHS Data Model and Dictionary. These are the changes made in the Change Request.</p>
+      <p>The current description including a <table class="table-striped" class="table-striped"></table></p>
     </div>
   </div>
 </div>"""
