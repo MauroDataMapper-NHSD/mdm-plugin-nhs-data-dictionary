@@ -33,12 +33,15 @@ import uk.nhs.digital.maurodatamapper.datadictionary.publish.changePaper.Change
 class DescriptionSection extends Section {
     final String text
     final DiffStatus diffStatus
+    final boolean includesComparison
+
+    private static final CANNOT_COMPARE_TEXT = "Unable to show the changes between the Change Request and the NHS Data Model and Dictionary. These are the changes made in the Change Request."
 
     DescriptionSection(DictionaryItem parent, String text) {
-        this(parent, "Description", text, DiffStatus.NONE)
+        this(parent, "Description", text, DiffStatus.NONE, false)
     }
 
-    DescriptionSection(DictionaryItem parent, String title, String text, DiffStatus diffStatus) {
+    DescriptionSection(DictionaryItem parent, String title, String text, DiffStatus diffStatus, boolean includesComparison) {
         super(parent, "description", title)
 
         this.text = text
@@ -46,6 +49,7 @@ class DescriptionSection extends Section {
             : ""
 
         this.diffStatus = diffStatus
+        this.includesComparison = includesComparison
     }
 
     @Override
@@ -54,7 +58,7 @@ class DescriptionSection extends Section {
         boolean isNewItem = previousSection == null
 
         if (isNewItem) {
-            return new DescriptionSection(this.parent, Change.NEW_TYPE, this.text, DiffStatus.NEW)
+            return new DescriptionSection(this.parent, Change.NEW_TYPE, this.text, DiffStatus.NEW, false)
         }
 
         // To get accurate description comparison, we have to load all strings as HTML Dom trees and compare them. A simple
@@ -87,7 +91,7 @@ class DescriptionSection extends Section {
             ? Change.RETIRED_TYPE
             : Change.UPDATED_DESCRIPTION_TYPE
 
-        new DescriptionSection(this.parent, changeType, diffHtml, DiffStatus.MODIFIED)
+        new DescriptionSection(this.parent, changeType, diffHtml, DiffStatus.MODIFIED, canDiffContent)
     }
 
     @Override
@@ -95,6 +99,12 @@ class DescriptionSection extends Section {
         String modifiedText = context.replaceLinksInString(text)
 
         Body.build() {
+            if (this.diffStatus == DiffStatus.MODIFIED && !this.includesComparison) {
+                p(outputClass: HtmlConstants.CSS_INFO_MESSAGE_PARAGRAPH) {
+                    txt CANNOT_COMPARE_TEXT
+                }
+            }
+
             div HtmlHelper.replaceHtmlWithDita(modifiedText)
         }
     }
@@ -105,6 +115,12 @@ class DescriptionSection extends Section {
 
         String outputClass = PublishHelper.getDiffCssClass(diffStatus)
         Div.build(outputClass: outputClass) {
+            if (this.diffStatus == DiffStatus.MODIFIED && !this.includesComparison) {
+                p(outputClass: HtmlConstants.CSS_INFO_MESSAGE_PARAGRAPH) {
+                    txt CANNOT_COMPARE_TEXT
+                }
+            }
+
             div HtmlHelper.replaceHtmlWithDita(modifiedText)
         }
     }
@@ -117,6 +133,12 @@ class DescriptionSection extends Section {
         String paragraphOutputClass = context.target == PublishTarget.WEBSITE ? HtmlConstants.CSS_TOPIC_PARAGRAPH : null
 
         builder.div(class: PublishHelper.combineCssClassWithDiffStatus(sectionOutputClass, this.diffStatus)) {
+            if (this.diffStatus == DiffStatus.MODIFIED && !this.includesComparison) {
+                builder.p(class: HtmlConstants.CSS_INFO_MESSAGE_PARAGRAPH) {
+                    mkp.yield(CANNOT_COMPARE_TEXT)
+                }
+            }
+
             // TODO: prefix sentence - for Element page type (X is the same as Y)
             builder.p(class: paragraphOutputClass) {
                 mkp.yieldUnescaped(modifiedText)
