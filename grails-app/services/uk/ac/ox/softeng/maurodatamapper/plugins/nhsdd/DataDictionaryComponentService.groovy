@@ -123,10 +123,10 @@ abstract class DataDictionaryComponentService<T extends MdmDomain & InformationA
 
         dataDictionary.allComponents.each {component ->
             component.replaceLinksInDefinition(pathLookup)
-            component.updateWhereUsed()
         }
 
         NhsDataDictionaryComponent component = getByCatalogueItemId(UUID.fromString(id), dataDictionary)
+        component.updateWhereUsed()
         component.whereUsed
             .findAll { !it.key.isRetired() }
             .sort { it.key.name }
@@ -221,7 +221,7 @@ abstract class DataDictionaryComponentService<T extends MdmDomain & InformationA
                 return dc2
             } else {
                 DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, path[1].replace("dc:", ""))
-                if(path[2] && path[2].startsWith("de")) {
+                if(path.length > 2 && path[2].startsWith("de")) {
                     DataElement de = dataElementService.findByParentAndLabel(dc1, path[2].replace("de:", ""))
                     return de
                 } else {

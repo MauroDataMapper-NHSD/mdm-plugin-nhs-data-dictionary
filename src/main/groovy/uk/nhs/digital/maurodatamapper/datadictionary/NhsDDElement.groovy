@@ -266,8 +266,8 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
         List<NhsDDAttribute> activeAttributes = instantiatesAttributes.findAll {!it.isRetired() }
         if (activeAttributes.size() == 1 && otherProperties["suppressFirstSentence"] != 'true') {
             NhsDDAttribute attribute = activeAttributes[0]
-            System.err.println(attribute.name)
-            System.err.println(attribute.getMauroPath())
+            //System.err.println(attribute.name)
+            //System.err.println(attribute.getMauroPath())
             return "<a href=\"${this.getMauroPath()}\">${this.name}</a> is the same as attribute <a href=\"${attribute.getMauroPath()}\">${attribute.name}</a>."
         }
 
