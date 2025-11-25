@@ -209,7 +209,8 @@ class ElementService extends DataDictionaryComponentService<DataElement, NhsDDEl
     NhsDDElement getNhsDataDictionaryComponentFromCatalogueItem(DataElement catalogueItem, NhsDataDictionary dataDictionary, List<Metadata> metadata = null) {
         NhsDDElement element = new NhsDDElement()
         nhsDataDictionaryComponentFromItem(dataDictionary, catalogueItem, element, metadata)
-        catalogueItem.semanticLinks.each {
+        List<SemanticLink> allLinks = SemanticLink.byMultiFacetAwareItemId(catalogueItem.id).list()
+        allLinks.each {
             if(it.linkType == SemanticLinkType.REFINES) {
                 NhsDDAttribute linkedAttribute = dataDictionary.attributesByCatalogueId[it.targetMultiFacetAwareItemId]
                 if(linkedAttribute) {

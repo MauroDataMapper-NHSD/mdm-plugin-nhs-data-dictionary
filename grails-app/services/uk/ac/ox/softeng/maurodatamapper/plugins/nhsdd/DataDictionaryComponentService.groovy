@@ -217,7 +217,7 @@ abstract class DataDictionaryComponentService<T extends MdmDomain & InformationA
             DataModel dm = dataModelService.findByFolderIdAndLabel(versionedFolder.id, NhsDataDictionary.CLASSES_MODEL_NAME)
             if (path[1] == "dc:Retired") {
                 DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, "Retired")
-                DataClass dc2 = dataClassService.findByParentAndLabel(dc2, path[2].replace("dc:", ""))
+                DataClass dc2 = dataClassService.findByParentAndLabel(dc1, path[2].replace("dc:", ""))
                 return dc2
             } else {
                 DataClass dc1 = dataClassService.findByDataModelIdAndLabel(dm.id, path[1].replace("dc:", ""))

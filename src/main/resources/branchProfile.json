@@ -10,7 +10,7 @@
         "minMultiplicity": 1,
         "maxMultiplicity": 1,
         "dataType": "enumeration",
-        "values"
+        "values": []
       },
       {
         "fieldName": "Retired date",

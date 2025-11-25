@@ -33,7 +33,7 @@ dependencies {
     // Daisy Diff and transitive dependencies.  Used in the generation of change requests
     implementation group: 'org.outerj.daisy', name: 'daisydiff', version: '1.2.3-atlassian-hosted'
 
-    implementation 'org.cyberneko:html:1.9.8'
+    implementation 'net.sourceforge.nekohtml:nekohtml:1.9.22'
     implementation 'xerces:xercesImpl:2.12.0'
     implementation "xml-apis:xml-apis:1.4.01"
 

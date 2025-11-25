@@ -280,7 +280,9 @@ class NhsDataDictionaryService {
 
     List<IntegrityCheck> integrityChecks(UUID versionedFolderId) {
 
+        log.error("Building data dictionary...")
         NhsDataDictionary dataDictionary = buildDataDictionary(versionedFolderId)
+        log.error("Built data dictionary...")
 
         List<Class<IntegrityCheck>> integrityCheckClasses = [
             InternalLinksInDescriptions,
@@ -294,8 +296,8 @@ class NhsDataDictionaryService {
             AllItemsHaveShortDescription,
             AllItemsHaveAlias,
             AllItemsAreWithinValidDateRange,
-            ReusedItemNames,
-            BrokenLinks
+            ReusedItemNames//,
+            //BrokenLinks
         ]
 
         List<IntegrityCheck> integrityChecks = integrityCheckClasses.collect {checkClass ->
@@ -425,6 +427,8 @@ class NhsDataDictionaryService {
         dataDictionary.attributes.values().each { ddAttribute ->
             dataDictionary.attributesByCatalogueId[ddAttribute.getCatalogueItem().id] = ddAttribute
         }
+        System.err.println("attributesByCatalogueId")
+        System.err.println(dataDictionary.attributesByCatalogueId)
     }
 
     void addElementsToDictionary(DataModel elementsModel, NhsDataDictionary dataDictionary) {

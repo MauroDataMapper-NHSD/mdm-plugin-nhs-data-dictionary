@@ -91,7 +91,9 @@ trait NhsDataDictionaryComponent <T extends MdmDomain > {
     }
 
     String getShortDescription() {
-        if(otherProperties["shortDescription"] && isActivePage()){
+        String profileShortDescription = otherProperties["shortDescription"]
+        String profileShortDescriptionFirstSentence = profileShortDescription? "" : getFirstSentence(profileShortDescription)
+        if(profileShortDescription && profileShortDescriptionFirstSentence && isActivePage()){
             return otherProperties["shortDescription"]
         } else {
             return calculateShortDescription()

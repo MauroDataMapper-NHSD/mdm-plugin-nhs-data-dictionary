@@ -62,7 +62,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
 
     String codesVersion
 
-    Set<NhsDDElement> instantiatedByElements = [] as Set
+    Set<NhsDDElement> instantiatedByElements = [] as Set<NhsDDElement>
 
     boolean getIsKey() {
         if (!otherProperties.containsKey("isKey")) {
@@ -275,6 +275,7 @@ class NhsDDAttribute implements NhsDataDictionaryComponent <DataElement>, Change
 
     @Override
     void updateWhereUsed() {
+        System.err.println(instantiatedByElements.collect{it.name})
         instantiatedByElements.each { NhsDDElement element ->
             whereUsed[element] = "is the data element of $name".toString()
         }

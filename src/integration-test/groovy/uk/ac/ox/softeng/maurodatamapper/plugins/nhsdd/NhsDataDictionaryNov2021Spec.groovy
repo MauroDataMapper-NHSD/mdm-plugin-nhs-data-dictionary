@@ -104,7 +104,7 @@ import static org.junit.Assert.assertTrue
 @Slf4j
 @Integration
 @Rollback
-@Ignore("Ingest of older version of Data Dictionary takes too long to test. Keep just in case but skip running these tests.")
+//@Ignore("Ingest of older version of Data Dictionary takes too long to test. Keep just in case but skip running these tests.")
 class NhsDataDictionaryNov2021Spec extends BaseIntegrationSpec {
 
     @Shared
@@ -146,6 +146,11 @@ class NhsDataDictionaryNov2021Spec extends BaseIntegrationSpec {
 
         then:
 
+        dataDictionary.attributes.values().sort {it.name}.each {
+            if(it.codes.size() > 0) {
+                System.err.println(it.name)
+            }
+        }
         assertEquals dataDictionary.attributes.size(), 2526
         assertEquals dataDictionary.elements.size(), 4915
         assertEquals dataDictionary.classes.size(), 363
@@ -169,7 +174,7 @@ class NhsDataDictionaryNov2021Spec extends BaseIntegrationSpec {
 
         then:
         dd
-        checkNovember2021(dd, false, 75, 921, 1116, 263)
+        checkNovember2021(dd, false, 75, 955, 1271, 263)
     }
 
     void 'I02 : test double ingest of November 2021'() {

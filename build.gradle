@@ -38,7 +38,6 @@ repositories {
     maven {url "https://mauro-repository.com/libs-snapshot-local"}
     maven {url "https://repo.grails.org/grails/core"}
     maven {url "https://packages.atlassian.com/mvn/maven-atlassian-external"}
-    maven {url "https://repository.ow2.org/nexus/content/repositories/public/"}
 }
 
 configurations {
