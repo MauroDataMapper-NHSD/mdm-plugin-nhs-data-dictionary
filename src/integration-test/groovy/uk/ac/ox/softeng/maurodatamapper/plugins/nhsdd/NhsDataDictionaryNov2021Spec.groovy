@@ -104,7 +104,7 @@ import static org.junit.Assert.assertTrue
 @Slf4j
 @Integration
 @Rollback
-//@Ignore("Ingest of older version of Data Dictionary takes too long to test. Keep just in case but skip running these tests.")
+@Ignore("Ingest of older version of Data Dictionary takes too long to test. Keep just in case but skip running these tests.")
 class NhsDataDictionaryNov2021Spec extends BaseIntegrationSpec {
 
     @Shared
