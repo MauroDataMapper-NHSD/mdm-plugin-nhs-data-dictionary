@@ -89,12 +89,60 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
 
     @Override
     DictionaryItem produceDiff(DictionaryItem previous) {
+
+        boolean formatLengthSectionChanged = false;
+        boolean defaultCodeSectionChanged = false;
+        boolean descriptionSectionChanged = false;
         List<Section> diffSections = []
         this.sections.each {currentSection ->
             Section previousSection = previous ? previous.sections.find { it.type == currentSection.type } : null
             Section diffSection = currentSection.produceDiff(previousSection)
             if (diffSection) {
                 diffSections.add(diffSection)
+
+                if("Data Element".equals(this.stereotype)){
+                    
+                    if("formatLength".equals(currentSection.type)){
+                        formatLengthSectionChanged = true;
+                    }
+                    if("defaultCodes".equals(currentSection.type)){
+                        defaultCodeSectionChanged = true;
+                    }
+                }
+
+                if("Attribute".equals(this.stereotype)){
+
+                    if("description".equals(currentSection.type)){
+                        descriptionSectionChanged = true;
+                    }
+                }
+            } else {
+
+                if("Data Element".equals(this.stereotype)){
+
+                    if("formatLength".equals(currentSection.type)){
+                        Section formatlengthsection = ((FormatLengthSection)currentSection).addFormatLengthSection(previousSection)
+                        diffSections.add(formatlengthsection)
+                        log.warn("came here formatLength::"+formatLengthSectionChanged)
+                    }
+                    if("defaultCodes".equals(currentSection.type)){
+                        Section defaultCodeSection = ((CodesSection)currentSection).addDefaultCodeSection()
+                        if(defaultCodeSection == null){
+                            log.warn("Section is null");
+                            diffSections.add(defaultCodeSection)
+                        }
+                        log.warn("came here defaultcodes::"+defaultCodeSectionChanged)
+                    }
+                }
+
+                if("Attribute".equals(this.stereotype)){
+
+                    if("description".equals(currentSection.type)){
+                        Section descriptionSection = ((DescriptionSection)currentSection).addDescriptionSection()
+                        diffSections.add(descriptionSection)
+                        log.warn("came here descriptionSectionChanged::"+descriptionSectionChanged)
+                    }
+                }
             }
         }
 
@@ -109,7 +157,7 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
             this.name,
             this.state,
             this.outputClass,
-            getSummaryOfSectionTitlesForDiff(diffSections))
+            getSummaryOfSectionTitlesForDiff(diffSections,this.stereotype,formatLengthSectionChanged,defaultCodeSectionChanged,descriptionSectionChanged))
 
         diffSections.each {diffSection ->
             diff.addSection(diffSection)
@@ -194,7 +242,8 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
         writer.toString()
     }
 
-    private static String getSummaryOfSectionTitlesForDiff(List<Section> sections) {
+    private static String getSummaryOfSectionTitlesForDiff(List<Section> sections,String type,boolean formatLengthSectionChanged,
+        boolean defaultCodeSectionChanged,boolean descriptionSectionChanged) {
         if (sections.empty) {
             return ""
         }
@@ -207,6 +256,35 @@ class DictionaryItem implements DitaAware<Topic>, HtmlAware, DiffAware<Dictionar
             return Change.RETIRED_TYPE
         }
 
-        sections.collect { it.title }.join(", ")
+        List<Section> finalSectionList  = []
+        sections.each{element -> 
+                            if("Data Element".equals(type) && element.type.equals("formatLength")){
+
+                                 if(formatLengthSectionChanged){
+
+                                    finalSectionList.add(element)
+                                 } 
+
+                            } else if ("Data Element".equals(type) && element.type.equals("defaultCodes")){
+
+                                 if(defaultCodeSectionChanged){
+
+                                    finalSectionList.add(element)
+                                 } 
+
+                            } else if ("Attribute".equals(type) && element.type.equals("description")){
+
+                                 if(descriptionSectionChanged){
+
+                                    finalSectionList.add(element)
+                                 } 
+
+                            } else {
+                                finalSectionList.add(element)
+                            }  
+                               
+                      }
+
+        finalSectionList . collect {it.title }.join(", ")
     }
 }

@@ -264,6 +264,29 @@ class ChangePaper {
         NhsDataDictionary previousDataDictionary,
         boolean includeDataSets = false) {
         List<StereotypedChange> changedItems = []
+        
+       List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets)
+
+        changedItems += new StereotypedChange(
+            stereotypeName: "Data Set",
+            changedItems: dataSetChanges)
+
+         StereotypedChange elementChange = new StereotypedChange(
+            stereotypeName: "Data Element",
+            changedItems: compareMaps(thisDataDictionary.elements, previousDataDictionary?.elements))  
+
+         changedItems += elementChange   
+
+         StereotypedChange attributeChange = new StereotypedChange(
+            stereotypeName: "Attribute",
+            changedItems: compareMaps(thisDataDictionary.attributes, previousDataDictionary?.attributes))
+
+        changedItems += attributeChange  
+
+         changedItems += new StereotypedChange(
+            stereotypeName: "Class",
+            changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary?.classes))  
+
         changedItems += new StereotypedChange(
             stereotypeName: "NHS Business Definition",
             changedItems: compareMaps(thisDataDictionary.businessDefinitions, previousDataDictionary?.businessDefinitions))
@@ -272,31 +295,10 @@ class ChangePaper {
             stereotypeName: "Supporting Information",
             changedItems: compareMaps(thisDataDictionary.supportingInformation, previousDataDictionary?.supportingInformation))
 
-        StereotypedChange attributeChange = new StereotypedChange(
-            stereotypeName: "Attribute",
-            changedItems: compareMaps(thisDataDictionary.attributes, previousDataDictionary?.attributes))
-
-        changedItems += attributeChange
-
-        StereotypedChange elementChange = new StereotypedChange(
-            stereotypeName: "Data Element",
-            changedItems: compareMaps(thisDataDictionary.elements, previousDataDictionary?.elements))
-
-        changedItems += elementChange
-
-        changedItems += new StereotypedChange(
-            stereotypeName: "Class",
-            changedItems: compareMaps(thisDataDictionary.classes, previousDataDictionary?.classes))
-
-        List<ChangedItem> dataSetChanges = compareMaps(thisDataDictionary.dataSets, previousDataDictionary?.dataSets)
-
-        changedItems += new StereotypedChange(
-            stereotypeName: "Data Set",
-            changedItems: dataSetChanges)
-
         changedItems += new StereotypedChange(
             stereotypeName: "Data Set Constraint",
             changedItems: compareMaps(thisDataDictionary.dataSetConstraints, previousDataDictionary?.dataSetConstraints))
+
 
         if (includeDataSets && dataSetChanges.size() > 0) {
             Set<NhsDataDictionaryComponent> existingElementsForChanges = elementChange.getUniqueNewItems()

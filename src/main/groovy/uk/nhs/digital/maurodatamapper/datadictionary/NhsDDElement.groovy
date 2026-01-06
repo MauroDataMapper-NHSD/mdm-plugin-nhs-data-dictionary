@@ -197,7 +197,7 @@ class NhsDDElement implements NhsDataDictionaryComponent <DataElement>, ChangeAw
 
         if(!isRetired()) {
             if (definition.find(regex)) {
-                definition = definition.replaceFirst(regex, "").trim()
+                //definition = definition.replaceFirst(regex, "").trim()
                 otherProperties["suppressFirstSentence"] = 'false'
             } else {
                 //Node definitionXml = HtmlHelper.tidyAndConvertToNode("<p>" + definition + "<p>")
